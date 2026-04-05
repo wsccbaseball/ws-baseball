@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WS Baseball — Upload Game Data</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0f1117;
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+  }
+  .header p {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-top: 4px;
+  }
+  .card {
+    background: #1e2330;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid #2d3548;
+  }
+  .card h2 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 14px;
+  }
+  .drop-zone {
+    border: 2px dashed #3d4f6e;
+    border-radius: 10px;
+    padding: 36px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .drop-zone:hover, .drop-zone.active {
+    border-color: #4f8ef7;
+    background: #1a2540;
+  }
+  .drop-zone .icon { font-size: 36px; margin-bottom: 10px; }
+  .drop-zone p { font-size: 14px; color: #94a3b8; }
+  .drop-zone strong { color: #4f8ef7; }
+  #fileInput { display: none; }
+
+  .game-fields { display: grid; gap: 12px; margin-top: 4px; }
+  label { font-size: 13px; color: #94a3b8; display: block; margin-bottom: 4px; }
+  input[type="text"], input[type="date"], select {
+    width: 100%;
+    background: #141824;
+    border: 1px solid #2d3548;
+    border-radius: 8px;
+    color: #e2e8f0;
+    padding: 10px 12px;
+    font-size: 14px;
+    -webkit-appearance: none;
+  }
+  input[type="text"]:focus, input[type="date"]:focus, select:focus {
+    outline: none;
+    border-color: #4f8ef7;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn:active { opacity: 0.8; }
+  .btn-primary { background: #4f8ef7; color: #fff; }
+  .btn-primary:disabled { background: #2d3548; color: #64748b; cursor: not-allowed; }
+
+  .status-box {
+    display: none;
+    background: #141824;
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 16px;
+  }
+  .status-box.visible { display: block; }
+  .progress-bar-wrap {
+    background: #2d3548;
+    border-radius: 999px;
+    height: 8px;
+    margin: 10px 0;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: #4f8ef7;
+    border-radius: 999px;
+    transition: width 0.3s;
+    width: 0%;
+  }
+  .status-text { font-size: 13px; color: #94a3b8; }
+  .status-text.success { color: #4ade80; }
+  .status-text.error { color: #f87171; }
+
+  .file-info {
+    display: none;
+    background: #141824;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: #94a3b8;
+  }
+  .file-info.visible { display: block; }
+  .file-info span { color: #e2e8f0; font-weight: 500; }
+
+  .preview-table-wrap {
+    overflow-x: auto;
+    margin-top: 12px;
+    border-radius: 8px;
+    border: 1px solid #2d3548;
+  }
+  .preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+  .preview-table th {
+    background: #2d3548;
+    color: #94a3b8;
+    padding: 6px 10px;
+    text-align: left;
+    white-space: nowrap;
+  }
+  .preview-table td {
+    padding: 5px 10px;
+    border-top: 1px solid #1e2330;
+    color: #cbd5e1;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>⚾ WS Baseball</h1>
+  <p>Upload TrackMan Game Data</p>
+</div>
+
+<!-- Step 1: File -->
+<div class="card">
+  <h2>1 — Select CSV File</h2>
+  <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+    <div class="icon">📂</div>
+    <p><strong>Tap to select</strong> your TrackMan CSV</p>
+    <p style="margin-top:6px;font-size:12px;">or drag and drop here</p>
+  </div>
+  <input type="file" id="fileInput" accept=".csv">
+  <div class="file-info" id="fileInfo">
+    File: <span id="fileName">—</span> &nbsp;|&nbsp; Rows: <span id="rowCount">—</span>
+  </div>
+</div>
+
+<!-- Step 2: Game Info -->
+<div class="card">
+  <h2>2 — Confirm Game Info</h2>
+  <div class="game-fields">
+    <div>
+      <label>Game Date</label>
+      <input type="date" id="gameDate">
+    </div>
+    <div>
+      <label>Opponent</label>
+      <input type="text" id="opponent" placeholder="e.g. Wabash Valley College">
+    </div>
+    <div>
+      <label>Home / Away</label>
+      <select id="homeAway">
+        <option value="Home">Home</option>
+        <option value="Away">Away</option>
+      </select>
+    </div>
+    <div>
+      <label>Game ID (auto-filled from CSV, or edit)</label>
+      <input type="text" id="gameId" placeholder="e.g. WS_2026_04_05">
+    </div>
+  </div>
+</div>
+
+<!-- Step 3: Upload -->
+<div class="card">
+  <h2>3 — Upload to Database</h2>
+  <button class="btn btn-primary" id="uploadBtn" disabled onclick="startUpload()">
+    Select a CSV file first
+  </button>
+  <div class="status-box" id="statusBox">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="status-text" id="statusText">Preparing...</div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3NTAzNjUsImV4cCI6MjA2MDMyNjM2NX0.iINGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
+
+const TRACKMAN_COLS = [
+  'Date','Time','PAofInning','PitchofPA','Inning','Top/Bottom','Outs','Balls','Strikes',
+  'Pitcher','PitcherId','PitcherThrows','PitcherTeam','Batter','BatterId','BatterSide',
+  'BatterTeam','Catcher','CatcherId','CatcherTeam','TaggedPitchType','AutoPitchType',
+  'PitchCall','KorBB','TaggedHitType','PlayResult','RelSpeed','VertRelAngle','HorzRelAngle',
+  'SpinRate','SpinAxis','Tilt','RelHeight','RelSide','Extension','VertBreak',
+  'InducedVertBreak','HorzBreak','PlateLocHeight','PlateLocSide','ZoneSpeed',
+  'VertApprAngle','HorzApprAngle','ExitSpeed','Angle','Direction','Distance',
+  'Runner1B','Runner2B','Runner3B','GameID'
+];
+
+const NUMERIC_COLS = new Set([
+  'PAofInning','PitchofPA','Inning','Outs','Balls','Strikes','PitcherId','BatterId',
+  'CatcherId','RelSpeed','VertRelAngle','HorzRelAngle','SpinRate','SpinAxis','RelHeight',
+  'RelSide','Extension','VertBreak','InducedVertBreak','HorzBreak','PlateLocHeight',
+  'PlateLocSide','ZoneSpeed','VertApprAngle','HorzApprAngle','ExitSpeed','Angle',
+  'Direction','Distance'
+]);
+
+let parsedRows = [];
+
+// Drag and drop
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('active'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('active');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+
+document.getElementById('fileInput').addEventListener('change', e => {
+  if (e.target.files[0]) handleFile(e.target.files[0]);
+});
+
+function handleFile(file) {
+  if (!file.name.endsWith('.csv')) {
+    alert('Please select a CSV file.');
+    return;
+  }
+  document.getElementById('fileName').textContent = file.name;
+  document.getElementById('fileInfo').classList.add('visible');
+
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    complete: function(results) {
+      parsedRows = results.data;
+      document.getElementById('rowCount').textContent = parsedRows.length.toLocaleString() + ' pitches';
+
+      // Auto-fill game info from first row
+      const first = parsedRows[0];
+      if (first) {
+        if (first['Date']) document.getElementById('gameDate').value = first['Date'];
+        if (first['GameID']) document.getElementById('gameId').value = first['GameID'];
+      }
+
+      document.getElementById('uploadBtn').disabled = false;
+      document.getElementById('uploadBtn').textContent = `Upload ${parsedRows.length.toLocaleString()} Pitches`;
+    },
+    error: function(err) {
+      alert('Error reading CSV: ' + err.message);
+    }
+  });
+}
+
+async function startUpload() {
+  const gameId = document.getElementById('gameId').value.trim();
+  const opponent = document.getElementById('opponent').value.trim();
+  const homeAway = document.getElementById('homeAway').value;
+
+  if (!gameId) { alert('Please enter a Game ID.'); return; }
+
+  const statusBox = document.getElementById('statusBox');
+  const progressBar = document.getElementById('progressBar');
+  const statusText = document.getElementById('statusText');
+  const uploadBtn = document.getElementById('uploadBtn');
+
+  statusBox.classList.add('visible');
+  uploadBtn.disabled = true;
+
+  const BATCH = 100;
+  let uploaded = 0;
+  const total = parsedRows.length;
+
+  for (let i = 0; i < total; i += BATCH) {
+    const batch = parsedRows.slice(i, i + BATCH).map(row => {
+      const obj = {};
+      TRACKMAN_COLS.forEach(col => {
+        let val = row[col];
+        if (val === '' || val === undefined) {
+          obj[col] = null;
+        } else if (NUMERIC_COLS.has(col)) {
+          obj[col] = parseFloat(val) || null;
+        } else {
+          obj[col] = val;
+        }
+      });
+      // Override GameID with what user entered
+      obj['GameID'] = gameId;
+      return obj;
+    });
+
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/pitches`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(batch)
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      statusText.textContent = 'Error: ' + err;
+      statusText.className = 'status-text error';
+      uploadBtn.disabled = false;
+      return;
+    }
+
+    uploaded += batch.length;
+    const pct = Math.round((uploaded / total) * 100);
+    progressBar.style.width = pct + '%';
+    statusText.textContent = `Uploading... ${uploaded.toLocaleString()} / ${total.toLocaleString()} pitches`;
+  }
+
+  progressBar.style.width = '100%';
+  statusText.textContent = `✅ Done! ${total.toLocaleString()} pitches uploaded successfully.`;
+  statusText.className = 'status-text success';
+  uploadBtn.textContent = 'Upload Another Game';
+  uploadBtn.disabled = false;
+}
+</script>
+</body>
+</html>
