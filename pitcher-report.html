@@ -534,7 +534,7 @@ async function generate() {
     var forAngle = fbRows.length > 3 ? fbRows : pitchData;
     var avgRelH = forAngle.reduce(function(s, d) { return s + d.relh; }, 0) / forAngle.length;
     var avgRelS = forAngle.reduce(function(s, d) { return s + Math.abs(d.relside); }, 0) / forAngle.length;
-    var armAngleStr = (avgRelH && avgRelS) ? Math.round(Math.atan2(avgRelH, avgRelS) * (180 / Math.PI)) + '\u00b0' : '--';
+    var armAngleStr = (avgRelH && avgRelS) ? Math.round(Math.atan2(avgRelH-5.5, avgRelS) * (180 / Math.PI)) + '\u00b0' : '--';
 
     var hand = rows[0].PitcherThrows || 'R';
     var handStr = (hand === 'Left' || hand === 'L') ? 'LHP' : 'RHP';
