@@ -179,10 +179,13 @@ document.getElementById('pdfInput').addEventListener('change',async function(){
       fullText+=content.items.map(function(item){return item.str;}).join(' ')+' \n';
     }
     pdfStats=parsePDF(fullText);
-    var names=Object.keys(pdfStats);
-    zone.className='upload-zone done';
-    zone.innerHTML=names.length?'<p>Found '+names.length+' WS pitcher(s): '+names.join(', ')+'</p>':'<p style="color:#fbbf24">No WS pitchers found - check PDF</p>';
-    checkReady();
+var names=Object.keys(pdfStats);
+// DEBUG - remove after fixing
+console.log('RAW TEXT SAMPLE:', fullText.substring(0,3000));
+console.log('PDF STATS FOUND:', JSON.stringify(pdfStats));
+zone.className='upload-zone done';
+zone.innerHTML=names.length?'<p>Found '+names.length+' pitcher(s): '+names.join(', ')+'</p>':'<p style="color:#fbbf24">No WS pitchers found</p>';
+checkReady();
   }catch(e){zone.innerHTML='<p style="color:#f87171">Error: '+e.message+'</p>';}
 });
 
