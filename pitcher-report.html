@@ -636,17 +636,17 @@ function drawLoc(id,side,data){
 }
 
 function drawBrk(id,data){
-  var s=setupCanvas(id,200,185);
+  var s=setupCanvas(id,200,210);
   var ctx=s.ctx,W=s.W,H=s.H;
   var xMin=-25,xMax=25,yMin=-20,yMax=30;
   function mx(v){return(v-xMin)/(xMax-xMin)*(W-48)+28;}
-  function my(v){return H-24-((v-yMin)/(yMax-yMin)*(H-40));}
+  function my(v){return H-34-((v-yMin)/(yMax-yMin)*(H-52));}
   ctx.fillStyle='#f8fafd';ctx.fillRect(0,0,W,H);
   ctx.strokeStyle='#dde4ef';ctx.lineWidth=0.7;
-  [-20,-10,0,10,20].forEach(function(v){ctx.beginPath();ctx.moveTo(mx(v),8);ctx.lineTo(mx(v),H-20);ctx.stroke();});
+  [-20,-10,0,10,20].forEach(function(v){ctx.beginPath();ctx.moveTo(mx(v),8);ctx.lineTo(mx(v),H-30);ctx.stroke();});
   [-20,-10,0,10,20].forEach(function(v){ctx.beginPath();ctx.moveTo(22,my(v));ctx.lineTo(W-12,my(v));ctx.stroke();});
   ctx.strokeStyle='#999';ctx.lineWidth=1;ctx.setLineDash([3,3]);
-  ctx.beginPath();ctx.moveTo(mx(0),8);ctx.lineTo(mx(0),H-20);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(mx(0),8);ctx.lineTo(mx(0),H-30);ctx.stroke();
   ctx.beginPath();ctx.moveTo(22,my(0));ctx.lineTo(W-12,my(0));ctx.stroke();
   ctx.setLineDash([]);
   var fs=Math.max(7,W*0.045);
