@@ -212,7 +212,7 @@ var stats={};
   var lineRe=/([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){1,3})\s*(?:\([^)]*\))?\s*(\d+\.\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/g;
   var m;
   while((m=lineRe.exec(section))!==null){
-    var name=m[1].replace(/^.*?\b(?:GO|NP)\s+/i,'').trim();
+  var name=m[1].replace(/^(GO|NP|FO)\s+/i,'').trim();
     var lower=name.toLowerCase();
     if(lower==='totals'||lower.indexOf('cleveland')>-1||lower.indexOf('walters')>-1||lower.indexOf('community')>-1||lower.indexOf('college')>-1)continue;
     stats[name]={ip:m[2],h:m[3],r:m[4],er:m[5],bb:m[6],so:m[7],hr:m[8],wp:m[9],bk:m[10],hp:m[11],ibb:m[12],ab:m[13],bf:m[14],fo:m[15],go:m[16],np:m[17]};
