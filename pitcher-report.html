@@ -191,30 +191,22 @@ checkReady();
 
 function parsePDF(text){
 var stats={};
-  // Find WS section - flexible match
-  var wsIdx=text.search(/WALTERS\s+STATE\s+COMMUNITY\s+COLLEGE\s+IP/i);
-  if(wsIdx<0){
-    // Try finding it after the opponent totals
-    wsIdx=text.search(/WALTERS\s+STATE\s+COMMUNITY\s+COLLEGE/ig);
-    // Find second occurrence (first is the team name header)
-    if(wsIdx>-1){
-      var second=text.substring(wsIdx+10).search(/WALTERS\s+STATE\s+COMMUNITY\s+COLLEGE/i);
-      if(second>-1)wsIdx=wsIdx+10+second;
-    }
-  }
+  // Find WS pitching section header row
+  var wsIdx=text.search(/WALTERS\s+STATE\s+COMMUNITY\s+COLLEGE\s+IP\s+H\s+R\s+ER/i);
   if(wsIdx<0)return stats;
-  var section=text.substring(wsIdx,wsIdx+3000);
-  // Cut off at Totals
+  // Start AFTER the header row - skip past "...FO GO NP"
+  var headerEnd=text.indexOf('NP',wsIdx);
+  if(headerEnd<0)return stats;
+  var section=text.substring(headerEnd+2,headerEnd+2000);
+  // Cut at Totals
   var totalIdx=section.search(/Totals/i);
   if(totalIdx>0)section=section.substring(0,totalIdx);
-  // Match: Name (optional record) IP H R ER BB SO HR WP BK HP IBB AB BF FO GO NP
-  // IP is always x.x or x format with decimal
-  var lineRe=/([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){1,3})\s*(?:\([^)]*\))?\s*(\d+\.\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/g;
+  // Match pitcher lines: Name (optional record) IP H R ER BB SO HR WP BK HP IBB AB BF FO GO NP
+  var lineRe=/([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\s*(?:\([^)]*\))?\s*(\d+\.\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/g;
   var m;
   while((m=lineRe.exec(section))!==null){
-    var name=m[1].replace(/^\s*(NP|GO|FO)\s+/i,'').trim();
-    var lower=name.toLowerCase();
-    if(lower==='totals'||lower.indexOf('cleveland')>-1||lower.indexOf('walters')>-1||lower.indexOf('community')>-1||lower.indexOf('college')>-1)continue;
+    var name=m[1].trim();
+    if(name.toLowerCase()==='totals')continue;
     stats[name]={ip:m[2],h:m[3],r:m[4],er:m[5],bb:m[6],so:m[7],hr:m[8],wp:m[9],bk:m[10],hp:m[11],ibb:m[12],ab:m[13],bf:m[14],fo:m[15],go:m[16],np:m[17]};
   }
   return stats;
