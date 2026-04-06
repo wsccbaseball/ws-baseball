@@ -636,27 +636,27 @@ function drawLoc(id,side,data){
 }
 
 function drawBrk(id,data){
-  var s=setupCanvas(id,200,210);
+  var s=setupCanvas(id,200,185);
   var ctx=s.ctx,W=s.W,H=s.H;
   var xMin=-25,xMax=25,yMin=-20,yMax=30;
   function mx(v){return(v-xMin)/(xMax-xMin)*(W-48)+28;}
-  function my(v){return H-34-((v-yMin)/(yMax-yMin)*(H-52));}
+  function my(v){return H-24-((v-yMin)/(yMax-yMin)*(H-40));}
   ctx.fillStyle='#f8fafd';ctx.fillRect(0,0,W,H);
   ctx.strokeStyle='#dde4ef';ctx.lineWidth=0.7;
-  [-20,-10,0,10,20].forEach(function(v){ctx.beginPath();ctx.moveTo(mx(v),8);ctx.lineTo(mx(v),H-30);ctx.stroke();});
+  [-20,-10,0,10,20].forEach(function(v){ctx.beginPath();ctx.moveTo(mx(v),8);ctx.lineTo(mx(v),H-20);ctx.stroke();});
   [-20,-10,0,10,20].forEach(function(v){ctx.beginPath();ctx.moveTo(22,my(v));ctx.lineTo(W-12,my(v));ctx.stroke();});
   ctx.strokeStyle='#999';ctx.lineWidth=1;ctx.setLineDash([3,3]);
-  ctx.beginPath();ctx.moveTo(mx(0),8);ctx.lineTo(mx(0),H-30);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(mx(0),8);ctx.lineTo(mx(0),H-20);ctx.stroke();
   ctx.beginPath();ctx.moveTo(22,my(0));ctx.lineTo(W-12,my(0));ctx.stroke();
   ctx.setLineDash([]);
   var fs=Math.max(7,W*0.045);
   ctx.fillStyle='#666';ctx.font=fs+'px Barlow Condensed,sans-serif';ctx.textAlign='center';
-  ctx.fillText('\u2190 Glove',mx(-13),H-6);
-  ctx.fillText('Arm \u2192',mx(13),H-6);
+  ctx.fillText('← Glove',mx(-13),H-4);
+  ctx.fillText('Arm →',mx(13),H-4);
   ctx.save();ctx.translate(10,my(5));ctx.rotate(-Math.PI/2);
   ctx.fillText('iVB (in)',0,0);ctx.restore();
   ctx.font=Math.max(6,W*0.038)+'px Barlow,sans-serif';ctx.fillStyle='#aaa';
-  [-20,-10,10,20].forEach(function(v){ctx.textAlign='center';ctx.fillText(v,mx(v),H-13);});
+  [-20,-10,10,20].forEach(function(v){ctx.textAlign='center';ctx.fillText(v,mx(v),H-16);});
   [-20,-10,0,10,20].forEach(function(v){ctx.textAlign='right';ctx.fillText(v,21,my(v)+3);});
   var r=W*0.033;
   data.forEach(function(d){
