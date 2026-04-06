@@ -187,24 +187,33 @@ document.getElementById('pdfInput').addEventListener('change',async function(){
 });
 
 function parsePDF(text){
-  var stats={};
-  var wsIdx=text.indexOf('WALTERS STATE COMMUNITY COLLEGE IP H R ER BB SO HR WP BK HP IBB AB BF FO GO NP');
-  if(wsIdx<0)wsIdx=text.indexOf('WALTERS STATE COMMUNITY COLLEGE');
-  if(wsIdx<0)return stats;
-  var section=text.substring(wsIdx,wsIdx+2000);
-  var totalIdx=section.indexOf('Totals');
-  if(totalIdx>0)section=section.substring(0,totalIdx);
-  var lines=section.split(/\n|\r/);
-  var numRe=/^(.+?)\s+(\d+\.\d+|\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/;
-  lines.forEach(function(line){
-    var line2=line.replace(/\([^)]+\)/g,'').trim();
-    var m=numRe.exec(line2);
-    if(m){
-      var name=m[1].trim();
-      if(name.toLowerCase()==='totals'||name.toLowerCase().indexOf('ip h r')>-1||name.toLowerCase().indexOf('cleveland')>-1||name.toLowerCase().indexOf('walters')>-1)return;
-      stats[name]={ip:m[2],h:m[3],r:m[4],er:m[5],bb:m[6],so:m[7],hr:m[8],wp:m[9],bk:m[10],hp:m[11],ibb:m[12],ab:m[13],bf:m[14],fo:m[15],go:m[16],np:m[17]};
+var stats={};
+  // Find WS section - flexible match
+  var wsIdx=text.search(/WALTERS\s+STATE\s+COMMUNITY\s+COLLEGE\s+IP/i);
+  if(wsIdx<0){
+    // Try finding it after the opponent totals
+    wsIdx=text.search(/WALTERS\s+STATE\s+COMMUNITY\s+COLLEGE/ig);
+    // Find second occurrence (first is the team name header)
+    if(wsIdx>-1){
+      var second=text.substring(wsIdx+10).search(/WALTERS\s+STATE\s+COMMUNITY\s+COLLEGE/i);
+      if(second>-1)wsIdx=wsIdx+10+second;
     }
-  });
+  }
+  if(wsIdx<0)return stats;
+  var section=text.substring(wsIdx,wsIdx+3000);
+  // Cut off at Totals
+  var totalIdx=section.search(/Totals/i);
+  if(totalIdx>0)section=section.substring(0,totalIdx);
+  // Match: Name (optional record) IP H R ER BB SO HR WP BK HP IBB AB BF FO GO NP
+  // IP is always x.x or x format with decimal
+  var lineRe=/([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){1,3})\s*(?:\([^)]*\))?\s*(\d+\.\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/g;
+  var m;
+  while((m=lineRe.exec(section))!==null){
+    var name=m[1].trim();
+    var lower=name.toLowerCase();
+    if(lower==='totals'||lower.indexOf('cleveland')>-1||lower.indexOf('walters')>-1||lower.indexOf('community')>-1||lower.indexOf('college')>-1)continue;
+    stats[name]={ip:m[2],h:m[3],r:m[4],er:m[5],bb:m[6],so:m[7],hr:m[8],wp:m[9],bk:m[10],hp:m[11],ibb:m[12],ab:m[13],bf:m[14],fo:m[15],go:m[16],np:m[17]};
+  }
   return stats;
 }
 
