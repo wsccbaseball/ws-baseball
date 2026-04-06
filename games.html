@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WS Baseball — Game Log</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; padding: 24px 16px; }
+  .header { text-align: center; margin-bottom: 28px; }
+  .header h1 { font-size: 22px; font-weight: 700; color: #fff; }
+  .header p { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+  .nav { display: flex; gap: 8px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap; }
+  .nav a { font-size: 12px; color: #4f8ef7; text-decoration: none; background: #1e2330; border: 1px solid #2d3548; border-radius: 20px; padding: 6px 14px; }
+  .summary-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .summary-item { background: #1e2330; border-radius: 10px; border: 1px solid #2d3548; padding: 14px 10px; text-align: center; }
+  .summary-item .val { font-size: 22px; font-weight: 700; color: #fff; }
+  .summary-item .lbl { font-size: 11px; color: #94a3b8; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .loading { text-align: center; padding: 40px; color: #94a3b8; font-size: 14px; }
+  .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid #2d3548; border-top-color: #4f8ef7; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 10px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .game-card { background: #1e2330; border-radius: 12px; border: 1px solid #2d3548; margin-bottom: 12px; overflow: hidden; }
+  .game-card-header { padding: 14px 16px; display: flex; justify-content: space-between; align-items: flex-start; }
+  .game-opponent { font-size: 15px; font-weight: 600; color: #fff; }
+  .game-date { font-size: 12px; color: #94a3b8; margin-top: 3px; }
+  .warn { font-size: 12px; color: #fbbf24; margin-top: 2px; }
+  .badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; flex-shrink: 0; }
+  .game-stats { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid #2d3548; }
+  .game-stat { padding: 10px; text-align: center; border-right: 1px solid #2d3548; }
+  .game-stat:last-child { border-right: none; }
+  .game-stat .sval { font-size: 18px; font-weight: 700; color: #e2e8f0; }
+  .game-stat .slbl { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 1px; }
+  .game-actions { border-top: 1px solid #2d3548; padding: 10px 16px; }
+  .btn-delete { width: 100%; padding: 8px; background: #2d1a1a; color: #f87171; border: 1px solid #4a2020; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+  .confirm-overlay.visible { display: flex; }
+  .confirm-box { background: #1e2330; border: 1px solid #2d3548; border-radius: 14px; padding: 24px; width: 100%; max-width: 340px; }
+  .confirm-box h3 { font-size: 16px; color: #fff; margin-bottom: 8px; }
+  .confirm-box p { font-size: 13px; color: #94a3b8; margin-bottom: 20px; line-height: 1.5; }
+  .confirm-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn-cancel { padding: 11px; background: #2d3548; color: #e2e8f0; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn-confirm-delete { padding: 11px; background: #f87171; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .empty { text-align: center; padding: 48px 20px; color: #64748b; }
+  .empty .icon { font-size: 40px; margin-bottom: 12px; }
+  .debug { background: #1e2330; border: 1px solid #2d3548; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 11px; color: #94a3b8; word-break: break-all; font-family: monospace; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #4ade80; color: #0f2a1a; font-weight: 600; font-size: 13px; padding: 10px 20px; border-radius: 20px; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
+  .toast.visible { opacity: 1; }
+  .toast.error { background: #f87171; color: #2a0f0f; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>⚾ WS Baseball</h1>
+  <p>Game Log</p>
+</div>
+
+<div class="nav">
+  <a href="upload.html">⬆ Upload Game</a>
+  <a href="index.html">🏠 Hub</a>
+</div>
+
+<div class="summary-bar">
+  <div class="summary-item"><div class="val" id="totalGames">—</div><div class="lbl">Games</div></div>
+  <div class="summary-item"><div class="val" id="totalPitches">—</div><div class="lbl">Pitches</div></div>
+  <div class="summary-item"><div class="val" id="dateRange">—</div><div class="lbl">Season</div></div>
+</div>
+
+<div id="debugBox" class="debug">Connecting to database...</div>
+<div id="gameList"><div class="loading"><div class="spinner"></div><div>Loading games...</div></div></div>
+
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <h3>Delete Game?</h3>
+    <p id="confirmText"></p>
+    <div class="confirm-btns">
+      <button class="btn-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="btn-confirm-delete" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
+
+let pendingDeleteGameId = null;
+
+async function loadGames() {
+  const debug = document.getElementById('debugBox');
+  try {
+    const url = `${SUPABASE_URL}/rest/v1/pitches?select=GameID,Date&order=Date.asc&limit=10000`;
+    debug.textContent = 'Fetching: ' + url;
+
+    const res = await fetch(url, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    });
+
+    debug.textContent = `Status: ${res.status} ${res.statusText}`;
+
+    const rows = await res.json();
+
+    if (!res.ok) {
+      debug.textContent = `Error ${res.status}: ${JSON.stringify(rows)}`;
+      document.getElementById('gameList').innerHTML = '';
+      return;
+    }
+
+    debug.textContent = `✅ Got ${rows.length} rows from database`;
+
+    if (!rows.length) {
+      showEmpty();
+      return;
+    }
+
+    // Group by GameID
+    const gameMap = {};
+    rows.forEach(r => {
+      const gid = r.GameID || 'Unknown';
+      if (!gameMap[gid]) gameMap[gid] = { gameId: gid, date: r.Date, pitchCount: 0 };
+      gameMap[gid].pitchCount++;
+    });
+
+    const games = Object.values(gameMap).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    const totalPitches = games.reduce((s, g) => s + g.pitchCount, 0);
+    document.getElementById('totalGames').textContent = games.length;
+    document.getElementById('totalPitches').textContent = totalPitches.toLocaleString();
+    if (games.length) {
+      const first = fmtDate(games[0].date);
+      const last = fmtDate(games[games.length - 1].date);
+      document.getElementById('dateRange').textContent = first === last ? first : first + '–' + last;
+    }
+
+    // Detect duplicate dates
+    const dateCounts = {};
+    games.forEach(g => { dateCounts[g.date] = (dateCounts[g.date] || 0) + 1; });
+
+    document.getElementById('gameList').innerHTML = games.map(g => `
+      <div class="game-card">
+        <div class="game-card-header">
+          <div>
+            <div class="game-opponent">${g.gameId}</div>
+            <div class="game-date">${fmtDateFull(g.date)}</div>
+            ${dateCounts[g.date] > 1 ? '<div class="warn">⚠️ Possible duplicate</div>' : ''}
+          </div>
+        </div>
+        <div class="game-stats">
+          <div class="game-stat"><div class="sval">${g.pitchCount}</div><div class="slbl">Pitches</div></div>
+          <div class="game-stat"><div class="sval">${fmtDate(g.date)}</div><div class="slbl">Date</div></div>
+        </div>
+        <div class="game-actions">
+          <button class="btn-delete" onclick="promptDelete('${g.gameId}', ${g.pitchCount})">🗑 Delete This Game</button>
+        </div>
+      </div>`).join('');
+
+  } catch(e) {
+    document.getElementById('debugBox').textContent = 'Exception: ' + e.message;
+    document.getElementById('gameList').innerHTML = '';
+  }
+}
+
+function fmtDate(d) {
+  if (!d) return '?';
+  const dt = new Date(d + 'T12:00:00');
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+function fmtDateFull(d) {
+  if (!d) return '?';
+  const dt = new Date(d + 'T12:00:00');
+  return dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function showEmpty() {
+  document.getElementById('totalGames').textContent = '0';
+  document.getElementById('totalPitches').textContent = '0';
+  document.getElementById('dateRange').textContent = '—';
+  document.getElementById('gameList').innerHTML = `<div class="empty"><div class="icon">📭</div><p>No games uploaded yet.<br><br><a href="upload.html">Upload your first game →</a></p></div>`;
+}
+
+function promptDelete(gameId, pitchCount) {
+  pendingDeleteGameId = gameId;
+  document.getElementById('confirmText').textContent = `Delete all ${pitchCount} pitches for "${gameId}"? This cannot be undone.`;
+  document.getElementById('confirmOverlay').classList.add('visible');
+}
+function closeConfirm() {
+  pendingDeleteGameId = null;
+  document.getElementById('confirmOverlay').classList.remove('visible');
+}
+async function confirmDelete() {
+  if (!pendingDeleteGameId) return;
+  const gameId = pendingDeleteGameId;
+  closeConfirm();
+  showToast('Deleting...', false, true);
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/pitches?GameID=eq.${encodeURIComponent(gameId)}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'return=minimal' }
+    });
+    if (!res.ok) { showToast('Delete failed', true); return; }
+    showToast('✅ Deleted');
+    setTimeout(() => loadGames(), 800);
+  } catch(e) { showToast('Error: ' + e.message, true); }
+}
+function showToast(msg, isError=false, persist=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast visible' + (isError ? ' error' : '');
+  if (!persist) setTimeout(() => t.className = 'toast', 2500);
+}
+
+loadGames();
+</script>
+</body>
+</html>
