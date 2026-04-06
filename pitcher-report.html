@@ -235,8 +235,8 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
       <canvas id="cLHH"></canvas>
     </div>
     <div class="chart-box">
-      <div class="chart-title">Pitch Breaks &mdash; Arm Angle</div>
-      <div class="chart-subtitle" id="cArmAngle">All Pitches</div>
+      <div class="chart-title">Pitch Movement</div>
+      <div class="chart-subtitle">All Pitches</div>
       <canvas id="cBrk"></canvas>
     </div>
     <div class="chart-box">
@@ -465,12 +465,7 @@ async function generate() {
     var paVal  = rows.filter(function(r) { return r.PitchofPA==='1'; }).length;
 
     // Arm angle atan2(RelHeight, abs(RelSide))
-    var fbRows = pitchData.filter(function(d) { return d.type==='Fastball'||d.type==='Sinker'; });
-    var forAngle = fbRows.length > 3 ? fbRows : pitchData;
-    var avgRelH = forAngle.reduce(function(s,d){return s+d.relh;},0)/forAngle.length;
-    var avgRelS = forAngle.reduce(function(s,d){return s+Math.abs(d.rels);},0)/forAngle.length;
-    var armAngleStr = (avgRelH && avgRelS)
-      ? Math.round(Math.atan2(avgRelH-5.9,avgRelS)*(180/Math.PI))+'\u00b0'
+      ? Math.round(Math.atan2(avgRelH,avgRelS)*(180/Math.PI))+'\u00b0'
       : 'All Pitches';
 
     var hand = rows[0].PitcherThrows || 'R';
@@ -503,7 +498,6 @@ async function generate() {
     document.getElementById('cHBP').textContent = bs ? bs.hbp : '—';
     document.getElementById('cSP').textContent  = strPct;
     document.getElementById('cWH').textContent  = allW;
-    document.getElementById('cArmAngle').textContent = armAngleStr;
 
     var types = Array.from(new Set(pitchData.map(function(d){return d.type;}))).filter(function(t){return TC[t];})
       .sort(function(a,b){return pitchData.filter(function(d){return d.type===b;}).length-pitchData.filter(function(d){return d.type===a;}).length;});
