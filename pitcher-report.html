@@ -470,7 +470,7 @@ async function generate() {
     var avgRelH = forAngle.reduce(function(s,d){return s+d.relh;},0)/forAngle.length;
     var avgRelS = forAngle.reduce(function(s,d){return s+Math.abs(d.rels);},0)/forAngle.length;
     var armAngleStr = (avgRelH && avgRelS)
-      ? Math.round(Math.atan2(avgRelH-5.5,avgRelS)*(180/Math.PI))+'\u00b0'
+      ? Math.round(Math.atan2(avgRelH-5.9,avgRelS)*(180/Math.PI))+'\u00b0'
       : 'All Pitches';
 
     var hand = rows[0].PitcherThrows || 'R';
