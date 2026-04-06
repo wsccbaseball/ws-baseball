@@ -87,66 +87,50 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 let pendingDeleteGameId = null;
 
-async function loadGames() {
-  const debug = document.getElementById('debugBox');
+async function loadGames() {const debug = document.getElementById('debugBox');
   try {
-    const url = `${SUPABASE_URL}/rest/v1/pitches?select=GameID,Date&order=Date.asc&limit=10000`;
-    debug.textContent = 'Fetching: ' + url;
-
-    const res = await fetch(url, {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`
-      }
-    });
-
-    debug.textContent = `Status: ${res.status} ${res.statusText}`;
-
-    const rows = await res.json();
-
-    if (!res.ok) {
-      debug.textContent = `Error ${res.status}: ${JSON.stringify(rows)}`;
-      document.getElementById('gameList').innerHTML = '';
-      return;
+    debug.textContent = 'Fetching data...';
+    let allRows = [];
+    let from = 0;
+    const batchSize = 1000;
+    while (true) {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/pitches?select=GameID,Date&order=Date.asc&limit=${batchSize}&offset=${from}`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Range-Unit': 'items', 'Range': `${from}-${from+batchSize-1}` } }
+      );
+      const rows = await res.json();
+      if (!res.ok) { debug.textContent = `Error ${res.status}: ${JSON.stringify(rows)}`; return; }
+      allRows = allRows.concat(rows);
+      if (rows.length < batchSize) break;
+      from += batchSize;
     }
-
+    const rows = allRows;
     debug.textContent = `✅ Got ${rows.length} rows from database`;
-
-    if (!rows.length) {
-      showEmpty();
-      return;
-    }
-
-    // Group by GameID
+    if (!rows.length) { showEmpty(); return; }
     const gameMap = {};
     rows.forEach(r => {
       const gid = r.GameID || 'Unknown';
       if (!gameMap[gid]) gameMap[gid] = { gameId: gid, date: r.Date, pitchCount: 0 };
       gameMap[gid].pitchCount++;
     });
-
-    const games = Object.values(gameMap).sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    const totalPitches = games.reduce((s, g) => s + g.pitchCount, 0);
+    const games = Object.values(gameMap).sort((a,b) => new Date(a.date) - new Date(b.date));
+    const totalPitches = games.reduce((s,g) => s + g.pitchCount, 0);
     document.getElementById('totalGames').textContent = games.length;
     document.getElementById('totalPitches').textContent = totalPitches.toLocaleString();
     if (games.length) {
       const first = fmtDate(games[0].date);
-      const last = fmtDate(games[games.length - 1].date);
+      const last = fmtDate(games[games.length-1].date);
       document.getElementById('dateRange').textContent = first === last ? first : first + '–' + last;
     }
-
-    // Detect duplicate dates
     const dateCounts = {};
-    games.forEach(g => { dateCounts[g.date] = (dateCounts[g.date] || 0) + 1; });
-
+    games.forEach(g => { dateCounts[g.date] = (dateCounts[g.date]||0)+1; });
     document.getElementById('gameList').innerHTML = games.map(g => `
       <div class="game-card">
         <div class="game-card-header">
           <div>
             <div class="game-opponent">${g.gameId}</div>
             <div class="game-date">${fmtDateFull(g.date)}</div>
-            ${dateCounts[g.date] > 1 ? '<div class="warn">⚠️ Possible duplicate</div>' : ''}
+            ${dateCounts[g.date]>1 ? '<div class="warn">⚠️ Possible duplicate</div>' : ''}
           </div>
         </div>
         <div class="game-stats">
@@ -154,10 +138,9 @@ async function loadGames() {
           <div class="game-stat"><div class="sval">${fmtDate(g.date)}</div><div class="slbl">Date</div></div>
         </div>
         <div class="game-actions">
-          <button class="btn-delete" onclick="promptDelete('${g.gameId}', ${g.pitchCount})">🗑 Delete This Game</button>
+          <button class="btn-delete" onclick="promptDelete('${g.gameId}',${g.pitchCount})">🗑 Delete This Game</button>
         </div>
       </div>`).join('');
-
   } catch(e) {
     document.getElementById('debugBox').textContent = 'Exception: ' + e.message;
     document.getElementById('gameList').innerHTML = '';
