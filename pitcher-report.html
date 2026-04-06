@@ -464,9 +464,6 @@ async function generate() {
     var strPct = np > 0 ? (allS/np*100).toFixed(1)+'%' : '—';
     var paVal  = rows.filter(function(r) { return r.PitchofPA==='1'; }).length;
 
-    // Arm angle atan2(RelHeight, abs(RelSide))
-      ? Math.round(Math.atan2(avgRelH,avgRelS)*(180/Math.PI))+'\u00b0'
-      : 'All Pitches';
 
     var hand = rows[0].PitcherThrows || 'R';
     var handStr = (hand==='Left'||hand==='L') ? 'LHP' : 'RHP';
