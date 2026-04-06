@@ -464,13 +464,13 @@ async function generate() {
     var strPct = np > 0 ? (allS/np*100).toFixed(1)+'%' : '—';
     var paVal  = rows.filter(function(r) { return r.PitchofPA==='1'; }).length;
 
-    // Arm angle atan2(RelHeight-5.5, abs(RelSide))
+    // Arm angle atan2(RelHeight, abs(RelSide))
     var fbRows = pitchData.filter(function(d) { return d.type==='Fastball'||d.type==='Sinker'; });
     var forAngle = fbRows.length > 3 ? fbRows : pitchData;
     var avgRelH = forAngle.reduce(function(s,d){return s+d.relh;},0)/forAngle.length;
     var avgRelS = forAngle.reduce(function(s,d){return s+Math.abs(d.rels);},0)/forAngle.length;
     var armAngleStr = (avgRelH && avgRelS)
-      ? Math.round(Math.atan2(avgRelH,avgRelS)*(180/Math.PI))+'\u00b0'
+      ? Math.round(Math.atan2(avgRelH-5.5,avgRelS)*(180/Math.PI))+'\u00b0'
       : 'All Pitches';
 
     var hand = rows[0].PitcherThrows || 'R';
