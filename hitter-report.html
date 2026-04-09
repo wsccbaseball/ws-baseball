@@ -635,43 +635,11 @@ function extractXBHFromNotes(text, csvName) {
     nameVariants.unshift((firstName[0] + '. ' + lastName).toLowerCase());
   }
 
-  // ── 1. Find the notes section for the batter's team ──────────────────────
-  // Determine which team section to look in based on BatterTeam
-  // Try both teams' notes — we'll search both and use whichever matches
   const result = { dbl: 0, tpl: 0, hr: 0 };
-
-  // Find all "Team Name: ..." note blocks
-  // Notes section identified by containing "2B -" or "HR -" patterns (with dash not parens)
-  const notesPat = /([A-Za-z\s]+(?:College|University|State|Community).*?):\s*((?:(?:2B|3B|HR|E|RBI|SB|CS|HBP|SAC|GIDP)\s*[-–].*?(?=\.|$))+)/gim;
-  let notesMatch;
-  const allNoteSections = [];
-
-  // Simpler approach: find lines that look like notes (contain "2B -" or "HR -")
-  const lines = text.split(/\n/);
-  let notesText = '';
-  let inNotes = false;
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    // Notes line: contains "2B:" or "HR:" or "2B -" etc after a team name
-    if (/\b(2B|3B|HR|SB|CS|RBI|HBP|SAC|GIDP|E)\s*[-–:]/i.test(line) && 
-        !/\(\d+-\d+\)/.test(line)) { // exclude play-by-play which has (0-0) patterns
-      notesText += ' ' + line;
-      inNotes = true;
-    } else if (inNotes && line.trim().length > 0 && !/^\s*$/.test(line)) {
-      // Continue notes for a couple lines
-      if (!/^(Inning|Top|Bottom|All Plays|Play by Play|Start:|Duration:)/i.test(line)) {
-        notesText += ' ' + line;
-      } else {
-        inNotes = false;
-      }
-    }
-  }
-
-  if (!notesText) {
-    // Fallback: search the whole text for label patterns
-    notesText = text;
-  }
+  // Use full text directly — PDF.js flattens newlines so line splitting
+  // is unreliable. The parseCategory regex stops at periods/next labels
+  // so play-by-play (which uses "RBI (0-0)" not "RBI -") won't interfere.
+  const notesText = text;
 
   // ── 2. Parse each XBH category strictly ──────────────────────────────────
   // Pattern: "2B - Player1; Player2 2; Player3" or "2B: Player1, Player2"
