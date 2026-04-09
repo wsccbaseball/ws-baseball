@@ -36,42 +36,36 @@ padding: 24px 16px 48px;
 header {
 display: -webkit-flex;
 display: flex;
--webkit-align-items: flex-end;
-align-items: flex-end;
--webkit-justify-content: space-between;
-justify-content: space-between;
+-webkit-flex-direction: column;
+flex-direction: column;
+-webkit-align-items: center;
+align-items: center;
 padding-bottom: 20px;
 border-bottom: 1px solid var(–border);
 margin-bottom: 28px;
+gap: 12px;
 }
 
-.wordmark {
-font-family: ‘IBM Plex Mono’, monospace;
-font-size: 11px;
-font-weight: 500;
-letter-spacing: 0.15em;
-text-transform: uppercase;
-color: var(–text-dim);
+#logoWrap {
+display: none;
 }
 
-.wordmark span {
-color: var(–accent);
+#logoWrap.has-logo {
+display: block;
 }
 
-h1 {
-font-family: ‘IBM Plex Mono’, monospace;
-font-size: 22px;
+#logoWrap img {
+height: 60px;
+width: auto;
+}
+
+.header-title {
+font-family: ‘IBM Plex Sans’, sans-serif;
+font-size: 18px;
 font-weight: 600;
-letter-spacing: -0.02em;
 color: var(–text);
-line-height: 1.1;
-margin-bottom: 4px;
-}
-
-.subtitle {
-font-size: 13px;
-color: var(–text-mid);
-font-weight: 300;
+text-align: center;
+letter-spacing: 0.01em;
 }
 
 /* Config section */
@@ -373,11 +367,10 @@ display: none;
 <body>
 
 <header>
-  <div>
-    <h1>TrackMan<br>Uploader</h1>
-    <div class="subtitle">Walters State Baseball · 2026</div>
+  <div id="logoWrap" class="has-logo">
+    <img src="https://wsccbaseball.github.io/ws-baseball/WS-RGB.png" alt="Walters State">
   </div>
-  <div class="wordmark"><span>WS</span> Baseball<br>Analytics</div>
+  <div class="header-title">Walters State Baseball 2026</div>
 </header>
 
 <!-- Upload zone -->
