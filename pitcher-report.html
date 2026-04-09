@@ -335,7 +335,7 @@ async function supaFetch(path) {
 // ── Load games ───────────────────────────────────────────────────────────────
 async function loadGames() {
   try {
-    var rows = await supaFetch('games?select=game_id,display_name,date,box_score_url&order=date');
+    var rows = await supaFetch('games?select=game_id,display_name,date,box_score_url&order=date.desc');
     var sel = document.getElementById('gameSelect');
     sel.innerHTML = '<option value="">— select game —</option>';
     rows.forEach(function(g) {
