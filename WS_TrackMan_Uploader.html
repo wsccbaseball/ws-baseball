@@ -532,7 +532,9 @@ NUMERIC_COLS.forEach(function(c) { NUMERIC_SET[c] = true; });
 
 function mapRow(csvRow) {
   var out = {};
-  Object.keys(csvRow).forEach(function(key) {
+  var keys = dbColumns ? dbColumns : Object.keys(csvRow);
+  keys.forEach(function(key) {
+    if (!(key in csvRow)) return;
     var val = csvRow[key];
     if (val === '' || val === null || val === undefined) {
       out[key] = null;
@@ -549,6 +551,20 @@ function mapRow(csvRow) {
 // ── State ───────────────────────────────────────────────────────────
 var parsedRows = [];
 var gameIds = [];
+var dbColumns = null;
+
+async function fetchDbColumns(url, key) {
+  try {
+    var res = await fetch(url + '/rest/v1/', {
+      headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
+    });
+    var spec = await res.json();
+    var props = spec && spec.definitions && spec.definitions.pitches && spec.definitions.pitches.properties;
+    if (props) {
+      dbColumns = Object.keys(props).filter(function(c) { return c !== 'id' && c !== 'created_at'; });
+    }
+  } catch(e) { dbColumns = null; }
+}
 
 // ── File input ──────────────────────────────────────────────────────
 document.getElementById('fileInput').addEventListener('change', function(e) {
@@ -681,6 +697,11 @@ document.getElementById('uploadBtn').addEventListener('click', async function() 
   var total = parsedRows.length;
   var uploaded = 0;
   var errors = 0;
+
+  // Fetch DB schema if not yet loaded
+  if (!dbColumns) {
+    await fetchDbColumns(url, key);
+  }
 
   log('info', 'Starting upload: ' + total + ' pitches in ' + Math.ceil(total/BATCH) + ' batch(es)');
 
