@@ -284,7 +284,7 @@ function fmtDate(d){
 
 // ─── Strike Zone SVG ─────────────────────────────────────────────────────────
 const SVG_W=300, SVG_H=380;
-const X_MIN=-2.5, X_MAX=2.5, Y_MIN=-0.4, Y_MAX=5.2;
+const X_MIN=-1.8, X_MAX=1.8, Y_MIN=0.5, Y_MAX=4.6;
 
 function toSVG(x,y){
   return [
@@ -313,7 +313,7 @@ function buildZoneSVG(missedCalls, zoneTop, zoneBottom, halfW, SHADOW=0.0833){
   const shadowPx = (SHADOW/(X_MAX-X_MIN))*SVG_W;
   const shadowPy = (SHADOW/(Y_MAX-Y_MIN))*SVG_H;
   const shadowBox = `<rect x="${zl-shadowPx}" y="${zt-shadowPy}" width="${zw+shadowPx*2}" height="${zh+shadowPy*2}"
-    fill="none" stroke="#e07020" stroke-width="1.2" stroke-dasharray="4,3" opacity="0.6"/>`;
+    fill="none" stroke="#333333" stroke-width="1" stroke-dasharray="4,3" opacity="0.8"/>`;
 
   let dots='';
   for(const p of missedCalls){
@@ -321,16 +321,15 @@ function buildZoneSVG(missedCalls, zoneTop, zoneBottom, halfW, SHADOW=0.0833){
     const [dx,dy]=toSVG(p.side, p.height);
     const isFP=(p.type==='FP');
     const isBorderline=(p.cat==='borderline');
-    let color, glow;
+    let color;
     if(isBorderline){
-      color='#e07020'; glow='rgba(224,112,32,0.30)';
+      color='#e07020';
     } else if(isFP){
-      color='#d93025'; glow='rgba(217,48,37,0.25)';
+      color='#d93025';
     } else {
-      color='#1a6fb5'; glow='rgba(26,111,181,0.25)';
+      color='#1a6fb5';
     }
-    dots+=`<circle cx="${dx}" cy="${dy}" r="7" fill="${glow}" stroke="none"/>`;
-    dots+=`<circle cx="${dx}" cy="${dy}" r="4.5" fill="${color}" stroke="none" opacity="0.9"/>`;
+    dots+=`<circle cx="${dx}" cy="${dy}" r="3" fill="${color}" stroke="rgba(0,0,0,0.4)" stroke-width="0.8"/>`;
   }
 
   return `<svg id="zone-svg" viewBox="0 0 ${SVG_W} ${SVG_H}" xmlns="http://www.w3.org/2000/svg">
@@ -653,7 +652,7 @@ function renderScorecard(stats){
         <div class="zone-legend">
           <div class="leg"><div class="leg-dot" style="background:#d93025"></div>Bad Strike (clear)</div>
           <div class="leg"><div class="leg-dot" style="background:#1a6fb5"></div>Bad Ball (clear)</div>
-          <div class="leg"><div class="leg-dot" style="background:#e07020"></div>Borderline (½ weight)</div>
+          <div class="leg"><div class="leg-dot" style="background:#e07020; border:1px solid #333"></div>Borderline (½ weight)</div>
         </div>
       </div>
       <div class="right-panel">
