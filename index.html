@@ -314,10 +314,7 @@ display: block;
     <span class="stat-num" id="dbPitchers">—</span>
     <span class="stat-lbl">Pitchers</span>
   </div>
-  <div class="stat-item">
-    <span class="stat-num" id="dbRecord">—</span>
-    <span class="stat-lbl">Record</span>
-  </div>
+
 </div>
 
 <!-- Data Tools -->
@@ -421,11 +418,6 @@ async function loadStats() {
     var unique = new Set(pitchers.map(function(p) { return p.Pitcher; }));
     document.getElementById('dbPitchers').textContent = unique.size;
 
-    // Record from games table
-    var r4 = await fetch(SUPABASE_URL + '/rest/v1/games?select=game_id,home_team,away_team',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
-    var gData = await r4.json();
-    document.getElementById('dbRecord').textContent = gData.length + '-0';
 
   } catch(e) {
     // silently fail — stats bar just stays as dashes
