@@ -706,6 +706,46 @@ document.getElementById('uploadBtn').addEventListener('click', async function() 
   clearLog();
   hideResult();
 
+  // Step 0: check for duplicate GameIDs
+  var csvGameIds = Object.keys(parsedRows.reduce(function(acc, r) {
+    if (r.GameID) acc[r.GameID] = true;
+    return acc;
+  }, {}));
+
+  if (csvGameIds.length) {
+    try {
+      var dupCheck = await fetch(url + '/rest/v1/pitches?select=GameID&GameID=in.(' + csvGameIds.map(function(g) { return '"' + g + '"'; }).join(',') + ')&limit=1', {
+        headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
+      });
+      var dupData = await dupCheck.json();
+      if (dupData && dupData.length > 0) {
+        // Game already exists — just save display name to games table
+        log('info', 'Game already in database. Saving display name only...');
+        var displayName = document.getElementById('displayName').value.trim();
+        var firstRow = parsedRows[0] || {};
+        var gameRecord = {
+          game_id: firstRow.GameID || null,
+          display_name: displayName || null,
+          date: firstRow.Date || null,
+          home_team: firstRow.HomeTeam || null,
+          away_team: firstRow.AwayTeam || null,
+          pitch_count: parsedRows.length
+        };
+        await fetch(url + '/rest/v1/games', {
+          method: 'POST',
+          headers: { 'apikey': key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Prefer': 'return=minimal,resolution=merge-duplicates' },
+          body: JSON.stringify([gameRecord])
+        });
+        showProgress(false);
+        btn.disabled = false;
+        btn.textContent = 'Upload to Database';
+        showResult('success', '✓ Display name saved. Pitches already in database — skipped.');
+        log('ok', 'Game record updated: ' + (displayName || firstRow.GameID));
+        return;
+      }
+    } catch(e) {}
+  }
+
   // Step 1: discover DB columns via a test insert of empty row
   log('info', 'Fetching DB schema...');
   var validColumns = null;
