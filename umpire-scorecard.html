@@ -53,8 +53,8 @@ summary:hover{color:var(--text)}
 .error-msg{color:var(--red);font-size:.85rem;display:none}
 
 /* ---- SCORECARD WRAPPER ---- */
-#scorecard-screen{display:none;padding:.75rem;max-width:960px;margin:0 auto}
-.sc-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;gap:1rem}
+#scorecard-screen{display:none;padding:.4rem;max-width:960px;margin:0 auto}
+.sc-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;gap:.5rem}
 .back-btn{background:transparent;border:1px solid var(--border);color:var(--muted);
   border-radius:6px;padding:.4rem .9rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.8rem}
 .back-btn:hover{border-color:var(--text);color:var(--text)}
@@ -88,12 +88,12 @@ summary:hover{color:var(--text)}
 /* ── Row 1: Header ── */
 .sc-header-band{
   background:#1a3a5c;border-bottom:1px solid var(--border);
-  padding:.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;
+  padding:.4rem .75rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;
   grid-column:1/-1;
 }
-.sc-ump-name{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.08em;color:#ffffff;line-height:1}
+.sc-ump-name{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.08em;color:#ffffff;line-height:1}
 .sc-game-meta{text-align:right;line-height:1.3}
-.sc-teams{font-family:'Bebas Neue',sans-serif;font-size:1.25rem;letter-spacing:.06em}
+.sc-teams{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.06em}
 .sc-away{color:var(--red)}
 .sc-home{color:var(--blue)}
 .sc-vs{color:var(--muted);margin:0 .25rem;font-size:1rem}
@@ -107,13 +107,13 @@ summary:hover{color:var(--text)}
   border-bottom:1px solid var(--border);
 }
 .sstat{
-  padding:.6rem .5rem;border-right:1px solid var(--border);text-align:center;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;
+  padding:.3rem .25rem;border-right:1px solid var(--border);text-align:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1rem;
 }
 .sstat:last-child{border-right:none}
-.sstat-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
-.sstat-val{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;line-height:1;letter-spacing:.04em}
-.sstat-sub{font-size:.62rem;color:var(--muted);line-height:1.3;text-align:center}
+.sstat-label{font-size:.52rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.sstat-val{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;line-height:1;letter-spacing:.04em}
+.sstat-sub{font-size:.52rem;color:var(--muted);line-height:1.2;text-align:center}
 .val-gold{color:var(--gold)}
 .val-red{color:var(--red)}
 .val-blue{color:var(--blue)}
@@ -126,15 +126,20 @@ summary:hover{color:var(--text)}
   border-bottom:1px solid var(--border);
   min-height:0;
 }
+@media(max-width:600px){
+  .sc-body{grid-template-columns:1fr;}
+  .zone-panel{border-right:none;border-bottom:1px solid var(--border);padding:.5rem;}
+  .right-panel{}
+}
 
 /* Zone panel */
 .zone-panel{
-  padding:.9rem 1rem;border-right:1px solid var(--border);
-  display:flex;flex-direction:column;align-items:center;gap:.5rem;
+  padding:.4rem .5rem;border-right:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;gap:.25rem;
 }
 .zone-title{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);align-self:flex-start}
 .zone-svg-wrap{width:100%;flex:1;display:flex;align-items:center;justify-content:center}
-.zone-svg-wrap svg{width:100%;height:100%;max-height:360px}
+.zone-svg-wrap svg{width:100%;height:100%;max-height:240px}
 .zone-legend{display:flex;gap:1rem;font-size:.65rem;color:var(--muted);flex-wrap:wrap;justify-content:center}
 .leg{display:flex;align-items:center;gap:.35rem}
 .leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
@@ -142,14 +147,14 @@ summary:hover{color:var(--text)}
 /* Right panel: missed calls + ball/strike accuracy stacked */
 .right-panel{display:flex;flex-direction:column}
 
-.calls-panel{padding:.9rem 1rem;flex:1;border-bottom:1px solid var(--border)}
+.calls-panel{padding:.4rem .6rem;flex:1}
 .calls-title{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.2rem}
 .calls-sub{font-size:.62rem;color:var(--muted);margin-bottom:.6rem;font-style:italic}
-.missed-item{padding:.45rem 0;border-bottom:1px solid var(--border)}
+.missed-item{padding:.3rem 0;border-bottom:1px solid var(--border)}
 .missed-item:last-child{border-bottom:none}
 .missed-rank{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--gold);margin-right:.3rem}
-.missed-sit{font-size:.75rem;font-weight:600;margin-bottom:.15rem}
-.missed-detail{font-size:.68rem;color:var(--muted);line-height:1.4}
+.missed-sit{font-size:.68rem;font-weight:600;margin-bottom:.1rem}
+.missed-detail{font-size:.62rem;color:var(--muted);line-height:1.3}
 .missed-badge{display:inline-block;padding:.1rem .4rem;border-radius:3px;font-size:.62rem;font-weight:700;margin-left:.3rem}
 .badge-red{background:var(--red-dim);color:var(--red)}
 .badge-blue{background:var(--blue-dim);color:var(--blue)}
@@ -585,7 +590,7 @@ function renderScorecard(stats){
   // Missed calls list (top 5 by RE delta)
   const missedHtml = stats.missed.length===0
     ? '<p class="no-calls">✓ No missed calls found.</p>'
-    : stats.missed.slice(0,5).map((m,i)=>{
+    : stats.missed.slice(0,4).map((m,i)=>{
         const inn = m.inning?`Inn ${m.inning}${m.topBot?' ('+m.topBot+')':''}`:''
         const sit = `${inn}${m.outs!==undefined&&!isNaN(m.outs)?', '+m.outs+' out(s)':''}`
         const isBorderline = m.cat === 'borderline';
@@ -649,11 +654,7 @@ function renderScorecard(stats){
       <div class="zone-panel">
         <div class="zone-title">Missed Calls — Strike Zone (Catcher's View)</div>
         <div class="zone-svg-wrap">${zoneSVG}</div>
-        <div class="zone-legend">
-          <div class="leg"><div class="leg-dot" style="background:#d93025"></div>Bad Strike (clear)</div>
-          <div class="leg"><div class="leg-dot" style="background:#1a6fb5"></div>Bad Ball (clear)</div>
-          <div class="leg"><div class="leg-dot" style="background:#e07020; border:1px solid #333"></div>Borderline (½ weight)</div>
-        </div>
+
       </div>
       <div class="right-panel">
         <div class="calls-panel">
@@ -661,23 +662,12 @@ function renderScorecard(stats){
           <div class="calls-sub">ranked by run expectancy impact</div>
           ${missedHtml}
         </div>
-        <div class="acc-row">
-          <div class="acc-block">
-            <div class="acc-label">Called Ball Accuracy</div>
-            <div class="acc-pct val-blue">${Math.round(stats.ballAcc)}%</div>
-            <div class="acc-sub">${stats.FN} of ${stats.TN+stats.FN} called balls<br>were true strikes</div>
-          </div>
-          <div class="acc-block">
-            <div class="acc-label">Called Strike Accuracy</div>
-            <div class="acc-pct val-red">${Math.round(stats.strikeAcc)}%</div>
-            <div class="acc-sub">${stats.FP} of ${stats.TP+stats.FP} called strikes<br>were true balls</div>
-          </div>
-        </div>
+
       </div>
     </div>
 
     <!-- Footer -->
-    <div class="sc-footer">${stats.usingPerPitch?'Per-pitch zone (ZoneTop/ZoneBottom)':'Fixed zone '+stats.zoneTop+'ft–'+stats.zoneBottom+'ft'} · 17" plate width · TrackMan CSV</div>
+    <div class="sc-footer">TrackMan · Walters State Baseball Analytics</div>
   `;
 }
 
