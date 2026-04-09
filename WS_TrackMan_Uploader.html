@@ -705,33 +705,55 @@ document.getElementById('uploadBtn').addEventListener('click', async function() 
 
   log('info', 'Starting upload: ' + total + ' pitches in ' + Math.ceil(total/BATCH) + ' batch(es)');
 
-  for (var i = 0; i < total; i += BATCH) {
-    var batch = parsedRows.slice(i, i + BATCH).map(mapRow);
-    var batchNum = Math.floor(i/BATCH) + 1;
+  var skipColumns = {};
 
-    try {
-      var res = await fetch(url + '/rest/v1/pitches', {
-        method: 'POST',
-        headers: {
-          'apikey': key,
-          'Authorization': 'Bearer ' + key,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify(batch)
+  for (var i = 0; i < total; i += BATCH) {
+    var batchNum = Math.floor(i/BATCH) + 1;
+    var success = false;
+    var attempts = 0;
+
+    while (!success && attempts < 20) {
+      attempts++;
+      var batch = parsedRows.slice(i, i + BATCH).map(function(row) {
+        var mapped = mapRow(row);
+        Object.keys(skipColumns).forEach(function(k) { delete mapped[k]; });
+        return mapped;
       });
 
-      if (res.ok) {
-        uploaded += batch.length;
-        log('ok', 'Batch ' + batchNum + ': ' + batch.length + ' rows inserted');
-      } else {
-        var errText = await res.text();
+      try {
+        var res = await fetch(url + '/rest/v1/pitches', {
+          method: 'POST',
+          headers: {
+            'apikey': key,
+            'Authorization': 'Bearer ' + key,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify(batch)
+        });
+
+        if (res.ok) {
+          uploaded += batch.length;
+          log('ok', 'Batch ' + batchNum + ': ' + batch.length + ' rows inserted');
+          success = true;
+        } else {
+          var errText = await res.text();
+          // Check if it's an unknown column error — if so, skip that column and retry
+          var colMatch = errText.match(/Could not find the '([^']+)' column/);
+          if (colMatch) {
+            skipColumns[colMatch[1]] = true;
+            log('info', 'Skipping unknown column: ' + colMatch[1]);
+          } else {
+            errors += batch.length;
+            log('err', 'Batch ' + batchNum + ' failed: ' + errText.substring(0, 120));
+            success = true; // don't retry non-column errors
+          }
+        }
+      } catch(e) {
         errors += batch.length;
-        log('err', 'Batch ' + batchNum + ' failed: ' + errText.substring(0, 100));
+        log('err', 'Batch ' + batchNum + ' error: ' + e.message);
+        success = true;
       }
-    } catch(e) {
-      errors += batch.length;
-      log('err', 'Batch ' + batchNum + ' error: ' + e.message);
     }
 
     var pct = Math.round(Math.min((i + BATCH) / total * 100, 100));
