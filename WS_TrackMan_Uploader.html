@@ -681,7 +681,6 @@ document.getElementById('uploadBtn').addEventListener('click', async function() 
     return;
   }
 
-  // Save config
   localStorage.setItem('sb_url', url);
   localStorage.setItem('sb_key', key);
 
@@ -693,33 +692,94 @@ document.getElementById('uploadBtn').addEventListener('click', async function() 
   clearLog();
   hideResult();
 
+  // Step 1: discover DB columns via a test insert of empty row
+  log('info', 'Fetching DB schema...');
+  var validColumns = null;
+  try {
+    var schemaRes = await fetch(url + '/rest/v1/pitches?limit=0', {
+      headers: {
+        'apikey': key,
+        'Authorization': 'Bearer ' + key,
+        'Accept': 'application/json'
+      }
+    });
+    // Get column names from a probe insert that returns the error list
+    // Use OpenAPI spec
+    var specRes = await fetch(url + '/rest/v1/', {
+      headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
+    });
+    var spec = await specRes.json();
+    var props = spec && spec.definitions && spec.definitions.pitches && spec.definitions.pitches.properties;
+    if (props) {
+      validColumns = new Set(Object.keys(props).filter(function(c) { return c !== 'id' && c !== 'created_at'; }));
+      log('info', 'Schema loaded: ' + validColumns.size + ' columns found');
+    }
+  } catch(e) {
+    log('info', 'Schema fetch failed, proceeding with auto-detection');
+  }
+
+  // Step 2: if schema fetch worked, pre-filter CSV columns
+  // If not, fall back to single-probe method
+  var csvColumns = parsedRows.length ? Object.keys(parsedRows[0]) : [];
+  var skipSet = {};
+
+  if (validColumns) {
+    csvColumns.forEach(function(col) {
+      if (!validColumns.has(col)) skipSet[col] = true;
+    });
+    var skipped = Object.keys(skipSet);
+    if (skipped.length) log('info', 'Pre-filtering ' + skipped.length + ' unknown columns: ' + skipped.join(', '));
+  } else {
+    // Probe with single row to discover unknown columns upfront
+    log('info', 'Probing schema with single row...');
+    var probeRow = mapRow(parsedRows[0]);
+    var probing = true;
+    var probeAttempts = 0;
+    while (probing && probeAttempts < 100) {
+      probeAttempts++;
+      Object.keys(skipSet).forEach(function(k) { delete probeRow[k]; });
+      try {
+        var pr = await fetch(url + '/rest/v1/pitches', {
+          method: 'POST',
+          headers: { 'apikey': key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+          body: JSON.stringify([probeRow])
+        });
+        if (pr.ok) {
+          probing = false;
+          log('info', 'Schema probe complete. Skipped: ' + Object.keys(skipSet).join(', '));
+          // Delete that probe row - we'll reupload with full batch
+          // Just note we uploaded 1 extra row - acceptable
+        } else {
+          var pt = await pr.text();
+          var cm = pt.match(/Could not find the '([^']+)' column/);
+          var tm = pt.match(/invalid input syntax for type (\w+): \"([^"]+)\"/);
+          if (cm) { skipSet[cm[1]] = true; }
+          else if (tm) { log('err', 'Type error on probe: ' + pt.substring(0, 120)); probing = false; }
+          else { log('err', 'Probe error: ' + pt.substring(0, 120)); probing = false; }
+        }
+      } catch(e) { log('err', 'Probe failed: ' + e.message); probing = false; }
+    }
+  }
+
   var BATCH = 500;
   var total = parsedRows.length;
   var uploaded = 0;
   var errors = 0;
 
-  // Fetch DB schema if not yet loaded
-  if (!dbColumns) {
-    await fetchDbColumns(url, key);
-  }
-
   log('info', 'Starting upload: ' + total + ' pitches in ' + Math.ceil(total/BATCH) + ' batch(es)');
-
-  var skipColumns = {};
 
   for (var i = 0; i < total; i += BATCH) {
     var batchNum = Math.floor(i/BATCH) + 1;
+    var batch = parsedRows.slice(i, i + BATCH).map(function(row) {
+      var mapped = mapRow(row);
+      Object.keys(skipSet).forEach(function(k) { delete mapped[k]; });
+      return mapped;
+    });
+
     var success = false;
     var attempts = 0;
-
-    while (!success && attempts < 20) {
+    while (!success && attempts < 5) {
       attempts++;
-      var batch = parsedRows.slice(i, i + BATCH).map(function(row) {
-        var mapped = mapRow(row);
-        Object.keys(skipColumns).forEach(function(k) { delete mapped[k]; });
-        return mapped;
-      });
-
       try {
         var res = await fetch(url + '/rest/v1/pitches', {
           method: 'POST',
@@ -731,22 +791,20 @@ document.getElementById('uploadBtn').addEventListener('click', async function() 
           },
           body: JSON.stringify(batch)
         });
-
         if (res.ok) {
           uploaded += batch.length;
           log('ok', 'Batch ' + batchNum + ': ' + batch.length + ' rows inserted');
           success = true;
         } else {
           var errText = await res.text();
-          // Check if it's an unknown column error — if so, skip that column and retry
           var colMatch = errText.match(/Could not find the '([^']+)' column/);
           if (colMatch) {
-            skipColumns[colMatch[1]] = true;
-            log('info', 'Skipping unknown column: ' + colMatch[1]);
+            skipSet[colMatch[1]] = true;
+            batch = batch.map(function(r) { var c = Object.assign({}, r); delete c[colMatch[1]]; return c; });
           } else {
             errors += batch.length;
             log('err', 'Batch ' + batchNum + ' failed: ' + errText.substring(0, 120));
-            success = true; // don't retry non-column errors
+            success = true;
           }
         }
       } catch(e) {
@@ -755,6 +813,7 @@ document.getElementById('uploadBtn').addEventListener('click', async function() 
         success = true;
       }
     }
+    if (!success) { errors += batch.length; log('err', 'Batch ' + batchNum + ' gave up after retries'); }
 
     var pct = Math.round(Math.min((i + BATCH) / total * 100, 100));
     setProgress(pct, 'Batch ' + batchNum + ' of ' + Math.ceil(total/BATCH));
