@@ -675,6 +675,39 @@ function renderScorecard(stats){
 const genBtn = document.getElementById('gen-btn');
 const errMsg = document.getElementById('error-msg');
 
+// Save umpire record
+async function saveUmpireRecord(umpName, gameId, stats) {
+  const g = gamesMeta[gameId] || {};
+  const record = {
+    umpire_name: umpName,
+    game_id: gameId,
+    game_date: g.date || null,
+    display_name: g.display_name || null,
+    home_team: g.home_team || null,
+    away_team: g.away_team || null,
+    total_called: stats.total,
+    correct: stats.TP + stats.TN,
+    missed_clear: stats.missed.filter(m => m.cat === 'clear').length,
+    missed_borderline: stats.missed.filter(m => m.cat === 'borderline').length,
+    overall_acc: parseFloat(stats.acc.toFixed(1)),
+    ball_acc: parseFloat(stats.ballAcc.toFixed(1)),
+    strike_acc: parseFloat(stats.strikeAcc.toFixed(1)),
+    favor_team: Object.keys(stats.teamFavor).sort((a,b) => stats.teamFavor[b]-stats.teamFavor[a])[0] || null,
+    favor_runs: parseFloat((Math.max(...Object.values(stats.teamFavor).concat([0]))).toFixed(3)),
+    created_at: new Date().toISOString()
+  };
+  await fetch(SUPABASE_URL + '/rest/v1/umpire_games', {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify([record])
+  });
+}
+
 // Load games dropdown
 async function loadGames() {
   try {
@@ -722,6 +755,12 @@ genBtn.addEventListener('click', async () => {
     document.getElementById('upload-screen').style.display = 'none';
     document.getElementById('scorecard-screen').style.display = 'block';
     window.scrollTo(0, 0);
+
+    // Save umpire game record to Supabase
+    const umpName = document.getElementById('ump-name').value.trim();
+    if (umpName) {
+      saveUmpireRecord(umpName, gameId, stats).catch(() => {});
+    }
   } catch(e) {
     showError(e.message);
   } finally {
