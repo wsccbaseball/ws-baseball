@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>WS Baseball — TrackMan Uploader</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+–bg: #0a0a0a;
+–surface: #111111;
+–border: #222222;
+–accent: #c8a45a;
+–accent-dim: rgba(200,164,90,0.12);
+–green: #4caf7d;
+–green-dim: rgba(76,175,125,0.12);
+–red: #e05555;
+–red-dim: rgba(224,85,85,0.12);
+–text: #e8e8e8;
+–text-dim: #666666;
+–text-mid: #999999;
+}
+
+- { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+background: var(–bg);
+color: var(–text);
+font-family: ‘IBM Plex Sans’, sans-serif;
+min-height: 100vh;
+padding: 24px 16px 48px;
+}
+
+header {
+display: -webkit-flex;
+display: flex;
+-webkit-align-items: flex-end;
+align-items: flex-end;
+-webkit-justify-content: space-between;
+justify-content: space-between;
+padding-bottom: 20px;
+border-bottom: 1px solid var(–border);
+margin-bottom: 28px;
+}
+
+.wordmark {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 11px;
+font-weight: 500;
+letter-spacing: 0.15em;
+text-transform: uppercase;
+color: var(–text-dim);
+}
+
+.wordmark span {
+color: var(–accent);
+}
+
+h1 {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 22px;
+font-weight: 600;
+letter-spacing: -0.02em;
+color: var(–text);
+line-height: 1.1;
+margin-bottom: 4px;
+}
+
+.subtitle {
+font-size: 13px;
+color: var(–text-mid);
+font-weight: 300;
+}
+
+/* Config section */
+.config-section {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 16px;
+margin-bottom: 20px;
+}
+
+.config-label {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 10px;
+font-weight: 500;
+letter-spacing: 0.12em;
+text-transform: uppercase;
+color: var(–text-dim);
+margin-bottom: 10px;
+}
+
+.config-row {
+margin-bottom: 10px;
+}
+
+.config-row:last-child { margin-bottom: 0; }
+
+.config-row label {
+display: block;
+font-size: 11px;
+color: var(–text-mid);
+margin-bottom: 4px;
+font-family: ‘IBM Plex Mono’, monospace;
+}
+
+.config-row input {
+width: 100%;
+background: var(–bg);
+border: 1px solid var(–border);
+border-radius: 5px;
+padding: 9px 12px;
+color: var(–text);
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 11px;
+outline: none;
+-webkit-appearance: none;
+}
+
+.config-row input:focus {
+border-color: var(–accent);
+}
+
+/* Upload zone */
+.upload-zone {
+border: 1.5px dashed var(–border);
+border-radius: 8px;
+padding: 36px 20px;
+text-align: center;
+margin-bottom: 20px;
+position: relative;
+cursor: pointer;
+-webkit-transition: all 0.2s;
+transition: all 0.2s;
+background: var(–surface);
+}
+
+.upload-zone.has-file {
+border-color: var(–accent);
+background: var(–accent-dim);
+}
+
+.upload-zone input[type=“file”] {
+position: absolute;
+inset: 0;
+opacity: 0;
+cursor: pointer;
+width: 100%;
+height: 100%;
+}
+
+.upload-icon {
+font-size: 32px;
+margin-bottom: 10px;
+display: block;
+}
+
+.upload-title {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 13px;
+font-weight: 500;
+color: var(–text);
+margin-bottom: 4px;
+}
+
+.upload-hint {
+font-size: 12px;
+color: var(–text-dim);
+}
+
+.file-name {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 12px;
+color: var(–accent);
+margin-top: 8px;
+word-break: break-all;
+}
+
+/* Stats row */
+.stats-row {
+display: -webkit-flex;
+display: flex;
+gap: 10px;
+margin-bottom: 20px;
+}
+
+.stat-box {
+-webkit-flex: 1;
+flex: 1;
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 12px 10px;
+text-align: center;
+}
+
+.stat-value {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 20px;
+font-weight: 600;
+color: var(–accent);
+display: block;
+}
+
+.stat-label {
+font-size: 10px;
+color: var(–text-dim);
+text-transform: uppercase;
+letter-spacing: 0.08em;
+margin-top: 2px;
+display: block;
+}
+
+/* Game info */
+.game-info {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 14px 16px;
+margin-bottom: 20px;
+display: none;
+}
+
+.game-info.visible { display: block; }
+
+.game-info-label {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 10px;
+letter-spacing: 0.12em;
+text-transform: uppercase;
+color: var(–text-dim);
+margin-bottom: 8px;
+}
+
+.game-info-value {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 13px;
+color: var(–text);
+}
+
+.game-info-row {
+display: -webkit-flex;
+display: flex;
+-webkit-justify-content: space-between;
+justify-content: space-between;
+-webkit-align-items: center;
+align-items: center;
+padding: 5px 0;
+border-bottom: 1px solid var(–border);
+}
+
+.game-info-row:last-child { border-bottom: none; }
+
+/* Duplicate warning */
+.dup-warning {
+background: rgba(224,85,85,0.08);
+border: 1px solid rgba(224,85,85,0.3);
+border-radius: 8px;
+padding: 12px 16px;
+margin-bottom: 20px;
+font-size: 13px;
+color: var(–red);
+display: none;
+font-family: ‘IBM Plex Mono’, monospace;
+}
+
+.dup-warning.visible { display: block; }
+
+/* Upload button */
+.upload-btn {
+width: 100%;
+background: var(–accent);
+color: #000;
+border: none;
+border-radius: 8px;
+padding: 16px;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 13px;
+font-weight: 600;
+letter-spacing: 0.08em;
+text-transform: uppercase;
+cursor: pointer;
+-webkit-appearance: none;
+-webkit-transition: opacity 0.2s;
+transition: opacity 0.2s;
+margin-bottom: 20px;
+}
+
+.upload-btn:disabled {
+opacity: 0.3;
+cursor: not-allowed;
+}
+
+.upload-btn:not(:disabled):active {
+opacity: 0.8;
+}
+
+/* Progress */
+.progress-wrap {
+display: none;
+margin-bottom: 20px;
+}
+
+.progress-wrap.visible { display: block; }
+
+.progress-label {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 11px;
+color: var(–text-mid);
+margin-bottom: 8px;
+display: -webkit-flex;
+display: flex;
+-webkit-justify-content: space-between;
+justify-content: space-between;
+}
+
+.progress-track {
+background: var(–border);
+border-radius: 4px;
+height: 6px;
+overflow: hidden;
+}
+
+.progress-fill {
+height: 100%;
+background: var(–accent);
+border-radius: 4px;
+width: 0%;
+-webkit-transition: width 0.3s;
+transition: width 0.3s;
+}
+
+/* Result */
+.result {
+border-radius: 8px;
+padding: 16px;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 12px;
+line-height: 1.6;
+display: none;
+}
+
+.result.visible { display: block; }
+.result.success { background: var(–green-dim); border: 1px solid rgba(76,175,125,0.3); color: var(–green); }
+.result.error { background: var(–red-dim); border: 1px solid rgba(224,85,85,0.3); color: var(–red); }
+
+/* Log */
+.log {
+margin-top: 16px;
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 12px;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 10px;
+color: var(–text-dim);
+max-height: 180px;
+overflow-y: auto;
+display: none;
+}
+
+.log.visible { display: block; }
+.log-line { margin-bottom: 4px; }
+.log-line.ok { color: var(–green); }
+.log-line.err { color: var(–red); }
+.log-line.info { color: var(–accent); }
+</style>
+
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>TrackMan<br>Uploader</h1>
+    <div class="subtitle">Walters State Baseball</div>
+  </div>
+  <div class="wordmark"><span>WS</span> Baseball<br>Analytics</div>
+</header>
+
+<!-- Config -->
+
+<div class="config-section">
+  <div class="config-label">Supabase Config</div>
+  <div class="config-row">
+    <label>Project URL</label>
+    <input type="text" id="supabaseUrl" placeholder="https://xxxx.supabase.co" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  </div>
+  <div class="config-row">
+    <label>Anon Key</label>
+    <input type="password" id="supabaseKey" placeholder="eyJ..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  </div>
+</div>
+
+<!-- Upload zone -->
+
+<label class="upload-zone" id="uploadZone">
+  <input type="file" id="fileInput" accept=".csv">
+  <span class="upload-icon">⬆</span>
+  <div class="upload-title">Select TrackMan CSV</div>
+  <div class="upload-hint">Tap to browse files</div>
+  <div class="file-name" id="fileName"></div>
+</label>
+
+<!-- Stats -->
+
+<div class="stats-row">
+  <div class="stat-box">
+    <span class="stat-value" id="statPitches">—</span>
+    <span class="stat-label">Pitches</span>
+  </div>
+  <div class="stat-box">
+    <span class="stat-value" id="statPitchers">—</span>
+    <span class="stat-label">Pitchers</span>
+  </div>
+  <div class="stat-box">
+    <span class="stat-value" id="statGames">—</span>
+    <span class="stat-label">Games</span>
+  </div>
+</div>
+
+<!-- Game info -->
+
+<div class="game-info" id="gameInfo">
+  <div class="game-info-label">Detected Game(s)</div>
+  <div id="gameInfoRows"></div>
+</div>
+
+<!-- Duplicate warning -->
+
+<div class="dup-warning" id="dupWarning"></div>
+
+<!-- Upload button -->
+
+<button class="upload-btn" id="uploadBtn" disabled>Upload to Database</button>
+
+<!-- Progress -->
+
+<div class="progress-wrap" id="progressWrap">
+  <div class="progress-label">
+    <span id="progressText">Uploading...</span>
+    <span id="progressPct">0%</span>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+</div>
+
+<!-- Result -->
+
+<div class="result" id="result"></div>
+
+<!-- Log -->
+
+<div class="log" id="log"></div>
+
+<script>
+// ── Config persistence ──────────────────────────────────────────────
+const urlInput = document.getElementById('supabaseUrl');
+const keyInput = document.getElementById('supabaseKey');
+
+// Load saved config
+urlInput.value = localStorage.getItem('sb_url') || '';
+keyInput.value = localStorage.getItem('sb_key') || '';
+
+urlInput.addEventListener('change', function() { localStorage.setItem('sb_url', this.value.trim()); });
+keyInput.addEventListener('change', function() { localStorage.setItem('sb_key', this.value.trim()); });
+
+// ── CSV Parser ──────────────────────────────────────────────────────
+function parseCSV(text) {
+  var lines = text.split(/\r?\n/);
+  if (lines.length < 2) return [];
+
+  var headers = parseCSVLine(lines[0]);
+  var rows = [];
+
+  for (var i = 1; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (!line) continue;
+    var values = parseCSVLine(line);
+    if (values.length < 2) continue;
+    var row = {};
+    for (var j = 0; j < headers.length; j++) {
+      row[headers[j]] = values[j] !== undefined ? values[j] : '';
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+
+function parseCSVLine(line) {
+  var result = [];
+  var current = '';
+  var inQuotes = false;
+
+  for (var i = 0; i < line.length; i++) {
+    var ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i+1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (ch === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+
+// ── Column mapping ──────────────────────────────────────────────────
+// DB columns that are numeric
+var NUMERIC_COLS = [
+  'PAofInning','PitchofPA','Inning','Outs','Balls','Strikes',
+  'PitcherId','BatterId','CatcherId',
+  'RelSpeed','VertRelAngle','HorzRelAngle','SpinRate','SpinAxis',
+  'RelHeight','RelSide','Extension','VertBreak','InducedVertBreak','HorzBreak',
+  'PlateLocHeight','PlateLocSide','ZoneSpeed','VertApprAngle','HorzApprAngle',
+  'ExitSpeed','Angle','Direction','Distance','HangTime','Bearing','ZoneTime',
+  'ZoneTop','ZoneBottom','OutsOnPlay','RunsScored'
+];
+
+var NUMERIC_SET = {};
+NUMERIC_COLS.forEach(function(c) { NUMERIC_SET[c] = true; });
+
+function mapRow(csvRow) {
+  var out = {};
+  Object.keys(csvRow).forEach(function(key) {
+    var val = csvRow[key];
+    if (val === '' || val === null || val === undefined) {
+      out[key] = null;
+    } else if (NUMERIC_SET[key]) {
+      var n = parseFloat(val);
+      out[key] = isNaN(n) ? null : n;
+    } else {
+      out[key] = val;
+    }
+  });
+  return out;
+}
+
+// ── State ───────────────────────────────────────────────────────────
+var parsedRows = [];
+var gameIds = [];
+
+// ── File input ──────────────────────────────────────────────────────
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+
+  document.getElementById('fileName').textContent = file.name;
+  document.getElementById('uploadZone').classList.add('has-file');
+
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    parsedRows = parseCSV(ev.target.result);
+    analyzeCSV(parsedRows);
+  };
+  reader.readAsText(file);
+});
+
+function analyzeCSV(rows) {
+  if (!rows.length) {
+    setStats('0', '0', '0');
+    return;
+  }
+
+  // Count unique pitchers
+  var pitcherSet = {};
+  rows.forEach(function(r) {
+    if (r.Pitcher) pitcherSet[r.Pitcher] = true;
+  });
+
+  // Count unique game IDs
+  var gameSet = {};
+  rows.forEach(function(r) {
+    var gid = r.GameID || (r.Date + '_' + (r.HomeTeam || '') + '_' + (r.AwayTeam || ''));
+    if (gid) gameSet[gid] = true;
+  });
+
+  gameIds = Object.keys(gameSet);
+
+  setStats(rows.length, Object.keys(pitcherSet).length, gameIds.length);
+  showGameInfo(rows);
+  checkDuplicates(gameIds);
+}
+
+function setStats(pitches, pitchers, games) {
+  document.getElementById('statPitches').textContent = pitches;
+  document.getElementById('statPitchers').textContent = pitchers;
+  document.getElementById('statGames').textContent = games;
+}
+
+function showGameInfo(rows) {
+  var gameSet = {};
+  rows.forEach(function(r) {
+    var gid = r.GameID || '';
+    if (!gameSet[gid]) {
+      gameSet[gid] = {
+        date: r.Date || '',
+        home: r.HomeTeam || r.PitcherTeam || '',
+        away: r.AwayTeam || r.BatterTeam || '',
+        gid: gid
+      };
+    }
+  });
+
+  var html = '';
+  Object.values(gameSet).forEach(function(g) {
+    html += '<div class="game-info-row">' +
+      '<span class="game-info-value">' + (g.away || '?') + ' @ ' + (g.home || '?') + '</span>' +
+      '<span style="font-size:11px;color:var(--text-dim);font-family:\'IBM Plex Mono\',monospace">' + g.date + '</span>' +
+      '</div>';
+  });
+
+  document.getElementById('gameInfoRows').innerHTML = html;
+  document.getElementById('gameInfo').classList.add('visible');
+}
+
+async function checkDuplicates(gids) {
+  var url = urlInput.value.trim().replace(/\/+$/, '');
+  var key = keyInput.value.trim();
+  if (!url || !key || !gids.length) {
+    document.getElementById('uploadBtn').disabled = false;
+    return;
+  }
+
+  try {
+    var response = await fetch(
+      url + '/rest/v1/pitches?select=GameID&GameID=in.(' + gids.map(function(g) { return '"' + g + '"'; }).join(',') + ')&limit=1',
+      { headers: { 'apikey': key, 'Authorization': 'Bearer ' + key } }
+    );
+    var data = await response.json();
+    if (data && data.length > 0) {
+      document.getElementById('dupWarning').textContent = '⚠ Game data already exists in database. Uploading will add duplicate rows.';
+      document.getElementById('dupWarning').classList.add('visible');
+    } else {
+      document.getElementById('dupWarning').classList.remove('visible');
+    }
+  } catch(e) {
+    // If check fails, just proceed
+  }
+
+  document.getElementById('uploadBtn').disabled = false;
+}
+
+// ── Upload ──────────────────────────────────────────────────────────
+document.getElementById('uploadBtn').addEventListener('click', async function() {
+  var url = urlInput.value.trim().replace(/\/+$/, '');
+  var key = keyInput.value.trim();
+
+  if (!url || !key) {
+    showResult('error', 'Missing Supabase URL or key.');
+    return;
+  }
+  if (!parsedRows.length) {
+    showResult('error', 'No CSV loaded.');
+    return;
+  }
+
+  // Save config
+  localStorage.setItem('sb_url', url);
+  localStorage.setItem('sb_key', key);
+
+  var btn = document.getElementById('uploadBtn');
+  btn.disabled = true;
+  btn.textContent = 'Uploading...';
+
+  showProgress(true);
+  clearLog();
+  hideResult();
+
+  var BATCH = 500;
+  var total = parsedRows.length;
+  var uploaded = 0;
+  var errors = 0;
+
+  log('info', 'Starting upload: ' + total + ' pitches in ' + Math.ceil(total/BATCH) + ' batch(es)');
+
+  for (var i = 0; i < total; i += BATCH) {
+    var batch = parsedRows.slice(i, i + BATCH).map(mapRow);
+    var batchNum = Math.floor(i/BATCH) + 1;
+
+    try {
+      var res = await fetch(url + '/rest/v1/pitches', {
+        method: 'POST',
+        headers: {
+          'apikey': key,
+          'Authorization': 'Bearer ' + key,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(batch)
+      });
+
+      if (res.ok) {
+        uploaded += batch.length;
+        log('ok', 'Batch ' + batchNum + ': ' + batch.length + ' rows inserted');
+      } else {
+        var errText = await res.text();
+        errors += batch.length;
+        log('err', 'Batch ' + batchNum + ' failed: ' + errText.substring(0, 100));
+      }
+    } catch(e) {
+      errors += batch.length;
+      log('err', 'Batch ' + batchNum + ' error: ' + e.message);
+    }
+
+    var pct = Math.round(Math.min((i + BATCH) / total * 100, 100));
+    setProgress(pct, 'Batch ' + batchNum + ' of ' + Math.ceil(total/BATCH));
+  }
+
+  showProgress(false);
+  btn.disabled = false;
+  btn.textContent = 'Upload to Database';
+
+  if (errors === 0) {
+    showResult('success', '✓ ' + uploaded + ' pitches uploaded successfully.');
+    log('info', 'Done. ' + uploaded + ' rows written to database.');
+  } else {
+    showResult('error', uploaded + ' rows uploaded, ' + errors + ' failed. Check log below.');
+  }
+});
+
+// ── Helpers ─────────────────────────────────────────────────────────
+function showProgress(visible) {
+  document.getElementById('progressWrap').classList.toggle('visible', visible);
+  if (visible) setProgress(0, 'Starting...');
+}
+
+function setProgress(pct, text) {
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressText').textContent = text;
+}
+
+function showResult(type, msg) {
+  var el = document.getElementById('result');
+  el.className = 'result visible ' + type;
+  el.textContent = msg;
+}
+
+function hideResult() {
+  document.getElementById('result').classList.remove('visible');
+}
+
+function log(type, msg) {
+  var logEl = document.getElementById('log');
+  logEl.classList.add('visible');
+  var line = document.createElement('div');
+  line.className = 'log-line ' + type;
+  line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+  logEl.appendChild(line);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function clearLog() {
+  var logEl = document.getElementById('log');
+  logEl.innerHTML = '';
+  logEl.classList.remove('visible');
+}
+</script>
+
+</body>
+</html>
