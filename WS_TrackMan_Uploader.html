@@ -404,6 +404,16 @@ display: none;
   <div class="file-name" id="fileName"></div>
 </label>
 
+<!-- Display name -->
+
+<div class="config-section" id="displayNameSection" style="display:none">
+  <div class="config-label">Game Display Name</div>
+  <div class="config-row">
+    <label>How this game appears in dropdowns</label>
+    <input type="text" id="displayName" placeholder="e.g. Midweek — Pellissippi State Game 2" autocorrect="off" autocapitalize="words" spellcheck="false">
+  </div>
+</div>
+
 <!-- Stats -->
 
 <div class="stats-row">
@@ -573,6 +583,10 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
 
   document.getElementById('fileName').textContent = file.name;
   document.getElementById('uploadZone').classList.add('has-file');
+  document.getElementById('displayNameSection').style.display = 'block';
+  // Pre-fill display name from file name (strip .csv)
+  var suggested = file.name.replace(/\.csv$/i, '').replace(/_/g, ' ');
+  document.getElementById('displayName').value = suggested;
 
   var reader = new FileReader();
   reader.onload = function(ev) {
@@ -730,34 +744,45 @@ document.getElementById('uploadBtn').addEventListener('click', async function() 
     var skipped = Object.keys(skipSet);
     if (skipped.length) log('info', 'Pre-filtering ' + skipped.length + ' unknown columns: ' + skipped.join(', '));
   } else {
-    // Probe with single row to discover unknown columns upfront
+    // Probe with single row using prefer:return=representation then delete it
     log('info', 'Probing schema with single row...');
     var probeRow = mapRow(parsedRows[0]);
     var probing = true;
     var probeAttempts = 0;
+    var probeId = null;
     while (probing && probeAttempts < 100) {
       probeAttempts++;
       Object.keys(skipSet).forEach(function(k) { delete probeRow[k]; });
       try {
         var pr = await fetch(url + '/rest/v1/pitches', {
           method: 'POST',
-          headers: { 'apikey': key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+          headers: { 'apikey': key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
           body: JSON.stringify([probeRow])
         });
         if (pr.ok) {
           probing = false;
-          log('info', 'Schema probe complete. Skipped: ' + Object.keys(skipSet).join(', '));
-          // Delete that probe row - we'll reupload with full batch
-          // Just note we uploaded 1 extra row - acceptable
+          var probeResult = await pr.json();
+          if (probeResult && probeResult[0] && probeResult[0].id) {
+            probeId = probeResult[0].id;
+          }
+          log('info', 'Schema probe complete' + (Object.keys(skipSet).length ? '. Skipped: ' + Object.keys(skipSet).join(', ') : '. No unknown columns'));
         } else {
           var pt = await pr.text();
           var cm = pt.match(/Could not find the '([^']+)' column/);
-          var tm = pt.match(/invalid input syntax for type (\w+): \"([^"]+)\"/);
           if (cm) { skipSet[cm[1]] = true; }
-          else if (tm) { log('err', 'Type error on probe: ' + pt.substring(0, 120)); probing = false; }
           else { log('err', 'Probe error: ' + pt.substring(0, 120)); probing = false; }
         }
       } catch(e) { log('err', 'Probe failed: ' + e.message); probing = false; }
+    }
+    // Delete the probe row
+    if (probeId) {
+      try {
+        await fetch(url + '/rest/v1/pitches?id=eq.' + probeId, {
+          method: 'DELETE',
+          headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
+        });
+        log('info', 'Probe row cleaned up');
+      } catch(e) {}
     }
   }
 
@@ -820,6 +845,31 @@ document.getElementById('uploadBtn').addEventListener('click', async function() 
   }
 
   showProgress(false);
+
+  // Save to games table if upload succeeded
+  if (errors === 0 && uploaded > 0) {
+    var displayName = document.getElementById('displayName').value.trim();
+    var firstRow = parsedRows[0] || {};
+    var gameRecord = {
+      game_id: firstRow.GameID || null,
+      display_name: displayName || null,
+      date: firstRow.Date || null,
+      home_team: firstRow.HomeTeam || null,
+      away_team: firstRow.AwayTeam || null,
+      pitch_count: uploaded
+    };
+    try {
+      await fetch(url + '/rest/v1/games', {
+        method: 'POST',
+        headers: { 'apikey': key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Prefer': 'return=minimal,resolution=merge-duplicates' },
+        body: JSON.stringify([gameRecord])
+      });
+      log('info', 'Game record saved: ' + (displayName || gameRecord.game_id));
+    } catch(e) {
+      log('info', 'Note: games table not yet created - run setup SQL');
+    }
+  }
+
   btn.disabled = false;
   btn.textContent = 'Upload to Database';
 
