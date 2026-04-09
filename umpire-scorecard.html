@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Umpire Scorecard Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0d1117;--card:#161d27;--border:#21303f;
+  --text:#e6edf3;--muted:#6e8098;
+  --gold:#d4a843;--red:#f85149;--blue:#58a6ff;--green:#3fb950;
+  --red-dim:rgba(248,81,73,0.15);--blue-dim:rgba(88,166,255,0.15);
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+/* ---- UPLOAD SCREEN ---- */
+#upload-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;gap:1.5rem}
+.up-title{text-align:center}
+.up-title h1{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;letter-spacing:.1em;color:var(--gold)}
+.up-title p{color:var(--muted);margin-top:.3rem;font-size:.9rem}
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;width:100%;max-width:560px}
+.form-row{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.form-row:last-child{margin-bottom:0}
+.fg{display:flex;flex-direction:column;gap:.4rem;flex:1;min-width:100px}
+label{font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+input[type=text],input[type=number],input[type=date]{
+  background:#0d1117;border:1px solid var(--border);border-radius:6px;
+  color:var(--text);padding:.5rem .75rem;font-size:.9rem;font-family:'DM Sans',sans-serif;width:100%;
+  transition:border-color .2s}
+input:focus{outline:none;border-color:var(--gold)}
+details{width:100%;max-width:560px}
+summary{color:var(--muted);font-size:.85rem;cursor:pointer;padding:.4rem 0}
+summary:hover{color:var(--text)}
+.drop-zone{
+  width:100%;max-width:560px;border:2px dashed var(--border);border-radius:12px;
+  padding:2.5rem 2rem;text-align:center;cursor:pointer;transition:all .2s;
+}
+.drop-zone:hover,.drop-zone.over{border-color:var(--gold);background:rgba(212,168,67,.05)}
+.drop-icon{font-size:2rem;margin-bottom:.75rem;color:var(--muted)}
+.drop-zone p{color:var(--muted);font-size:.95rem}
+.drop-sub{font-size:.8rem;margin-top:.3rem}
+.file-name{color:var(--green);font-size:.85rem;margin-top:.5rem;font-family:'DM Mono',monospace}
+.gen-btn{
+  background:var(--gold);color:#0d1117;border:none;border-radius:8px;
+  padding:.85rem 2rem;font-size:1rem;font-weight:700;font-family:'DM Sans',sans-serif;
+  cursor:pointer;width:100%;max-width:560px;transition:opacity .2s;letter-spacing:.05em;
+}
+.gen-btn:hover{opacity:.85}
+.error-msg{color:var(--red);font-size:.85rem;display:none}
+
+/* ---- SCORECARD WRAPPER ---- */
+#scorecard-screen{display:none;padding:.75rem;max-width:960px;margin:0 auto}
+.sc-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;gap:1rem}
+.back-btn{background:transparent;border:1px solid var(--border);color:var(--muted);
+  border-radius:6px;padding:.4rem .9rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.8rem}
+.back-btn:hover{border-color:var(--text);color:var(--text)}
+.img-btn{background:var(--green);color:#0d1117;border:none;
+  border-radius:6px;padding:.4rem .9rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:600}
+.img-btn:hover{opacity:.85}
+.img-btn:disabled{opacity:.5;cursor:wait}
+.print-btn{background:transparent;border:1px solid var(--gold);color:var(--gold);
+  border-radius:6px;padding:.4rem .9rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.8rem}
+.print-btn:hover{background:var(--gold);color:#0d1117}
+
+/* Image preview overlay */
+#img-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);
+  z-index:1000;flex-direction:column;align-items:center;justify-content:center;padding:1rem;gap:1rem;
+}
+#img-overlay.show{display:flex}
+#img-overlay img{max-width:100%;max-height:75vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.6)}
+#img-overlay p{color:#aaa;font-size:.85rem;text-align:center;line-height:1.5}
+#overlay-close{background:var(--border);color:var(--text);border:none;border-radius:6px;
+  padding:.5rem 1.5rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.85rem}
+
+/* ---- SCORECARD: single-page grid ---- */
+.scorecard{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;
+  display:grid;
+  grid-template-rows:auto auto 1fr auto;
+  grid-template-columns:1fr;
+}
+
+/* ── Row 1: Header ── */
+.sc-header-band{
+  background:#111820;border-bottom:1px solid var(--border);
+  padding:.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;
+  grid-column:1/-1;
+}
+.sc-ump-name{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.08em;color:var(--text);line-height:1}
+.sc-game-meta{text-align:right;line-height:1.3}
+.sc-teams{font-family:'Bebas Neue',sans-serif;font-size:1.25rem;letter-spacing:.06em}
+.sc-away{color:var(--red)}
+.sc-home{color:var(--blue)}
+.sc-vs{color:var(--muted);margin:0 .25rem;font-size:1rem}
+.sc-final{color:var(--text);font-size:1rem;margin-left:.4rem}
+.sc-game-label{font-size:.75rem;color:var(--gold);font-weight:600;letter-spacing:.05em}
+.sc-date{font-size:.72rem;color:var(--muted)}
+
+/* ── Row 2: Top stat strip (5 cols) ── */
+.stats-strip{
+  display:grid;grid-template-columns:repeat(5,1fr);
+  border-bottom:1px solid var(--border);
+}
+.sstat{
+  padding:.6rem .5rem;border-right:1px solid var(--border);text-align:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;
+}
+.sstat:last-child{border-right:none}
+.sstat-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.sstat-val{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;line-height:1;letter-spacing:.04em}
+.sstat-sub{font-size:.62rem;color:var(--muted);line-height:1.3;text-align:center}
+.val-gold{color:var(--gold)}
+.val-red{color:var(--red)}
+.val-blue{color:var(--blue)}
+.val-green{color:var(--green)}
+.val-muted{color:var(--muted)}
+
+/* ── Row 3: Main body (zone + right panel) ── */
+.sc-body{
+  display:grid;grid-template-columns:1fr 1fr;
+  border-bottom:1px solid var(--border);
+  min-height:0;
+}
+
+/* Zone panel */
+.zone-panel{
+  padding:.9rem 1rem;border-right:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;gap:.5rem;
+}
+.zone-title{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);align-self:flex-start}
+.zone-svg-wrap{width:100%;flex:1;display:flex;align-items:center;justify-content:center}
+.zone-svg-wrap svg{width:100%;height:100%;max-height:360px}
+.zone-legend{display:flex;gap:1rem;font-size:.65rem;color:var(--muted);flex-wrap:wrap;justify-content:center}
+.leg{display:flex;align-items:center;gap:.35rem}
+.leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* Right panel: missed calls + ball/strike accuracy stacked */
+.right-panel{display:flex;flex-direction:column}
+
+.calls-panel{padding:.9rem 1rem;flex:1;border-bottom:1px solid var(--border)}
+.calls-title{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.2rem}
+.calls-sub{font-size:.62rem;color:var(--muted);margin-bottom:.6rem;font-style:italic}
+.missed-item{padding:.45rem 0;border-bottom:1px solid var(--border)}
+.missed-item:last-child{border-bottom:none}
+.missed-rank{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--gold);margin-right:.3rem}
+.missed-sit{font-size:.75rem;font-weight:600;margin-bottom:.15rem}
+.missed-detail{font-size:.68rem;color:var(--muted);line-height:1.4}
+.missed-badge{display:inline-block;padding:.1rem .4rem;border-radius:3px;font-size:.62rem;font-weight:700;margin-left:.3rem}
+.badge-red{background:var(--red-dim);color:var(--red)}
+.badge-blue{background:var(--blue-dim);color:var(--blue)}
+.no-calls{color:var(--green);font-size:.8rem;padding:.4rem 0}
+
+/* Ball/strike accuracy row */
+.acc-row{display:grid;grid-template-columns:1fr 1fr}
+.acc-block{padding:.7rem .75rem;text-align:center;border-right:1px solid var(--border)}
+.acc-block:last-child{border-right:none}
+.acc-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.3rem}
+.acc-pct{font-family:'Bebas Neue',sans-serif;font-size:2rem;line-height:1;letter-spacing:.04em}
+.acc-sub{font-size:.62rem;color:var(--muted);margin-top:.2rem;line-height:1.3}
+
+/* Footer */
+.sc-footer{padding:.4rem 1rem;font-size:.6rem;color:var(--border);text-align:center;background:#111820}
+
+@media print{
+  @page{size:landscape;margin:.4in}
+  body{background:#fff;color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #scorecard-screen{display:block!important;padding:0;max-width:100%}
+  #upload-screen{display:none!important}
+  .sc-toolbar{display:none}
+  .scorecard{border:1px solid #ccc;border-radius:6px}
+  :root{--bg:#fff;--card:#f9fafb;--border:#dde1e7;--text:#111;--muted:#5a6472;
+    --gold:#b8892a;--red:#d93025;--blue:#1a6fb5;--green:#1a7a35;
+    --red-dim:rgba(217,48,37,.1);--blue-dim:rgba(26,111,181,.1)}
+  .sc-header-band{background:#eef0f3}
+  .sc-footer{background:#eef0f3}
+}
+</style>
+</head>
+<body>
+
+<!-- UPLOAD SCREEN -->
+<div id="upload-screen">
+  <div class="up-title">
+    <h1>Umpire Scorecard</h1>
+    <p>Select a game to generate a called pitch analysis</p>
+  </div>
+
+  <div class="form-card">
+    <div class="form-row">
+      <div class="fg" style="flex:2">
+        <label>Step 1 — Select Game</label>
+        <select id="game-select" style="background:#0d1117;border:1px solid var(--border);border-radius:6px;color:var(--text);padding:.5rem .75rem;font-size:.9rem;font-family:'DM Sans',sans-serif;width:100%;">
+          <option value="">Loading games...</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row" style="margin-bottom:0">
+      <div class="fg" style="flex:2">
+        <label>Umpire Name</label>
+        <input type="text" id="ump-name" placeholder="Enter umpire name">
+      </div>
+      <div class="fg" style="max-width:80px">
+        <label>Away Score</label>
+        <input type="number" id="away-score" placeholder="0" min="0">
+      </div>
+      <div class="fg" style="max-width:80px">
+        <label>Home Score</label>
+        <input type="number" id="home-score" placeholder="0" min="0">
+      </div>
+    </div>
+  </div>
+
+  <div class="error-msg" id="error-msg"></div>
+  <button class="gen-btn" id="gen-btn" style="display:none">Generate Scorecard →</button>
+</div>
+
+<!-- SCORECARD SCREEN -->
+<div id="scorecard-screen">
+  <div class="sc-toolbar">
+    <button class="back-btn" id="back-btn">← New Scorecard</button>
+    <div style="display:flex;gap:.5rem">
+      <button class="img-btn" id="img-btn">📷 Save as Image</button>
+      <button class="print-btn" id="print-btn">🖨 Print / PDF</button>
+    </div>
+  </div>
+  <div class="scorecard" id="scorecard"></div>
+</div>
+
+<!-- Image overlay -->
+<div id="img-overlay">
+  <p>Long press the image below → <strong>Save to Photos</strong></p>
+  <img id="overlay-img" src="" alt="Scorecard">
+  <button id="overlay-close">Close</button>
+</div>
+
+<script>
+// ─── Supabase ────────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
+
+async function supaFetch(path) {
+  let rows = [], from = 0;
+  while (true) {
+    const sep = path.includes('?') ? '&' : '?';
+    const r = await fetch(SUPABASE_URL + '/rest/v1/' + path + sep + 'limit=1000&offset=' + from,
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
+    const d = await r.json();
+    if (!Array.isArray(d) || !d.length) break;
+    rows = rows.concat(d);
+    if (d.length < 1000) break;
+    from += 1000;
+  }
+  return rows;
+}
+
+// ─── State ───────────────────────────────────────────────────────────────────
+let csvData = null;
+let gamesMeta = {};
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function norm(s){ return s.toLowerCase().replace(/[\s_\-\/]/g,'') }
+
+function findCol(headers, candidates){
+  const nh = headers.map(h=>({orig:h,n:norm(h)}));
+  for(const c of candidates){
+    const nc = norm(c);
+    const f = nh.find(h=>h.n===nc);
+    if(f) return f.orig;
+  }
+  return null;
+}
+
+function fmtDate(d){
+  if(!d) return '';
+  const [y,m,day] = d.split('-');
+  return `${m}/${day}/${y}`;
+}
+
+// ─── Strike Zone SVG ─────────────────────────────────────────────────────────
+const SVG_W=300, SVG_H=380;
+const X_MIN=-2.5, X_MAX=2.5, Y_MIN=-0.4, Y_MAX=5.2;
+
+function toSVG(x,y){
+  return [
+    ((x-X_MIN)/(X_MAX-X_MIN))*SVG_W,
+    SVG_H - ((y-Y_MIN)/(Y_MAX-Y_MIN))*SVG_H
+  ];
+}
+
+function buildZoneSVG(missedCalls, zoneTop, zoneBottom, halfW){
+  const [zl,zt]=toSVG(-halfW, zoneTop);
+  const [zr,zb]=toSVG( halfW, zoneBottom);
+  const zw=zr-zl, zh=zb-zt;
+
+  // Home plate shape
+  const [px1,py1]=toSVG(-halfW,0);
+  const [px2,py2]=toSVG( halfW,0);
+  const [px3,py3]=toSVG( halfW,-0.15);
+  const [px4,py4]=toSVG( 0,    -0.3);
+  const [px5,py5]=toSVG(-halfW,-0.15);
+
+  // Inner zone thirds (visual guides)
+  const thirdH=(zb-zt)/3;
+  const thirdW=(zr-zl)/3;
+
+  let dots='';
+  for(const p of missedCalls){
+    if(p.side==null||p.height==null) continue;
+    const [dx,dy]=toSVG(p.side, p.height);
+    const isFP=(p.type==='FP'); // called strike, was ball
+    const color=isFP?'#f85149':'#58a6ff';
+    const glow=isFP?'rgba(248,81,73,0.35)':'rgba(88,166,255,0.35)';
+    dots+=`<circle cx="${dx}" cy="${dy}" r="7" fill="${glow}" stroke="none"/>`;
+    dots+=`<circle cx="${dx}" cy="${dy}" r="4.5" fill="${color}" stroke="none" opacity="0.9"/>`;
+  }
+
+  return `<svg id="zone-svg" viewBox="0 0 ${SVG_W} ${SVG_H}" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect width="${SVG_W}" height="${SVG_H}" fill="none"/>
+
+    <!-- Grid lines inside zone (thirds) -->
+    <line x1="${zl+thirdW}" y1="${zt}" x2="${zl+thirdW}" y2="${zb}" stroke="#21303f" stroke-width="1"/>
+    <line x1="${zl+thirdW*2}" y1="${zt}" x2="${zl+thirdW*2}" y2="${zb}" stroke="#21303f" stroke-width="1"/>
+    <line x1="${zl}" y1="${zt+thirdH}" x2="${zr}" y2="${zt+thirdH}" stroke="#21303f" stroke-width="1"/>
+    <line x1="${zl}" y1="${zt+thirdH*2}" x2="${zr}" y2="${zt+thirdH*2}" stroke="#21303f" stroke-width="1"/>
+
+    <!-- Zone fill -->
+    <rect x="${zl}" y="${zt}" width="${zw}" height="${zh}" fill="rgba(255,255,255,0.03)" stroke="#6e8098" stroke-width="1.5"/>
+
+    <!-- Zone top/bottom labels -->
+    <text x="${zr+6}" y="${zt+4}" font-family="'DM Mono',monospace" font-size="9" fill="#6e8098">${zoneTop}ft</text>
+    <text x="${zr+6}" y="${zb+4}" font-family="'DM Mono',monospace" font-size="9" fill="#6e8098">${zoneBottom}ft</text>
+
+    <!-- Center line (catcher POV) -->
+    <line x1="${SVG_W/2}" y1="${zt-15}" x2="${SVG_W/2}" y2="${zb+10}" stroke="#21303f" stroke-width="1" stroke-dasharray="3,4"/>
+
+    <!-- Missed call dots -->
+    ${dots}
+
+    <!-- Home plate -->
+    <polygon points="${px1},${py1} ${px2},${py2} ${px3},${py3} ${px4},${py4} ${px5},${py5}"
+      fill="#21303f" stroke="#6e8098" stroke-width="1.2"/>
+
+    <!-- Axis labels -->
+    <text x="${SVG_W/2}" y="${SVG_H-4}" font-family="'DM Mono',monospace" font-size="9" fill="#6e8098" text-anchor="middle">CATCHER'S VIEW</text>
+  </svg>`;
+}
+
+// ─── RE24 & Run Expectancy ────────────────────────────────────────────────────
+// RE24[outs][baseState] — average runs expected to score rest of inning
+// baseState: bitmask, bit0=1B occupied, bit1=2B, bit2=3B  (0=bases empty … 7=loaded)
+const RE24 = [
+  [0.544, 0.941, 1.170, 1.556, 1.321, 1.743, 1.978, 2.395], // 0 outs
+  [0.291, 0.587, 0.700, 1.068, 0.890, 1.088, 1.399, 1.756], // 1 out
+  [0.112, 0.242, 0.325, 0.552, 0.375, 0.529, 0.661, 0.978], // 2 outs
+];
+
+// Expected runs from PA given count (batting team perspective)
+const COUNT_RE = {
+  '0-0':0.444,'1-0':0.562,'2-0':0.628,'3-0':0.765,
+  '0-1':0.306,'1-1':0.380,'2-1':0.437,'3-1':0.622,
+  '0-2':0.191,'1-2':0.250,'2-2':0.305,'3-2':0.456,
+};
+
+// Advance baseState for a walk (forces runners)
+function walkResult(baseState){
+  const on1=!!(baseState&1), on2=!!(baseState&2), on3=!!(baseState&4);
+  let runs=0, n1=true, n2=on2, n3=on3;
+  if(on1){ n2=true; if(on2){ n3=true; if(on3) runs=1; } }
+  return { newState:(n1?1:0)|(n2?2:0)|(n3?4:0), runs };
+}
+
+// RE delta for a single missed call (positive = favors pitching team, negative = batting team)
+function reDelta(type, balls, strikes, outs, baseState){
+  const safeOuts = Math.min(Math.max(isNaN(outs)?0:outs, 0), 2);
+  const bs = isNaN(baseState)||baseState<0||baseState>7 ? 0 : baseState;
+
+  function re(b,s){
+    // Terminal: walk
+    if(b>=4){ const {newState,runs}=walkResult(bs); return runs+RE24[safeOuts][newState]; }
+    // Terminal: strikeout
+    if(s>=3){ return safeOuts===2 ? 0 : RE24[safeOuts+1][bs]; }
+    return COUNT_RE[`${b}-${s}`] ?? COUNT_RE['0-0'];
+  }
+
+  // FP = called strike, was ball → pitcher benefited → delta positive for pitching team
+  // FN = called ball, was strike → batter benefited → delta negative for pitching team
+  if(type==='FP') return re(balls+1, strikes) - re(balls, strikes+1);
+  else            return re(balls,   strikes+1) - re(balls+1, strikes);
+}
+
+// ─── Main Processing ─────────────────────────────────────────────────────────
+function processCSV(rows){
+  const headers = Object.keys(rows[0]);
+
+  const C={
+    call:     findCol(headers,['PitchCall','pitchcall','pitch_call','Call']),
+    side:     findCol(headers,['PlateLocSide','platelocside','plate_loc_side','px','PlateLocationSide']),
+    height:   findCol(headers,['PlateLocHeight','platelocheight','plate_loc_height','pz','PlateLocationHeight']),
+    zTop:     findCol(headers,['ZoneTop','zonetop','zone_top','sz_top','StrikeZoneTop']),
+    zBot:     findCol(headers,['ZoneBottom','zonebottom','zone_bottom','sz_bot','StrikeZoneBottom']),
+    inning:   findCol(headers,['Inning','inning']),
+    topBot:   findCol(headers,['Top/Bottom','TopBottom','topbottom','top_bottom','Half','InningHalf']),
+    balls:    findCol(headers,['Balls','balls','BallCount','ball_count','PreBalls']),
+    strikes:  findCol(headers,['Strikes','strikes','StrikeCount','strike_count','PreStrikes']),
+    outs:     findCol(headers,['Outs','outs','OutsBeforePitch']),
+    pitcher:  findCol(headers,['Pitcher','pitcher','PitcherName','pitcher_name']),
+    batter:   findCol(headers,['Batter','batter','BatterName','batter_name']),
+    pitchTeam:findCol(headers,['PitcherTeam','pitcherteam','pitcher_team']),
+    batTeam:  findCol(headers,['BatterTeam','batterteam','batter_team']),
+    home:     findCol(headers,['HomeTeam','hometeam','home_team']),
+    away:     findCol(headers,['AwayTeam','awayteam','away_team']),
+    r1b:      findCol(headers,['Runner1B','runner1b','runner_1b','Rnr1B','rnr1b']),
+    r2b:      findCol(headers,['Runner2B','runner2b','runner_2b','Rnr2B','rnr2b']),
+    r3b:      findCol(headers,['Runner3B','runner3b','runner_3b','Rnr3B','rnr3b']),
+  };
+
+  if(!C.call) throw new Error('Could not find PitchCall column. Check your CSV has TrackMan headers.');
+  if(!C.side||!C.height) throw new Error('Could not find PlateLocSide / PlateLocHeight columns.');
+
+  // TrackMan standard: 17" plate (±8.5" = ±0.7083 ft), per-pitch vertical zone
+  const HALF_W = 17/2/12; // 0.7083 ft
+  const DEFAULT_TOP = 3.5, DEFAULT_BOT = 1.5;
+  const usingPerPitch = !!(C.zTop && C.zBot);
+
+  function inZone(side, height, row){
+    const top = usingPerPitch ? (parseFloat(row[C.zTop])||DEFAULT_TOP) : DEFAULT_TOP;
+    const bot = usingPerPitch ? (parseFloat(row[C.zBot])||DEFAULT_BOT) : DEFAULT_BOT;
+    return Math.abs(side) <= HALF_W && height >= bot && height <= top;
+  }
+
+  // For rendering the zone outline, gather median top/bot
+  const zoneSamples = rows.map(r=>({
+    top: usingPerPitch ? parseFloat(r[C.zTop]) : DEFAULT_TOP,
+    bot: usingPerPitch ? parseFloat(r[C.zBot]) : DEFAULT_BOT,
+  })).filter(s=>!isNaN(s.top)&&!isNaN(s.bot));
+  const medianTop = zoneSamples.length ? zoneSamples.map(s=>s.top).sort((a,b)=>a-b)[Math.floor(zoneSamples.length/2)] : DEFAULT_TOP;
+  const medianBot = zoneSamples.length ? zoneSamples.map(s=>s.bot).sort((a,b)=>a-b)[Math.floor(zoneSamples.length/2)] : DEFAULT_BOT;
+
+  const calledPitches=[], missed=[];
+  let TP=0,TN=0,FP=0,FN=0;
+  const teamFavor={}; // team → accumulated run delta (positive = favored)
+
+  for(const row of rows){
+    const callRaw=(row[C.call]||'').trim();
+    const isCS = callRaw==='StrikeCalled';
+    const isCB = callRaw==='BallCalled';
+    if(!isCS&&!isCB) continue;
+
+    const side   = parseFloat(row[C.side]);
+    const height = parseFloat(row[C.height]);
+    if(isNaN(side)||isNaN(height)) continue;
+
+    const inZ  = inZone(side,height,row);
+    const balls   = parseInt(row[C.balls])||0;
+    const strikes = parseInt(row[C.strikes])||0;
+    const outs    = parseInt(row[C.outs]);
+    const inning  = row[C.inning]||'';
+    const topBot  = row[C.topBot]||'';
+    const pitcher = row[C.pitcher]||'';
+    const batter  = row[C.batter]||'';
+    const pitchTeam = row[C.pitchTeam]||'';
+    const batTeam   = row[C.batTeam]||'';
+
+    // Base state bitmask from runner columns
+    const on1b = C.r1b ? !!(row[C.r1b]||'').trim() : false;
+    const on2b = C.r2b ? !!(row[C.r2b]||'').trim() : false;
+    const on3b = C.r3b ? !!(row[C.r3b]||'').trim() : false;
+    const baseState = (on1b?1:0)|(on2b?2:0)|(on3b?4:0);
+
+    calledPitches.push({isCS,isCB,side,height,inZ,balls,strikes,outs,inning,topBot,pitcher,batter,pitchTeam,batTeam});
+
+    if(isCS && inZ)  TP++;
+    else if(isCB && !inZ) TN++;
+    else if(isCS && !inZ){
+      // Bad called strike — pitching team benefited
+      FP++;
+      const delta = reDelta('FP', balls, strikes, outs, baseState);
+      const t = pitchTeam||'Unknown';
+      teamFavor[t] = (teamFavor[t]||0) + delta;
+      missed.push({type:'FP',side,height,balls,strikes,outs,inning,topBot,pitcher,batter,pitchTeam,batTeam,delta});
+    } else if(isCB && inZ){
+      // Bad called ball — batting team benefited
+      FN++;
+      const delta = reDelta('FN', balls, strikes, outs, baseState);
+      const t = batTeam||'Unknown';
+      teamFavor[t] = (teamFavor[t]||0) + Math.abs(delta);
+      missed.push({type:'FN',side,height,balls,strikes,outs,inning,topBot,pitcher,batter,pitchTeam,batTeam,delta});
+    }
+  }
+
+  if(calledPitches.length===0) throw new Error('No called strikes or balls found in the CSV.');
+
+  const total=TP+TN+FP+FN;
+  const acc=total>0?(TP+TN)/total*100:0;
+  const ballAcc=(TN+FN)>0?TN/(TN+FN)*100:0;
+  const strikeAcc=(TP+FP)>0?TP/(TP+FP)*100:0;
+
+  missed.sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta));
+
+  // Auto-detect teams from CSV
+  const autoHome = C.home ? (rows.find(r=>r[C.home])||{})[C.home]||'' : '';
+  const autoAway = C.away ? (rows.find(r=>r[C.away])||{})[C.away]||'' : '';
+
+  return {
+    total,TP,TN,FP,FN,acc,ballAcc,strikeAcc,missed,teamFavor,
+    zoneTop:medianTop,zoneBottom:medianBot,halfW:HALF_W,
+    usingPerPitch,autoHome,autoAway
+  };
+}
+
+// ─── Render Scorecard ─────────────────────────────────────────────────────────
+function renderScorecard(stats){
+  const ump   = document.getElementById('ump-name').value.trim() || 'Home Plate Umpire';
+  const away  = (stats._awayTeam || stats.autoAway || 'AWAY').toUpperCase();
+  const home  = (stats._homeTeam || stats.autoHome || 'HOME').toUpperCase();
+  const awayS = document.getElementById('away-score').value;
+  const homeS = document.getElementById('home-score').value;
+  const label = stats._label || '';
+  const date  = stats._date ? fmtDate(stats._date.slice(0,10)) : '';
+
+  // Favor logic — runs-based via RE24
+  const tf = stats.teamFavor;
+  const teams = Object.keys(tf);
+  let favorCls = 'val-muted', favorVal = 'EVEN', favorSub = 'No bias detected';
+  if(teams.length>0){
+    teams.sort((a,b)=>tf[b]-tf[a]);
+    const top=teams[0], runs=tf[top];
+    if(runs>0.01){
+      const isAway=(away&&top.toLowerCase().includes(away.toLowerCase()))||
+                   (stats.autoAway&&top.toLowerCase().includes(stats.autoAway.toLowerCase()));
+      favorCls = isAway?'val-red':'val-blue';
+      favorVal = `+${runs.toFixed(2)}`;
+      favorSub = teams.filter(t=>tf[t]>0.01).map(t=>`${t} +${tf[t].toFixed(2)} runs`).join(' · ');
+    }
+  }
+
+  // Missed calls list (top 5 by RE delta)
+  const missedHtml = stats.missed.length===0
+    ? '<p class="no-calls">✓ No missed calls found.</p>'
+    : stats.missed.slice(0,5).map((m,i)=>{
+        const inn = m.inning?`Inn ${m.inning}${m.topBot?' ('+m.topBot+')':''}`:''
+        const sit = `${inn}${m.outs!==undefined&&!isNaN(m.outs)?', '+m.outs+' out(s)':''}`
+        const type = m.type==='FP'
+          ? `<span class="missed-badge badge-red">Strike → Ball</span>`
+          : `<span class="missed-badge badge-blue">Ball → Strike</span>`;
+        const deltaStr = m.delta!==undefined ? ` &nbsp;·&nbsp; <span style="color:${m.type==='FP'?'#f85149':'#58a6ff'}">+${Math.abs(m.delta).toFixed(2)} runs</span>` : '';
+        return `<div class="missed-item">
+          <div class="missed-sit"><span class="missed-rank">${i+1}</span>${m.pitcher||'Pitcher'} → ${m.batter||'Batter'} ${type}</div>
+          <div class="missed-detail">${sit} &nbsp;·&nbsp; Count: ${m.balls}-${m.strikes}${deltaStr}</div>
+        </div>`;
+      }).join('');
+
+  const zoneSVG = buildZoneSVG(stats.missed, stats.zoneTop, stats.zoneBottom, stats.halfW);
+  const scoreLabel = (awayS!==''&&homeS!=='')?`<span class="sc-final">${awayS}–${homeS}</span>`:'';
+
+  document.getElementById('scorecard').innerHTML = `
+    <!-- Header -->
+    <div class="sc-header-band">
+      <div class="sc-ump-name">${ump}</div>
+      <div class="sc-game-meta">
+        <div class="sc-teams">
+          <span class="sc-away">${away}</span><span class="sc-vs">vs.</span><span class="sc-home">${home}</span>
+          ${scoreLabel}
+        </div>
+        <div>${label?`<span class="sc-game-label">${label}&ensp;</span>`:''}${date?`<span class="sc-date">${date}</span>`:''}</div>
+      </div>
+    </div>
+
+    <!-- Stats strip -->
+    <div class="stats-strip">
+      <div class="sstat">
+        <div class="sstat-label">Overall Accuracy</div>
+        <div class="sstat-val val-gold">${Math.round(stats.acc)}%</div>
+        <div class="sstat-sub">${stats.TP+stats.TN} / ${stats.total} correct</div>
+      </div>
+      <div class="sstat">
+        <div class="sstat-label">Missed Calls</div>
+        <div class="sstat-val ${stats.FP+stats.FN===0?'val-green':'val-red'}">${stats.FP+stats.FN}</div>
+        <div class="sstat-sub">${stats.FP} bad K &nbsp;·&nbsp; ${stats.FN} bad B</div>
+      </div>
+      <div class="sstat">
+        <div class="sstat-label">Favor</div>
+        <div class="sstat-val ${favorCls}">${favorVal}</div>
+        <div class="sstat-sub">${favorSub}</div>
+      </div>
+      <div class="sstat">
+        <div class="sstat-label">Called Ball Acc.</div>
+        <div class="sstat-val val-blue">${Math.round(stats.ballAcc)}%</div>
+        <div class="sstat-sub">${stats.FN} of ${stats.TN+stats.FN} were strikes</div>
+      </div>
+      <div class="sstat">
+        <div class="sstat-label">Called Strike Acc.</div>
+        <div class="sstat-val val-red">${Math.round(stats.strikeAcc)}%</div>
+        <div class="sstat-sub">${stats.FP} of ${stats.TP+stats.FP} were balls</div>
+      </div>
+    </div>
+
+    <!-- Body: zone + right panel -->
+    <div class="sc-body">
+      <div class="zone-panel">
+        <div class="zone-title">Missed Calls — Strike Zone (Catcher's View)</div>
+        <div class="zone-svg-wrap">${zoneSVG}</div>
+        <div class="zone-legend">
+          <div class="leg"><div class="leg-dot" style="background:#f85149"></div>Called Strike (was Ball)</div>
+          <div class="leg"><div class="leg-dot" style="background:#58a6ff"></div>Called Ball (was Strike)</div>
+        </div>
+      </div>
+      <div class="right-panel">
+        <div class="calls-panel">
+          <div class="calls-title">Impactful Missed Calls</div>
+          <div class="calls-sub">ranked by run expectancy impact</div>
+          ${missedHtml}
+        </div>
+        <div class="acc-row">
+          <div class="acc-block">
+            <div class="acc-label">Called Ball Accuracy</div>
+            <div class="acc-pct val-blue">${Math.round(stats.ballAcc)}%</div>
+            <div class="acc-sub">${stats.FN} of ${stats.TN+stats.FN} called balls<br>were true strikes</div>
+          </div>
+          <div class="acc-block">
+            <div class="acc-label">Called Strike Accuracy</div>
+            <div class="acc-pct val-red">${Math.round(stats.strikeAcc)}%</div>
+            <div class="acc-sub">${stats.FP} of ${stats.TP+stats.FP} called strikes<br>were true balls</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="sc-footer">${stats.usingPerPitch?'Per-pitch zone (ZoneTop/ZoneBottom)':'Fixed zone '+stats.zoneTop+'ft–'+stats.zoneBottom+'ft'} · 17" plate width · TrackMan CSV</div>
+  `;
+}
+
+// ─── UI Events ────────────────────────────────────────────────────────────────
+const genBtn = document.getElementById('gen-btn');
+const errMsg = document.getElementById('error-msg');
+
+// Load games dropdown
+async function loadGames() {
+  try {
+    const rows = await supaFetch('games?select=game_id,display_name,date,home_team,away_team&order=date.desc');
+    const sel = document.getElementById('game-select');
+    sel.innerHTML = '<option value="">— select game —</option>';
+    rows.forEach(g => {
+      gamesMeta[g.game_id] = g;
+      const label = g.display_name || g.game_id;
+      sel.innerHTML += `<option value="${g.game_id}">${label}</option>`;
+    });
+    sel.addEventListener('change', function() {
+      genBtn.style.display = this.value ? 'block' : 'none';
+      errMsg.style.display = 'none';
+    });
+  } catch(e) {
+    document.getElementById('game-select').innerHTML = '<option>Error loading games</option>';
+  }
+}
+
+genBtn.addEventListener('click', async () => {
+  const gameId = document.getElementById('game-select').value;
+  if (!gameId) { showError('Please select a game.'); return; }
+  errMsg.style.display = 'none';
+  genBtn.textContent = 'Loading...';
+  genBtn.disabled = true;
+  try {
+    const rows = await supaFetch('pitches?GameID=eq.' + encodeURIComponent(gameId));
+    if (!rows.length) throw new Error('No pitch data found for this game.');
+    csvData = rows;
+    const stats = processCSV(rows);
+
+    // Auto-populate team names from games table
+    const g = gamesMeta[gameId];
+    if (g) {
+      if (g.away_team && !document.getElementById('away-team-val')) {
+        stats._awayTeam = g.away_team;
+        stats._homeTeam = g.home_team;
+        stats._date = g.date;
+        stats._label = g.display_name || '';
+      }
+    }
+
+    renderScorecard(stats);
+    document.getElementById('upload-screen').style.display = 'none';
+    document.getElementById('scorecard-screen').style.display = 'block';
+    window.scrollTo(0, 0);
+  } catch(e) {
+    showError(e.message);
+  } finally {
+    genBtn.textContent = 'Generate Scorecard →';
+    genBtn.disabled = false;
+  }
+});
+
+document.getElementById('back-btn').addEventListener('click',()=>{
+  document.getElementById('scorecard-screen').style.display='none';
+  document.getElementById('upload-screen').style.display='flex';
+  genBtn.textContent = 'Generate Scorecard →';
+  genBtn.disabled = false;
+});
+
+document.getElementById('print-btn').addEventListener('click',()=>window.print());
+
+document.getElementById('overlay-close').addEventListener('click',()=>{
+  document.getElementById('img-overlay').classList.remove('show');
+});
+
+document.getElementById('img-btn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('img-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Rendering…';
+
+  try {
+    const card = document.getElementById('scorecard');
+
+    // Inline all SVG fonts as data URIs so html2canvas can capture them
+    const svgs = card.querySelectorAll('svg');
+    svgs.forEach(svg => {
+      // Make sure SVG has explicit dimensions
+      const box = svg.getBoundingClientRect();
+      if(!svg.getAttribute('width'))  svg.setAttribute('width',  box.width);
+      if(!svg.getAttribute('height')) svg.setAttribute('height', box.height);
+    });
+
+    const canvas = await html2canvas(card, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#161d27',
+      logging: false,
+      onclone(doc) {
+        // In the cloned doc, replace web fonts with system fallbacks so Safari renders text
+        const style = doc.createElement('style');
+        style.textContent = `* { font-family: Georgia, 'Times New Roman', serif !important; }
+          .sc-ump-name, .sstat-val, .acc-pct, .missed-rank {
+            font-family: Impact, 'Arial Narrow', Arial, sans-serif !important;
+            letter-spacing: .06em;
+          }`;
+        doc.head.appendChild(style);
+      }
+    });
+
+    const dataUrl = canvas.toDataURL('image/png');
+    const overlay = document.getElementById('img-overlay');
+    const img = document.getElementById('overlay-img');
+    img.src = dataUrl;
+    overlay.classList.add('show');
+
+  } catch(e) {
+    alert('Image generation failed: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📷 Save as Image';
+  }
+});
+
+function showError(msg){
+  errMsg.textContent='⚠ '+msg;
+  errMsg.style.display='block';
+}
+
+loadGames();
+</script>
+</body>
+</html>
