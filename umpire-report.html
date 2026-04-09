@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Umpire Scouting Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Barlow', sans-serif;
+  background: #f0f2f5;
+  min-height: 100vh;
+  padding: 12px 10px 40px;
+}
+
+/* Upload panel */
+.ui-panel {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  padding: 16px;
+  max-width: 500px;
+  margin: 0 auto 16px;
+}
+.ui-panel h2 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px; font-weight: 800; color: #1a3a5c; margin-bottom: 4px;
+}
+.ui-panel p { font-size: 12px; color: #666; margin-bottom: 14px; }
+.field-group { margin-bottom: 12px; }
+.field-group label {
+  display: block; font-size: 11px; font-weight: 700;
+  color: #1a3a5c; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+}
+.field-group input, .field-group select {
+  width: 100%; padding: 10px; border: 1.5px solid #c5d8f0;
+  border-radius: 6px; font-family: 'Barlow', sans-serif;
+  font-size: 15px; color: #1a1a1a; background: #fff;
+  -webkit-appearance: none;
+}
+.gen-btn {
+  width: 100%; padding: 13px;
+  background: #1a3a5c; border: none; border-radius: 8px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px; font-weight: 800; color: #fff;
+  cursor: pointer; letter-spacing: 1px;
+}
+.gen-btn:disabled { background: #b0c4de; cursor: not-allowed; }
+.status-msg { font-size: 12px; color: #2d5a8e; margin-top: 8px; min-height: 16px; font-weight: 600; }
+
+/* Report card */
+.report { display: none; max-width: 500px; margin: 0 auto; }
+
+.rpt-header {
+  background: linear-gradient(135deg, #1a3a5c, #2d5a8e);
+  border-radius: 10px 10px 0 0;
+  padding: 12px 16px 10px;
+}
+.rpt-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 28px; font-weight: 900; color: #fff;
+  letter-spacing: 1px; line-height: 1;
+}
+.rpt-sub {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px; color: #a8c8f0; margin-top: 2px;
+}
+
+/* Stats strip */
+.stats-strip {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  background: #fff; border-left: 1px solid #dde4ef;
+  border-right: 1px solid #dde4ef;
+}
+.sstat {
+  padding: 8px 4px; text-align: center;
+  border-right: 1px solid #dde4ef;
+}
+.sstat:last-child { border-right: none; }
+.sstat-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px; font-weight: 800; color: #1a3a5c; line-height: 1;
+}
+.sstat-lbl {
+  font-size: 9px; color: #7a8faa; text-transform: uppercase;
+  letter-spacing: 0.5px; margin-top: 1px;
+}
+.val-green { color: #1a7a35; }
+.val-red { color: #d93025; }
+.val-orange { color: #b8892a; }
+
+/* Section */
+.section {
+  background: #fff;
+  border-left: 1px solid #dde4ef;
+  border-right: 1px solid #dde4ef;
+  border-top: 1px solid #dde4ef;
+  padding: 10px 12px;
+}
+.section-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px; font-weight: 800; color: #1a3a5c;
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+}
+
+/* Trend bars */
+.trend-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+.trend-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px; color: #555; width: 100px; flex-shrink: 0;
+}
+.trend-bar-wrap {
+  flex: 1; background: #eef2f8; border-radius: 4px; height: 14px; overflow: hidden;
+}
+.trend-bar {
+  height: 100%; border-radius: 4px;
+  transition: width 0.4s ease;
+}
+.trend-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px; font-weight: 700; color: #1a3a5c; width: 38px; text-align: right; flex-shrink: 0;
+}
+
+/* Game log */
+.game-row {
+  display: grid; grid-template-columns: 1fr 48px 48px 48px 60px 32px;
+  gap: 4px; align-items: center;
+  padding: 5px 0; border-bottom: 1px solid #eef2f8;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 12px;
+}
+.game-row:last-child { border-bottom: none; }
+.game-row-head {
+  font-size: 10px; font-weight: 700; color: #7a8faa;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.del-btn {
+  background: none; border: none; cursor: pointer;
+  color: #c0cad8; font-size: 14px; line-height: 1;
+  padding: 2px 4px; border-radius: 4px;
+}
+.del-btn:hover { color: #d93025; background: rgba(217,48,37,0.08); }
+.game-name { color: #1a3a5c; font-weight: 600; }
+.game-acc { text-align: center; font-weight: 700; }
+.favor-badge {
+  display: inline-block; padding: 1px 6px; border-radius: 3px;
+  font-size: 10px; font-weight: 700; text-align: center;
+}
+.favor-home { background: rgba(26,111,181,0.12); color: #1a6fb5; }
+.favor-away { background: rgba(217,48,37,0.10); color: #d93025; }
+.favor-even { background: rgba(90,106,122,0.10); color: #5a6a7a; }
+
+/* Tendency box */
+.tendency-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+.tendency-box {
+  background: #f4f8fd; border: 1px solid #dde4ef;
+  border-radius: 6px; padding: 8px 10px;
+}
+.tendency-box .t-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px; font-weight: 800; color: #1a3a5c; line-height: 1;
+}
+.tendency-box .t-lbl {
+  font-size: 10px; color: #7a8faa; margin-top: 2px;
+}
+
+/* Insufficient data */
+.no-data {
+  text-align: center; padding: 20px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px; color: #7a8faa;
+}
+
+/* Footer */
+.rpt-footer {
+  background: #e8eef6; border: 1px solid #dde4ef;
+  border-radius: 0 0 10px 10px;
+  padding: 5px 12px; font-size: 10px; color: #8a9ab0;
+  text-align: center;
+}
+
+.save-btn {
+  display: block; width: 100%; max-width: 500px; margin: 10px auto 0;
+  padding: 12px; background: #1a3a5c; border: none; border-radius: 8px;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 15px;
+  font-weight: 800; color: #fff; cursor: pointer; letter-spacing: 1px;
+}
+
+.img-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.88); z-index: 9999;
+  flex-direction: column; align-items: center; justify-content: center; padding: 16px;
+}
+.img-overlay.active { display: flex; }
+.img-overlay img { max-width: 100%; max-height: 75vh; border-radius: 8px; }
+.overlay-hint { color: #fff; font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 600; margin-top: 14px; text-align: center; }
+.overlay-close { margin-top: 16px; padding: 10px 32px; background: rgba(255,255,255,0.15); color: #fff; border: 1.5px solid rgba(255,255,255,0.4); border-radius: 8px; font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div class="ui-panel">
+  <h2>🎯 Umpire Scouting Report</h2>
+  <p>Select an umpire to view their tendencies and historical accuracy.</p>
+  <div class="field-group">
+    <label>Umpire</label>
+    <select id="umpSelect">
+      <option value="">Loading umpires...</option>
+    </select>
+  </div>
+  <button class="gen-btn" id="genBtn" disabled onclick="generate()">GENERATE REPORT</button>
+  <div class="status-msg" id="statusMsg"></div>
+</div>
+
+<div class="report" id="report">
+  <div class="rpt-header">
+    <div class="rpt-name" id="rptName">—</div>
+    <div class="rpt-sub" id="rptSub">—</div>
+  </div>
+
+  <div class="stats-strip">
+    <div class="sstat">
+      <div class="sstat-val" id="sAcc">—</div>
+      <div class="sstat-lbl">Accuracy</div>
+    </div>
+    <div class="sstat">
+      <div class="sstat-val" id="sMissed">—</div>
+      <div class="sstat-lbl">Avg Missed</div>
+    </div>
+    <div class="sstat">
+      <div class="sstat-val" id="sGames">—</div>
+      <div class="sstat-lbl">Games</div>
+    </div>
+    <div class="sstat">
+      <div class="sstat-val" id="sFavor">—</div>
+      <div class="sstat-lbl">Avg Favor</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Accuracy Breakdown</div>
+    <div class="trend-row">
+      <div class="trend-label">Overall</div>
+      <div class="trend-bar-wrap"><div class="trend-bar" id="barOverall" style="background:#1a3a5c"></div></div>
+      <div class="trend-val" id="lblOverall">—</div>
+    </div>
+    <div class="trend-row">
+      <div class="trend-label">Called Balls</div>
+      <div class="trend-bar-wrap"><div class="trend-bar" id="barBall" style="background:#1a6fb5"></div></div>
+      <div class="trend-val" id="lblBall">—</div>
+    </div>
+    <div class="trend-row">
+      <div class="trend-label">Called Strikes</div>
+      <div class="trend-bar-wrap"><div class="trend-bar" id="barStrike" style="background:#d93025"></div></div>
+      <div class="trend-val" id="lblStrike">—</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Tendencies</div>
+    <div class="tendency-grid">
+      <div class="tendency-box">
+        <div class="t-val" id="tClear">—</div>
+        <div class="t-lbl">Avg Clear Misses / Game</div>
+      </div>
+      <div class="tendency-box">
+        <div class="t-val" id="tBorderline">—</div>
+        <div class="t-lbl">Avg Borderline / Game</div>
+      </div>
+      <div class="tendency-box">
+        <div class="t-val" id="tFavorPct">—</div>
+        <div class="t-lbl">Games With Favor Bias</div>
+      </div>
+      <div class="tendency-box">
+        <div class="t-val" id="tFavorTeam">—</div>
+        <div class="t-lbl">Most Favored Side</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Game Log</div>
+    <div class="game-row game-row-head">
+      <div>Game</div>
+      <div style="text-align:center">Acc%</div>
+      <div style="text-align:center">Missed</div>
+      <div style="text-align:center">Border</div>
+      <div style="text-align:center">Favor</div>
+      <div></div>
+    </div>
+    <div id="gameLog"></div>
+  </div>
+
+  <div class="rpt-footer" id="rptFooter">TrackMan · Walters State Baseball Analytics</div>
+</div>
+
+<button class="save-btn" id="saveBtn" style="display:none" onclick="saveImage()">📥 SAVE REPORT IMAGE</button>
+
+<div class="img-overlay" id="imgOverlay">
+  <img id="overlayImg" src="" alt="Report">
+  <div class="overlay-hint">Hold image to save to Photos</div>
+  <button class="overlay-close" onclick="document.getElementById('imgOverlay').classList.remove('active')">Close</button>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
+
+async function supaFetch(path) {
+  const r = await fetch(SUPABASE_URL + '/rest/v1/' + path,
+    { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
+  return r.json();
+}
+
+// Load umpires
+async function loadUmpires() {
+  try {
+    const rows = await supaFetch('umpire_games?select=umpire_name&order=umpire_name');
+    const names = [...new Set(rows.map(r => r.umpire_name).filter(Boolean))].sort();
+    const sel = document.getElementById('umpSelect');
+    if (!names.length) {
+      sel.innerHTML = '<option>No umpire data yet — run scorecards first</option>';
+      return;
+    }
+    sel.innerHTML = '<option value="">— select umpire —</option>';
+    names.forEach(n => { sel.innerHTML += `<option value="${n}">${n}</option>`; });
+    sel.addEventListener('change', function() {
+      document.getElementById('genBtn').disabled = !this.value;
+    });
+  } catch(e) {
+    document.getElementById('umpSelect').innerHTML = '<option>Error loading umpires</option>';
+  }
+}
+
+async function generate() {
+  const name = document.getElementById('umpSelect').value;
+  if (!name) return;
+  document.getElementById('statusMsg').textContent = 'Loading...';
+  document.getElementById('genBtn').disabled = true;
+
+  try {
+    const rows = await supaFetch('umpire_games?umpire_name=eq.' + encodeURIComponent(name) + '&order=game_date.desc&select=*');
+    if (!rows.length) {
+      document.getElementById('statusMsg').textContent = 'No data found for ' + name;
+      document.getElementById('genBtn').disabled = false;
+      return;
+    }
+
+    const n = rows.length;
+    const avgAcc = (rows.reduce((s,r) => s + (r.overall_acc||0), 0) / n).toFixed(1);
+    const avgBall = (rows.reduce((s,r) => s + (r.ball_acc||0), 0) / n).toFixed(1);
+    const avgStrike = (rows.reduce((s,r) => s + (r.strike_acc||0), 0) / n).toFixed(1);
+    const avgMissed = ((rows.reduce((s,r) => s + (r.missed_clear||0) + (r.missed_borderline||0), 0)) / n).toFixed(1);
+    const avgClear = (rows.reduce((s,r) => s + (r.missed_clear||0), 0) / n).toFixed(1);
+    const avgBorderline = (rows.reduce((s,r) => s + (r.missed_borderline||0), 0) / n).toFixed(1);
+    const avgFavor = (rows.reduce((s,r) => s + (r.favor_runs||0), 0) / n).toFixed(2);
+    const gamesWithFavor = rows.filter(r => (r.favor_runs||0) > 0.05).length;
+    const favorPct = Math.round(gamesWithFavor / n * 100) + '%';
+
+    // Most favored side
+    const favorCounts = {};
+    rows.forEach(r => {
+      if (r.favor_team) favorCounts[r.favor_team] = (favorCounts[r.favor_team]||0) + 1;
+    });
+    const topFavor = Object.keys(favorCounts).sort((a,b) => favorCounts[b]-favorCounts[a])[0] || 'Even';
+
+    // Populate header
+    document.getElementById('rptName').textContent = name;
+    document.getElementById('rptSub').textContent = n + ' game' + (n!==1?'s':'') + ' tracked · Walters State Baseball';
+
+    // Stats strip
+    document.getElementById('sAcc').textContent = avgAcc + '%';
+    document.getElementById('sMissed').textContent = avgMissed;
+    document.getElementById('sGames').textContent = n;
+    document.getElementById('sFavor').textContent = '+' + avgFavor;
+
+    // Color accuracy
+    const accNum = parseFloat(avgAcc);
+    document.getElementById('sAcc').className = 'sstat-val ' + (accNum >= 95 ? 'val-green' : accNum >= 90 ? 'val-orange' : 'val-red');
+
+    // Bars
+    document.getElementById('barOverall').style.width = avgAcc + '%';
+    document.getElementById('barBall').style.width = avgBall + '%';
+    document.getElementById('barStrike').style.width = avgStrike + '%';
+    document.getElementById('lblOverall').textContent = avgAcc + '%';
+    document.getElementById('lblBall').textContent = avgBall + '%';
+    document.getElementById('lblStrike').textContent = avgStrike + '%';
+
+    // Tendencies
+    document.getElementById('tClear').textContent = avgClear;
+    document.getElementById('tBorderline').textContent = avgBorderline;
+    document.getElementById('tFavorPct').textContent = favorPct;
+    document.getElementById('tFavorTeam').textContent = topFavor.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+
+    // Game log
+    const log = document.getElementById('gameLog');
+    log.innerHTML = '';
+    rows.forEach(r => {
+      const acc = r.overall_acc ? r.overall_acc + '%' : '—';
+      const accNum = r.overall_acc || 0;
+      const accColor = accNum >= 95 ? '#1a7a35' : accNum >= 90 ? '#b8892a' : '#d93025';
+      const favor = r.favor_runs > 0.05
+        ? `<span class="favor-badge favor-${r.favor_team&&r.favor_team.toLowerCase().includes('wal')?'home':'away'}">${(r.favor_team||'?').replace(/_/g,' ').slice(0,8)} +${(r.favor_runs||0).toFixed(2)}</span>`
+        : '<span class="favor-badge favor-even">Even</span>';
+      const gameName = r.display_name ? r.display_name.replace(/Midweek /i,'').replace(/ Game/i,' G') : (r.game_id||'—');
+      log.innerHTML += `
+        <div class="game-row" id="row-${r.id}">
+          <div class="game-name">${gameName}</div>
+          <div class="game-acc" style="color:${accColor}">${acc}</div>
+          <div style="text-align:center;font-family:'Barlow Condensed',sans-serif">${r.missed_clear||0}</div>
+          <div style="text-align:center;font-family:'Barlow Condensed',sans-serif">${r.missed_borderline||0}</div>
+          <div>${favor}</div>
+          <div><button class="del-btn" onclick="deleteGame('${r.id}')" title="Delete this entry">✕</button></div>
+        </div>`;
+    });
+
+    document.getElementById('rptFooter').textContent = 'Generated ' + new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) + ' · TrackMan · Walters State Baseball Analytics';
+
+    document.getElementById('report').style.display = 'block';
+    document.getElementById('saveBtn').style.display = 'block';
+    document.getElementById('statusMsg').textContent = '';
+    document.getElementById('genBtn').disabled = false;
+    document.getElementById('report').scrollIntoView({behavior:'smooth'});
+
+  } catch(e) {
+    document.getElementById('statusMsg').textContent = 'Error: ' + e.message;
+    document.getElementById('genBtn').disabled = false;
+  }
+}
+
+async function saveImage() {
+  const btn = document.getElementById('saveBtn');
+  btn.textContent = 'Rendering...'; btn.disabled = true;
+  try {
+    const canvas = await html2canvas(document.getElementById('report'), {
+      scale: 2, useCORS: true, backgroundColor: '#f0f2f5'
+    });
+    const dataUrl = canvas.toDataURL('image/png');
+    if (/iP(hone|ad|od)/i.test(navigator.userAgent)) {
+      document.getElementById('overlayImg').src = dataUrl;
+      document.getElementById('imgOverlay').classList.add('active');
+    } else {
+      const a = document.createElement('a');
+      a.download = 'umpire_' + document.getElementById('umpSelect').value.replace(/\s+/g,'_') + '.png';
+      a.href = dataUrl; a.click();
+    }
+  } catch(e) { alert('Error: ' + e.message); }
+  btn.textContent = '📥 SAVE REPORT IMAGE'; btn.disabled = false;
+}
+
+async function deleteGame(id) {
+  if (!confirm('Remove this game entry? This cannot be undone.')) return;
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/umpire_games?id=eq.' + id, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    if (res.ok) {
+      const row = document.getElementById('row-' + id);
+      if (row) row.remove();
+      // Re-run generate to refresh all stats
+      generate();
+    } else {
+      alert('Delete failed. Try again.');
+    }
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+loadUmpires();
+</script>
+</body>
+</html>
