@@ -1007,18 +1007,56 @@ function generate() {
   // Box score stats
   window._bsDebugSnippet = null;
   const bs = boxScoreText ? extractBatterStats(boxScoreText, batterName) : null;
+
+  // ── TrackMan XBH (ground truth) ───────────────────────────────────────────
+  // Handle both "HomeRun" and "Home Run" spacing variants from TrackMan
+  const tmDbl = rows.filter(r => r.PlayResult === 'Double').length;
+  const tmTpl = rows.filter(r => r.PlayResult === 'Triple').length;
+  const tmHR  = rows.filter(r => r.PlayResult === 'HomeRun' || r.PlayResult === 'Home Run').length;
+  const tmXBH = { dbl: tmDbl, tpl: tmTpl, hr: tmHR };
+
+  // ── PDF XBH + cross-reference ─────────────────────────────────────────────
+  let finalXBH = tmXBH;  // default to TrackMan
+  let xbhSource = 'trackman';
+  let xbhWarning = '';
+
   if (bs && boxScoreText) {
-    const xbh_stats = extractXBHFromNotes(boxScoreText, batterName);
-    bs.dbl = xbh_stats.dbl;
-    bs.tpl = xbh_stats.tpl;
-    bs.hr  = xbh_stats.hr;
+    const pdfXBH = extractXBHFromNotes(boxScoreText, batterName);
+    bs.dbl = pdfXBH.dbl;
+    bs.tpl = pdfXBH.tpl;
+    bs.hr  = pdfXBH.hr;
+
+    // Cross-reference PDF vs TrackMan
+    const dblMatch = pdfXBH.dbl === tmDbl;
+    const tplMatch = pdfXBH.tpl === tmTpl;
+    const hrMatch  = pdfXBH.hr  === tmHR;
+
+    if (dblMatch && tplMatch && hrMatch) {
+      finalXBH = pdfXBH;
+      xbhSource = 'verified';
+    } else {
+      // Disagreement — use TrackMan as tiebreaker, flag the discrepancy
+      finalXBH = tmXBH;
+      xbhSource = 'mismatch';
+      const diffs = [];
+      if (!dblMatch) diffs.push('2B: PDF=' + pdfXBH.dbl + ' TM=' + tmDbl);
+      if (!tplMatch) diffs.push('3B: PDF=' + pdfXBH.tpl + ' TM=' + tmTpl);
+      if (!hrMatch)  diffs.push('HR: PDF=' + pdfXBH.hr  + ' TM=' + tmHR);
+      xbhWarning = 'XBH mismatch (' + diffs.join(', ') + ') — using TrackMan';
+      // Update bs to use TrackMan XBH values
+      bs.dbl = tmDbl;
+      bs.tpl = tmTpl;
+      bs.hr  = tmHR;
+    }
   }
+
+  const totalXBH = finalXBH.dbl + finalXBH.tpl + finalXBH.hr;
 
   document.getElementById('cAB').textContent      = paList.length;
   document.getElementById('cR').textContent       = bs ? bs.r  : '—';
   document.getElementById('cH').textContent       = bs ? bs.h  : hits;
-  document.getElementById('cXBH').textContent     = bs ? (bs.dbl + bs.tpl + bs.hr) : xbh;
-  document.getElementById('cHR').textContent      = bs ? bs.hr : hr;
+  document.getElementById('cXBH').textContent     = totalXBH;
+  document.getElementById('cHR').textContent      = finalXBH.hr;
   document.getElementById('cRBI').textContent     = bs ? bs.rbi : '—';
   document.getElementById('cBB').textContent      = bs ? bs.bb : bb;
   document.getElementById('cK').textContent       = bs ? bs.k  : k;
@@ -1027,17 +1065,23 @@ function generate() {
   document.getElementById('cMaxEV').textContent   = maxEV;
 
   const sm = document.getElementById('statusMsg');
-  if (bs) {
-    sm.textContent = '✓ Card generated — box score stats applied (matched as "' + bs._matchedAs + '").';
+  if (xbhWarning) {
+    sm.textContent = '⚠ ' + xbhWarning + '.';
+    sm.className = 'status-msg warn';
+  } else if (bs && xbhSource === 'verified') {
+    sm.textContent = '✓ Card generated — PDF stats verified against TrackMan.';
+    sm.className = 'status-msg';
+  } else if (bs) {
+    sm.textContent = '✓ Card generated — box score applied (matched as "' + bs._matchedAs + '").';
     sm.className = 'status-msg';
   } else if (boxScoreText) {
     const hint = window._bsDebugSnippet
       ? ' PDF near name: "' + window._bsDebugSnippet.slice(0,80) + '"'
-      : ' Name not found in PDF — check browser console.';
+      : ' Name not found in PDF.';
     sm.textContent = '⚠ Could not parse box score for ' + displayName + '.' + hint;
     sm.className = 'status-msg warn';
   } else {
-    sm.textContent = '✓ Card generated — no box score uploaded, showing TrackMan counts.';
+    sm.textContent = '✓ Card generated — using TrackMan data.';
     sm.className = 'status-msg';
   }
 
