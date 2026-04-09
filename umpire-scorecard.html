@@ -9,10 +9,11 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#0d1117;--card:#161d27;--border:#21303f;
-  --text:#e6edf3;--muted:#6e8098;
-  --gold:#d4a843;--red:#f85149;--blue:#58a6ff;--green:#3fb950;
-  --red-dim:rgba(248,81,73,0.15);--blue-dim:rgba(88,166,255,0.15);
+  --bg:#f0f2f5;--card:#ffffff;--border:#dde4ef;
+  --text:#1a1a2e;--muted:#5a6a7a;
+  --gold:#b8892a;--red:#d93025;--blue:#1a6fb5;--green:#1a7a35;
+  --orange:#e07020;
+  --red-dim:rgba(217,48,37,0.10);--blue-dim:rgba(26,111,181,0.10);--orange-dim:rgba(224,112,32,0.10);
 }
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
 
@@ -27,7 +28,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .fg{display:flex;flex-direction:column;gap:.4rem;flex:1;min-width:100px}
 label{font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
 input[type=text],input[type=number],input[type=date]{
-  background:#0d1117;border:1px solid var(--border);border-radius:6px;
+  background:#ffffff;border:1px solid var(--border);border-radius:6px;
   color:var(--text);padding:.5rem .75rem;font-size:.9rem;font-family:'DM Sans',sans-serif;width:100%;
   transition:border-color .2s}
 input:focus{outline:none;border-color:var(--gold)}
@@ -86,11 +87,11 @@ summary:hover{color:var(--text)}
 
 /* ── Row 1: Header ── */
 .sc-header-band{
-  background:#111820;border-bottom:1px solid var(--border);
+  background:#1a3a5c;border-bottom:1px solid var(--border);
   padding:.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;
   grid-column:1/-1;
 }
-.sc-ump-name{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.08em;color:var(--text);line-height:1}
+.sc-ump-name{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.08em;color:#ffffff;line-height:1}
 .sc-game-meta{text-align:right;line-height:1.3}
 .sc-teams{font-family:'Bebas Neue',sans-serif;font-size:1.25rem;letter-spacing:.06em}
 .sc-away{color:var(--red)}
@@ -152,6 +153,7 @@ summary:hover{color:var(--text)}
 .missed-badge{display:inline-block;padding:.1rem .4rem;border-radius:3px;font-size:.62rem;font-weight:700;margin-left:.3rem}
 .badge-red{background:var(--red-dim);color:var(--red)}
 .badge-blue{background:var(--blue-dim);color:var(--blue)}
+.badge-orange{background:var(--orange-dim);color:var(--orange)}
 .no-calls{color:var(--green);font-size:.8rem;padding:.4rem 0}
 
 /* Ball/strike accuracy row */
@@ -163,7 +165,7 @@ summary:hover{color:var(--text)}
 .acc-sub{font-size:.62rem;color:var(--muted);margin-top:.2rem;line-height:1.3}
 
 /* Footer */
-.sc-footer{padding:.4rem 1rem;font-size:.6rem;color:var(--border);text-align:center;background:#111820}
+.sc-footer{padding:.4rem 1rem;font-size:.6rem;color:var(--muted);text-align:center;background:#e8eef6;border-top:1px solid var(--border)}
 
 @media print{
   @page{size:landscape;margin:.4in}
@@ -175,8 +177,8 @@ summary:hover{color:var(--text)}
   :root{--bg:#fff;--card:#f9fafb;--border:#dde1e7;--text:#111;--muted:#5a6472;
     --gold:#b8892a;--red:#d93025;--blue:#1a6fb5;--green:#1a7a35;
     --red-dim:rgba(217,48,37,.1);--blue-dim:rgba(26,111,181,.1)}
-  .sc-header-band{background:#eef0f3}
-  .sc-footer{background:#eef0f3}
+  .sc-header-band{background:#1a3a5c}
+  .sc-footer{background:#e8eef6}
 }
 </style>
 </head>
@@ -193,7 +195,7 @@ summary:hover{color:var(--text)}
     <div class="form-row">
       <div class="fg" style="flex:2">
         <label>Step 1 — Select Game</label>
-        <select id="game-select" style="background:#0d1117;border:1px solid var(--border);border-radius:6px;color:var(--text);padding:.5rem .75rem;font-size:.9rem;font-family:'DM Sans',sans-serif;width:100%;">
+        <select id="game-select" style="background:#ffffff;border:1px solid var(--border);border-radius:6px;color:var(--text);padding:.5rem .75rem;font-size:.9rem;font-family:'DM Sans',sans-serif;width:100%;">
           <option value="">Loading games...</option>
         </select>
       </div>
@@ -291,7 +293,7 @@ function toSVG(x,y){
   ];
 }
 
-function buildZoneSVG(missedCalls, zoneTop, zoneBottom, halfW){
+function buildZoneSVG(missedCalls, zoneTop, zoneBottom, halfW, SHADOW=0.0833){
   const [zl,zt]=toSVG(-halfW, zoneTop);
   const [zr,zb]=toSVG( halfW, zoneBottom);
   const zw=zr-zl, zh=zb-zt;
@@ -307,13 +309,26 @@ function buildZoneSVG(missedCalls, zoneTop, zoneBottom, halfW){
   const thirdH=(zb-zt)/3;
   const thirdW=(zr-zl)/3;
 
+  // Shadow zone box
+  const shadowPx = (SHADOW/(X_MAX-X_MIN))*SVG_W;
+  const shadowPy = (SHADOW/(Y_MAX-Y_MIN))*SVG_H;
+  const shadowBox = `<rect x="${zl-shadowPx}" y="${zt-shadowPy}" width="${zw+shadowPx*2}" height="${zh+shadowPy*2}"
+    fill="none" stroke="#e07020" stroke-width="1.2" stroke-dasharray="4,3" opacity="0.6"/>`;
+
   let dots='';
   for(const p of missedCalls){
     if(p.side==null||p.height==null) continue;
     const [dx,dy]=toSVG(p.side, p.height);
-    const isFP=(p.type==='FP'); // called strike, was ball
-    const color=isFP?'#f85149':'#58a6ff';
-    const glow=isFP?'rgba(248,81,73,0.35)':'rgba(88,166,255,0.35)';
+    const isFP=(p.type==='FP');
+    const isBorderline=(p.cat==='borderline');
+    let color, glow;
+    if(isBorderline){
+      color='#e07020'; glow='rgba(224,112,32,0.30)';
+    } else if(isFP){
+      color='#d93025'; glow='rgba(217,48,37,0.25)';
+    } else {
+      color='#1a6fb5'; glow='rgba(26,111,181,0.25)';
+    }
     dots+=`<circle cx="${dx}" cy="${dy}" r="7" fill="${glow}" stroke="none"/>`;
     dots+=`<circle cx="${dx}" cy="${dy}" r="4.5" fill="${color}" stroke="none" opacity="0.9"/>`;
   }
@@ -323,30 +338,33 @@ function buildZoneSVG(missedCalls, zoneTop, zoneBottom, halfW){
     <rect width="${SVG_W}" height="${SVG_H}" fill="none"/>
 
     <!-- Grid lines inside zone (thirds) -->
-    <line x1="${zl+thirdW}" y1="${zt}" x2="${zl+thirdW}" y2="${zb}" stroke="#21303f" stroke-width="1"/>
-    <line x1="${zl+thirdW*2}" y1="${zt}" x2="${zl+thirdW*2}" y2="${zb}" stroke="#21303f" stroke-width="1"/>
-    <line x1="${zl}" y1="${zt+thirdH}" x2="${zr}" y2="${zt+thirdH}" stroke="#21303f" stroke-width="1"/>
-    <line x1="${zl}" y1="${zt+thirdH*2}" x2="${zr}" y2="${zt+thirdH*2}" stroke="#21303f" stroke-width="1"/>
+    <line x1="${zl+thirdW}" y1="${zt}" x2="${zl+thirdW}" y2="${zb}" stroke="#c5d0dc" stroke-width="1"/>
+    <line x1="${zl+thirdW*2}" y1="${zt}" x2="${zl+thirdW*2}" y2="${zb}" stroke="#c5d0dc" stroke-width="1"/>
+    <line x1="${zl}" y1="${zt+thirdH}" x2="${zr}" y2="${zt+thirdH}" stroke="#c5d0dc" stroke-width="1"/>
+    <line x1="${zl}" y1="${zt+thirdH*2}" x2="${zr}" y2="${zt+thirdH*2}" stroke="#c5d0dc" stroke-width="1"/>
 
     <!-- Zone fill -->
-    <rect x="${zl}" y="${zt}" width="${zw}" height="${zh}" fill="rgba(255,255,255,0.03)" stroke="#6e8098" stroke-width="1.5"/>
+    <rect x="${zl}" y="${zt}" width="${zw}" height="${zh}" fill="rgba(26,58,92,0.04)" stroke="#1a3a5c" stroke-width="1.5"/>
 
     <!-- Zone top/bottom labels -->
-    <text x="${zr+6}" y="${zt+4}" font-family="'DM Mono',monospace" font-size="9" fill="#6e8098">${zoneTop}ft</text>
-    <text x="${zr+6}" y="${zb+4}" font-family="'DM Mono',monospace" font-size="9" fill="#6e8098">${zoneBottom}ft</text>
+    <text x="${zr+6}" y="${zt+4}" font-family="'DM Mono',monospace" font-size="9" fill="#8a9ab0">${zoneTop}ft</text>
+    <text x="${zr+6}" y="${zb+4}" font-family="'DM Mono',monospace" font-size="9" fill="#8a9ab0">${zoneBottom}ft</text>
 
     <!-- Center line (catcher POV) -->
-    <line x1="${SVG_W/2}" y1="${zt-15}" x2="${SVG_W/2}" y2="${zb+10}" stroke="#21303f" stroke-width="1" stroke-dasharray="3,4"/>
+    <line x1="${SVG_W/2}" y1="${zt-15}" x2="${SVG_W/2}" y2="${zb+10}" stroke="#c5d0dc" stroke-width="1" stroke-dasharray="3,4"/>
+
+    <!-- Shadow zone -->
+    ${shadowBox}
 
     <!-- Missed call dots -->
     ${dots}
 
     <!-- Home plate -->
     <polygon points="${px1},${py1} ${px2},${py2} ${px3},${py3} ${px4},${py4} ${px5},${py5}"
-      fill="#21303f" stroke="#6e8098" stroke-width="1.2"/>
+      fill="#dde4ef" stroke="#8a9ab0" stroke-width="1.2"/>
 
     <!-- Axis labels -->
-    <text x="${SVG_W/2}" y="${SVG_H-4}" font-family="'DM Mono',monospace" font-size="9" fill="#6e8098" text-anchor="middle">CATCHER'S VIEW</text>
+    <text x="${SVG_W/2}" y="${SVG_H-4}" font-family="'DM Mono',monospace" font-size="9" fill="#8a9ab0" text-anchor="middle">CATCHER'S VIEW</text>
   </svg>`;
 }
 
@@ -423,7 +441,8 @@ function processCSV(rows){
   if(!C.side||!C.height) throw new Error('Could not find PlateLocSide / PlateLocHeight columns.');
 
   // TrackMan standard: 17" plate (±8.5" = ±0.7083 ft), per-pitch vertical zone
-  const HALF_W = 17/2/12; // 0.7083 ft
+  const HALF_W = 17/2/12; // 0.7083 ft (±8.5 inches)
+  const SHADOW = 1/12;    // 1-inch buffer on each side (0.0833 ft)
   const DEFAULT_TOP = 3.5, DEFAULT_BOT = 1.5;
   const usingPerPitch = !!(C.zTop && C.zBot);
 
@@ -431,6 +450,15 @@ function processCSV(rows){
     const top = usingPerPitch ? (parseFloat(row[C.zTop])||DEFAULT_TOP) : DEFAULT_TOP;
     const bot = usingPerPitch ? (parseFloat(row[C.zBot])||DEFAULT_BOT) : DEFAULT_BOT;
     return Math.abs(side) <= HALF_W && height >= bot && height <= top;
+  }
+
+  function inShadow(side, height, row){
+    // In shadow zone = outside rulebook zone but within 1-inch buffer
+    const top = usingPerPitch ? (parseFloat(row[C.zTop])||DEFAULT_TOP) : DEFAULT_TOP;
+    const bot = usingPerPitch ? (parseFloat(row[C.zBot])||DEFAULT_BOT) : DEFAULT_BOT;
+    const inZ = inZone(side, height, row);
+    if (inZ) return false; // already in zone
+    return Math.abs(side) <= HALF_W + SHADOW && height >= bot - SHADOW && height <= top + SHADOW;
   }
 
   // For rendering the zone outline, gather median top/bot
@@ -474,22 +502,38 @@ function processCSV(rows){
 
     calledPitches.push({isCS,isCB,side,height,inZ,balls,strikes,outs,inning,topBot,pitcher,batter,pitchTeam,batTeam});
 
+    const shadow = inShadow(side, height, row);
+
     if(isCS && inZ)  TP++;
-    else if(isCB && !inZ) TN++;
-    else if(isCS && !inZ){
-      // Bad called strike — pitching team benefited
+    else if(isCB && !inZ && !shadow) TN++;
+    else if(isCS && !inZ && !shadow){
+      // Clear missed call — called strike, was a ball (outside shadow zone)
       FP++;
       const delta = reDelta('FP', balls, strikes, outs, baseState);
       const t = pitchTeam||'Unknown';
       teamFavor[t] = (teamFavor[t]||0) + delta;
-      missed.push({type:'FP',side,height,balls,strikes,outs,inning,topBot,pitcher,batter,pitchTeam,batTeam,delta});
+      missed.push({type:'FP',cat:'clear',side,height,balls,strikes,outs,inning,topBot,pitcher,batter,pitchTeam,batTeam,delta});
     } else if(isCB && inZ){
-      // Bad called ball — batting team benefited
+      // Clear missed call — called ball, was a strike
       FN++;
       const delta = reDelta('FN', balls, strikes, outs, baseState);
       const t = batTeam||'Unknown';
       teamFavor[t] = (teamFavor[t]||0) + Math.abs(delta);
-      missed.push({type:'FN',side,height,balls,strikes,outs,inning,topBot,pitcher,batter,pitchTeam,batTeam,delta});
+      missed.push({type:'FN',cat:'clear',side,height,balls,strikes,outs,inning,topBot,pitcher,batter,pitchTeam,batTeam,delta});
+    } else if(isCS && shadow){
+      // Borderline — called strike in shadow zone (pitcher benefit, weighted 0.5)
+      FP++;
+      const delta = reDelta('FP', balls, strikes, outs, baseState) * 0.5;
+      const t = pitchTeam||'Unknown';
+      teamFavor[t] = (teamFavor[t]||0) + delta;
+      missed.push({type:'FP',cat:'borderline',side,height,balls,strikes,outs,inning,topBot,pitcher,batter,pitchTeam,batTeam,delta});
+    } else if(isCB && shadow){
+      // Borderline — called ball in shadow zone (batter benefit, weighted 0.5)
+      FN++;
+      const delta = reDelta('FN', balls, strikes, outs, baseState) * 0.5;
+      const t = batTeam||'Unknown';
+      teamFavor[t] = (teamFavor[t]||0) + Math.abs(delta);
+      missed.push({type:'FN',cat:'borderline',side,height,balls,strikes,outs,inning,topBot,pitcher,batter,pitchTeam,batTeam,delta});
     }
   }
 
@@ -508,7 +552,7 @@ function processCSV(rows){
 
   return {
     total,TP,TN,FP,FN,acc,ballAcc,strikeAcc,missed,teamFavor,
-    zoneTop:medianTop,zoneBottom:medianBot,halfW:HALF_W,
+    zoneTop:medianTop,zoneBottom:medianBot,halfW:HALF_W,shadow:SHADOW,
     usingPerPitch,autoHome,autoAway
   };
 }
@@ -545,9 +589,10 @@ function renderScorecard(stats){
     : stats.missed.slice(0,5).map((m,i)=>{
         const inn = m.inning?`Inn ${m.inning}${m.topBot?' ('+m.topBot+')':''}`:''
         const sit = `${inn}${m.outs!==undefined&&!isNaN(m.outs)?', '+m.outs+' out(s)':''}`
+        const isBorderline = m.cat === 'borderline';
         const type = m.type==='FP'
-          ? `<span class="missed-badge badge-red">Strike → Ball</span>`
-          : `<span class="missed-badge badge-blue">Ball → Strike</span>`;
+          ? `<span class="missed-badge ${isBorderline?'badge-orange':'badge-red'}">${isBorderline?'Borderline Strike':'Strike → Ball'}</span>`
+          : `<span class="missed-badge ${isBorderline?'badge-orange':'badge-blue'}">${isBorderline?'Borderline Ball':'Ball → Strike'}</span>`;
         const deltaStr = m.delta!==undefined ? ` &nbsp;·&nbsp; <span style="color:${m.type==='FP'?'#f85149':'#58a6ff'}">+${Math.abs(m.delta).toFixed(2)} runs</span>` : '';
         return `<div class="missed-item">
           <div class="missed-sit"><span class="missed-rank">${i+1}</span>${m.pitcher||'Pitcher'} → ${m.batter||'Batter'} ${type}</div>
@@ -555,7 +600,7 @@ function renderScorecard(stats){
         </div>`;
       }).join('');
 
-  const zoneSVG = buildZoneSVG(stats.missed, stats.zoneTop, stats.zoneBottom, stats.halfW);
+  const zoneSVG = buildZoneSVG(stats.missed, stats.zoneTop, stats.zoneBottom, stats.halfW, stats.shadow);
   const scoreLabel = (awayS!==''&&homeS!=='')?`<span class="sc-final">${awayS}–${homeS}</span>`:'';
 
   document.getElementById('scorecard').innerHTML = `
@@ -606,8 +651,9 @@ function renderScorecard(stats){
         <div class="zone-title">Missed Calls — Strike Zone (Catcher's View)</div>
         <div class="zone-svg-wrap">${zoneSVG}</div>
         <div class="zone-legend">
-          <div class="leg"><div class="leg-dot" style="background:#f85149"></div>Called Strike (was Ball)</div>
-          <div class="leg"><div class="leg-dot" style="background:#58a6ff"></div>Called Ball (was Strike)</div>
+          <div class="leg"><div class="leg-dot" style="background:#d93025"></div>Bad Strike (clear)</div>
+          <div class="leg"><div class="leg-dot" style="background:#1a6fb5"></div>Bad Ball (clear)</div>
+          <div class="leg"><div class="leg-dot" style="background:#e07020"></div>Borderline (½ weight)</div>
         </div>
       </div>
       <div class="right-panel">
@@ -729,7 +775,7 @@ document.getElementById('img-btn').addEventListener('click', async ()=>{
       scale: 2,
       useCORS: true,
       allowTaint: true,
-      backgroundColor: '#161d27',
+      backgroundColor: '#ffffff',
       logging: false,
       onclone(doc) {
         // In the cloned doc, replace web fonts with system fallbacks so Safari renders text
