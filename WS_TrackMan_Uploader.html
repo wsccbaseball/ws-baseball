@@ -375,24 +375,10 @@ display: none;
 <header>
   <div>
     <h1>TrackMan<br>Uploader</h1>
-    <div class="subtitle">Walters State Baseball</div>
+    <div class="subtitle">Walters State Baseball · 2026</div>
   </div>
   <div class="wordmark"><span>WS</span> Baseball<br>Analytics</div>
 </header>
-
-<!-- Config -->
-
-<div class="config-section">
-  <div class="config-label">Supabase Config</div>
-  <div class="config-row">
-    <label>Project URL</label>
-    <input type="text" id="supabaseUrl" placeholder="https://xxxx.supabase.co" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-  </div>
-  <div class="config-row">
-    <label>Anon Key</label>
-    <input type="password" id="supabaseKey" placeholder="eyJ..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-  </div>
-</div>
 
 <!-- Upload zone -->
 
@@ -406,7 +392,7 @@ display: none;
 
 <!-- Display name -->
 
-<div class="config-section" id="displayNameSection" style="display:none">
+<div class="config-section" id="displayNameSection" style="display:none;margin-bottom:20px">
   <div class="config-label">Game Display Name</div>
   <div class="config-row">
     <label>How this game appears in dropdowns</label>
@@ -467,16 +453,9 @@ display: none;
 <div class="log" id="log"></div>
 
 <script>
-// ── Config persistence ──────────────────────────────────────────────
-const urlInput = document.getElementById('supabaseUrl');
-const keyInput = document.getElementById('supabaseKey');
-
-// Load saved config
-urlInput.value = localStorage.getItem('sb_url') || '';
-keyInput.value = localStorage.getItem('sb_key') || '';
-
-urlInput.addEventListener('change', function() { localStorage.setItem('sb_url', this.value.trim()); });
-keyInput.addEventListener('change', function() { localStorage.setItem('sb_key', this.value.trim()); });
+// ── Config ──────────────────────────────────────────────────────────
+var urlInput = { value: 'https://mghrapwhvihpwgqryail.supabase.co' };
+var keyInput = { value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc' };
 
 // ── CSV Parser ──────────────────────────────────────────────────────
 function parseCSV(text) {
@@ -694,9 +673,6 @@ document.getElementById('uploadBtn').addEventListener('click', async function() 
     showResult('error', 'No CSV loaded.');
     return;
   }
-
-  localStorage.setItem('sb_url', url);
-  localStorage.setItem('sb_key', key);
 
   var btn = document.getElementById('uploadBtn');
   btn.disabled = true;
