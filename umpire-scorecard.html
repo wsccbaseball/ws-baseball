@@ -233,7 +233,7 @@ body{background:#fff;color:#111;-webkit-print-color-adjust:exact;print-color-adj
 <div id="scorecard-screen">
   <div class="sc-toolbar">
     <button class="back-btn" id="back-btn">← New Scorecard</button>
-    <button class="img-btn" id="img-btn">📷 Save Image</button>
+    <button class="img-btn" id="img-btn">💾 Save</button>
   </div>
   <div class="scorecard" id="scorecard"></div>
 </div>
@@ -648,16 +648,16 @@ function renderScorecard(stats){
     </div>
 
     <!-- Ball/Strike accuracy bars -->
-    <div style="padding:.35rem .75rem;border-bottom:1px solid var(--border);background:var(--card);">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
-        <div style="font-size:.52rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);width:88px;flex-shrink:0;">Called Ball Acc.</div>
-        <div style="flex:1;background:#eef2f8;border-radius:3px;height:9px;overflow:hidden;"><div style="height:100%;border-radius:3px;background:#1a6fb5;width:${Math.round(stats.ballAcc)}%"></div></div>
-        <div style="font-size:.62rem;font-weight:700;color:#1a6fb5;width:32px;text-align:right;">${Math.round(stats.ballAcc)}%</div>
+    <div style="padding:.3rem .6rem;border-bottom:1px solid var(--border);background:var(--card);display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;">
+      <div style="display:flex;align-items:center;gap:5px;">
+        <div style="font-size:.5rem;font-weight:700;text-transform:uppercase;color:var(--muted);white-space:nowrap;flex-shrink:0;">Ball Acc.</div>
+        <div style="flex:1;background:#eef2f8;border-radius:3px;height:8px;overflow:hidden;min-width:0;"><div style="height:100%;border-radius:3px;background:#1a6fb5;width:${Math.round(stats.ballAcc)}%"></div></div>
+        <div style="font-size:.62rem;font-weight:700;color:#1a6fb5;white-space:nowrap;flex-shrink:0;">${Math.round(stats.ballAcc)}%</div>
       </div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <div style="font-size:.52rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);width:88px;flex-shrink:0;">Called Strike Acc.</div>
-        <div style="flex:1;background:#eef2f8;border-radius:3px;height:9px;overflow:hidden;"><div style="height:100%;border-radius:3px;background:#d93025;width:${Math.round(stats.strikeAcc)}%"></div></div>
-        <div style="font-size:.62rem;font-weight:700;color:#d93025;width:32px;text-align:right;">${Math.round(stats.strikeAcc)}%</div>
+      <div style="display:flex;align-items:center;gap:5px;">
+        <div style="font-size:.5rem;font-weight:700;text-transform:uppercase;color:var(--muted);white-space:nowrap;flex-shrink:0;">Strike Acc.</div>
+        <div style="flex:1;background:#eef2f8;border-radius:3px;height:8px;overflow:hidden;min-width:0;"><div style="height:100%;border-radius:3px;background:#d93025;width:${Math.round(stats.strikeAcc)}%"></div></div>
+        <div style="font-size:.62rem;font-weight:700;color:#d93025;white-space:nowrap;flex-shrink:0;">${Math.round(stats.strikeAcc)}%</div>
       </div>
     </div>
 
