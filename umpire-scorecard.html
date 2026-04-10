@@ -825,14 +825,16 @@ document.getElementById('img-btn').addEventListener('click', async ()=>{
       if(!svg.getAttribute('height')) svg.setAttribute('height', box.height);
     });
 
+    const cardWidth = card.getBoundingClientRect().width;
     const canvas = await html2canvas(card, {
       scale: 2,
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#ffffff',
       logging: false,
+      width: cardWidth,
+      windowWidth: cardWidth,
       onclone(doc) {
-        // In the cloned doc, replace web fonts with system fallbacks so Safari renders text
         const style = doc.createElement('style');
         style.textContent = `* { font-family: Georgia, 'Times New Roman', serif !important; }
           .sc-ump-name, .sstat-val, .acc-pct, .missed-rank {
