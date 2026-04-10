@@ -396,8 +396,9 @@ document.getElementById('gameSelect').addEventListener('change', async function(
       var edgeUrl = SUPABASE_URL + '/functions/v1/fetch-boxscore?url=' + encodeURIComponent(boxUrl);
       var resp = await fetch(edgeUrl, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
       var data = await resp.json();
+      console.log('Edge Function raw response:', JSON.stringify(data, null, 2));
+      window._boxScoreData = data;
       if (data && data.pitching) {
-        window._boxScoreData = data;
         var names = Object.keys(data.pitching);
         statusEl.textContent = '✓ Box score loaded — ' + names.length + ' pitcher(s) found';
       } else {
