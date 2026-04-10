@@ -178,8 +178,9 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
 <body>
 
 <div class="upload-section">
+  <a href="index.html" class="home-btn">&#8592; Home</a>
   <h1>&#x26BE; Pitcher Game Summary</h1>
-  <p>Select a game, optionally upload a box score PDF for game line stats, select a pitcher, and generate.</p>
+  <p>Select a game, upload the box score PDF, select a pitcher, and generate.</p>
 
   <div class="form-group">
     <label>Step 1 &mdash; Select Game</label>
@@ -187,9 +188,10 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
   </div>
 
   <div class="file-btn-wrap">
-    <label>Step 2 &mdash; Box Score PDF</label>
-    <input type="file" id="pdfFile" accept="*/*">
-    <div class="file-status" id="pdfStatus">No file selected</div>
+    <label>Step 2 &mdash; Box Score</label>
+    <div class="file-status" id="pdfStatus">Select a game to auto-fetch box score</div>
+    <div style="margin-top:8px;font-size:11px;color:#999;">Or upload PDF manually:</div>
+    <input type="file" id="pdfFile" accept="*/*" style="margin-top:4px;">
   </div>
 
   <hr class="divider">
@@ -286,8 +288,6 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 
 var SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
-var EDGE_FN_URL  = 'https://mghrapwhvihpwgqryail.supabase.co/functions/v1/fetch-boxscore';
-var autoStats = {}; // populated by Edge Function auto-fetch
 
 var TYPE_MAP = {
   'Four-Seam':'Fastball','Fastball':'Fastball','Four-Seam Fastball':'Fastball',
@@ -333,16 +333,14 @@ async function supaFetch(path) {
 // ── Load games ───────────────────────────────────────────────────────────────
 async function loadGames() {
   try {
-    var rows = await supaFetch('games?select=game_id,display_name,date,box_score_url&order=date.desc');
+    var rows = await supaFetch('games?select=game_id,display_name,game_date');
+    var games = rows.sort(function(a,b) { return new Date(b.game_date) - new Date(a.game_date); });
     var sel = document.getElementById('gameSelect');
     sel.innerHTML = '<option value="">— select game —</option>';
-    rows.forEach(function(g) {
+    games.forEach(function(g) {
       var label = g.display_name || g.game_id;
-      var hasUrl = g.box_score_url ? ' ✓' : '';
-      sel.innerHTML += '<option value="' + g.game_id + '" data-url="' + (g.box_score_url||'') + '">' + label + hasUrl + '</option>';
+      sel.innerHTML += '<option value="'+g.game_id+'" data-url="'+(g.box_score_url||'')+'">'+label+'</option>';
     });
-    window._gameData = {};
-    rows.forEach(function(g) { window._gameData[g.game_id] = g; });
   } catch(e) {
     document.getElementById('gameSelect').innerHTML = '<option>Error loading games</option>';
     document.getElementById('statusMsg').textContent = 'Error: ' + e.message;
@@ -352,40 +350,24 @@ async function loadGames() {
 document.getElementById('gameSelect').addEventListener('change', async function() {
   var gameId = this.value;
   var psel = document.getElementById('pitcherSelect');
+  var statusEl = document.getElementById('pdfStatus');
   document.getElementById('generateBtn').disabled = true;
-  if (!gameId) { psel.innerHTML = '<option>Select game first</option>'; psel.disabled = true; return; }
+  window._pdfItems = null;
+  pdfOpponent = '';
 
-  // Auto-fetch box score if URL is stored for this game
-  autoStats = {};
-  var gd = window._gameData && window._gameData[gameId];
-  if (gd && gd.box_score_url) {
-    document.getElementById('pdfStatus').textContent = 'Fetching box score...';
-    fetch(EDGE_FN_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
-      body: JSON.stringify({ url: gd.box_score_url })
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      if (data && data.pitchers && data.pitchers.length) {
-        data.pitchers.forEach(function(p) { autoStats[p.name.toUpperCase()] = p; });
-        document.getElementById('pdfStatus').textContent = '✓ Box score fetched: ' + data.pitchers.map(function(p){return p.name;}).join(', ');
-      } else {
-        document.getElementById('pdfStatus').textContent = '⚠ Box score fetched but no pitcher stats found — upload PDF if needed';
-      }
-    })
-    .catch(function() {
-      document.getElementById('pdfStatus').textContent = '⚠ Auto-fetch failed — upload PDF if needed';
-    });
-  } else {
-    document.getElementById('pdfStatus').textContent = 'No file selected';
+  if (!gameId) {
+    psel.innerHTML = '<option>Select game first</option>';
+    psel.disabled = true;
+    statusEl.textContent = 'Select a game to auto-fetch box score';
+    return;
   }
 
+  // Load pitchers
   psel.innerHTML = '<option>Loading pitchers...</option>';
   psel.disabled = true;
   try {
     var rows = await supaFetch('pitches?select=Pitcher,PitcherTeam&GameID=eq.' + encodeURIComponent(gameId));
-    var wsP = rows.filter(function(r) { return r.PitcherTeam && r.PitcherTeam.toLowerCase().indexOf('walters') > -1; });
+    var wsP = rows.filter(function(r) { return r.PitcherTeam && r.PitcherTeam.toLowerCase().indexOf('wal') > -1; });
     var src = wsP.length ? wsP : rows;
     var pitchers = Array.from(new Set(src.map(function(r) { return r.Pitcher; }))).sort();
     psel.innerHTML = '<option value="">— select pitcher —</option>';
@@ -395,6 +377,37 @@ document.getElementById('gameSelect').addEventListener('change', async function(
     psel.disabled = false;
   } catch(e) {
     psel.innerHTML = '<option>Error loading pitchers</option>';
+  }
+
+  // Auto-fetch box score via Edge Function
+  var opt = this.options[this.selectedIndex];
+  var boxUrl = opt ? opt.getAttribute('data-url') : '';
+  if (!boxUrl) {
+    // Try to get URL from games table directly
+    try {
+      var gRows = await supaFetch('games?select=box_score_url&game_id=eq.' + encodeURIComponent(gameId));
+      if (gRows && gRows[0] && gRows[0].box_score_url) boxUrl = gRows[0].box_score_url;
+    } catch(e) {}
+  }
+
+  if (boxUrl) {
+    statusEl.textContent = 'Fetching box score...';
+    try {
+      var edgeUrl = SUPABASE_URL + '/functions/v1/fetch-box-score?url=' + encodeURIComponent(boxUrl);
+      var resp = await fetch(edgeUrl, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
+      var data = await resp.json();
+      if (data && data.pitching) {
+        window._boxScoreData = data;
+        var names = Object.keys(data.pitching);
+        statusEl.textContent = '✓ Box score loaded — ' + names.length + ' pitcher(s) found';
+      } else {
+        statusEl.textContent = 'Box score fetched but no pitching data found. Upload PDF manually.';
+      }
+    } catch(err) {
+      statusEl.textContent = 'Auto-fetch failed. Upload PDF manually.';
+    }
+  } else {
+    statusEl.textContent = 'No box score URL on file. Upload PDF manually.';
   }
 });
 
@@ -431,6 +444,15 @@ document.getElementById('pdfFile').addEventListener('change', function() {
 });
 
 function extractPitcherStats(lastName) {
+  // Try auto-fetched box score first
+  if (window._boxScoreData && window._boxScoreData.pitching && lastName) {
+    var pitching = window._boxScoreData.pitching;
+    var key = Object.keys(pitching).find(function(k) {
+      return k.toLowerCase().indexOf(lastName.toLowerCase()) > -1;
+    });
+    if (key) return pitching[key];
+  }
+  // Fall back to PDF parsing
   if (!window._pdfItems || !lastName) return null;
   var text = window._pdfItems.join(' ');
   var namePat = new RegExp('\\b' + lastName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
@@ -496,21 +518,15 @@ async function generate() {
     var hand = rows[0].PitcherThrows || 'R';
     var handStr = (hand==='Left'||hand==='L') ? 'LHP' : 'RHP';
     var date = rows[0].Date || '—';
-    var gameInfo = window._gameData && window._gameData[gameId];
-    var opp = pdfOpponent || (gameInfo && gameInfo.display_name ? gameInfo.display_name.replace(/\s*(Game|Midweek)\s*\d*$/i,'').trim() : (rows[0].BatterTeam||'').replace(/_\d+$/,'').replace(/_/g,' ').trim());
+    var opp = pdfOpponent || (rows[0].BatterTeam||'').replace(/_\d+$/,'').replace(/_/g,' ').trim();
     var innings = Array.from(new Set(rows.map(function(r){return parseInt(r.Inning);}).filter(function(n){return !isNaN(n);})));
     var role = innings.indexOf(1)>-1 ? 'Start' : 'Relief';
 
-    // Stats lookup: try auto-fetched stats first, then PDF
+    // PDF stats lookup by last name
     var lastName = pitcherRaw;
     if (lastName.indexOf(',')>-1) lastName=lastName.split(',')[0].trim();
     else lastName=lastName.split(' ').pop();
-
-    // Check autoStats (from Edge Function)
-    var autoKey = Object.keys(autoStats).find(function(k){
-      return k.indexOf(lastName.toUpperCase())>-1 || lastName.toUpperCase().indexOf(k.split(',')[0])>-1;
-    });
-    var bs = autoKey ? autoStats[autoKey] : extractPitcherStats(lastName);
+    var bs = extractPitcherStats(lastName);
 
     var displayName = flipName(pitcherRaw);
 
