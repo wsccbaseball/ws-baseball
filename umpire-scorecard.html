@@ -9,6 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
+html,body{max-width:100vw;overflow-x:hidden;}
 :root{
   --bg:#f0f2f5;--card:#ffffff;--border:#dde4ef;
   --text:#1a1a2e;--muted:#5a6a7a;
@@ -608,7 +609,7 @@ function renderScorecard(stats){
                    (stats.autoAway&&top.toLowerCase().includes(stats.autoAway.toLowerCase()));
       favorCls = isAway?'val-red':'val-blue';
       favorVal = `+${runs.toFixed(2)}`;
-      favorSub = teams.filter(t=>tf[t]>0.01).map(t=>`${cleanTeam(t)} +${tf[t].toFixed(2)} runs`).join(' · ');
+      favorSub = `${cleanTeam(teams[0])} +${tf[teams[0]].toFixed(2)} runs`;
     }
   }
 
@@ -660,7 +661,7 @@ function renderScorecard(stats){
       <div class="sstat">
         <div class="sstat-label">Favor</div>
         <div class="sstat-val ${favorCls}">${favorVal}</div>
-        <div class="sstat-sub">${favorSub}</div>
+        <div class="sstat-sub" style="font-size:.38rem;word-break:break-word;">${favorSub}</div>
       </div>
       <div class="sstat">
         <div class="sstat-label">Ball Acc.</div>
