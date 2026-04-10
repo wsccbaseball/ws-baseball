@@ -293,7 +293,7 @@ function fmtDate(d){
 }
 
 // ─── Strike Zone SVG ─────────────────────────────────────────────────────────
-const SVG_W=300, SVG_H=340;
+const SVG_W=300, SVG_H=310;
 const X_MIN=-1.4, X_MAX=1.4, Y_MIN=0.8, Y_MAX=4.3;
 
 function toSVG(x,y){
@@ -370,10 +370,10 @@ function buildZoneSVG(missedCalls, zoneTop, zoneBottom, halfW, SHADOW=0.0833){
 
     <!-- Home plate -->
     <polygon points="${px1},${py1} ${px2},${py2} ${px3},${py3} ${px4},${py4} ${px5},${py5}"
-      fill="#dde4ef" stroke="#8a9ab0" stroke-width="1.2"/>
+      fill="#c8d4e4" stroke="#4a6a8a" stroke-width="1.8"/>
 
     <!-- Axis labels -->
-    <text x="${SVG_W/2}" y="${SVG_H-1}" font-family="'DM Mono',monospace" font-size="8" fill="#8a9ab0" text-anchor="middle">CATCHER'S VIEW</text>
+
   </svg>`;
 }
 
@@ -666,7 +666,7 @@ function renderScorecard(stats){
     <!-- Body: zone + right panel -->
     <div class="sc-body">
       <div class="zone-panel">
-        <div class="zone-title">Missed Calls — Strike Zone (Catcher's View)</div>
+
         <div class="zone-svg-wrap">${zoneSVG}</div>
 
       </div>
