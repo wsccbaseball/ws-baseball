@@ -54,7 +54,7 @@ cursor:pointer;width:100%;max-width:560px;transition:opacity .2s;letter-spacing:
 .error-msg{color:var(–red);font-size:.85rem;display:none}
 
 /* –– SCORECARD WRAPPER –– */
-#scorecard-screen{display:none;padding:.25rem;max-width:960px;margin:0 auto}
+#scorecard-screen{display:none;padding:.25rem;max-width:960px;margin:0 auto;overflow:hidden;width:100%;}
 .sc-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;gap:.4rem;flex-wrap:nowrap;}
 .back-btn{background:transparent;border:1px solid var(–border);color:var(–muted);
 border-radius:6px;padding:.4rem .6rem;cursor:pointer;font-family:‘DM Sans’,sans-serif;font-size:.75rem;white-space:nowrap}
@@ -84,13 +84,14 @@ background:var(–card);border:1px solid var(–border);border-radius:12px;overf
 display:grid;
 grid-template-rows:auto auto 1fr auto;
 grid-template-columns:1fr;
+width:100%;max-width:100vw;
 }
 
 /* ── Row 1: Header ── */
 .sc-header-band{
 background:#1a3a5c;border-bottom:1px solid var(–border);
 padding:.35rem .6rem;display:flex;align-items:center;justify-content:space-between;gap:.4rem;
-grid-column:1/-1;overflow:hidden;
+grid-column:1/-1;overflow:hidden;max-width:100%;
 }
 .sc-ump-name{font-family:‘Bebas Neue’,sans-serif;font-size:clamp(.9rem,4vw,1.4rem);letter-spacing:.08em;color:#ffffff;line-height:1;white-space:nowrap}
 .sc-game-meta{text-align:right;line-height:1.2;min-width:0;overflow:hidden}
@@ -106,6 +107,7 @@ grid-column:1/-1;overflow:hidden;
 .stats-strip{
 display:grid;grid-template-columns:repeat(5,1fr);
 border-bottom:1px solid var(–border);
+overflow:hidden;width:100%;
 }
 .sstat{
 padding:.2rem .1rem;border-right:1px solid var(–border);text-align:center;
@@ -113,7 +115,7 @@ display:flex;flex-direction:column;align-items:center;justify-content:center;gap
 }
 .sstat:last-child{border-right:none}
 .sstat-label{font-size:.42rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(–muted)}
-.sstat-val{font-family:‘Bebas Neue’,sans-serif;font-size:clamp(.9rem,3.5vw,1.3rem);line-height:1;letter-spacing:.02em}
+.sstat-val{font-family:‘Bebas Neue’,sans-serif;font-size:clamp(.8rem,3.2vw,1.3rem);line-height:1;letter-spacing:.02em;overflow:hidden;text-overflow:clip;}
 .sstat-sub{font-size:.42rem;color:var(–muted);line-height:1.1;text-align:center;word-break:break-word}
 .val-gold{color:var(–gold)}
 .val-red{color:var(–red)}
