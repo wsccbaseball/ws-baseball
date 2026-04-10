@@ -709,7 +709,7 @@ async function saveUmpireRecord(umpName, gameId, stats) {
 // Load games dropdown
 async function loadGames() {
   try {
-    const rows = await supaFetch('games?select=game_id,display_name,date,home_team,away_team&order=date.desc');
+    const rows = await supaFetch('games?select=game_id,display_name,date,home_team,away_team&order=date.desc,display_name.desc');
     const sel = document.getElementById('game-select');
     sel.innerHTML = '<option value="">— select game —</option>';
     rows.forEach(g => {
