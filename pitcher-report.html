@@ -333,7 +333,8 @@ async function supaFetch(path) {
 // ── Load games ───────────────────────────────────────────────────────────────
 async function loadGames() {
   try {
-    var rows = await supaFetch('games?select=game_id,display_name,game_date');
+    var rows = await supaFetch('games?select=*');
+    console.log('Games table columns:', rows.length ? Object.keys(rows[0]) : 'empty', rows[0]);
     var games = rows.sort(function(a,b) { return new Date(b.game_date) - new Date(a.game_date); });
     var sel = document.getElementById('gameSelect');
     sel.innerHTML = '<option value="">— select game —</option>';
