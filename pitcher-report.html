@@ -393,7 +393,7 @@ document.getElementById('gameSelect').addEventListener('change', async function(
   if (boxUrl) {
     statusEl.textContent = 'Fetching box score...';
     try {
-      var edgeUrl = SUPABASE_URL + '/functions/v1/fetch-box-score?url=' + encodeURIComponent(boxUrl);
+      var edgeUrl = SUPABASE_URL + '/functions/v1/fetch-boxscore?url=' + encodeURIComponent(boxUrl);
       var resp = await fetch(edgeUrl, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
       var data = await resp.json();
       if (data && data.pitching) {
