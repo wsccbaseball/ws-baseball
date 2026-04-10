@@ -54,13 +54,13 @@ cursor:pointer;width:100%;max-width:560px;transition:opacity .2s;letter-spacing:
 .error-msg{color:var(–red);font-size:.85rem;display:none}
 
 /* –– SCORECARD WRAPPER –– */
-#scorecard-screen{display:none;padding:.4rem;max-width:960px;margin:0 auto}
-.sc-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;gap:.5rem}
+#scorecard-screen{display:none;padding:.25rem;max-width:960px;margin:0 auto}
+.sc-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;gap:.4rem;flex-wrap:nowrap;}
 .back-btn{background:transparent;border:1px solid var(–border);color:var(–muted);
-border-radius:6px;padding:.4rem .9rem;cursor:pointer;font-family:‘DM Sans’,sans-serif;font-size:.8rem}
+border-radius:6px;padding:.4rem .6rem;cursor:pointer;font-family:‘DM Sans’,sans-serif;font-size:.75rem;white-space:nowrap}
 .back-btn:hover{border-color:var(–text);color:var(–text)}
 .img-btn{background:var(–green);color:#0d1117;border:none;
-border-radius:6px;padding:.4rem .9rem;cursor:pointer;font-family:‘DM Sans’,sans-serif;font-size:.8rem;font-weight:600}
+border-radius:6px;padding:.4rem .6rem;cursor:pointer;font-family:‘DM Sans’,sans-serif;font-size:.75rem;font-weight:600;white-space:nowrap}
 .img-btn:hover{opacity:.85}
 .img-btn:disabled{opacity:.5;cursor:wait}
 .print-btn{background:transparent;border:1px solid var(–gold);color:var(–gold);
@@ -114,7 +114,7 @@ display:flex;flex-direction:column;align-items:center;justify-content:center;gap
 .sstat:last-child{border-right:none}
 .sstat-label{font-size:.52rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(–muted)}
 .sstat-val{font-family:‘Bebas Neue’,sans-serif;font-size:1.4rem;line-height:1;letter-spacing:.04em}
-.sstat-sub{font-size:.52rem;color:var(–muted);line-height:1.2;text-align:center}
+.sstat-sub{font-size:.48rem;color:var(–muted);line-height:1.1;text-align:center;word-break:break-word}
 .val-gold{color:var(–gold)}
 .val-red{color:var(–red)}
 .val-blue{color:var(–blue)}
@@ -140,7 +140,7 @@ display:flex;flex-direction:column;align-items:center;gap:.15rem;
 }
 .zone-title{font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(–muted);align-self:flex-start}
 .zone-svg-wrap{width:100%;flex:1;display:flex;align-items:center;justify-content:center}
-.zone-svg-wrap svg{width:100%;height:100%;max-height:180px}
+.zone-svg-wrap svg{width:100%;height:100%;max-height:160px}
 .zone-legend{display:flex;gap:1rem;font-size:.65rem;color:var(–muted);flex-wrap:wrap;justify-content:center}
 .leg{display:flex;align-items:center;gap:.35rem}
 .leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
@@ -148,14 +148,14 @@ display:flex;flex-direction:column;align-items:center;gap:.15rem;
 /* Right panel: missed calls + ball/strike accuracy stacked */
 .right-panel{display:flex;flex-direction:column}
 
-.calls-panel{padding:.4rem .6rem;flex:1}
-.calls-title{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(–muted);margin-bottom:.2rem}
-.calls-sub{font-size:.62rem;color:var(–muted);margin-bottom:.6rem;font-style:italic}
-.missed-item{padding:.3rem 0;border-bottom:1px solid var(–border)}
+.calls-panel{padding:.3rem .5rem;flex:1}
+.calls-title{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(–muted);margin-bottom:.1rem}
+.calls-sub{font-size:.55rem;color:var(–muted);margin-bottom:.3rem;font-style:italic}
+.missed-item{padding:.2rem 0;border-bottom:1px solid var(–border)}
 .missed-item:last-child{border-bottom:none}
 .missed-rank{font-family:‘Bebas Neue’,sans-serif;font-size:1rem;color:var(–gold);margin-right:.3rem}
-.missed-sit{font-size:.68rem;font-weight:600;margin-bottom:.1rem}
-.missed-detail{font-size:.62rem;color:var(–muted);line-height:1.3}
+.missed-sit{font-size:.65rem;font-weight:600;margin-bottom:.05rem}
+.missed-detail{font-size:.58rem;color:var(–muted);line-height:1.2}
 .missed-badge{display:inline-block;padding:.1rem .4rem;border-radius:3px;font-size:.62rem;font-weight:700;margin-left:.3rem}
 .badge-red{background:var(–red-dim);color:var(–red)}
 .badge-blue{background:var(–blue-dim);color:var(–blue)}
