@@ -136,11 +136,11 @@ min-height:0;
 
 /* Zone panel */
 .zone-panel{
-padding:.3rem .4rem;border-right:1px solid var(–border);
-display:flex;flex-direction:column;align-items:center;gap:.15rem;
+padding:.2rem .4rem;border-right:1px solid var(–border);
+display:flex;flex-direction:column;align-items:center;gap:.1rem;
 }
 .zone-title{font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(–muted);align-self:flex-start}
-.zone-svg-wrap{width:100%;flex:1;display:flex;align-items:center;justify-content:center}
+.zone-svg-wrap{width:100%;flex:1;display:flex;align-items:center;justify-content:center;padding:.1rem 0}
 .zone-svg-wrap svg{width:100%;height:100%;max-height:260px}
 .zone-legend{display:flex;gap:1rem;font-size:.65rem;color:var(–muted);flex-wrap:wrap;justify-content:center}
 .leg{display:flex;align-items:center;gap:.35rem}
@@ -154,7 +154,7 @@ display:flex;flex-direction:column;align-items:center;gap:.15rem;
 .calls-sub{font-size:.55rem;color:var(–muted);margin-bottom:.3rem;font-style:italic}
 .missed-item{padding:.2rem 0;border-bottom:1px solid var(–border)}
 .missed-item:last-child{border-bottom:none}
-.missed-rank{font-family:‘Bebas Neue’,sans-serif;font-size:1rem;color:var(–gold);margin-right:.3rem}
+.missed-rank{font-family:‘Bebas Neue’,sans-serif;font-size:.9rem;color:var(–gold);margin-right:.2rem}
 .missed-sit{font-size:.65rem;font-weight:600;margin-bottom:.05rem}
 .missed-detail{font-size:.58rem;color:var(–muted);line-height:1.2}
 .missed-badge{display:inline-block;padding:.1rem .4rem;border-radius:3px;font-size:.62rem;font-weight:700;margin-left:.3rem}
@@ -570,10 +570,25 @@ function processCSV(rows){
 }
 
 // ─── Render Scorecard ─────────────────────────────────────────────────────────
+const TEAM_NAMES = {
+  'WAL_SEN':'Walters State','WAL_STATE':'Walters State',
+  'PEL_STA':'Pellissippi State','PELL':'Pellissippi State',
+  'CLE_CLE2':'Cleveland CC','CLE_CLE':'Cleveland CC','CLEVE':'Cleveland State',
+  'WAB_VAL':'Wabash Valley','WABASH':'Wabash Valley',
+  'DYE_STA':'Dyersburg State','DYER':'Dyersburg State',
+  'MOT_STA':'Motlow State','MOTLOW':'Motlow State',
+  'ROA_STA':'Roane State','ROANE':'Roane State',
+  'COL_STA':'Columbia State','COLUMBIA':'Columbia State',
+};
+function cleanTeam(t) {
+  if (!t) return t;
+  return TEAM_NAMES[t.toUpperCase()] || TEAM_NAMES[t.toUpperCase().replace(/[^A-Z0-9]/g,'')] || t;
+}
+
 function renderScorecard(stats){
   const ump   = document.getElementById('ump-name').value.trim() || 'Home Plate Umpire';
-  const away  = (stats._awayTeam || stats.autoAway || 'AWAY').toUpperCase();
-  const home  = (stats._homeTeam || stats.autoHome || 'HOME').toUpperCase();
+  const away  = cleanTeam(stats._awayTeam || stats.autoAway || 'AWAY');
+  const home  = cleanTeam(stats._homeTeam || stats.autoHome || 'HOME');
   const awayS = document.getElementById('away-score').value;
   const homeS = document.getElementById('home-score').value;
   const label = stats._label || '';
@@ -598,7 +613,7 @@ function renderScorecard(stats){
   // Missed calls list (top 5 by RE delta)
   const missedHtml = stats.missed.length===0
     ? '<p class="no-calls">✓ No missed calls found.</p>'
-    : stats.missed.slice(0,4).map((m,i)=>{
+    : stats.missed.slice(0,5).map((m,i)=>{
         const inn = m.inning?`Inn ${m.inning}${m.topBot?' ('+m.topBot+')':''}`:''
         const sit = `${inn}${m.outs!==undefined&&!isNaN(m.outs)?', '+m.outs+' out(s)':''}`
         const isBorderline = m.cat === 'borderline';
@@ -621,7 +636,7 @@ function renderScorecard(stats){
       <div class="sc-ump-name">${ump}</div>
       <div class="sc-game-meta">
         <div class="sc-teams">
-          <span class="sc-away">${away}</span><span class="sc-vs">vs.</span><span class="sc-home">${home}</span>
+          <span class="sc-away">${away}</span><span class="sc-vs"> vs. </span><span class="sc-home">${home}</span>
           ${scoreLabel}
         </div>
         <div>${label?`<span class="sc-game-label">${label}&ensp;</span>`:''}${date?`<span class="sc-date">${date}</span>`:''}</div>
@@ -649,20 +664,20 @@ function renderScorecard(stats){
     </div>
 
     <!-- Ball/Strike accuracy bars -->
-    <div style="padding:.3rem .75rem .35rem;border-bottom:1px solid var(--border);background:var(--card);">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-        <div style="font-size:.5rem;font-weight:700;text-transform:uppercase;color:var(--muted);width:70px;flex-shrink:0;">Ball Acc.</div>
-        <div style="flex:1;background:#eef2f8;border-radius:3px;height:9px;overflow:hidden;">
+    <div style="padding:.25rem .6rem;border-bottom:1px solid var(--border);background:var(--card);">
+      <div style="display:grid;grid-template-columns:58px 1fr 30px;align-items:center;gap:5px;margin-bottom:3px;">
+        <div style="font-size:.48rem;font-weight:700;text-transform:uppercase;color:var(--muted);white-space:nowrap;">Ball Acc.</div>
+        <div style="background:#eef2f8;border-radius:3px;height:8px;overflow:hidden;">
           <div style="height:100%;border-radius:3px;background:#1a6fb5;width:${Math.round(stats.ballAcc)}%"></div>
         </div>
-        <div style="font-size:.65rem;font-weight:800;color:#1a6fb5;width:36px;text-align:right;flex-shrink:0;">${Math.round(stats.ballAcc)}%</div>
+        <div style="font-size:.62rem;font-weight:800;color:#1a6fb5;text-align:right;">${Math.round(stats.ballAcc)}%</div>
       </div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <div style="font-size:.5rem;font-weight:700;text-transform:uppercase;color:var(--muted);width:70px;flex-shrink:0;">Strike Acc.</div>
-        <div style="flex:1;background:#eef2f8;border-radius:3px;height:9px;overflow:hidden;">
+      <div style="display:grid;grid-template-columns:58px 1fr 30px;align-items:center;gap:5px;">
+        <div style="font-size:.48rem;font-weight:700;text-transform:uppercase;color:var(--muted);white-space:nowrap;">Strike Acc.</div>
+        <div style="background:#eef2f8;border-radius:3px;height:8px;overflow:hidden;">
           <div style="height:100%;border-radius:3px;background:#d93025;width:${Math.round(stats.strikeAcc)}%"></div>
         </div>
-        <div style="font-size:.65rem;font-weight:800;color:#d93025;width:36px;text-align:right;flex-shrink:0;">${Math.round(stats.strikeAcc)}%</div>
+        <div style="font-size:.62rem;font-weight:800;color:#d93025;text-align:right;">${Math.round(stats.strikeAcc)}%</div>
       </div>
     </div>
 
