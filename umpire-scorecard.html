@@ -106,18 +106,18 @@ grid-column:1/-1;overflow:hidden;max-width:100%;
 
 /* ── Row 2: Top stat strip (5 cols) ── */
 .stats-strip{
-display:grid;grid-template-columns:repeat(5,1fr);
+display:grid;grid-template-columns:repeat(3,1fr);
 border-bottom:1px solid var(–border);
 overflow:hidden;width:100%;
 }
 .sstat{
-padding:.2rem .1rem;border-right:1px solid var(–border);text-align:center;
-display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.05rem;
+padding:.6rem .5rem;border-right:1px solid var(–border);text-align:center;
+display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;
 }
 .sstat:last-child{border-right:none}
-.sstat-label{font-size:.42rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(–muted)}
-.sstat-val{font-family:‘Bebas Neue’,sans-serif;font-size:clamp(.8rem,3.2vw,1.3rem);line-height:1;letter-spacing:.02em;overflow:hidden;text-overflow:clip;}
-.sstat-sub{font-size:.42rem;color:var(–muted);line-height:1.1;text-align:center;word-break:break-word}
+.sstat-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(–muted)}
+.sstat-val{font-family:‘Bebas Neue’,sans-serif;font-size:1.9rem;line-height:1;letter-spacing:.04em}
+.sstat-sub{font-size:.62rem;color:var(–muted);line-height:1.3;text-align:center}
 .val-gold{color:var(–gold)}
 .val-red{color:var(–red)}
 .val-blue{color:var(–blue)}
@@ -126,15 +126,14 @@ display:flex;flex-direction:column;align-items:center;justify-content:center;gap
 
 /* ── Row 3: Main body (zone + right panel) ── */
 .sc-body{
-display:grid;grid-template-columns:1fr 1fr;
+display:grid;grid-template-columns:1fr auto;
 border-bottom:1px solid var(–border);
 min-height:0;
 }
 @media(max-width:600px){
-.sc-body{grid-template-columns:1fr;}
-.zone-panel{border-right:none;border-bottom:1px solid var(–border);padding:.4rem .5rem;}
+.sc-body{grid-template-columns:1fr auto;}
+.zone-panel{border-right:1px solid var(–border);padding:.3rem .4rem;}
 .zone-svg-wrap svg{max-height:300px !important;}
-.right-panel{}
 }
 
 /* Zone panel */
@@ -605,11 +604,10 @@ function renderScorecard(stats){
     teams.sort((a,b)=>tf[b]-tf[a]);
     const top=teams[0], runs=tf[top];
     if(runs>0.01){
-      const isAway=(away&&top.toLowerCase().includes(away.toLowerCase()))||
-                   (stats.autoAway&&top.toLowerCase().includes(stats.autoAway.toLowerCase()));
-      favorCls = isAway?'val-red':'val-blue';
-      favorVal = `+${runs.toFixed(2)}`;
-      favorSub = `${cleanTeam(teams[0])} +${tf[teams[0]].toFixed(2)} runs`;
+      const netDiff = teams.length > 1 ? runs - (tf[teams[1]]||0) : runs;
+      favorCls = 'val-gold';
+      favorVal = `+${netDiff.toFixed(2)}`;
+      favorSub = cleanTeam(top);
     }
   }
 
@@ -663,14 +661,6 @@ function renderScorecard(stats){
         <div class="sstat-val ${favorCls}">${favorVal}</div>
         <div class="sstat-sub" style="font-size:.38rem;word-break:break-word;">${favorSub}</div>
       </div>
-      <div class="sstat">
-        <div class="sstat-label">Ball Acc.</div>
-        <div class="sstat-val val-blue">${Math.round(stats.ballAcc)}%</div>
-      </div>
-      <div class="sstat">
-        <div class="sstat-label">Strike Acc.</div>
-        <div class="sstat-val val-red">${Math.round(stats.strikeAcc)}%</div>
-      </div>
     </div>
 
     <!-- Body: zone + right panel -->
@@ -680,14 +670,26 @@ function renderScorecard(stats){
         <div class="zone-svg-wrap">${zoneSVG}</div>
 
       </div>
-      <div class="right-panel">
-        <div class="calls-panel">
-          <div class="calls-title">Impactful Missed Calls</div>
-          <div class="calls-sub">ranked by run expectancy impact</div>
-          ${missedHtml}
+      <div class="right-panel" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.5rem .4rem;gap:.5rem;min-width:52px;">
+        <div style="text-align:center;">
+          <div style="font-size:.52rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.1rem;">Ball</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;line-height:1;color:#1a6fb5;">${Math.round(stats.ballAcc)}%</div>
+          <div style="font-size:.45rem;color:var(--muted);">acc.</div>
         </div>
-
+        <div style="width:100%;height:1px;background:var(--border);"></div>
+        <div style="text-align:center;">
+          <div style="font-size:.52rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.1rem;">Strike</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;line-height:1;color:#d93025;">${Math.round(stats.strikeAcc)}%</div>
+          <div style="font-size:.45rem;color:var(--muted);">acc.</div>
+        </div>
       </div>
+    </div>
+
+    <!-- Missed calls below zone -->
+    <div style="padding:.4rem .75rem .5rem;border-top:1px solid var(--border);">
+      <div class="calls-title">Impactful Missed Calls</div>
+      <div class="calls-sub">ranked by run expectancy impact</div>
+      ${missedHtml}
     </div>
 
     <!-- Footer -->
