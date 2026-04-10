@@ -640,7 +640,7 @@ function renderScorecard(stats){
           <span class="sc-away">${away}</span><span class="sc-vs"> vs. </span><span class="sc-home">${home}</span>
           ${scoreLabel}
         </div>
-        <div>${label?`<span class="sc-game-label">${label}&ensp;</span>`:''}${date?`<span class="sc-date">${date}</span>`:''}</div>
+        <div>${label?`<span class="sc-game-label">${label}&ensp;</span>`:''}</div>
       </div>
     </div>
 
@@ -658,8 +658,8 @@ function renderScorecard(stats){
       </div>
       <div class="sstat">
         <div class="sstat-label">Favor</div>
-        <div class="sstat-val ${favorCls}">${favorVal}</div>
-        <div class="sstat-sub" style="font-size:.38rem;word-break:break-word;">${favorSub}</div>
+        <div class="sstat-val ${favorCls}" style="font-size:clamp(1rem,5vw,1.9rem);">${favorVal}</div>
+        <div class="sstat-sub">${favorSub}</div>
       </div>
     </div>
 
@@ -670,7 +670,7 @@ function renderScorecard(stats){
         <div class="zone-svg-wrap">${zoneSVG}</div>
 
       </div>
-      <div class="right-panel" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.5rem .4rem;gap:.5rem;min-width:52px;">
+      <div class="right-panel" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.5rem .4rem;gap:.5rem;width:54px;flex-shrink:0;">
         <div style="text-align:center;">
           <div style="font-size:.52rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.1rem;">Ball</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;line-height:1;color:#1a6fb5;">${Math.round(stats.ballAcc)}%</div>
