@@ -335,7 +335,14 @@ async function loadGames() {
   try {
     var rows = await supaFetch('games?select=*');
     console.log('Games table columns:', rows.length ? Object.keys(rows[0]) : 'empty', rows[0]);
-    var games = rows.sort(function(a,b) { return new Date(a.date) - new Date(b.date); });
+    var games = rows.sort(function(a,b) {
+      var dateDiff = new Date(b.date) - new Date(a.date);
+      if (dateDiff !== 0) return dateDiff;
+      // Same date — sort by trailing game number in game_id descending
+      var numA = parseInt((a.game_id || '').replace(/.*-/, '')) || 0;
+      var numB = parseInt((b.game_id || '').replace(/.*-/, '')) || 0;
+      return numB - numA;
+    });
     var sel = document.getElementById('gameSelect');
     sel.innerHTML = '<option value="">— select game —</option>';
     games.forEach(function(g) {
