@@ -128,7 +128,7 @@ flex-direction: column; align-items: center; justify-content: center; padding: 1
     <b>Shadow zone</b> &mdash; 1.455 inches (half baseball diameter) outside zone edge, 3 rings.<br>
     <b>Weights</b> &mdash; Ring 1 (inner) &times;1.0 &middot; Ring 2 &times;1.4 &middot; Ring 3 (outer) &times;1.8.<br>
     <b>Stolen Strikes</b> &mdash; StrikeCalled outside zone. <b>Lost Strikes</b> &mdash; BallCalled inside zone.<br>
-    <b>Framing Score</b> &mdash; weighted shadow strike% vs 63% avg. &gt;105 = above average.
+    <b>Framing Runs (RE24)</b> &mdash; count &amp; base/out adjusted run value of framing. More accurate than flat estimates.<br><b>Framing Score</b> &mdash; weighted shadow strike% vs 63% avg. &gt;105 = above average.
   </div>
 </div>
 
@@ -136,11 +136,48 @@ flex-direction: column; align-items: center; justify-content: center; padding: 1
 var SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
 
-var SZ = { l: -0.833, r: 0.833, b: 1.5, t: 3.5 };
+var SZ_W = 0.833; // half plate width — fixed
+var DEFAULT_TOP = 3.5, DEFAULT_BOT = 1.5;
 var SHADOW = 1.455 / 12; // 0.1213 ft — half baseball diameter
 var RINGS = [0.04, 0.08, SHADOW];
 var RWEIGHTS = [1.0, 1.4, 1.8];
 var RNAMES = ['Ring 1 (inner)', 'Ring 2 (mid)', 'Ring 3 (outer)'];
+
+// RE24 count run expectancy table
+var COUNT_RE = {
+  '0-0':0.444,'1-0':0.562,'2-0':0.628,'3-0':0.765,
+  '0-1':0.306,'1-1':0.380,'2-1':0.437,'3-1':0.622,
+  '0-2':0.191,'1-2':0.250,'2-2':0.305,'3-2':0.456
+};
+var RE24 = [
+  [0.544,0.941,1.170,1.556,1.321,1.743,1.978,2.395],
+  [0.291,0.587,0.700,1.068,0.890,1.088,1.399,1.756],
+  [0.112,0.242,0.325,0.552,0.375,0.529,0.661,0.978]
+];
+
+function walkResult(baseState) {
+  var on1=!!(baseState&1),on2=!!(baseState&2),on3=!!(baseState&4);
+  var runs=0,n1=true,n2=on2,n3=on3;
+  if(on1){n2=true;if(on2){n3=true;if(on3)runs=1;}}
+  return{newState:(n1?1:0)|(n2?2:0)|(n3?4:0),runs:runs};
+}
+
+function reValue(balls, strikes, outs, baseState) {
+  var safeOuts = Math.min(Math.max(isNaN(outs)?0:outs,0),2);
+  var bs = isNaN(baseState)||baseState<0||baseState>7?0:baseState;
+  if(balls>=4){var w=walkResult(bs);return w.runs+RE24[safeOuts][w.newState];}
+  if(strikes>=3){return safeOuts===2?0:RE24[safeOuts+1][bs];}
+  return COUNT_RE[balls+'-'+strikes]||COUNT_RE['0-0'];
+}
+
+// Delta for a stolen strike (called strike that was a ball — pitcher benefit)
+function stolenStrikeDelta(balls, strikes, outs, baseState) {
+  return reValue(balls+1,strikes,outs,baseState) - reValue(balls,strikes+1,outs,baseState);
+}
+// Delta for a lost strike (called ball that was a strike — batter benefit)
+function lostStrikeDelta(balls, strikes, outs, baseState) {
+  return reValue(balls,strikes+1,outs,baseState) - reValue(balls+1,strikes,outs,baseState);
+}
 
 var gameData = {};
 var allPitches = [];
@@ -268,13 +305,7 @@ document.getElementById('btn-run').addEventListener('click', function() {
 document.getElementById('btn-back').addEventListener('click', resetApp);
 
 // ── Zone helpers ──────────────────────────────────────────────────────────
-function distToEdge(s, h) {
-  var inside = s >= SZ.l && s <= SZ.r && h >= SZ.b && h <= SZ.t;
-  if (inside) return -1;
-  var dx = Math.max(SZ.l - s, s - SZ.r, 0);
-  var dy = Math.max(SZ.b - h, h - SZ.t, 0);
-  return Math.sqrt(dx * dx + dy * dy);
-}
+
 
 function ringIdx(dist) {
   if (dist < 0) return -1;
@@ -282,11 +313,33 @@ function ringIdx(dist) {
   return -1;
 }
 
+// ── Zone helpers (per-pitch) ──────────────────────────────────────────────
+function getZone(r) {
+  var top = parseFloat(r['ZoneTop'])||DEFAULT_TOP;
+  var bot = parseFloat(r['ZoneBottom'])||DEFAULT_BOT;
+  return { l: -SZ_W, r: SZ_W, b: bot, t: top };
+}
+
+function inZoneCheck(s, h, zone) {
+  return s >= zone.l && s <= zone.r && h >= zone.b && h <= zone.t;
+}
+
+function distToEdgeZone(s, h, zone) {
+  if (inZoneCheck(s, h, zone)) return -1;
+  var dx = Math.max(zone.l - s, s - zone.r, 0);
+  var dy = Math.max(zone.b - h, h - zone.t, 0);
+  return Math.sqrt(dx*dx + dy*dy);
+}
+
 // ── Compute metrics ───────────────────────────────────────────────────────
 function computeMetrics(name, rows) {
   var stolen = 0, lost = 0, inZoneStr = 0, inZoneBall = 0, strikeTotal = 0;
-  var rings = [{ total: 0, strikes: 0 }, { total: 0, strikes: 0 }, { total: 0, strikes: 0 }];
+  var rings = [{total:0,strikes:0},{total:0,strikes:0},{total:0,strikes:0}];
   var pts = [];
+  var re24Runs = 0; // count-adjusted framing runs
+
+  // Median zone for display
+  var topVals = [], botVals = [];
 
   for (var i = 0; i < rows.length; i++) {
     var r = rows[i];
@@ -294,38 +347,73 @@ function computeMetrics(name, rows) {
     if (isNaN(s) || isNaN(h)) continue;
     var call = (r['PitchCall'] || '').trim();
     var isStr = call === 'StrikeCalled', isBall = call === 'BallCalled';
-    var inside = s >= SZ.l && s <= SZ.r && h >= SZ.b && h <= SZ.t;
-    var dist = distToEdge(s, h);
+    if (!isStr && !isBall) continue;
+
+    // Per-pitch zone
+    var zone = getZone(r);
+    topVals.push(zone.t); botVals.push(zone.b);
+
+    var inside = inZoneCheck(s, h, zone);
+    var dist = distToEdgeZone(s, h, zone);
     var ri = ringIdx(dist);
-    if (isStr) { strikeTotal++; if (!inside) stolen++; else inZoneStr++; }
-    if (isBall && inside) { lost++; inZoneBall++; }
+
+    // Count/base state for RE24
+    var balls   = parseInt(r['Balls']||r['BallCount']||0)||0;
+    var strikes = parseInt(r['Strikes']||r['StrikeCount']||0)||0;
+    var outs    = parseInt(r['Outs']||r['OutsBeforePitch']||0)||0;
+    var on1 = !!(r['Runner1B']||'').trim();
+    var on2 = !!(r['Runner2B']||'').trim();
+    var on3 = !!(r['Runner3B']||'').trim();
+    var baseState = (on1?1:0)|(on2?2:0)|(on3?4:0);
+
+    if (isStr) {
+      strikeTotal++;
+      if (!inside) {
+        stolen++;
+        // Stolen strike — catcher got a strike on a ball, saves runs
+        re24Runs += stolenStrikeDelta(balls, strikes, outs, baseState);
+      } else inZoneStr++;
+    }
+    if (isBall && inside) {
+      lost++;
+      inZoneBall++;
+      // Lost strike — catcher lost a strike on a pitch in zone, costs runs
+      re24Runs -= lostStrikeDelta(balls, strikes, outs, baseState);
+    }
     if (ri >= 0) { rings[ri].total++; if (isStr) rings[ri].strikes++; }
     pts.push({ s: s, h: h, isStr: isStr });
   }
 
   var total = rows.length;
-  var shTot = rings[0].total + rings[1].total + rings[2].total;
-  var shStr = rings[0].strikes + rings[1].strikes + rings[2].strikes;
-  var shPct = shTot > 0 ? shStr / shTot : 0;
-  var wN = 0, wD = 0;
-  for (var i = 0; i < rings.length; i++) {
-    if (rings[i].total > 0) {
-      wN += (rings[i].strikes / rings[i].total) * RWEIGHTS[i] * rings[i].total;
-      wD += RWEIGHTS[i] * rings[i].total;
+  var shTot = rings[0].total+rings[1].total+rings[2].total;
+  var shStr = rings[0].strikes+rings[1].strikes+rings[2].strikes;
+  var shPct = shTot > 0 ? shStr/shTot : 0;
+  var wN=0, wD=0;
+  for (var i=0;i<rings.length;i++) {
+    if (rings[i].total>0) {
+      wN += (rings[i].strikes/rings[i].total)*RWEIGHTS[i]*rings[i].total;
+      wD += RWEIGHTS[i]*rings[i].total;
     }
   }
-  var wPct = wD > 0 ? wN / wD : 0.63;
-  var fs = wD > 0 ? Math.round((wPct / 0.63) * 100) : 100;
-  var izTot = inZoneStr + inZoneBall;
+  var wPct = wD>0?wN/wD:0.63;
+  var fs = wD>0?Math.round((wPct/0.63)*100):100;
+  var izTot = inZoneStr+inZoneBall;
+
+  // Median zone for display
+  topVals.sort(function(a,b){return a-b;});
+  botVals.sort(function(a,b){return a-b;});
+  var medTop = topVals.length?topVals[Math.floor(topVals.length/2)]:DEFAULT_TOP;
+  var medBot = botVals.length?botVals[Math.floor(botVals.length/2)]:DEFAULT_BOT;
 
   return {
-    name: name, total: total, strikeTotal: strikeTotal,
-    stolen: stolen, lost: lost, net: stolen - lost,
-    fRuns: (stolen * 0.125) - (lost * 0.05),
-    shTot: shTot, shPct: shPct,
-    izPct: izTot > 0 ? inZoneStr / izTot : 0,
-    oPct: total > 0 ? strikeTotal / total : 0,
-    rings: rings, framingScore: fs, pts: pts
+    name:name, total:total, strikeTotal:strikeTotal,
+    stolen:stolen, lost:lost, net:stolen-lost,
+    fRuns: re24Runs, // RE24-based framing runs
+    shTot:shTot, shPct:shPct,
+    izPct:izTot>0?inZoneStr/izTot:0,
+    oPct:total>0?strikeTotal/total:0,
+    rings:rings, framingScore:fs, pts:pts,
+    medTop:medTop, medBot:medBot
   };
 }
 
@@ -365,7 +453,7 @@ function renderResults(c, gameName, nCalled) {
       srow('Net Framing', '<span class="' + nc + '">' + sgn(c.net) + '</span>', 'Stolen \u2212 Lost') +
       srow('Shadow Strike%', p2(c.shPct), c.shTot + ' shadow pitches') +
       srow('In-Zone Strike%', p2(c.izPct), 'Ump agreement inside zone') +
-      srow('Framing Runs', '<span class="' + rc + '">' + sgn(c.fRuns, 2) + '</span>', 'Rough estimate') +
+      srow('Framing Runs (RE24)', '<span class="' + rc + '">' + sgn(c.fRuns, 2) + '</span>', 'Count-adjusted run value') +
     '</div>' +
     '<div class="zone-wrap">' +
       '<div class="zone-label">Called Pitch Locations</div>' +
@@ -380,7 +468,7 @@ function renderResults(c, gameName, nCalled) {
   grid.appendChild(card);
 
   setTimeout(function() {
-    drawZone('cv0', c.pts);
+    drawZone('cv0', c.pts, c.medTop, c.medBot);
     buildRingRows('rb0', c.rings);
   }, 30);
 
@@ -393,13 +481,14 @@ function srow(label, val, sub) {
     '<div class="sval">' + val + '</div><div class="ssub">' + sub + '</div></div>';
 }
 
-function drawZone(id, pts) {
+function drawZone(id, pts, medTop, medBot) {
   var cv = document.getElementById(id);
   if (!cv || !cv.getContext) return;
   var ctx = cv.getContext('2d');
   var W = cv.width, H = cv.height, PAD = 22;
-  var vl = SZ.l - SHADOW - 0.12, vr = SZ.r + SHADOW + 0.12;
-  var vb = SZ.b - SHADOW - 0.12, vt = SZ.t + SHADOW + 0.12;
+  var szTop = medTop||DEFAULT_TOP, szBot = medBot||DEFAULT_BOT;
+  var vl = -SZ_W - SHADOW - 0.12, vr = SZ_W + SHADOW + 0.12;
+  var vb = szBot - SHADOW - 0.12, vt = szTop + SHADOW + 0.12;
   function mx(v) { return PAD + (v - vl) / (vr - vl) * (W - 2 * PAD); }
   function my(v) { return H - PAD - (v - vb) / (vt - vb) * (H - 2 * PAD); }
 
@@ -410,14 +499,14 @@ function drawZone(id, pts) {
   ctx.strokeStyle = '#3d5166';
   ctx.lineWidth = 1;
   ctx.setLineDash([3, 3]);
-  ctx.strokeRect(mx(SZ.l - SHADOW), my(SZ.t + SHADOW),
-    mx(SZ.r + SHADOW) - mx(SZ.l - SHADOW),
-    my(SZ.b - SHADOW) - my(SZ.t + SHADOW));
+  ctx.strokeRect(mx(-SZ_W - SHADOW), my(szTop + SHADOW),
+    mx(SZ_W + SHADOW) - mx(-SZ_W - SHADOW),
+    my(szBot - SHADOW) - my(szTop + SHADOW));
   ctx.restore();
 
   ctx.strokeStyle = '#d4a843';
   ctx.lineWidth = 1.8;
-  ctx.strokeRect(mx(SZ.l), my(SZ.t), mx(SZ.r) - mx(SZ.l), my(SZ.b) - my(SZ.t));
+  ctx.strokeRect(mx(-SZ_W), my(szTop), mx(SZ_W) - mx(-SZ_W), my(szBot) - my(szTop));
 
   for (var i = 0; i < pts.length; i++) {
     var p = pts[i];
