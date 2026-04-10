@@ -336,11 +336,13 @@ async function loadGames() {
     var rows = await supaFetch('games?select=*');
     console.log('Games table columns:', rows.length ? Object.keys(rows[0]) : 'empty', rows[0]);
     var games = rows.sort(function(a,b) {
-      var dateDiff = new Date(b.date) - new Date(a.date);
-      if (dateDiff !== 0) return dateDiff;
-      // Same date — sort by trailing game number in game_id descending
-      var numA = parseInt((a.game_id || '').replace(/.*-/, '')) || 0;
-      var numB = parseInt((b.game_id || '').replace(/.*-/, '')) || 0;
+      // Primary: date descending
+      var da = (a.date || '').replace(/-/g,'');
+      var db = (b.date || '').replace(/-/g,'');
+      if (db !== da) return db > da ? 1 : -1;
+      // Secondary: trailing game number in game_id descending
+      var numA = parseInt((a.game_id || '').split('-').pop()) || 0;
+      var numB = parseInt((b.game_id || '').split('-').pop()) || 0;
       return numB - numA;
     });
     var sel = document.getElementById('gameSelect');
@@ -399,6 +401,7 @@ document.getElementById('gameSelect').addEventListener('change', async function(
   }
 
   if (boxUrl) {
+    boxUrl = boxUrl.replace('https://www.wsccathletics.com', 'https://wsccathletics.com');
     console.log('box_score_url being sent:', boxUrl);
     statusEl.textContent = 'Fetching box score...';
     try {
