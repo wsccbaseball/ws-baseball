@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -17,130 +18,130 @@
 }
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
 
-/* ---- UPLOAD SCREEN ---- */
+/* –– UPLOAD SCREEN –– */
 #upload-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;gap:1.5rem}
 .up-title{text-align:center}
-.up-title h1{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;letter-spacing:.1em;color:var(--gold)}
-.up-title p{color:var(--muted);margin-top:.3rem;font-size:.9rem}
-.form-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;width:100%;max-width:560px}
+.up-title h1{font-family:‘Bebas Neue’,sans-serif;font-size:2.8rem;letter-spacing:.1em;color:var(–gold)}
+.up-title p{color:var(–muted);margin-top:.3rem;font-size:.9rem}
+.form-card{background:var(–card);border:1px solid var(–border);border-radius:12px;padding:1.5rem;width:100%;max-width:560px}
 .form-row{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
 .form-row:last-child{margin-bottom:0}
 .fg{display:flex;flex-direction:column;gap:.4rem;flex:1;min-width:100px}
-label{font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+label{font-size:.75rem;font-weight:600;color:var(–muted);text-transform:uppercase;letter-spacing:.05em}
 input[type=text],input[type=number],input[type=date]{
-  background:#ffffff;border:1px solid var(--border);border-radius:6px;
-  color:var(--text);padding:.5rem .75rem;font-size:.9rem;font-family:'DM Sans',sans-serif;width:100%;
-  transition:border-color .2s}
-input:focus{outline:none;border-color:var(--gold)}
+background:#ffffff;border:1px solid var(–border);border-radius:6px;
+color:var(–text);padding:.5rem .75rem;font-size:.9rem;font-family:‘DM Sans’,sans-serif;width:100%;
+transition:border-color .2s}
+input:focus{outline:none;border-color:var(–gold)}
 details{width:100%;max-width:560px}
-summary{color:var(--muted);font-size:.85rem;cursor:pointer;padding:.4rem 0}
-summary:hover{color:var(--text)}
+summary{color:var(–muted);font-size:.85rem;cursor:pointer;padding:.4rem 0}
+summary:hover{color:var(–text)}
 .drop-zone{
-  width:100%;max-width:560px;border:2px dashed var(--border);border-radius:12px;
-  padding:2.5rem 2rem;text-align:center;cursor:pointer;transition:all .2s;
+width:100%;max-width:560px;border:2px dashed var(–border);border-radius:12px;
+padding:2.5rem 2rem;text-align:center;cursor:pointer;transition:all .2s;
 }
-.drop-zone:hover,.drop-zone.over{border-color:var(--gold);background:rgba(212,168,67,.05)}
-.drop-icon{font-size:2rem;margin-bottom:.75rem;color:var(--muted)}
-.drop-zone p{color:var(--muted);font-size:.95rem}
+.drop-zone:hover,.drop-zone.over{border-color:var(–gold);background:rgba(212,168,67,.05)}
+.drop-icon{font-size:2rem;margin-bottom:.75rem;color:var(–muted)}
+.drop-zone p{color:var(–muted);font-size:.95rem}
 .drop-sub{font-size:.8rem;margin-top:.3rem}
-.file-name{color:var(--green);font-size:.85rem;margin-top:.5rem;font-family:'DM Mono',monospace}
+.file-name{color:var(–green);font-size:.85rem;margin-top:.5rem;font-family:‘DM Mono’,monospace}
 .gen-btn{
-  background:var(--gold);color:#0d1117;border:none;border-radius:8px;
-  padding:.85rem 2rem;font-size:1rem;font-weight:700;font-family:'DM Sans',sans-serif;
-  cursor:pointer;width:100%;max-width:560px;transition:opacity .2s;letter-spacing:.05em;
+background:var(–gold);color:#0d1117;border:none;border-radius:8px;
+padding:.85rem 2rem;font-size:1rem;font-weight:700;font-family:‘DM Sans’,sans-serif;
+cursor:pointer;width:100%;max-width:560px;transition:opacity .2s;letter-spacing:.05em;
 }
 .gen-btn:hover{opacity:.85}
-.error-msg{color:var(--red);font-size:.85rem;display:none}
+.error-msg{color:var(–red);font-size:.85rem;display:none}
 
-/* ---- SCORECARD WRAPPER ---- */
+/* –– SCORECARD WRAPPER –– */
 #scorecard-screen{display:none;padding:.4rem;max-width:960px;margin:0 auto}
 .sc-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;gap:.5rem}
-.back-btn{background:transparent;border:1px solid var(--border);color:var(--muted);
-  border-radius:6px;padding:.4rem .9rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.8rem}
-.back-btn:hover{border-color:var(--text);color:var(--text)}
-.img-btn{background:var(--green);color:#0d1117;border:none;
-  border-radius:6px;padding:.4rem .9rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:600}
+.back-btn{background:transparent;border:1px solid var(–border);color:var(–muted);
+border-radius:6px;padding:.4rem .9rem;cursor:pointer;font-family:‘DM Sans’,sans-serif;font-size:.8rem}
+.back-btn:hover{border-color:var(–text);color:var(–text)}
+.img-btn{background:var(–green);color:#0d1117;border:none;
+border-radius:6px;padding:.4rem .9rem;cursor:pointer;font-family:‘DM Sans’,sans-serif;font-size:.8rem;font-weight:600}
 .img-btn:hover{opacity:.85}
 .img-btn:disabled{opacity:.5;cursor:wait}
-.print-btn{background:transparent;border:1px solid var(--gold);color:var(--gold);
-  border-radius:6px;padding:.4rem .9rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.8rem}
-.print-btn:hover{background:var(--gold);color:#0d1117}
+.print-btn{background:transparent;border:1px solid var(–gold);color:var(–gold);
+border-radius:6px;padding:.4rem .9rem;cursor:pointer;font-family:‘DM Sans’,sans-serif;font-size:.8rem}
+.print-btn:hover{background:var(–gold);color:#0d1117}
 
 /* Image preview overlay */
 #img-overlay{
-  display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);
-  z-index:1000;flex-direction:column;align-items:center;justify-content:center;padding:1rem;gap:1rem;
+display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);
+z-index:1000;flex-direction:column;align-items:center;justify-content:center;padding:1rem;gap:1rem;
 }
 #img-overlay.show{display:flex}
 #img-overlay img{max-width:100%;max-height:75vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.6)}
 #img-overlay p{color:#aaa;font-size:.85rem;text-align:center;line-height:1.5}
-#overlay-close{background:var(--border);color:var(--text);border:none;border-radius:6px;
-  padding:.5rem 1.5rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.85rem}
+#overlay-close{background:var(–border);color:var(–text);border:none;border-radius:6px;
+padding:.5rem 1.5rem;cursor:pointer;font-family:‘DM Sans’,sans-serif;font-size:.85rem}
 
-/* ---- SCORECARD: single-page grid ---- */
+/* –– SCORECARD: single-page grid –– */
 .scorecard{
-  background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;
-  display:grid;
-  grid-template-rows:auto auto 1fr auto;
-  grid-template-columns:1fr;
+background:var(–card);border:1px solid var(–border);border-radius:12px;overflow:hidden;
+display:grid;
+grid-template-rows:auto auto 1fr auto;
+grid-template-columns:1fr;
 }
 
 /* ── Row 1: Header ── */
 .sc-header-band{
-  background:#1a3a5c;border-bottom:1px solid var(--border);
-  padding:.4rem .75rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;
-  grid-column:1/-1;
+background:#1a3a5c;border-bottom:1px solid var(–border);
+padding:.4rem .75rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;
+grid-column:1/-1;
 }
-.sc-ump-name{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.08em;color:#ffffff;line-height:1}
+.sc-ump-name{font-family:‘Bebas Neue’,sans-serif;font-size:1.4rem;letter-spacing:.08em;color:#ffffff;line-height:1}
 .sc-game-meta{text-align:right;line-height:1.3}
-.sc-teams{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:.06em}
-.sc-away{color:var(--red)}
-.sc-home{color:var(--blue)}
-.sc-vs{color:var(--muted);margin:0 .25rem;font-size:1rem}
-.sc-final{color:var(--text);font-size:1rem;margin-left:.4rem}
-.sc-game-label{font-size:.75rem;color:var(--gold);font-weight:600;letter-spacing:.05em}
-.sc-date{font-size:.72rem;color:var(--muted)}
+.sc-teams{font-family:‘Bebas Neue’,sans-serif;font-size:1rem;letter-spacing:.06em}
+.sc-away{color:var(–red)}
+.sc-home{color:var(–blue)}
+.sc-vs{color:var(–muted);margin:0 .25rem;font-size:1rem}
+.sc-final{color:var(–text);font-size:1rem;margin-left:.4rem}
+.sc-game-label{font-size:.75rem;color:var(–gold);font-weight:600;letter-spacing:.05em}
+.sc-date{font-size:.72rem;color:var(–muted)}
 
 /* ── Row 2: Top stat strip (5 cols) ── */
 .stats-strip{
-  display:grid;grid-template-columns:repeat(5,1fr);
-  border-bottom:1px solid var(--border);
+display:grid;grid-template-columns:repeat(3,1fr);
+border-bottom:1px solid var(–border);
 }
 .sstat{
-  padding:.3rem .25rem;border-right:1px solid var(--border);text-align:center;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1rem;
+padding:.3rem .25rem;border-right:1px solid var(–border);text-align:center;
+display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1rem;
 }
 .sstat:last-child{border-right:none}
-.sstat-label{font-size:.52rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-.sstat-val{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;line-height:1;letter-spacing:.04em}
-.sstat-sub{font-size:.52rem;color:var(--muted);line-height:1.2;text-align:center}
-.val-gold{color:var(--gold)}
-.val-red{color:var(--red)}
-.val-blue{color:var(--blue)}
-.val-green{color:var(--green)}
-.val-muted{color:var(--muted)}
+.sstat-label{font-size:.52rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(–muted)}
+.sstat-val{font-family:‘Bebas Neue’,sans-serif;font-size:1.4rem;line-height:1;letter-spacing:.04em}
+.sstat-sub{font-size:.52rem;color:var(–muted);line-height:1.2;text-align:center}
+.val-gold{color:var(–gold)}
+.val-red{color:var(–red)}
+.val-blue{color:var(–blue)}
+.val-green{color:var(–green)}
+.val-muted{color:var(–muted)}
 
 /* ── Row 3: Main body (zone + right panel) ── */
 .sc-body{
-  display:grid;grid-template-columns:1fr 1fr;
-  border-bottom:1px solid var(--border);
-  min-height:0;
+display:grid;grid-template-columns:1fr 1fr;
+border-bottom:1px solid var(–border);
+min-height:0;
 }
 @media(max-width:600px){
-  .sc-body{grid-template-columns:1fr;}
-  .zone-panel{border-right:none;border-bottom:1px solid var(--border);padding:.5rem;}
-  .right-panel{}
+.sc-body{grid-template-columns:1fr;}
+.zone-panel{border-right:none;border-bottom:1px solid var(–border);padding:.5rem;}
+.right-panel{}
 }
 
 /* Zone panel */
 .zone-panel{
-  padding:.4rem .5rem;border-right:1px solid var(--border);
-  display:flex;flex-direction:column;align-items:center;gap:.25rem;
+padding:.3rem .4rem;border-right:1px solid var(–border);
+display:flex;flex-direction:column;align-items:center;gap:.15rem;
 }
-.zone-title{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);align-self:flex-start}
+.zone-title{font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(–muted);align-self:flex-start}
 .zone-svg-wrap{width:100%;flex:1;display:flex;align-items:center;justify-content:center}
-.zone-svg-wrap svg{width:100%;height:100%;max-height:240px}
-.zone-legend{display:flex;gap:1rem;font-size:.65rem;color:var(--muted);flex-wrap:wrap;justify-content:center}
+.zone-svg-wrap svg{width:100%;height:100%;max-height:180px}
+.zone-legend{display:flex;gap:1rem;font-size:.65rem;color:var(–muted);flex-wrap:wrap;justify-content:center}
 .leg{display:flex;align-items:center;gap:.35rem}
 .leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 
@@ -148,48 +149,50 @@ summary:hover{color:var(--text)}
 .right-panel{display:flex;flex-direction:column}
 
 .calls-panel{padding:.4rem .6rem;flex:1}
-.calls-title{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.2rem}
-.calls-sub{font-size:.62rem;color:var(--muted);margin-bottom:.6rem;font-style:italic}
-.missed-item{padding:.3rem 0;border-bottom:1px solid var(--border)}
+.calls-title{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(–muted);margin-bottom:.2rem}
+.calls-sub{font-size:.62rem;color:var(–muted);margin-bottom:.6rem;font-style:italic}
+.missed-item{padding:.3rem 0;border-bottom:1px solid var(–border)}
 .missed-item:last-child{border-bottom:none}
-.missed-rank{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--gold);margin-right:.3rem}
+.missed-rank{font-family:‘Bebas Neue’,sans-serif;font-size:1rem;color:var(–gold);margin-right:.3rem}
 .missed-sit{font-size:.68rem;font-weight:600;margin-bottom:.1rem}
-.missed-detail{font-size:.62rem;color:var(--muted);line-height:1.3}
+.missed-detail{font-size:.62rem;color:var(–muted);line-height:1.3}
 .missed-badge{display:inline-block;padding:.1rem .4rem;border-radius:3px;font-size:.62rem;font-weight:700;margin-left:.3rem}
-.badge-red{background:var(--red-dim);color:var(--red)}
-.badge-blue{background:var(--blue-dim);color:var(--blue)}
-.badge-orange{background:var(--orange-dim);color:var(--orange)}
-.no-calls{color:var(--green);font-size:.8rem;padding:.4rem 0}
+.badge-red{background:var(–red-dim);color:var(–red)}
+.badge-blue{background:var(–blue-dim);color:var(–blue)}
+.badge-orange{background:var(–orange-dim);color:var(–orange)}
+.no-calls{color:var(–green);font-size:.8rem;padding:.4rem 0}
 
 /* Ball/strike accuracy row */
 .acc-row{display:grid;grid-template-columns:1fr 1fr}
-.acc-block{padding:.7rem .75rem;text-align:center;border-right:1px solid var(--border)}
+.acc-block{padding:.7rem .75rem;text-align:center;border-right:1px solid var(–border)}
 .acc-block:last-child{border-right:none}
-.acc-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.3rem}
-.acc-pct{font-family:'Bebas Neue',sans-serif;font-size:2rem;line-height:1;letter-spacing:.04em}
-.acc-sub{font-size:.62rem;color:var(--muted);margin-top:.2rem;line-height:1.3}
+.acc-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(–muted);margin-bottom:.3rem}
+.acc-pct{font-family:‘Bebas Neue’,sans-serif;font-size:2rem;line-height:1;letter-spacing:.04em}
+.acc-sub{font-size:.62rem;color:var(–muted);margin-top:.2rem;line-height:1.3}
 
 /* Footer */
-.sc-footer{padding:.4rem 1rem;font-size:.6rem;color:var(--muted);text-align:center;background:#e8eef6;border-top:1px solid var(--border)}
+.sc-footer{padding:.4rem 1rem;font-size:.6rem;color:var(–muted);text-align:center;background:#e8eef6;border-top:1px solid var(–border)}
 
 @media print{
-  @page{size:landscape;margin:.4in}
-  body{background:#fff;color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  #scorecard-screen{display:block!important;padding:0;max-width:100%}
-  #upload-screen{display:none!important}
-  .sc-toolbar{display:none}
-  .scorecard{border:1px solid #ccc;border-radius:6px}
-  :root{--bg:#fff;--card:#f9fafb;--border:#dde1e7;--text:#111;--muted:#5a6472;
-    --gold:#b8892a;--red:#d93025;--blue:#1a6fb5;--green:#1a7a35;
-    --red-dim:rgba(217,48,37,.1);--blue-dim:rgba(26,111,181,.1)}
-  .sc-header-band{background:#1a3a5c}
-  .sc-footer{background:#e8eef6}
+@page{size:landscape;margin:.4in}
+body{background:#fff;color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#scorecard-screen{display:block!important;padding:0;max-width:100%}
+#upload-screen{display:none!important}
+.sc-toolbar{display:none}
+.scorecard{border:1px solid #ccc;border-radius:6px}
+:root{–bg:#fff;–card:#f9fafb;–border:#dde1e7;–text:#111;–muted:#5a6472;
+–gold:#b8892a;–red:#d93025;–blue:#1a6fb5;–green:#1a7a35;
+–red-dim:rgba(217,48,37,.1);–blue-dim:rgba(26,111,181,.1)}
+.sc-header-band{background:#1a3a5c}
+.sc-footer{background:#e8eef6}
 }
 </style>
+
 </head>
 <body>
 
 <!-- UPLOAD SCREEN -->
+
 <div id="upload-screen">
   <div class="up-title">
     <h1>Umpire Scorecard</h1>
@@ -226,18 +229,17 @@ summary:hover{color:var(--text)}
 </div>
 
 <!-- SCORECARD SCREEN -->
+
 <div id="scorecard-screen">
   <div class="sc-toolbar">
     <button class="back-btn" id="back-btn">← New Scorecard</button>
-    <div style="display:flex;gap:.5rem">
-      <button class="img-btn" id="img-btn">📷 Save as Image</button>
-      <button class="print-btn" id="print-btn">🖨 Print / PDF</button>
-    </div>
+    <button class="img-btn" id="img-btn">📷 Save as Image</button>
   </div>
   <div class="scorecard" id="scorecard"></div>
 </div>
 
 <!-- Image overlay -->
+
 <div id="img-overlay">
   <p>Long press the image below → <strong>Save to Photos</strong></p>
   <img id="overlay-img" src="" alt="Scorecard">
@@ -637,16 +639,7 @@ function renderScorecard(stats){
         <div class="sstat-val ${favorCls}">${favorVal}</div>
         <div class="sstat-sub">${favorSub}</div>
       </div>
-      <div class="sstat">
-        <div class="sstat-label">Called Ball Acc.</div>
-        <div class="sstat-val val-blue">${Math.round(stats.ballAcc)}%</div>
-        <div class="sstat-sub">${stats.FN} of ${stats.TN+stats.FN} were strikes</div>
-      </div>
-      <div class="sstat">
-        <div class="sstat-label">Called Strike Acc.</div>
-        <div class="sstat-val val-red">${Math.round(stats.strikeAcc)}%</div>
-        <div class="sstat-sub">${stats.FP} of ${stats.TP+stats.FP} were balls</div>
-      </div>
+
     </div>
 
     <!-- Body: zone + right panel -->
@@ -677,15 +670,6 @@ const errMsg = document.getElementById('error-msg');
 
 // Save umpire record
 async function saveUmpireRecord(umpName, gameId, stats) {
-  // Check for duplicate before inserting
-  const checkRes = await fetch(
-    SUPABASE_URL + '/rest/v1/umpire_games?umpire_name=eq.' + encodeURIComponent(umpName) +
-    '&game_id=eq.' + encodeURIComponent(gameId) + '&select=id&limit=1',
-    { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
-  );
-  const existing = await checkRes.json();
-  if (existing && existing.length > 0) return; // already logged, skip
-
   const g = gamesMeta[gameId] || {};
   const record = {
     umpire_name: umpName,
@@ -785,7 +769,7 @@ document.getElementById('back-btn').addEventListener('click',()=>{
   genBtn.disabled = false;
 });
 
-document.getElementById('print-btn').addEventListener('click',()=>window.print());
+
 
 document.getElementById('overlay-close').addEventListener('click',()=>{
   document.getElementById('img-overlay').classList.remove('show');
@@ -847,5 +831,6 @@ function showError(msg){
 
 loadGames();
 </script>
+
 </body>
 </html>
