@@ -5,94 +5,94 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>WS Baseball Analytics</title>
-<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Anton&family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Anton&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { overflow-x: hidden; }
 
 body {
 font-family: ‘Barlow’, sans-serif;
-background: #ede4cc;
+background: #1a1a1a;
 min-height: 100vh;
 width: 100%;
 overflow-x: hidden;
-background-image: url(“data:image/svg+xml,%3Csvg xmlns=‘http://www.w3.org/2000/svg’ width=‘200’ height=‘200’%3E%3Cfilter id=‘n’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.75’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3CfeColorMatrix type=‘saturate’ values=‘0’/%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23n)’ opacity=‘0.06’/%3E%3C/svg%3E”);
+padding: 20px 14px 48px;
 }
 
-/* ── Header ── */
-.site-header {
-background: #e8dfc8;
-border-bottom: 3px double #1a1a1a;
-padding: 20px 20px 16px;
+/* ── Outer card ── */
+.card {
+background: #f2ead8;
+border-radius: 28px;
+overflow: hidden;
+max-width: 560px;
+margin: 0 auto;
+box-shadow: 0 20px 60px rgba(0,0,0,0.5);
 }
 
-.site-header::before {
-content: ‘’;
-display: block;
-height: 4px;
-background: #1a1a1a;
-margin-bottom: 14px;
+/* ── Masthead ── */
+.masthead {
+padding: 20px 24px 20px;
+text-align: center;
+background: #f2ead8;
 }
 
-.dateline {
+.season-badge {
 font-family: ‘Barlow’, sans-serif;
 font-size: 9px;
-letter-spacing: 2.5px;
-color: #888;
+letter-spacing: 3px;
+color: #999;
 text-transform: uppercase;
-text-align: center;
-margin-bottom: 8px;
+margin-top: 8px;
 }
 
 .logo-wrap {
 display: flex;
 align-items: center;
 justify-content: center;
-margin-bottom: 6px;
+margin-bottom: 8px;
 }
 
 .logo-wrap img {
-height: 44px;
+height: 48px;
 width: auto;
-filter: grayscale(30%) contrast(1.1);
 }
 
 .site-title {
 font-family: ‘Abril Fatface’, serif;
-font-size: clamp(46px, 12vw, 62px);
+font-size: clamp(52px, 13vw, 68px);
 color: #1a1a1a;
-line-height: 0.92;
+line-height: 0.9;
 letter-spacing: 1px;
-text-align: center;
 }
 
-.rule-thick { height: 3px; background: #1a1a1a; }
-.rule-gap   { height: 3px; }
+.rule-wrap {
+margin: 14px 0 10px;
+display: flex;
+flex-direction: column;
+gap: 3px;
+}
+.rule-thick { height: 3px; background: #1a1a1a; border-radius: 1px; }
 .rule-thin  { height: 1px; background: #1a1a1a; }
-.rule-double-wrap { margin: 10px 0 8px; }
 
 .site-slug {
 font-family: ‘Barlow’, sans-serif;
 font-size: 9px;
 letter-spacing: 3px;
-color: #888;
+color: #999;
 text-transform: uppercase;
-text-align: center;
-margin-top: 8px;
 }
 
 /* ── Stats bar ── */
 .stats-bar {
 display: flex;
 border: 1px solid #1a1a1a;
-border-top: none;
-margin: 0 20px;
-background: #e8dfc8;
+margin: 0 24px 24px;
+border-radius: 2px;
 }
 
 .stat-item {
 flex: 1;
-padding: 10px 8px;
+padding: 12px 8px;
 text-align: center;
 border-right: 1px solid #1a1a1a;
 }
@@ -100,7 +100,7 @@ border-right: 1px solid #1a1a1a;
 
 .stat-num {
 font-family: ‘Anton’, sans-serif;
-font-size: clamp(22px, 5vw, 28px);
+font-size: clamp(24px, 6vw, 30px);
 color: #1a1a1a;
 display: block;
 line-height: 1;
@@ -109,78 +109,73 @@ line-height: 1;
 .stat-lbl {
 font-family: ‘Barlow’, sans-serif;
 font-size: 8px;
-color: #888;
+color: #999;
 text-transform: uppercase;
 letter-spacing: 2px;
-margin-top: 2px;
+margin-top: 3px;
 display: block;
 }
 
-/* ── Section labels ── */
+/* ── Section ── */
+.section {
+background: #1a1a1a;
+padding: 5px 24px;
+}
+
 .section-label {
 font-family: ‘Anton’, sans-serif;
 font-size: 11px;
-letter-spacing: 3px;
+letter-spacing: 4px;
 text-transform: uppercase;
-color: #e8dfc8;
-background: #1a1a1a;
-padding: 4px 20px;
-display: block;
-margin-top: 16px;
+color: #f2ead8;
 }
 
-/* ── Tool grid ── */
-.tool-grid {
-padding: 0 16px 4px;
-display: flex;
-flex-direction: column;
+/* ── Tool list ── */
+.tool-list {
+padding: 6px 20px 10px;
+background: #f2ead8;
 }
 
 /* ── Tool card ── */
 .tool-card {
 display: flex;
 align-items: center;
-background: transparent;
-border-bottom: 1px solid #c8b888;
-padding: 13px 4px;
+padding: 14px 4px;
+gap: 14px;
 text-decoration: none;
-gap: 13px;
-position: relative;
+border-bottom: 1px solid #d8cc9e;
 -webkit-tap-highlight-color: transparent;
 -webkit-transition: background 0.1s;
 transition: background 0.1s;
+border-radius: 4px;
 }
 
-.tool-card:first-child {
-border-top: 1px solid #c8b888;
-margin-top: 10px;
-}
-
-.tool-card:active { background: rgba(0,0,0,0.04); }
-.tool-card.featured { background: rgba(0,0,0,0.03); }
+.tool-card:last-child { border-bottom: none; }
+.tool-card:active { background: rgba(0,0,0,0.05); }
 
 .tool-card.soon {
-opacity: 0.45;
+opacity: 0.4;
 pointer-events: none;
 }
 
 .tool-icon {
-width: 40px;
-height: 40px;
+width: 48px;
+height: 48px;
 border: 1px solid #1a1a1a;
+border-radius: 4px;
 display: flex;
 align-items: center;
 justify-content: center;
-font-size: 20px;
+font-size: 24px;
 flex-shrink: 0;
-background: rgba(255,255,255,0.4);
+background: rgba(255,255,255,0.5);
 }
 
 .tool-info { flex: 1; min-width: 0; }
 
 .tool-name {
 font-family: ‘Anton’, sans-serif;
-font-size: 15px;
+font-size: 16px;
 color: #1a1a1a;
 letter-spacing: 0.5px;
 text-transform: uppercase;
@@ -189,58 +184,54 @@ line-height: 1.1;
 
 .tool-desc {
 font-family: ‘Barlow’, sans-serif;
-font-size: 11px;
-color: #7a6a4a;
-margin-top: 2px;
+font-size: 12px;
+color: #8a7a58;
+margin-top: 3px;
 font-style: italic;
 line-height: 1.3;
 }
 
-.tool-status {
+.tool-badge {
 font-family: ‘Barlow’, sans-serif;
-font-size: 8px;
+font-size: 9px;
 font-weight: 700;
 letter-spacing: 1px;
 text-transform: uppercase;
-padding: 2px 7px;
-flex-shrink: 0;
-}
-
-.status-live {
+padding: 3px 9px;
 border: 1px solid #1a1a1a;
 color: #1a1a1a;
 background: transparent;
+flex-shrink: 0;
+border-radius: 2px;
 }
 
-.status-coming {
-border: 1px solid #aaa;
-color: #aaa;
-background: transparent;
+.tool-badge.coming {
+border-color: #bbb;
+color: #bbb;
 }
 
 /* ── Footer ── */
-.site-footer {
-padding: 20px 16px 48px;
-margin-top: 20px;
-border-top: 3px double #1a1a1a;
+.card-footer {
+background: #1a1a1a;
+padding: 16px 24px 20px;
 text-align: center;
 }
 
-.site-footer p {
+.card-footer p {
 font-family: ‘Barlow’, sans-serif;
 font-size: 8px;
-color: #aaa;
+color: #555;
 letter-spacing: 2px;
 text-transform: uppercase;
 line-height: 2;
 }
 
-.footer-watermark {
+.footer-title {
 font-family: ‘Abril Fatface’, serif;
-font-size: 28px;
-color: #1a1a1a;
-opacity: 0.08;
-margin-top: 14px;
+font-size: 22px;
+color: #f2ead8;
+opacity: 0.12;
+margin-top: 10px;
 letter-spacing: 2px;
 }
 </style>
@@ -248,134 +239,160 @@ letter-spacing: 2px;
 </head>
 <body>
 
-<!-- Masthead -->
+<div class="card">
 
-<div class="site-header">
-  <div class="dateline">Morristown, Tennessee &nbsp;·&nbsp; 2026 NJCAA Season</div>
-  <div class="logo-wrap">
-    <img src="WS-RGB.png" alt="Walters State">
+  <!-- Masthead -->
+
+  <div class="masthead">
+    <div class="logo-wrap">
+      <img src="WS-RGB.png" alt="Walters State">
+    </div>
+    <div class="site-title">Baseball</div>
+    <div class="season-badge">2026 NJCAA Season</div>
+    <div class="rule-wrap">
+      <div class="rule-thick"></div>
+      <div class="rule-thin"></div>
+    </div>
   </div>
-  <div class="site-title">Baseball</div>
-  <div class="rule-double-wrap">
-    <div class="rule-thick"></div>
-    <div class="rule-gap"></div>
-    <div class="rule-thin"></div>
+
+  <!-- Stats -->
+
+  <div class="stats-bar">
+    <div class="stat-item">
+      <span class="stat-num" id="dbPitches">—</span>
+      <span class="stat-lbl">Pitches</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num" id="dbGames">—</span>
+      <span class="stat-lbl">Games</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num" id="dbPitchers">—</span>
+      <span class="stat-lbl">Pitchers</span>
+    </div>
   </div>
-  <div class="site-slug">Analytics &nbsp;·&nbsp; Powered by TrackMan</div>
-</div>
 
-<!-- Stats -->
+  <!-- Data -->
 
-<div class="stats-bar">
-  <div class="stat-item">
-    <span class="stat-num" id="dbPitches">—</span>
-    <span class="stat-lbl">Pitches</span>
+  <div class="section"><div class="section-label">Data</div></div>
+  <div class="tool-list">
+    <a href="WS_TrackMan_Uploader.html" class="tool-card">
+      <div class="tool-icon">⬆️</div>
+      <div class="tool-info">
+        <div class="tool-name">TrackMan Data Files</div>
+        <div class="tool-desc">Upload game CSVs to the database with display name tagging</div>
+      </div>
+      <span class="tool-badge">Live</span>
+    </a>
   </div>
-  <div class="stat-item">
-    <span class="stat-num" id="dbGames">—</span>
-    <span class="stat-lbl">Games</span>
+
+  <!-- Game Reports -->
+
+  <div class="section"><div class="section-label">Game Reports</div></div>
+  <div class="tool-list">
+    <a href="pitcher-report.html" class="tool-card">
+      <div class="tool-icon">
+        <!-- Solid black baseball, two arc seams -->
+        <svg width="30" height="30" viewBox="0 0 52 52" fill="none">
+          <circle cx="26" cy="26" r="22" fill="#1a1a1a"/>
+          <path d="M15 10 C22 18, 22 34, 15 42" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
+          <path d="M37 10 C30 18, 30 34, 37 42" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
+        </svg>
+      </div>
+      <div class="tool-info">
+        <div class="tool-name">Pitcher Game Summary</div>
+        <div class="tool-desc">Single-game pitch locations, movement, velocity & pitch breakdown</div>
+      </div>
+      <span class="tool-badge">Live</span>
+    </a>
+    <a href="hitter-report.html" class="tool-card">
+      <div class="tool-icon">
+        <!-- Diagonal outline bat -->
+        <svg width="34" height="34" viewBox="0 0 56 56" fill="none">
+          <g transform="rotate(-45, 28, 28)">
+            <path d="M21 6 Q21 1, 28 1 Q35 1, 35 6 L33 28 L23 28 Z" stroke="#1a1a1a" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+            <path d="M33 28 L30.5 40 M23 28 L25.5 40" stroke="#1a1a1a" stroke-width="1.6" stroke-linecap="round"/>
+            <line x1="25.5" y1="40" x2="30.5" y2="40" stroke="#1a1a1a" stroke-width="1.6"/>
+            <line x1="25.5" y1="40" x2="25.5" y2="48" stroke="#1a1a1a" stroke-width="1.6"/>
+            <line x1="30.5" y1="40" x2="30.5" y2="48" stroke="#1a1a1a" stroke-width="1.6"/>
+            <line x1="25.5" y1="42.5" x2="30.5" y2="42.5" stroke="#1a1a1a" stroke-width="1"/>
+            <line x1="25.5" y1="45" x2="30.5" y2="45" stroke="#1a1a1a" stroke-width="1"/>
+            <path d="M24 48 Q24 51, 28 51 Q32 51, 32 48 Z" stroke="#1a1a1a" stroke-width="1.6" fill="none"/>
+          </g>
+        </svg>
+      </div>
+      <div class="tool-info">
+        <div class="tool-name">Hitter Game Summary</div>
+        <div class="tool-desc">Single-game plate discipline, spray chart & pitch sequencing</div>
+      </div>
+      <span class="tool-badge">Live</span>
+    </a>
+    <a href="catcher-framing.html" class="tool-card">
+      <div class="tool-icon">
+        <!-- Home plate outline -->
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M4 6 H24 V18 L14 25 L4 18 Z" stroke="#1a1a1a" stroke-width="1.8" stroke-linejoin="round" fill="none"/>
+        </svg>
+      </div>
+      <div class="tool-info">
+        <div class="tool-name">Catcher Game Summary</div>
+        <div class="tool-desc">Stolen strikes, lost strikes & framing runs by catcher</div>
+      </div>
+      <span class="tool-badge">Live</span>
+    </a>
+    <a href="umpire-scorecard.html" class="tool-card">
+      <div class="tool-icon">
+        <!-- Strike zone grid with home plate base -->
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <rect x="4" y="3" width="16" height="16" stroke="#1a1a1a" stroke-width="1.6" fill="none"/>
+          <line x1="4" y1="8.3" x2="20" y2="8.3" stroke="#1a1a1a" stroke-width="1"/>
+          <line x1="4" y1="13.6" x2="20" y2="13.6" stroke="#1a1a1a" stroke-width="1"/>
+          <line x1="9.3" y1="3" x2="9.3" y2="19" stroke="#1a1a1a" stroke-width="1"/>
+          <line x1="14.6" y1="3" x2="14.6" y2="19" stroke="#1a1a1a" stroke-width="1"/>
+          <path d="M4 19 L12 25 L20 19" stroke="#1a1a1a" stroke-width="1.6" stroke-linejoin="round" fill="none"/>
+        </svg>
+      </div>
+      <div class="tool-info">
+        <div class="tool-name">Umpire Game Summary</div>
+        <div class="tool-desc">Single-game called strike accuracy & RE24 run impact</div>
+      </div>
+      <span class="tool-badge">Live</span>
+    </a>
   </div>
-  <div class="stat-item">
-    <span class="stat-num" id="dbPitchers">—</span>
-    <span class="stat-lbl">Pitchers</span>
+
+  <!-- Advanced Metrics -->
+
+  <div class="section"><div class="section-label">Advanced Metrics</div></div>
+  <div class="tool-list">
+    <a href="umpire-report.html" class="tool-card">
+      <div class="tool-icon">
+        <!-- Trend line chart -->
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <line x1="4" y1="24" x2="4" y2="4" stroke="#1a1a1a" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="4" y1="24" x2="25" y2="24" stroke="#1a1a1a" stroke-width="1.5" stroke-linecap="round"/>
+          <polyline points="6,21 10,16 15,17 20,10" stroke="#1a1a1a" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="6" cy="21" r="1.5" fill="#1a1a1a"/>
+          <circle cx="10" cy="16" r="1.5" fill="#1a1a1a"/>
+          <circle cx="15" cy="17" r="1.5" fill="#1a1a1a"/>
+          <circle cx="20" cy="10" r="1.5" fill="#1a1a1a"/>
+        </svg>
+      </div>
+      <div class="tool-info">
+        <div class="tool-name">Umpire Scouting Report</div>
+        <div class="tool-desc">Multi-game accuracy trends & tendencies by umpire</div>
+      </div>
+      <span class="tool-badge">Live</span>
+    </a>
   </div>
-</div>
 
-<!-- Data -->
+  <!-- Footer -->
 
-<div class="section-label">Data</div>
-<div class="tool-grid">
-  <a href="WS_TrackMan_Uploader.html" class="tool-card featured">
-    <div class="tool-icon">⬆</div>
-    <div class="tool-info">
-      <div class="tool-name">TrackMan Data Files</div>
-      <div class="tool-desc">Upload game CSVs to the database with display name tagging</div>
-    </div>
-    <span class="tool-status status-live">Live</span>
-  </a>
-</div>
+  <div class="card-footer">
+    <p>Walters State Community College</p>
+    <p>Morristown, Tennessee</p>
+    <p>Powered by TrackMan</p>
+  </div>
 
-<!-- Game Reports -->
-
-<div class="section-label">Game Reports</div>
-<div class="tool-grid">
-  <a href="pitcher-report.html" class="tool-card">
-    <div class="tool-icon">⚾</div>
-    <div class="tool-info">
-      <div class="tool-name">Pitcher Game Summary</div>
-      <div class="tool-desc">Single-game pitch locations, movement, velocity & pitch breakdown</div>
-    </div>
-    <span class="tool-status status-live">Live</span>
-  </a>
-  <a href="hitter-report.html" class="tool-card">
-    <div class="tool-icon">
-      <svg width="22" height="22" viewBox="0 0 26 26" fill="none">
-        <rect x="11.5" y="1" width="3" height="17" rx="1.5" fill="#1a1a1a"/>
-        <ellipse cx="13" cy="22" rx="6.5" ry="3.5" fill="#1a1a1a"/>
-        <rect x="11" y="17" width="4" height="3" fill="#1a1a1a"/>
-      </svg>
-    </div>
-    <div class="tool-info">
-      <div class="tool-name">Hitter Game Summary</div>
-      <div class="tool-desc">Single-game plate discipline, spray chart & pitch sequencing</div>
-    </div>
-    <span class="tool-status status-live">Live</span>
-  </a>
-  <a href="catcher-framing.html" class="tool-card">
-    <div class="tool-icon">
-      <svg width="22" height="22" viewBox="0 0 26 26" fill="none">
-        <path d="M5 15C5 9.5 8.5 5 13 5C17.5 5 21 9.5 21 15V20C21 22 19.5 23.5 17.5 23.5H8.5C6.5 23.5 5 22 5 20V15Z" fill="#1a1a1a"/>
-        <path d="M9 14V10.5M13 14V10M17 14V10.5" stroke="#e8dfc8" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M5 17H21" stroke="#e8dfc8" stroke-width="1.2"/>
-      </svg>
-    </div>
-    <div class="tool-info">
-      <div class="tool-name">Catcher Game Summary</div>
-      <div class="tool-desc">Stolen strikes, lost strikes & framing runs by catcher</div>
-    </div>
-    <span class="tool-status status-live">Live</span>
-  </a>
-  <a href="umpire-scorecard.html" class="tool-card">
-    <div class="tool-icon">
-      <svg width="22" height="22" viewBox="0 0 26 26" fill="none">
-        <rect x="3" y="6" width="20" height="14" rx="4" stroke="#1a1a1a" stroke-width="2"/>
-        <line x1="3" y1="12" x2="23" y2="12" stroke="#1a1a1a" stroke-width="1.5"/>
-        <line x1="3" y1="17" x2="23" y2="17" stroke="#1a1a1a" stroke-width="1.5"/>
-        <line x1="9" y1="6" x2="9" y2="20" stroke="#1a1a1a" stroke-width="1.5"/>
-        <line x1="17" y1="6" x2="17" y2="20" stroke="#1a1a1a" stroke-width="1.5"/>
-        <line x1="10" y1="20" x2="16" y2="24" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    </div>
-    <div class="tool-info">
-      <div class="tool-name">Umpire Game Summary</div>
-      <div class="tool-desc">Single-game called strike accuracy & RE24 run impact</div>
-    </div>
-    <span class="tool-status status-live">Live</span>
-  </a>
-</div>
-
-<!-- Advanced Metrics -->
-
-<div class="section-label">Advanced Metrics</div>
-<div class="tool-grid">
-  <a href="umpire-report.html" class="tool-card">
-    <div class="tool-icon">📋</div>
-    <div class="tool-info">
-      <div class="tool-name">Umpire Scouting Report</div>
-      <div class="tool-desc">Multi-game accuracy trends & tendencies by umpire</div>
-    </div>
-    <span class="tool-status status-live">Live</span>
-  </a>
-</div>
-
-<!-- Footer -->
-
-<div class="site-footer">
-  <p>
-    Walters State Community College &nbsp;·&nbsp; Baseball Analytics<br>
-    Morristown, Tennessee &nbsp;·&nbsp; Powered by TrackMan
-  </p>
-  <div class="footer-watermark">Baseball</div>
 </div>
 
 <script>
