@@ -335,7 +335,7 @@ async function loadGames() {
   try {
     var rows = await supaFetch('games?select=*');
     console.log('Games table columns:', rows.length ? Object.keys(rows[0]) : 'empty', rows[0]);
-    var games = rows.sort(function(a,b) { return new Date(b.date) - new Date(a.date); });
+    var games = rows.sort(function(a,b) { return new Date(a.date) - new Date(b.date); });
     var sel = document.getElementById('gameSelect');
     sel.innerHTML = '<option value="">— select game —</option>';
     games.forEach(function(g) {
@@ -392,6 +392,7 @@ document.getElementById('gameSelect').addEventListener('change', async function(
   }
 
   if (boxUrl) {
+    console.log('box_score_url being sent:', boxUrl);
     statusEl.textContent = 'Fetching box score...';
     try {
       var edgeUrl = SUPABASE_URL + '/functions/v1/fetch-boxscore?url=' + encodeURIComponent(boxUrl);
