@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>WS Catcher Framing</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html,body { max-width:100vw; overflow-x:hidden; }
+body { background: #0d1117; color: #e6edf3; font-family: -apple-system, sans-serif; }
+
+#upload-screen { min-height: 100vh; padding: 2rem 1rem; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; gap: 1.2rem; }
+.hero-title { font-size: 2rem; font-weight: 800; color: #d4a843; text-align: center; }
+.hero-sub { color: #6e8098; text-align: center; margin-top: 0.4rem; font-size: 0.88rem; }
+.upload-box { background: #161d27; border: 1px solid #21303f; border-radius: 14px; padding: 1.4rem; width: 100%; max-width: 540px; }
+.box-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #6e8098; margin-bottom: 0.6rem; }
+.game-list { max-height: 280px; overflow-y: auto; border: 1px solid #21303f; border-radius: 8px; }
+.game-item { display: -webkit-flex; display: flex; align-items: center; gap: 0.7rem; padding: 0.6rem 0.9rem; border-bottom: 1px solid rgba(33,48,63,0.5); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.game-item:last-child { border-bottom: none; }
+.game-item:active { background: rgba(212,168,67,0.06); }
+.game-item input[type=checkbox] { width: 16px; height: 16px; accent-color: #d4a843; flex-shrink: 0; }
+.game-item label { font-size: 0.85rem; color: #e6edf3; cursor: pointer; flex: 1; }
+.game-item.disabled label { color: #3d5166; }
+.sel-count { font-size: 0.72rem; color: #6e8098; margin-top: 0.5rem; text-align: right; }
+.note-box { background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.2); border-radius: 8px; padding: 0.75rem 1rem; margin-top: 0.9rem; font-size: 0.78rem; color: #58a6ff; line-height: 1.5; }
+#btn-run { display: block; width: 100%; padding: 0.85rem; background: #d4a843; color: #0d1117; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 1.1rem; -webkit-appearance: none; }
+#btn-run:disabled { opacity: 0.35; }
+.loading-msg { font-size: 0.8rem; color: #6e8098; text-align: center; margin-top: 0.5rem; min-height: 1.2rem; }
+
+#results-screen { display: none; padding: 1.2rem; max-width: 1100px; margin: 0 auto; }
+.res-hdr { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: space-between; justify-content: space-between; margin-bottom: 1.2rem; }
+.res-title { font-size: 1.6rem; font-weight: 800; color: #d4a843; }
+#btn-back { background: transparent; border: 1px solid #21303f; border-radius: 8px; padding: 0.45rem 0.9rem; color: #6e8098; font-size: 0.8rem; cursor: pointer; -webkit-appearance: none; }
+.meta-bar { margin-bottom: 1.2rem; }
+.pill { display: inline-block; background: #161d27; border: 1px solid #21303f; border-radius: 7px; padding: 0.3rem 0.7rem; font-size: 0.75rem; color: #6e8098; margin: 0.2rem; }
+.pill span { color: #e6edf3; font-weight: 600; }
+.legend { margin-bottom: 1rem; font-size: 0.75rem; color: #6e8098; }
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 3px; vertical-align: middle; }
+
+.ccard { background: #161d27; border: 1px solid #21303f; border-radius: 13px; overflow: hidden; margin-bottom: 1.2rem; }
+.ccard-head { background: #1c2535; padding: 0.9rem 1.1rem; border-bottom: 1px solid #21303f; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: space-between; justify-content: space-between; }
+.cname { font-size: 1.3rem; font-weight: 800; }
+.cpitches { font-size: 0.72rem; color: #6e8098; margin-top: 0.1rem; }
+.score-badge { font-size: 1.5rem; font-weight: 800; padding: 0.2rem 0.6rem; border-radius: 8px; }
+.score-g { background: rgba(63,185,80,0.18); color: #3fb950; }
+.score-r { background: rgba(248,81,73,0.18); color: #f85149; }
+.score-n { background: rgba(212,168,67,0.15); color: #d4a843; }
+.cstats { padding: 0.9rem 1.1rem; display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; }
+.srow { width: 50%; padding-bottom: 0.6rem; }
+.slabel { font-size: 0.65rem; color: #6e8098; text-transform: uppercase; letter-spacing: 0.06em; }
+.sval { font-size: 1rem; font-weight: 700; margin-top: 0.1rem; }
+.ssub { font-size: 0.67rem; color: #6e8098; }
+.g { color: #3fb950; } .r { color: #f85149; } .au { color: #d4a843; }
+.zone-wrap { padding: 0.9rem 1.1rem; border-top: 1px solid #21303f; }
+.zone-label { font-size: 0.68rem; color: #6e8098; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.5rem; }
+canvas { display: block; border-radius: 6px; max-width: 100%; }
+
+.rtable { width: 100%; border-collapse: collapse; font-size: 0.76rem; margin-top: 0.7rem; }
+.rtable th { font-size: 0.63rem; color: #6e8098; text-transform: uppercase; padding: 0.3rem 0.4rem; text-align: left; border-bottom: 1px solid #21303f; }
+.rtable td { padding: 0.32rem 0.4rem; border-bottom: 1px solid rgba(33,48,63,0.4); }
+.rtable tr:last-child td { border-bottom: none; }
+.bar-bg { background: #21303f; border-radius: 3px; height: 5px; margin-top: 2px; }
+.bar-fg { height: 100%; border-radius: 3px; }
+
+.sec-title { font-size: 0.7rem; color: #6e8098; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.7rem; font-weight: 600; }
+.ctable-wrap { background: #161d27; border: 1px solid #21303f; border-radius: 12px; overflow: hidden; overflow-x: auto; }
+.ctable { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 340px; }
+.ctable th { background: #1c2535; padding: 0.55rem 0.75rem; text-align: left; font-size: 0.63rem; color: #6e8098; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid #21303f; }
+.ctable td { padding: 0.5rem 0.75rem; border-bottom: 1px solid rgba(33,48,63,0.4); }
+.ctable tr:last-child td { border-bottom: none; }
+
+.defs { background: #161d27; border: 1px solid #21303f; border-radius: 12px; padding: 1.1rem 1.3rem; margin-top: 1.5rem; font-size: 0.78rem; line-height: 1.7; color: #6e8098; }
+.defs-title { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: #e6edf3; margin-bottom: 0.6rem; font-weight: 700; }
+.defs b { color: #e6edf3; }
+</style>
+
+</head>
+<body>
+
+<div id="upload-screen">
+  <div style="text-align:center;">
+    <div class="hero-title">Catcher Framing</div>
+    <div class="hero-sub">Walters State CC &middot; TrackMan &middot; Select up to 6 games</div>
+  </div>
+  <div class="upload-box">
+    <div class="box-label">Select Games</div>
+    <div class="game-list" id="gameList"><div style="padding:1rem;color:#6e8098;font-size:.85rem;">Loading games...</div></div>
+    <div class="sel-count" id="selCount">0 / 6 games selected</div>
+    <div class="note-box">
+      <strong>Strike zone:</strong> PlateLocSide &plusmn;0.833 ft &middot; PlateLocHeight 1.5&ndash;3.5 ft.<br>
+      Shadow zone = 1.455 in. (half baseball diameter), 3 weighted rings.
+    </div>
+    <button id="btn-run" disabled>Generate Framing Report</button>
+    <div class="loading-msg" id="loadingMsg"></div>
+  </div>
+</div>
+
+<div id="results-screen">
+  <div class="res-hdr">
+    <div class="res-title">Framing Report</div>
+    <button id="btn-back">&#8592; New Report</button>
+  </div>
+  <div class="meta-bar" id="meta-bar"></div>
+  <div class="legend">
+    <span class="dot" style="background:#3fb950"></span>Called Strike &nbsp;
+    <span class="dot" style="background:#f85149"></span>Called Ball &nbsp;
+    <span style="color:#d4a843">&mdash;</span> Strike Zone &nbsp;
+    <span style="color:#3d5166">- -</span> Shadow Zone
+  </div>
+  <div id="grid"></div>
+  <div class="sec-title">Side-by-Side Comparison</div>
+  <div class="ctable-wrap"><table class="ctable" id="ctable"></table></div>
+  <div class="defs">
+    <div class="defs-title">Metric Definitions</div>
+    <b>Called pitches only</b> &mdash; StrikeCalled &amp; BallCalled. Swings/fouls/in-play excluded.<br>
+    <b>Shadow zone</b> &mdash; 1.455 inches (half baseball diameter) outside zone edge, 3 rings.<br>
+    <b>Weights</b> &mdash; Ring 1 (inner 0&ndash;0.04 ft) &times;1.0 &middot; Ring 2 (0.04&ndash;0.08 ft) &times;1.4 &middot; Ring 3 (0.08&ndash;0.121 ft) &times;1.8.<br>
+    <b>Stolen Strikes</b> &mdash; StrikeCalled outside zone. <b>Lost Strikes</b> &mdash; BallCalled inside zone.<br>
+    <b>Framing Score</b> &mdash; weighted shadow strike% vs 63% avg. &gt;105 = above average.
+  </div>
+</div>
+
+<script>
+var SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
+
+// Shadow zone = 1.455 inches = 1.455/12 ft
+var SZ = { l: -0.833, r: 0.833, b: 1.5, t: 3.5 };
+var SHADOW = 1.455 / 12; // 0.1213 ft
+var RINGS = [0.04, 0.08, SHADOW];
+var RWEIGHTS = [1.0, 1.4, 1.8];
+var RNAMES = ['Ring 1 (inner)', 'Ring 2 (mid)', 'Ring 3 (outer)'];
+
+var selectedGames = [];
+
+async function supaFetch(path) {
+  var rows = [], from = 0;
+  while (true) {
+    var sep = path.indexOf('?') > -1 ? '&' : '?';
+    var r = await fetch(SUPABASE_URL + '/rest/v1/' + path + sep + 'limit=1000&offset=' + from,
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
+    var d = await r.json();
+    if (!Array.isArray(d) || !d.length) break;
+    rows = rows.concat(d);
+    if (d.length < 1000) break;
+    from += 1000;
+  }
+  return rows;
+}
+
+async function loadGames() {
+  try {
+    var rows = await supaFetch('games?select=game_id,display_name,date&order=date.desc,display_name.desc');
+    var list = document.getElementById('gameList');
+    list.innerHTML = '';
+    rows.forEach(function(g) {
+      var label = g.display_name || g.game_id;
+      var item = document.createElement('div');
+      item.className = 'game-item';
+      item.dataset.gameId = g.game_id;
+      var cbId = 'cb_' + g.game_id.replace(/[^a-zA-Z0-9]/g,'_');
+      item.innerHTML = '<input type="checkbox" id="' + cbId + '" value="' + g.game_id + '">' +
+        '<label for="' + cbId + '">' + label + '</label>';
+      item.querySelector('input').addEventListener('change', onGameToggle);
+      list.appendChild(item);
+    });
+  } catch(e) {
+    document.getElementById('gameList').innerHTML = '<div style="padding:1rem;color:#f85149;font-size:.85rem;">Error loading games</div>';
+  }
+}
+
+function onGameToggle(e) {
+  var val = e.target.value;
+  if (e.target.checked) {
+    if (selectedGames.length >= 6) { e.target.checked = false; return; }
+    selectedGames.push(val);
+  } else {
+    selectedGames = selectedGames.filter(function(g) { return g !== val; });
+  }
+  // Disable unchecked boxes if at 6
+  var all = document.querySelectorAll('.game-item input[type=checkbox]');
+  all.forEach(function(cb) {
+    if (!cb.checked) {
+      cb.disabled = selectedGames.length >= 6;
+      cb.closest('.game-item').classList.toggle('disabled', selectedGames.length >= 6);
+    }
+  });
+  document.getElementById('selCount').textContent = selectedGames.length + ' / 6 games selected';
+  document.getElementById('btn-run').disabled = selectedGames.length === 0;
+}
+
+document.getElementById('btn-run').addEventListener('click', async function() {
+  if (!selectedGames.length) return;
+  var btn = document.getElementById('btn-run');
+  var msg = document.getElementById('loadingMsg');
+  btn.disabled = true;
+  msg.textContent = 'Fetching pitch data...';
+  try {
+    var allRows = [];
+    for (var i = 0; i < selectedGames.length; i++) {
+      msg.textContent = 'Loading game ' + (i+1) + ' of ' + selectedGames.length + '...';
+      var rows = await supaFetch('pitches?GameID=eq.' + encodeURIComponent(selectedGames[i]));
+      allRows = allRows.concat(rows);
+    }
+    msg.textContent = '';
+    analyze(allRows, selectedGames.length);
+  } catch(e) {
+    msg.textContent = 'Error: ' + e.message;
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('btn-back').addEventListener('click', resetApp);
+
+// ── Analysis ──────────────────────────────────────────────────────────────
+function analyze(allRows, nGames) {
+  if (!allRows.length) { alert('No pitch data found.'); document.getElementById('btn-run').disabled = false; return; }
+
+  var called = [];
+  for (var i = 0; i < allRows.length; i++) {
+    var r = allRows[i];
+    var c = (r['PitchCall'] || '').trim();
+    if (c !== 'StrikeCalled' && c !== 'BallCalled') continue;
+    var s = parseFloat(r['PlateLocSide']), h = parseFloat(r['PlateLocHeight']);
+    if (isNaN(s) || isNaN(h) || Math.abs(s) >= 5 || h <= 0 || h >= 7) continue;
+    called.push(r);
+  }
+
+  var catcherMap = {};
+  for (var i = 0; i < called.length; i++) {
+    var r = called[i];
+    var nm = (r['Catcher'] || 'Unknown').trim();
+    if (!nm) nm = 'Unknown';
+    if (!catcherMap[nm]) catcherMap[nm] = [];
+    catcherMap[nm].push(r);
+  }
+
+  var catchers = [];
+  var keys = Object.keys(catcherMap);
+  for (var i = 0; i < keys.length; i++) {
+    if (catcherMap[keys[i]].length >= 10) {
+      catchers.push(computeMetrics(keys[i], catcherMap[keys[i]]));
+    }
+  }
+  catchers.sort(function(a, b) { return b.framingScore - a.framingScore; });
+
+  if (!catchers.length) {
+    alert('No catchers found with enough data.');
+    document.getElementById('btn-run').disabled = false;
+    return;
+  }
+
+  renderResults(catchers, nGames, called.length);
+}
+
+function distToEdge(s, h) {
+  var inside = s >= SZ.l && s <= SZ.r && h >= SZ.b && h <= SZ.t;
+  if (inside) return -1;
+  var dx = Math.max(SZ.l - s, s - SZ.r, 0);
+  var dy = Math.max(SZ.b - h, h - SZ.t, 0);
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+function ringIdx(dist) {
+  if (dist < 0) return -1;
+  for (var i = 0; i < RINGS.length; i++) { if (dist <= RINGS[i]) return i; }
+  return -1;
+}
+
+function computeMetrics(name, rows) {
+  var stolen = 0, lost = 0, inZoneStr = 0, inZoneBall = 0, strikeTotal = 0;
+  var rings = [{ total: 0, strikes: 0 }, { total: 0, strikes: 0 }, { total: 0, strikes: 0 }];
+  var pts = [];
+
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    var s = parseFloat(r['PlateLocSide']), h = parseFloat(r['PlateLocHeight']);
+    var call = (r['PitchCall'] || '').trim();
+    var isStr = call === 'StrikeCalled', isBall = call === 'BallCalled';
+    if (!isStr && !isBall) continue;
+    var inside = s >= SZ.l && s <= SZ.r && h >= SZ.b && h <= SZ.t;
+    var dist = distToEdge(s, h);
+    var ri = ringIdx(dist);
+    if (isStr) { strikeTotal++; if (!inside) stolen++; else inZoneStr++; }
+    if (isBall && inside) { lost++; inZoneBall++; }
+    if (ri >= 0) { rings[ri].total++; if (isStr) rings[ri].strikes++; }
+    pts.push({ s: s, h: h, isStr: isStr });
+  }
+
+  var total = rows.length;
+  var shTot = rings[0].total + rings[1].total + rings[2].total;
+  var shStr = rings[0].strikes + rings[1].strikes + rings[2].strikes;
+  var shPct = shTot > 0 ? shStr / shTot : 0;
+  var wN = 0, wD = 0;
+  for (var i = 0; i < rings.length; i++) {
+    if (rings[i].total > 0) {
+      wN += (rings[i].strikes / rings[i].total) * RWEIGHTS[i] * rings[i].total;
+      wD += RWEIGHTS[i] * rings[i].total;
+    }
+  }
+  var wPct = wD > 0 ? wN / wD : 0.63;
+  var fs = wD > 0 ? Math.round((wPct / 0.63) * 100) : 100;
+  var izTot = inZoneStr + inZoneBall;
+
+  return {
+    name: name, total: total, strikeTotal: strikeTotal,
+    stolen: stolen, lost: lost, net: stolen - lost,
+    fRuns: (stolen * 0.125) - (lost * 0.05),
+    shTot: shTot, shPct: shPct,
+    izPct: izTot > 0 ? inZoneStr / izTot : 0,
+    oPct: total > 0 ? strikeTotal / total : 0,
+    rings: rings, framingScore: fs, pts: pts
+  };
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+function p2(v) { return (v * 100).toFixed(1) + '%'; }
+function sgn(v, d) { return (v >= 0 ? '+' : '') + v.toFixed(d !== undefined ? d : 0); }
+function escH(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function pill(l, v) { return '<span class="pill">' + l + ': <span>' + v + '</span></span> '; }
+
+function renderResults(catchers, nGames, nCalled) {
+  document.getElementById('upload-screen').style.display = 'none';
+  document.getElementById('results-screen').style.display = 'block';
+  document.getElementById('meta-bar').innerHTML =
+    pill('Games', nGames) + pill('Called Pitches', nCalled) +
+    pill('Catchers', catchers.length) + pill('Shadow', '1.455 in.');
+  var grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  for (var i = 0; i < catchers.length; i++) {
+    grid.appendChild(buildCard(catchers[i], i));
+  }
+  buildCompare(catchers);
+  window.scrollTo(0,0);
+}
+
+function buildCard(c, idx) {
+  var div = document.createElement('div');
+  div.className = 'ccard';
+  var sc = c.framingScore >= 105 ? 'score-g' : c.framingScore <= 95 ? 'score-r' : 'score-n';
+  var nc = c.net > 0 ? 'g' : c.net < 0 ? 'r' : 'au';
+  var rc = c.fRuns >= 0 ? 'g' : 'r';
+  var cvId = 'cv' + idx, rbId = 'rb' + idx;
+
+  // Clean up name (Last, First → First Last)
+  var displayName = c.name;
+  if (c.name.indexOf(',') > -1) {
+    var parts = c.name.split(',');
+    displayName = (parts[1]||'').trim() + ' ' + parts[0].trim();
+  }
+
+  div.innerHTML =
+    '<div class="ccard-head">' +
+      '<div><div class="cname">' + escH(displayName) + '</div><div class="cpitches">' + c.total + ' called pitches</div></div>' +
+      '<div class="score-badge ' + sc + '">' + c.framingScore + '</div>' +
+    '</div>' +
+    '<div class="cstats">' +
+      srow('Stolen Strikes', '<span class="g">+' + c.stolen + '</span>', 'StrikeCalled outside zone') +
+      srow('Lost Strikes', '<span class="r">' + c.lost + '</span>', 'BallCalled inside zone') +
+      srow('Net Framing', '<span class="' + nc + '">' + sgn(c.net) + '</span>', 'Stolen \u2212 Lost') +
+      srow('Shadow Strike%', p2(c.shPct), c.shTot + ' shadow pitches') +
+      srow('In-Zone Strike%', p2(c.izPct), 'Ump agreement inside zone') +
+      srow('Framing Runs', '<span class="' + rc + '">' + sgn(c.fRuns, 2) + '</span>', 'Rough estimate') +
+    '</div>' +
+    '<div class="zone-wrap">' +
+      '<div class="zone-label">Called Pitch Locations</div>' +
+      '<canvas id="' + cvId + '" width="280" height="230"></canvas>' +
+      '<div class="zone-label" style="margin-top:0.8rem">Shadow Zone Ring Breakdown</div>' +
+      '<table class="rtable"><thead><tr><th>Ring</th><th>Pitches</th><th>Strike%</th><th>Wt</th></tr></thead>' +
+      '<tbody id="' + rbId + '"></tbody></table>' +
+    '</div>';
+
+  (function(cId, rId, pts, rings) {
+    setTimeout(function() {
+      drawZone(cId, pts);
+      buildRingRows(rId, rings);
+    }, 30);
+  })(cvId, rbId, c.pts, c.rings);
+
+  return div;
+}
+
+function srow(label, val, sub) {
+  return '<div class="srow"><div class="slabel">' + label + '</div>' +
+    '<div class="sval">' + val + '</div><div class="ssub">' + sub + '</div></div>';
+}
+
+function drawZone(id, pts) {
+  var cv = document.getElementById(id);
+  if (!cv || !cv.getContext) return;
+  var ctx = cv.getContext('2d');
+  var W = cv.width, H = cv.height, PAD = 22;
+  var vl = SZ.l - SHADOW - 0.12, vr = SZ.r + SHADOW + 0.12;
+  var vb = SZ.b - SHADOW - 0.12, vt = SZ.t + SHADOW + 0.12;
+  function mx(v) { return PAD + (v - vl) / (vr - vl) * (W - 2 * PAD); }
+  function my(v) { return H - PAD - (v - vb) / (vt - vb) * (H - 2 * PAD); }
+
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(0, 0, W, H);
+
+  // Shadow zone dashed
+  ctx.save();
+  ctx.strokeStyle = '#3d5166';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  ctx.strokeRect(mx(SZ.l - SHADOW), my(SZ.t + SHADOW),
+    mx(SZ.r + SHADOW) - mx(SZ.l - SHADOW),
+    my(SZ.b - SHADOW) - my(SZ.t + SHADOW));
+  ctx.restore();
+
+  // Strike zone solid
+  ctx.strokeStyle = '#d4a843';
+  ctx.lineWidth = 1.8;
+  ctx.strokeRect(mx(SZ.l), my(SZ.t), mx(SZ.r) - mx(SZ.l), my(SZ.b) - my(SZ.t));
+
+  // Pitches
+  for (var i = 0; i < pts.length; i++) {
+    var p = pts[i];
+    ctx.beginPath();
+    ctx.arc(mx(p.s), my(p.h), 3.2, 0, Math.PI * 2);
+    ctx.fillStyle = p.isStr ? 'rgba(63,185,80,0.75)' : 'rgba(248,81,73,0.65)';
+    ctx.fill();
+  }
+
+  ctx.fillStyle = '#3d5166';
+  ctx.font = '9px -apple-system, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText("CATCHER'S VIEW", W / 2, H - 5);
+}
+
+function buildRingRows(id, rings) {
+  var tbody = document.getElementById(id);
+  if (!tbody) return;
+  for (var i = 0; i < rings.length; i++) {
+    var ring = rings[i];
+    var pct = ring.total > 0 ? ring.strikes / ring.total : 0;
+    var bc = pct >= 0.70 ? '#3fb950' : pct < 0.50 ? '#f85149' : '#58a6ff';
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td style="color:#6e8098;font-size:.71rem">' + RNAMES[i] + '</td>' +
+      '<td>' + ring.total + '</td>' +
+      '<td>' + p2(pct) + '<div class="bar-bg"><div class="bar-fg" style="width:' + Math.round(pct * 100) + '%;background:' + bc + '"></div></div></td>' +
+      '<td style="color:#6e8098">&times;' + RWEIGHTS[i] + '</td>';
+    tbody.appendChild(tr);
+  }
+}
+
+function buildCompare(catchers) {
+  var metrics = [
+    { l: 'Called Pitches', fn: function(c) { return c.total; }, fmt: function(v) { return v; }, g: null },
+    { l: 'Overall Strike%', fn: function(c) { return c.oPct; }, fmt: p2, g: null },
+    { l: 'In-Zone Strike%', fn: function(c) { return c.izPct; }, fmt: p2, g: 'h' },
+    { l: 'Shadow Pitches', fn: function(c) { return c.shTot; }, fmt: function(v) { return v; }, g: null },
+    { l: 'Shadow Strike%', fn: function(c) { return c.shPct; }, fmt: p2, g: 'h' },
+    { l: 'Stolen Strikes', fn: function(c) { return c.stolen; }, fmt: function(v) { return '+' + v; }, g: 'h' },
+    { l: 'Lost Strikes', fn: function(c) { return c.lost; }, fmt: function(v) { return v; }, g: 'l' },
+    { l: 'Net Framing', fn: function(c) { return c.net; }, fmt: function(v) { return sgn(v); }, g: 'h' },
+    { l: 'Framing Runs', fn: function(c) { return c.fRuns; }, fmt: function(v) { return sgn(v, 2); }, g: 'h' },
+    { l: 'Framing Score', fn: function(c) { return c.framingScore; }, fmt: function(v) { return v; }, g: 'h' },
+  ];
+
+  var html = '<thead><tr><th>Metric</th>';
+  for (var i = 0; i < catchers.length; i++) {
+    var n = catchers[i].name;
+    if (n.indexOf(',') > -1) n = n.split(',')[1].trim().split(' ')[0];
+    else n = n.split(' ')[0];
+    html += '<th>' + escH(n) + '</th>';
+  }
+  html += '</tr></thead><tbody>';
+
+  for (var m = 0; m < metrics.length; m++) {
+    var met = metrics[m];
+    var vals = [];
+    for (var i = 0; i < catchers.length; i++) vals.push(met.fn(catchers[i]));
+    var maxV = Math.max.apply(null, vals), minV = Math.min.apply(null, vals);
+    html += '<tr><td style="color:#6e8098;font-size:.75rem;white-space:nowrap">' + met.l + '</td>';
+    for (var i = 0; i < catchers.length; i++) {
+      var cls = '';
+      if (met.g && catchers.length > 1 && maxV !== minV) {
+        if (met.g === 'h') cls = vals[i] === maxV ? 'g' : vals[i] === minV ? 'r' : '';
+        if (met.g === 'l') cls = vals[i] === minV ? 'g' : vals[i] === maxV ? 'r' : '';
+      }
+      html += '<td class="' + cls + '">' + met.fmt(vals[i]) + '</td>';
+    }
+    html += '</tr>';
+  }
+  html += '</tbody>';
+  document.getElementById('ctable').innerHTML = html;
+}
+
+function resetApp() {
+  selectedGames = [];
+  document.querySelectorAll('.game-item input[type=checkbox]').forEach(function(cb) {
+    cb.checked = false; cb.disabled = false;
+    cb.closest('.game-item').classList.remove('disabled');
+  });
+  document.getElementById('selCount').textContent = '0 / 6 games selected';
+  document.getElementById('btn-run').disabled = true;
+  document.getElementById('loadingMsg').textContent = '';
+  document.getElementById('upload-screen').style.display = '-webkit-flex';
+  document.getElementById('upload-screen').style.display = 'flex';
+  document.getElementById('results-screen').style.display = 'none';
+}
+
+loadGames();
+</script>
+
+</body>
+</html>
