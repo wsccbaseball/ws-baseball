@@ -336,7 +336,7 @@ function buildZoneSVG(missedCalls, zoneTop, zoneBottom, halfW, SHADOW=0.0833){
     } else {
       color='#1a6fb5';
     }
-    dots+=`<circle cx="${dx}" cy="${dy}" r="3" fill="${color}" stroke="rgba(0,0,0,0.4)" stroke-width="0.8"/>`;
+    dots+=`<circle cx="${dx}" cy="${dy}" r="4.5" fill="${color}" stroke="rgba(0,0,0,0.4)" stroke-width="0.8"/>`;
   }
 
   return `<svg id="zone-svg" viewBox="0 0 ${SVG_W} ${SVG_H}" xmlns="http://www.w3.org/2000/svg">
@@ -448,7 +448,7 @@ function processCSV(rows){
 
   // TrackMan standard: 17" plate (±8.5" = ±0.7083 ft), per-pitch vertical zone
   const HALF_W = 17/2/12; // 0.7083 ft (±8.5 inches)
-  const SHADOW = 1/12;    // 1-inch buffer on each side (0.0833 ft)
+  const SHADOW = 1.455/12; // half baseball diameter — 1.455 inches (0.1213 ft)
   const DEFAULT_TOP = 3.5, DEFAULT_BOT = 1.5;
   const usingPerPitch = !!(C.zTop && C.zBot);
 
@@ -545,10 +545,15 @@ function processCSV(rows){
 
   if(calledPitches.length===0) throw new Error('No called strikes or balls found in the CSV.');
 
+  // Split clear vs borderline for accuracy calculation
+  const clearFP = missed.filter(m=>m.type==='FP'&&m.cat==='clear').length;
+  const clearFN = missed.filter(m=>m.type==='FN'&&m.cat==='clear').length;
   const total=TP+TN+FP+FN;
-  const acc=total>0?(TP+TN)/total*100:0;
-  const ballAcc=(TN+FN)>0?TN/(TN+FN)*100:0;
-  const strikeAcc=(TP+FP)>0?TP/(TP+FP)*100:0;
+  // Accuracy excludes borderline — only clear misses count against the umpire
+  const clearTotal = TP+TN+clearFP+clearFN;
+  const acc = clearTotal>0?(TP+TN)/clearTotal*100:0;
+  const ballAcc=(TN+clearFN)>0?TN/(TN+clearFN)*100:0;
+  const strikeAcc=(TP+clearFP)>0?TP/(TP+clearFP)*100:0;
 
   missed.sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta));
 
