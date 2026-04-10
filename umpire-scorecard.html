@@ -563,7 +563,7 @@ function processCSV(rows){
   const autoAway = C.away ? (rows.find(r=>r[C.away])||{})[C.away]||'' : '';
 
   return {
-    total,TP,TN,FP,FN,acc,ballAcc,strikeAcc,missed,teamFavor,
+    total,TP,TN,FP,FN,acc,ballAcc,strikeAcc,missed,teamFavor,clearTotal,
     zoneTop:medianTop,zoneBottom:medianBot,halfW:HALF_W,shadow:SHADOW,
     usingPerPitch,autoHome,autoAway
   };
@@ -648,7 +648,7 @@ function renderScorecard(stats){
       <div class="sstat">
         <div class="sstat-label">Overall Acc.</div>
         <div class="sstat-val val-gold">${Math.round(stats.acc)}%</div>
-        <div class="sstat-sub">${stats.TP+stats.TN} / ${clearTotal} correct</div>
+        <div class="sstat-sub">${stats.TP+stats.TN} / ${stats.clearTotal} correct</div>
       </div>
       <div class="sstat">
         <div class="sstat-label">Missed</div>
