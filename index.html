@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -10,284 +11,286 @@
 html { overflow-x: hidden; }
 
 body {
-  font-family: 'Barlow', sans-serif;
-  background: #0d1b2e;
-  min-height: 100vh;
-  width: 100%;
-  overflow-x: hidden;
+font-family: ‘Barlow’, sans-serif;
+background: #0d1b2e;
+min-height: 100vh;
+width: 100%;
+overflow-x: hidden;
 }
 
 /* ── Header ── */
 .site-header {
-  background: linear-gradient(180deg, #0a1522 0%, #0d1b2e 100%);
-  border-bottom: 2px solid #1e3a5c;
-  padding: 20px 16px 16px;
-  text-align: center;
-  position: relative;
+background: linear-gradient(180deg, #0a1522 0%, #0d1b2e 100%);
+border-bottom: 2px solid #1e3a5c;
+padding: 20px 16px 16px;
+text-align: center;
+position: relative;
 }
 
 .site-header::after {
-  content: '';
-  position: absolute;
-  bottom: -2px; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #c8372d, #2d5a8e, transparent);
+content: ‘’;
+position: absolute;
+bottom: -2px; left: 0; right: 0;
+height: 2px;
+background: linear-gradient(90deg, transparent, #c8372d, #2d5a8e, transparent);
 }
 
 .logo-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  margin-bottom: 8px;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 14px;
+margin-bottom: 8px;
 }
 
 .logo-wrap img {
-  height: 56px;
-  width: auto;
+height: 56px;
+width: auto;
 }
 
 .site-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: clamp(28px, 7vw, 42px);
-  font-weight: 900;
-  color: #fff;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  line-height: 1;
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: clamp(28px, 7vw, 42px);
+font-weight: 900;
+color: #fff;
+letter-spacing: 2px;
+text-transform: uppercase;
+line-height: 1;
 }
 
 .site-title span {
-  color: #c8372d;
+color: #c8372d;
 }
 
 .site-subtitle {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: clamp(12px, 3vw, 15px);
-  font-weight: 400;
-  color: #5a8ab8;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  margin-top: 4px;
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: clamp(12px, 3vw, 15px);
+font-weight: 400;
+color: #5a8ab8;
+letter-spacing: 3px;
+text-transform: uppercase;
+margin-top: 4px;
 }
 
 .season-badge {
-  display: inline-block;
-  background: #1e3a5c;
-  color: #7bb3e0;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  padding: 3px 10px;
-  border-radius: 20px;
-  border: 1px solid #2d5a8e;
-  margin-top: 8px;
+display: inline-block;
+background: #1e3a5c;
+color: #7bb3e0;
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 11px;
+font-weight: 700;
+letter-spacing: 2px;
+text-transform: uppercase;
+padding: 3px 10px;
+border-radius: 20px;
+border: 1px solid #2d5a8e;
+margin-top: 8px;
 }
 
 /* ── Section labels ── */
 .section-label {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: #3d6a9a;
-  padding: 20px 16px 8px;
-  max-width: 640px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 10px;
+font-weight: 700;
+letter-spacing: 3px;
+text-transform: uppercase;
+color: #3d6a9a;
+padding: 20px 16px 8px;
+max-width: 640px;
+margin: 0 auto;
+display: flex;
+align-items: center;
+gap: 10px;
 }
 
 .section-label::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: #1e3a5c;
+content: ‘’;
+flex: 1;
+height: 1px;
+background: #1e3a5c;
 }
 
 /* ── Tool grid ── */
 .tool-grid {
-  padding: 0 12px 12px;
-  max-width: 640px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+padding: 0 12px 12px;
+max-width: 640px;
+margin: 0 auto;
+display: flex;
+flex-direction: column;
+gap: 10px;
 }
 
 /* ── Tool card ── */
 .tool-card {
-  display: flex;
-  align-items: center;
-  background: #111e30;
-  border: 1px solid #1e3a5c;
-  border-radius: 10px;
-  padding: 14px 16px;
-  text-decoration: none;
-  gap: 14px;
-  position: relative;
-  overflow: hidden;
-  -webkit-transition: all 0.15s ease;
-  transition: all 0.15s ease;
-  -webkit-tap-highlight-color: transparent;
+display: flex;
+align-items: center;
+background: #111e30;
+border: 1px solid #1e3a5c;
+border-radius: 10px;
+padding: 14px 16px;
+text-decoration: none;
+gap: 14px;
+position: relative;
+overflow: hidden;
+-webkit-transition: all 0.15s ease;
+transition: all 0.15s ease;
+-webkit-tap-highlight-color: transparent;
 }
 
 .tool-card::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-  background: var(--accent, #2d5a8e);
-  border-radius: 10px 0 0 10px;
+content: ‘’;
+position: absolute;
+left: 0; top: 0; bottom: 0;
+width: 3px;
+background: var(–accent, #2d5a8e);
+border-radius: 10px 0 0 10px;
 }
 
 .tool-card:active {
-  background: #162436;
-  -webkit-transform: scale(0.98);
-  transform: scale(0.98);
+background: #162436;
+-webkit-transform: scale(0.98);
+transform: scale(0.98);
 }
 
 .tool-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-  background: var(--icon-bg, #1e3a5c);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  flex-shrink: 0;
+width: 44px;
+height: 44px;
+border-radius: 8px;
+background: var(–icon-bg, #1e3a5c);
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 22px;
+flex-shrink: 0;
 }
 
 .tool-info {
-  flex: 1;
-  min-width: 0;
+flex: 1;
+min-width: 0;
 }
 
 .tool-name {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 17px;
-  font-weight: 800;
-  color: #e8f0fb;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  line-height: 1.1;
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 17px;
+font-weight: 800;
+color: #e8f0fb;
+letter-spacing: 0.5px;
+text-transform: uppercase;
+line-height: 1.1;
 }
 
 .tool-desc {
-  font-size: 12px;
-  color: #4a7aaa;
-  margin-top: 2px;
-  font-weight: 400;
-  line-height: 1.3;
+font-size: 12px;
+color: #4a7aaa;
+margin-top: 2px;
+font-weight: 400;
+line-height: 1.3;
 }
 
 .tool-status {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  padding: 2px 8px;
-  border-radius: 10px;
-  flex-shrink: 0;
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 10px;
+font-weight: 700;
+letter-spacing: 1px;
+text-transform: uppercase;
+padding: 2px 8px;
+border-radius: 10px;
+flex-shrink: 0;
 }
 
 .status-live {
-  background: rgba(76,175,125,0.12);
-  color: #4caf7d;
-  border: 1px solid rgba(76,175,125,0.3);
+background: rgba(76,175,125,0.12);
+color: #4caf7d;
+border: 1px solid rgba(76,175,125,0.3);
 }
 
 .status-coming {
-  background: rgba(200,164,90,0.12);
-  color: #c8a45a;
-  border: 1px solid rgba(200,164,90,0.3);
+background: rgba(200,164,90,0.12);
+color: #c8a45a;
+border: 1px solid rgba(200,164,90,0.3);
 }
 
 .arrow {
-  color: #2d5a8e;
-  font-size: 18px;
-  flex-shrink: 0;
-  font-weight: 300;
+color: #2d5a8e;
+font-size: 18px;
+flex-shrink: 0;
+font-weight: 300;
 }
 
 /* ── Data card (uploader) ── */
 .tool-card.featured {
-  background: linear-gradient(135deg, #0f2744 0%, #111e30 100%);
-  border-color: #2d5a8e;
+background: linear-gradient(135deg, #0f2744 0%, #111e30 100%);
+border-color: #2d5a8e;
 }
 
 /* ── Coming soon card ── */
 .tool-card.soon {
-  opacity: 0.6;
-  pointer-events: none;
-  cursor: default;
+opacity: 0.6;
+pointer-events: none;
+cursor: default;
 }
 
 /* ── Footer ── */
 .site-footer {
-  text-align: center;
-  padding: 24px 16px 40px;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 11px;
-  color: #2d4a6a;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+text-align: center;
+padding: 24px 16px 40px;
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 11px;
+color: #2d4a6a;
+letter-spacing: 1px;
+text-transform: uppercase;
 }
 
 .site-footer span {
-  color: #1e3a5c;
-  margin: 0 6px;
+color: #1e3a5c;
+margin: 0 6px;
 }
 
 /* ── Stats bar ── */
 .stats-bar {
-  display: flex;
-  justify-content: center;
-  gap: 0;
-  padding: 12px 16px;
-  max-width: 640px;
-  margin: 0 auto;
+display: flex;
+justify-content: center;
+gap: 0;
+padding: 12px 16px;
+max-width: 640px;
+margin: 0 auto;
 }
 
 .stat-item {
-  flex: 1;
-  text-align: center;
-  padding: 10px 6px;
-  border-right: 1px solid #1e3a5c;
+flex: 1;
+text-align: center;
+padding: 10px 6px;
+border-right: 1px solid #1e3a5c;
 }
 
 .stat-item:last-child { border-right: none; }
 
 .stat-num {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: clamp(20px, 5vw, 28px);
-  font-weight: 800;
-  color: #e8f0fb;
-  display: block;
-  line-height: 1;
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: clamp(20px, 5vw, 28px);
+font-weight: 800;
+color: #e8f0fb;
+display: block;
+line-height: 1;
 }
 
 .stat-lbl {
-  font-size: 9px;
-  color: #3d6a9a;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-top: 2px;
-  display: block;
+font-size: 9px;
+color: #3d6a9a;
+text-transform: uppercase;
+letter-spacing: 1px;
+margin-top: 2px;
+display: block;
 }
 
 #dbPitches, #dbGames, #dbPitchers { color: #c8372d; }
 </style>
+
 </head>
 <body>
 
 <!-- Header -->
+
 <div class="site-header">
   <div class="logo-wrap">
     <img src="WS-RGB.png" alt="Walters State">
@@ -297,6 +300,7 @@ body {
 </div>
 
 <!-- Live stats from DB -->
+
 <div class="stats-bar">
   <div class="stat-item">
     <span class="stat-num" id="dbPitches">—</span>
@@ -314,6 +318,7 @@ body {
 </div>
 
 <!-- Data Tools -->
+
 <div class="section-label">Data</div>
 <div class="tool-grid">
 
@@ -329,6 +334,7 @@ body {
 </div>
 
 <!-- Reports -->
+
 <div class="section-label">Game Reports</div>
 <div class="tool-grid">
 
@@ -353,6 +359,7 @@ body {
 </div>
 
 <!-- Advanced -->
+
 <div class="section-label">Advanced Metrics</div>
 <div class="tool-grid">
 
@@ -374,18 +381,19 @@ body {
     <span class="tool-status status-live">Live</span>
   </a>
 
-  <a href="#" class="tool-card soon" style="--accent:#2a9d8f; --icon-bg:rgba(42,157,143,0.12)">
+  <a href="catcher-framing.html" class="tool-card" style="--accent:#2a9d8f; --icon-bg:rgba(42,157,143,0.15)">
     <div class="tool-icon">🧤</div>
     <div class="tool-info">
       <div class="tool-name">Catcher Framing</div>
       <div class="tool-desc">Stolen strikes, lost strikes & framing runs by catcher</div>
     </div>
-    <span class="tool-status status-coming">Soon</span>
+    <span class="tool-status status-live">Live</span>
   </a>
 
 </div>
 
 <!-- Footer -->
+
 <div class="site-footer">
   Walters State Community College <span>·</span> Baseball Analytics <span>·</span> Powered by TrackMan
 </div>
@@ -427,5 +435,6 @@ async function loadStats() {
 
 loadStats();
 </script>
+
 </body>
 </html>
