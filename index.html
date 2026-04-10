@@ -314,7 +314,6 @@ display: block;
     <span class="stat-num" id="dbPitchers">—</span>
     <span class="stat-lbl">Pitchers</span>
   </div>
-
 </div>
 
 <!-- Data Tools -->
@@ -333,7 +332,7 @@ display: block;
 
 </div>
 
-<!-- Reports -->
+<!-- Game Reports -->
 
 <div class="section-label">Game Reports</div>
 <div class="tool-grid">
@@ -348,7 +347,7 @@ display: block;
   </a>
 
   <a href="hitter-report.html" class="tool-card" style="--accent:#2a9d8f; --icon-bg:rgba(42,157,143,0.15)">
-    <div class="tool-icon">🏏</div>
+    <div class="tool-icon"><svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="11.5" y="1" width="3" height="17" rx="1.5" fill="#e8f0fb" transform="rotate(0 13 13)"/><ellipse cx="13" cy="22" rx="6.5" ry="3.5" fill="#e8f0fb"/><rect x="11" y="17" width="4" height="3" fill="#e8f0fb"/></svg></div>
     <div class="tool-info">
       <div class="tool-name">Hitter Game Summary</div>
       <div class="tool-desc">Single-game plate discipline, spray chart & pitch sequencing</div>
@@ -356,36 +355,36 @@ display: block;
     <span class="tool-status status-live">Live</span>
   </a>
 
-</div>
-
-<!-- Advanced -->
-
-<div class="section-label">Advanced Metrics</div>
-<div class="tool-grid">
+  <a href="catcher-framing.html" class="tool-card" style="--accent:#2a9d8f; --icon-bg:rgba(42,157,143,0.15)">
+    <div class="tool-icon"><svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 15C5 9.5 8.5 5 13 5C17.5 5 21 9.5 21 15V20C21 22 19.5 23.5 17.5 23.5H8.5C6.5 23.5 5 22 5 20V15Z" fill="#e8f0fb"/><path d="M9 14V10.5M13 14V10M17 14V10.5" stroke="#2a9d8f" stroke-width="1.5" stroke-linecap="round"/><path d="M5 17H21" stroke="#2a9d8f" stroke-width="1.2"/></svg></div>
+    <div class="tool-info">
+      <div class="tool-name">Catcher Game Summary</div>
+      <div class="tool-desc">Stolen strikes, lost strikes & framing runs by catcher</div>
+    </div>
+    <span class="tool-status status-live">Live</span>
+  </a>
 
   <a href="umpire-scorecard.html" class="tool-card" style="--accent:#9b59b6; --icon-bg:rgba(155,89,182,0.15)">
-    <div class="tool-icon">🎯</div>
+    <div class="tool-icon"><svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="6" width="20" height="14" rx="4" stroke="#e8f0fb" stroke-width="2"/><line x1="3" y1="12" x2="23" y2="12" stroke="#e8f0fb" stroke-width="1.5"/><line x1="3" y1="17" x2="23" y2="17" stroke="#e8f0fb" stroke-width="1.5"/><line x1="9" y1="6" x2="9" y2="20" stroke="#e8f0fb" stroke-width="1.5"/><line x1="17" y1="6" x2="17" y2="20" stroke="#e8f0fb" stroke-width="1.5"/><line x1="10" y1="20" x2="16" y2="24" stroke="#e8f0fb" stroke-width="2" stroke-linecap="round"/></svg></div>
     <div class="tool-info">
-      <div class="tool-name">Umpire Scorecard</div>
+      <div class="tool-name">Umpire Game Summary</div>
       <div class="tool-desc">Single-game called strike accuracy & RE24 run impact</div>
     </div>
     <span class="tool-status status-live">Live</span>
   </a>
+
+</div>
+
+<!-- Advanced Metrics -->
+
+<div class="section-label">Advanced Metrics</div>
+<div class="tool-grid">
 
   <a href="umpire-report.html" class="tool-card" style="--accent:#e07020; --icon-bg:rgba(224,112,32,0.12)">
     <div class="tool-icon">📋</div>
     <div class="tool-info">
       <div class="tool-name">Umpire Scouting Report</div>
       <div class="tool-desc">Multi-game accuracy trends & tendencies by umpire</div>
-    </div>
-    <span class="tool-status status-live">Live</span>
-  </a>
-
-  <a href="catcher-framing.html" class="tool-card" style="--accent:#2a9d8f; --icon-bg:rgba(42,157,143,0.15)">
-    <div class="tool-icon">🧤</div>
-    <div class="tool-info">
-      <div class="tool-name">Catcher Framing</div>
-      <div class="tool-desc">Stolen strikes, lost strikes & framing runs by catcher</div>
     </div>
     <span class="tool-status status-live">Live</span>
   </a>
@@ -404,7 +403,6 @@ var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 
 async function loadStats() {
   try {
-    // Pitch count
     var r1 = await fetch(SUPABASE_URL + '/rest/v1/pitches?select=id&limit=1',
       { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY,
         'Prefer': 'count=exact', 'Range': '0-0' } });
@@ -414,19 +412,16 @@ async function loadStats() {
       document.getElementById('dbPitches').textContent = parseInt(total).toLocaleString();
     }
 
-    // Games count
     var r2 = await fetch(SUPABASE_URL + '/rest/v1/games?select=game_id',
       { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
     var games = await r2.json();
     document.getElementById('dbGames').textContent = games.length;
 
-    // Pitchers (WS only)
     var r3 = await fetch(SUPABASE_URL + '/rest/v1/pitches?select=Pitcher&PitcherTeam=eq.Wal_Sen',
       { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
     var pitchers = await r3.json();
     var unique = new Set(pitchers.map(function(p) { return p.Pitcher; }));
     document.getElementById('dbPitchers').textContent = unique.size;
-
 
   } catch(e) {
     // silently fail — stats bar just stays as dashes
