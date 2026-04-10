@@ -139,10 +139,10 @@ min-height:0;
 /* Zone panel */
 .zone-panel{
 padding:.15rem .2rem;border-right:1px solid var(–border);
-display:flex;flex-direction:column;align-items:center;gap:.05rem;
+display:flex;flex-direction:column;align-items:center;gap:.05rem;align-self:start;
 }
 .zone-title{font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(–muted);align-self:flex-start;margin-bottom:0}
-.zone-svg-wrap{width:100%;flex:1;display:flex;align-items:center;justify-content:center;}
+.zone-svg-wrap{width:100%;display:flex;align-items:center;justify-content:center;}
 .zone-svg-wrap svg{width:100%;height:100%;max-height:260px}
 .zone-legend{display:flex;gap:1rem;font-size:.65rem;color:var(–muted);flex-wrap:wrap;justify-content:center}
 .leg{display:flex;align-items:center;gap:.35rem}
@@ -662,7 +662,7 @@ function renderScorecard(stats){
         <div class="zone-svg-wrap">${zoneSVG}</div>
 
       </div>
-      <div class="right-panel" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.5rem .5rem;gap:.5rem;width:68px;flex-shrink:0;">
+      <div class="right-panel" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.5rem .5rem;gap:.5rem;width:68px;flex-shrink:0;align-self:start;">
         <div style="text-align:center;">
           <div style="font-size:.52rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.1rem;">Ball</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;line-height:1;color:#1a6fb5;">${Math.round(stats.ballAcc)}%</div>
