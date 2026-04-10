@@ -95,16 +95,16 @@ grid-column:1/-1;overflow:hidden;
 .sc-ump-name{font-family:‘Bebas Neue’,sans-serif;font-size:clamp(.9rem,4vw,1.4rem);letter-spacing:.08em;color:#ffffff;line-height:1;white-space:nowrap}
 .sc-game-meta{text-align:right;line-height:1.2;min-width:0;overflow:hidden}
 .sc-teams{font-family:‘Bebas Neue’,sans-serif;font-size:clamp(.7rem,3vw,1rem);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sc-away{color:var(–red)}
-.sc-home{color:var(–blue)}
-.sc-vs{color:var(–muted);margin:0 .25rem;font-size:1rem}
+.sc-away{color:#ffffff}
+.sc-home{color:#ffffff}
+.sc-vs{color:rgba(255,255,255,0.6);margin:0 .25rem;font-size:1rem}
 .sc-final{color:var(–text);font-size:1rem;margin-left:.4rem}
 .sc-game-label{font-size:clamp(.55rem,2.5vw,.75rem);color:var(–gold);font-weight:600;letter-spacing:.04em}
 .sc-date{font-size:clamp(.5rem,2.2vw,.72rem);color:rgba(255,255,255,0.5)}
 
 /* ── Row 2: Top stat strip (5 cols) ── */
 .stats-strip{
-display:grid;grid-template-columns:repeat(3,1fr);
+display:grid;grid-template-columns:repeat(5,1fr);
 border-bottom:1px solid var(–border);
 }
 .sstat{
@@ -606,7 +606,7 @@ function renderScorecard(stats){
                    (stats.autoAway&&top.toLowerCase().includes(stats.autoAway.toLowerCase()));
       favorCls = isAway?'val-red':'val-blue';
       favorVal = `+${runs.toFixed(2)}`;
-      favorSub = teams.filter(t=>tf[t]>0.01).map(t=>`${t} +${tf[t].toFixed(2)} runs`).join(' · ');
+      favorSub = teams.filter(t=>tf[t]>0.01).map(t=>`${cleanTeam(t)} +${tf[t].toFixed(2)} runs`).join(' · ');
     }
   }
 
