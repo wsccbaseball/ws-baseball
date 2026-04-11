@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Murray State Baseball Analytics</title>
+<title>WS Baseball Analytics</title>
 <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Anton&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -12,41 +12,55 @@ html { overflow-x: hidden; }
 
 body {
 font-family: ‘Barlow’, sans-serif;
-background: #001030;
+background: #1a1a1a;
 min-height: 100vh;
 width: 100%;
 overflow-x: hidden;
 padding: 20px 14px 48px;
 }
 
+/* ── Outer card ── */
 .card {
-background: #CFB53B;
+background: #f2ead8;
 border-radius: 28px;
 overflow: hidden;
 max-width: 560px;
 margin: 0 auto;
-box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+box-shadow: 0 20px 60px rgba(0,0,0,0.5);
 }
 
+/* ── Masthead ── */
 .masthead {
 padding: 20px 24px 20px;
 text-align: center;
-background: #CFB53B;
+background: #f2ead8;
 }
 
 .season-badge {
 font-family: ‘Barlow’, sans-serif;
 font-size: 9px;
 letter-spacing: 3px;
-color: #7a6820;
+color: #999;
 text-transform: uppercase;
 margin-top: 8px;
+}
+
+.logo-wrap {
+display: flex;
+align-items: center;
+justify-content: center;
+margin-bottom: 8px;
+}
+
+.logo-wrap img {
+height: 48px;
+width: auto;
 }
 
 .site-title {
 font-family: ‘Abril Fatface’, serif;
 font-size: clamp(52px, 13vw, 68px);
-color: #002147;
+color: #1a1a1a;
 line-height: 0.9;
 letter-spacing: 1px;
 }
@@ -57,20 +71,21 @@ display: flex;
 flex-direction: column;
 gap: 3px;
 }
-.rule-thick { height: 3px; background: #002147; border-radius: 1px; }
-.rule-thin  { height: 1px; background: #002147; }
+.rule-thick { height: 3px; background: #1a1a1a; border-radius: 1px; }
+.rule-thin  { height: 1px; background: #1a1a1a; }
 
 .site-slug {
 font-family: ‘Barlow’, sans-serif;
 font-size: 9px;
 letter-spacing: 3px;
-color: #7a6820;
+color: #999;
 text-transform: uppercase;
 }
 
+/* ── Stats bar ── */
 .stats-bar {
 display: flex;
-border: 1px solid #002147;
+border: 1px solid #1a1a1a;
 margin: 0 24px 24px;
 border-radius: 2px;
 }
@@ -79,14 +94,14 @@ border-radius: 2px;
 flex: 1;
 padding: 12px 8px;
 text-align: center;
-border-right: 1px solid #002147;
+border-right: 1px solid #1a1a1a;
 }
 .stat-item:last-child { border-right: none; }
 
 .stat-num {
 font-family: ‘Anton’, sans-serif;
 font-size: clamp(24px, 6vw, 30px);
-color: #002147;
+color: #1a1a1a;
 display: block;
 line-height: 1;
 }
@@ -94,15 +109,16 @@ line-height: 1;
 .stat-lbl {
 font-family: ‘Barlow’, sans-serif;
 font-size: 8px;
-color: #7a6820;
+color: #999;
 text-transform: uppercase;
 letter-spacing: 2px;
 margin-top: 3px;
 display: block;
 }
 
+/* ── Section ── */
 .section {
-background: #002147;
+background: #1a1a1a;
 padding: 5px 24px;
 }
 
@@ -111,21 +127,23 @@ font-family: ‘Anton’, sans-serif;
 font-size: 11px;
 letter-spacing: 4px;
 text-transform: uppercase;
-color: #CFB53B;
+color: #f2ead8;
 }
 
+/* ── Tool list ── */
 .tool-list {
 padding: 6px 20px 10px;
-background: #CFB53B;
+background: #f2ead8;
 }
 
+/* ── Tool card ── */
 .tool-card {
 display: flex;
 align-items: center;
 padding: 14px 4px;
 gap: 14px;
 text-decoration: none;
-border-bottom: 1px solid #b89e2a;
+border-bottom: 1px solid #d8cc9e;
 -webkit-tap-highlight-color: transparent;
 -webkit-transition: background 0.1s;
 transition: background 0.1s;
@@ -133,7 +151,7 @@ border-radius: 4px;
 }
 
 .tool-card:last-child { border-bottom: none; }
-.tool-card:active { background: rgba(0,0,0,0.08); }
+.tool-card:active { background: rgba(0,0,0,0.05); }
 
 .tool-card.soon {
 opacity: 0.4;
@@ -143,14 +161,14 @@ pointer-events: none;
 .tool-icon {
 width: 48px;
 height: 48px;
-border: 1px solid #002147;
+border: 1px solid #1a1a1a;
 border-radius: 4px;
 display: flex;
 align-items: center;
 justify-content: center;
 font-size: 24px;
 flex-shrink: 0;
-background: rgba(255,255,255,0.3);
+background: rgba(255,255,255,0.5);
 }
 
 .tool-info { flex: 1; min-width: 0; }
@@ -158,7 +176,7 @@ background: rgba(255,255,255,0.3);
 .tool-name {
 font-family: ‘Anton’, sans-serif;
 font-size: 16px;
-color: #002147;
+color: #1a1a1a;
 letter-spacing: 0.5px;
 text-transform: uppercase;
 line-height: 1.1;
@@ -167,7 +185,7 @@ line-height: 1.1;
 .tool-desc {
 font-family: ‘Barlow’, sans-serif;
 font-size: 12px;
-color: #5a4a10;
+color: #8a7a58;
 margin-top: 3px;
 font-style: italic;
 line-height: 1.3;
@@ -180,20 +198,21 @@ font-weight: 700;
 letter-spacing: 1px;
 text-transform: uppercase;
 padding: 3px 9px;
-border: 1px solid #002147;
-color: #002147;
+border: 1px solid #1a1a1a;
+color: #1a1a1a;
 background: transparent;
 flex-shrink: 0;
 border-radius: 2px;
 }
 
 .tool-badge.coming {
-border-color: #7a6820;
-color: #7a6820;
+border-color: #bbb;
+color: #bbb;
 }
 
+/* ── Footer ── */
 .card-footer {
-background: #002147;
+background: #1a1a1a;
 padding: 16px 24px 20px;
 text-align: center;
 }
@@ -201,7 +220,7 @@ text-align: center;
 .card-footer p {
 font-family: ‘Barlow’, sans-serif;
 font-size: 8px;
-color: #4a6a8a;
+color: #555;
 letter-spacing: 2px;
 text-transform: uppercase;
 line-height: 2;
@@ -210,7 +229,7 @@ line-height: 2;
 .footer-title {
 font-family: ‘Abril Fatface’, serif;
 font-size: 22px;
-color: #CFB53B;
+color: #f2ead8;
 opacity: 0.12;
 margin-top: 10px;
 letter-spacing: 2px;
@@ -222,14 +241,21 @@ letter-spacing: 2px;
 
 <div class="card">
 
+  <!-- Masthead -->
+
   <div class="masthead">
+    <div class="logo-wrap">
+      <img src="WS-RGB.png" alt="Walters State">
+    </div>
     <div class="site-title">Baseball</div>
-    <div class="season-badge">2026 OVC Season · Murray State Racers</div>
+    <div class="season-badge">2026 NJCAA Season</div>
     <div class="rule-wrap">
       <div class="rule-thick"></div>
       <div class="rule-thin"></div>
     </div>
   </div>
+
+  <!-- Stats -->
 
   <div class="stats-bar">
     <div class="stat-item">
@@ -246,24 +272,29 @@ letter-spacing: 2px;
     </div>
   </div>
 
+  <!-- Data -->
+
   <div class="section"><div class="section-label">Data</div></div>
   <div class="tool-list">
-    <a href="ms_csv_uploader.html" class="tool-card">
+    <a href="WS_TrackMan_Uploader.html" class="tool-card">
       <div class="tool-icon">⬆️</div>
       <div class="tool-info">
         <div class="tool-name">TrackMan Data Files</div>
-        <div class="tool-desc">Upload game CSVs to the database</div>
+        <div class="tool-desc">Upload game CSVs to the database with display name tagging</div>
       </div>
       <span class="tool-badge">Live</span>
     </a>
   </div>
 
+  <!-- Game Reports -->
+
   <div class="section"><div class="section-label">Game Reports</div></div>
   <div class="tool-list">
     <a href="pitcher-report.html" class="tool-card">
       <div class="tool-icon">
+        <!-- Solid black baseball, two arc seams -->
         <svg width="30" height="30" viewBox="0 0 52 52" fill="none">
-          <circle cx="26" cy="26" r="22" fill="#002147"/>
+          <circle cx="26" cy="26" r="22" fill="#1a1a1a"/>
           <path d="M15 10 C22 18, 22 34, 15 42" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
           <path d="M37 10 C30 18, 30 34, 37 42" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
         </svg>
@@ -276,16 +307,17 @@ letter-spacing: 2px;
     </a>
     <a href="hitter-report.html" class="tool-card">
       <div class="tool-icon">
+        <!-- Diagonal outline bat -->
         <svg width="34" height="34" viewBox="0 0 56 56" fill="none">
           <g transform="rotate(-45, 28, 28)">
-            <path d="M21 6 Q21 1, 28 1 Q35 1, 35 6 L33 28 L23 28 Z" stroke="#002147" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
-            <path d="M33 28 L30.5 40 M23 28 L25.5 40" stroke="#002147" stroke-width="1.6" stroke-linecap="round"/>
-            <line x1="25.5" y1="40" x2="30.5" y2="40" stroke="#002147" stroke-width="1.6"/>
-            <line x1="25.5" y1="40" x2="25.5" y2="48" stroke="#002147" stroke-width="1.6"/>
-            <line x1="30.5" y1="40" x2="30.5" y2="48" stroke="#002147" stroke-width="1.6"/>
-            <line x1="25.5" y1="42.5" x2="30.5" y2="42.5" stroke="#002147" stroke-width="1"/>
-            <line x1="25.5" y1="45" x2="30.5" y2="45" stroke="#002147" stroke-width="1"/>
-            <path d="M24 48 Q24 51, 28 51 Q32 51, 32 48 Z" stroke="#002147" stroke-width="1.6" fill="none"/>
+            <path d="M21 6 Q21 1, 28 1 Q35 1, 35 6 L33 28 L23 28 Z" stroke="#1a1a1a" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+            <path d="M33 28 L30.5 40 M23 28 L25.5 40" stroke="#1a1a1a" stroke-width="1.6" stroke-linecap="round"/>
+            <line x1="25.5" y1="40" x2="30.5" y2="40" stroke="#1a1a1a" stroke-width="1.6"/>
+            <line x1="25.5" y1="40" x2="25.5" y2="48" stroke="#1a1a1a" stroke-width="1.6"/>
+            <line x1="30.5" y1="40" x2="30.5" y2="48" stroke="#1a1a1a" stroke-width="1.6"/>
+            <line x1="25.5" y1="42.5" x2="30.5" y2="42.5" stroke="#1a1a1a" stroke-width="1"/>
+            <line x1="25.5" y1="45" x2="30.5" y2="45" stroke="#1a1a1a" stroke-width="1"/>
+            <path d="M24 48 Q24 51, 28 51 Q32 51, 32 48 Z" stroke="#1a1a1a" stroke-width="1.6" fill="none"/>
           </g>
         </svg>
       </div>
@@ -297,8 +329,9 @@ letter-spacing: 2px;
     </a>
     <a href="catcher-framing.html" class="tool-card">
       <div class="tool-icon">
+        <!-- Home plate outline -->
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-          <path d="M4 6 H24 V18 L14 25 L4 18 Z" stroke="#002147" stroke-width="1.8" stroke-linejoin="round" fill="none"/>
+          <path d="M4 6 H24 V18 L14 25 L4 18 Z" stroke="#1a1a1a" stroke-width="1.8" stroke-linejoin="round" fill="none"/>
         </svg>
       </div>
       <div class="tool-info">
@@ -309,13 +342,14 @@ letter-spacing: 2px;
     </a>
     <a href="umpire-scorecard.html" class="tool-card">
       <div class="tool-icon">
+        <!-- Strike zone grid with home plate base -->
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-          <rect x="4" y="3" width="16" height="16" stroke="#002147" stroke-width="1.6" fill="none"/>
-          <line x1="4" y1="8.3" x2="20" y2="8.3" stroke="#002147" stroke-width="1"/>
-          <line x1="4" y1="13.6" x2="20" y2="13.6" stroke="#002147" stroke-width="1"/>
-          <line x1="9.3" y1="3" x2="9.3" y2="19" stroke="#002147" stroke-width="1"/>
-          <line x1="14.6" y1="3" x2="14.6" y2="19" stroke="#002147" stroke-width="1"/>
-          <path d="M4 19 L12 25 L20 19" stroke="#002147" stroke-width="1.6" stroke-linejoin="round" fill="none"/>
+          <rect x="4" y="3" width="16" height="16" stroke="#1a1a1a" stroke-width="1.6" fill="none"/>
+          <line x1="4" y1="8.3" x2="20" y2="8.3" stroke="#1a1a1a" stroke-width="1"/>
+          <line x1="4" y1="13.6" x2="20" y2="13.6" stroke="#1a1a1a" stroke-width="1"/>
+          <line x1="9.3" y1="3" x2="9.3" y2="19" stroke="#1a1a1a" stroke-width="1"/>
+          <line x1="14.6" y1="3" x2="14.6" y2="19" stroke="#1a1a1a" stroke-width="1"/>
+          <path d="M4 19 L12 25 L20 19" stroke="#1a1a1a" stroke-width="1.6" stroke-linejoin="round" fill="none"/>
         </svg>
       </div>
       <div class="tool-info">
@@ -326,18 +360,21 @@ letter-spacing: 2px;
     </a>
   </div>
 
+  <!-- Advanced Metrics -->
+
   <div class="section"><div class="section-label">Advanced Metrics</div></div>
   <div class="tool-list">
     <a href="umpire-report.html" class="tool-card">
       <div class="tool-icon">
+        <!-- Trend line chart -->
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-          <line x1="4" y1="24" x2="4" y2="4" stroke="#002147" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="4" y1="24" x2="25" y2="24" stroke="#002147" stroke-width="1.5" stroke-linecap="round"/>
-          <polyline points="6,21 10,16 15,17 20,10" stroke="#002147" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="6" cy="21" r="1.5" fill="#002147"/>
-          <circle cx="10" cy="16" r="1.5" fill="#002147"/>
-          <circle cx="15" cy="17" r="1.5" fill="#002147"/>
-          <circle cx="20" cy="10" r="1.5" fill="#002147"/>
+          <line x1="4" y1="24" x2="4" y2="4" stroke="#1a1a1a" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="4" y1="24" x2="25" y2="24" stroke="#1a1a1a" stroke-width="1.5" stroke-linecap="round"/>
+          <polyline points="6,21 10,16 15,17 20,10" stroke="#1a1a1a" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="6" cy="21" r="1.5" fill="#1a1a1a"/>
+          <circle cx="10" cy="16" r="1.5" fill="#1a1a1a"/>
+          <circle cx="15" cy="17" r="1.5" fill="#1a1a1a"/>
+          <circle cx="20" cy="10" r="1.5" fill="#1a1a1a"/>
         </svg>
       </div>
       <div class="tool-info">
@@ -348,18 +385,19 @@ letter-spacing: 2px;
     </a>
   </div>
 
+  <!-- Footer -->
+
   <div class="card-footer">
-    <p>Murray State University</p>
-    <p>Murray, Kentucky</p>
+    <p>Walters State Community College</p>
+    <p>Morristown, Tennessee</p>
     <p>Powered by TrackMan</p>
-    <div class="footer-title">RACERS</div>
   </div>
 
 </div>
 
 <script>
-var SUPABASE_URL = 'https://cmljtqgnctrtfszmowtf.supabase.co';
-var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtbGp0cWduY3RydGZzem1vd3RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4NDcwNTcsImV4cCI6MjA5MTQyMzA1N30.hYhsW2WC6iE-0Csx8-gbd0aJzbqj4YnsEcNzqDd_5Sk';
+var SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
 
 async function loadStats() {
   try {
@@ -374,8 +412,8 @@ async function loadStats() {
     var r2 = await fetch(SUPABASE_URL + '/rest/v1/games?select=game_id',
       { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
     var games = await r2.json();
-    document.getElementById('dbGames').textContent = Array.isArray(games) ? games.length : '—';
-    var r3 = await fetch(SUPABASE_URL + '/rest/v1/pitches?select=Pitcher&PitcherTeam=eq.Mur_Sta',
+    document.getElementById('dbGames').textContent = games.length;
+    var r3 = await fetch(SUPABASE_URL + '/rest/v1/pitches?select=Pitcher&PitcherTeam=eq.Wal_Sen',
       { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
     var pitchers = await r3.json();
     var unique = new Set(pitchers.map(function(p) { return p.Pitcher; }));
