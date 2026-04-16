@@ -836,16 +836,27 @@ document.getElementById('pdf-input').addEventListener('change', async function()
           text += content.items.map(item => item.str).join(' ') + ' ';
         }
 
-        // Find R H E linescore — top row = away team, bottom row = home team
-        // Tokens after "R H E": [TeamName words] [inning nums] [R] [H] [E] for each team
-        const rheIdx = text.indexOf('R H E');
+        // Find R H E linescore — PrestoSports PDFs may vary spacing
+        // Try common formats then fall back to regex
+        const rhePatterns = ['R H E', 'RHE', 'R  H  E', 'R   H   E'];
+        let rheIdx = -1, rheLen = 0;
+        for (const pat of rhePatterns) {
+          const idx = text.indexOf(pat);
+          if (idx !== -1) { rheIdx = idx; rheLen = pat.length; break; }
+        }
         if (rheIdx === -1) {
-          statusEl.textContent = 'R H E linescore not found in PDF.';
+          const m = text.match(/R\s+H\s+E/);
+          if (m) { rheIdx = text.indexOf(m[0]); rheLen = m[0].length; }
+        }
+        if (rheIdx === -1) {
+          // Log first 600 chars of PDF text to console for diagnosis
+          console.log('PDF text (first 600):', text.slice(0, 600));
+          statusEl.textContent = 'R H E linescore not found — check browser console for PDF text.';
           statusEl.style.color = 'var(--orange)';
           return;
         }
 
-        const afterRHE = text.slice(rheIdx + 5).trim();
+        const afterRHE = text.slice(rheIdx + rheLen).trim();
         const tokens = afterRHE.split(/\s+/);
 
         // Walk tokens: accumulate number groups, flush on non-numeric (team name) tokens
