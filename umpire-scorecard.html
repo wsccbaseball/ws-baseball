@@ -204,7 +204,7 @@ body{background:#fff;color:#111;-webkit-print-color-adjust:exact;print-color-adj
   </div>
 
   <div class="form-card">
-    <div class="form-row">
+    <div class="form-row" style="margin-bottom:0">
       <div class="fg" style="flex:2">
         <label>Step 1 — Select Game</label>
         <select id="game-select" style="background:#ffffff;border:1px solid var(--border);border-radius:6px;color:var(--text);padding:.5rem .75rem;font-size:.9rem;font-family:'DM Sans',sans-serif;width:100%;">
@@ -212,6 +212,19 @@ body{background:#fff;color:#111;-webkit-print-color-adjust:exact;print-color-adj
         </select>
       </div>
     </div>
+  </div>
+
+  <div class="form-card" style="max-width:560px;width:100%;">
+    <div class="form-row" style="margin-bottom:0">
+      <div class="fg">
+        <label>Step 2 — Box Score PDF (optional — auto-fills score)</label>
+        <input type="file" id="pdf-input" accept=".pdf" style="background:#ffffff;border:1px solid var(--border);border-radius:6px;color:var(--text);padding:.4rem .75rem;font-size:.85rem;font-family:'DM Sans',sans-serif;width:100%;">
+        <div id="pdf-status" style="font-size:.75rem;color:var(--muted);margin-top:.25rem;min-height:1rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-card" style="max-width:560px;width:100%;">
     <div class="form-row" style="margin-bottom:0">
       <div class="fg" style="flex:2">
         <label>Umpire Name</label>
@@ -224,16 +237,6 @@ body{background:#fff;color:#111;-webkit-print-color-adjust:exact;print-color-adj
       <div class="fg" style="max-width:80px">
         <label>Home Score</label>
         <input type="number" id="home-score" placeholder="0" min="0">
-      </div>
-    </div>
-  </div>
-
-  <div class="form-card" style="max-width:560px;width:100%;">
-    <div class="form-row" style="margin-bottom:0">
-      <div class="fg">
-        <label>Step 2 — Box Score PDF (optional — auto-fills score)</label>
-        <input type="file" id="pdf-input" accept=".pdf" style="background:#ffffff;border:1px solid var(--border);border-radius:6px;color:var(--text);padding:.4rem .75rem;font-size:.85rem;font-family:'DM Sans',sans-serif;width:100%;">
-        <div id="pdf-status" style="font-size:.75rem;color:var(--muted);margin-top:.25rem;min-height:1rem;"></div>
       </div>
     </div>
   </div>
