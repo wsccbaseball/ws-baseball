@@ -130,6 +130,17 @@ body {
     </div>
   </div>
   <div class="section">
+    <div class="section-title">Location Tendencies</div>
+    <div style="font-size:10px;color:#7a8faa;margin-bottom:8px;font-family:'Barlow Condensed',sans-serif;">All missed calls across tracked games · catcher's view</div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-bottom:6px;font-family:'Barlow Condensed',sans-serif;font-size:11px;">
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#d93025;margin-right:3px;vertical-align:middle"></span>Stolen Strike</span>
+      <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#1a6fb5;margin-right:3px;vertical-align:middle"></span>Lost Strike</span>
+    </div>
+    <canvas id="cvLocation" width="460" height="300" style="display:block;width:100%;height:auto;border-radius:4px;background:#f8fafd;border:1px solid #dde4ef;"></canvas>
+    <div id="locationNote" style="font-size:10px;color:#7a8faa;text-align:center;margin-top:4px;font-family:'Barlow Condensed',sans-serif;font-style:italic;"></div>
+  </div>
+
+  <div class="section">
     <div class="section-title">Game Log</div>
     <div class="game-row game-row-head">
       <div>Game</div>
@@ -273,6 +284,9 @@ async function generate() {
     document.getElementById('statusMsg').textContent  = '';
     document.getElementById('genBtn').disabled = false;
     document.getElementById('report').scrollIntoView({behavior:'smooth'});
+
+    // Fetch raw pitch data for location chart
+    fetchLocationData(rows);
 
   } catch(e) {
     document.getElementById('statusMsg').textContent = 'Error: ' + e.message;
