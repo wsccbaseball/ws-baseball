@@ -203,10 +203,10 @@ color: #f2ead8; cursor: pointer;
   <div class="section">
     <div class="section-title">Tendencies</div>
     <div class="tendency-grid">
-      <div class="tendency-box"><div class="t-val" id="tClear">—</div><div class="t-lbl">Avg Clear Misses / Game</div></div>
-      <div class="tendency-box"><div class="t-val" id="tBorderline">—</div><div class="t-lbl">Avg Borderline / Game</div></div>
-      <div class="tendency-box"><div class="t-val" id="tFavorPct">—</div><div class="t-lbl">Games With Favor Bias</div></div>
-      <div class="tendency-box"><div class="t-val" id="tFavorTeam">—</div><div class="t-lbl">Most Favored Side</div></div>
+      <div class="tendency-box"><div class="t-val" id="tZoneTend">—</div><div class="t-lbl">Zone Tendency</div></div>
+      <div class="tendency-box"><div class="t-val" id="tConsistency">—</div><div class="t-lbl">Consistency (Acc Range)</div></div>
+      <div class="tendency-box"><div class="t-val" id="tGap">—</div><div class="t-lbl">Strike vs Ball Gap</div></div>
+      <div class="tendency-box"><div class="t-val" id="tAvgFavor">—</div><div class="t-lbl">Avg Favor Runs / Game</div></div>
     </div>
   </div>
 
@@ -224,6 +224,14 @@ color: #f2ead8; cursor: pointer;
   </div>
 
   <div class="rpt-footer" id="rptFooter">TrackMan · Walters State Baseball Analytics</div>
+</div>
+
+<div class="defs" id="defsBox" style="display:none;max-width:500px;margin:10px auto 0;background:#fffdf7;border:1px solid #ddd5bc;border-left:3px solid #1a1a2e;padding:12px 14px;font-size:.8rem;line-height:1.8;color:#6b5f47;font-family:'Barlow Condensed',sans-serif;">
+  <div style="font-family:'Anton',sans-serif;font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:#1a1a2e;margin-bottom:.5rem;">Metric Definitions</div>
+  <b style="color:#1a1a2e">Zone Tendency</b> — compares ball accuracy to strike accuracy. <em>Squeezer</em>: misses called strikes more (ball_acc &gt;&gt; strike_acc) — pitchers should work the zone edges. <em>Expander</em>: calls strikes outside the zone (strike_acc &gt;&gt; ball_acc) — hitters beware of chasing. <em>Neutral</em>: within 3 points either way.<br>
+  <b style="color:#1a1a2e">Consistency</b> — highest minus lowest single-game accuracy. A small range means a predictable ump; a wide range means performance varies game to game.<br>
+  <b style="color:#1a1a2e">Strike vs Ball Gap</b> — ball accuracy minus strike accuracy as a signed number. Positive = better at calling balls (squeezer). Negative = better at calling strikes (expander).<br>
+  <b style="color:#1a1a2e">Avg Favor Runs</b> — average RE24-based run value of favoritism per game. Higher values mean miscalls had a larger run impact on average.
 </div>
 
 <button class="save-btn" id="saveBtn" style="display:none" onclick="saveImage()">📥 Save Report Image</button>
