@@ -608,7 +608,20 @@ async function generate() {
     var hand = rows[0].PitcherThrows || 'R';
     var handStr = (hand==='Left'||hand==='L') ? 'LHP' : 'RHP';
     var date = rows[0].Date || '—';
+
+    // Determine if WS or opponent pitcher
+    var selOpt = document.getElementById('pitcherSelect').options[document.getElementById('pitcherSelect').selectedIndex];
+    var isOpp  = selOpt && selOpt.getAttribute('data-team') === 'opp';
+    var pitcherTeamLabel = isOpp
+      ? (selOpt.getAttribute('data-team-label') || 'Opponent')
+      : 'Walters State CC';
+
+    // For WS pitcher: opponent = BatterTeam. For opp pitcher: opponent = WS
     var opp = pdfOpponent || (rows[0].BatterTeam||'').replace(/_\d+$/,'').replace(/_/g,' ').trim();
+    var gameLabel = isOpp
+      ? date + ' — ' + pitcherTeamLabel + ' vs Walters State'
+      : date + ' vs ' + opp;
+
     var innings = Array.from(new Set(rows.map(function(r){return parseInt(r.Inning);}).filter(function(n){return !isNaN(n);})));
     var role = innings.indexOf(1)>-1 ? 'Start' : 'Relief';
 
@@ -620,10 +633,10 @@ async function generate() {
     var displayName = flipName(pitcherRaw);
 
     document.getElementById('cardName').textContent     = displayName;
-    document.getElementById('cardHand').textContent     = handStr+' \u2014 Walters State CC';
-    document.getElementById('cardGameLine').textContent = date+' vs '+opp;
-    document.getElementById('cFootL').textContent       = '\u26be '+opp+' ('+role+')';
-    document.getElementById('cFootC').textContent       = 'Data: TrackMan \u00b7 Walters State CC \u00b7 '+date;
+    document.getElementById('cardHand').textContent     = handStr + ' \u2014 ' + pitcherTeamLabel;
+    document.getElementById('cardGameLine').textContent = gameLabel;
+    document.getElementById('cFootL').textContent       = '\u26be ' + (isOpp ? 'vs Walters State' : opp) + ' (' + role + ')';
+    document.getElementById('cFootC').textContent       = 'Data: TrackMan \u00b7 Walters State CC \u00b7 ' + date;
     document.getElementById('cIP').textContent  = bs ? bs.ip  : '—';
     document.getElementById('cNP').textContent  = np;
     document.getElementById('cPA').textContent  = bs ? bs.pa  : paVal;
