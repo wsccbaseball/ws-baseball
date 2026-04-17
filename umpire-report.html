@@ -346,9 +346,9 @@ async function fetchLocationData(umpireRows) {
     let expDir = '—', expDirColor = '#1a3a5c';
     if (stolen.length >= 3) {
       const avgS = stolen.reduce((s,p) => s+p.s, 0) / stolen.length;
-      if      (avgS < -0.15) { expDir = 'Glove Side'; expDirColor = '#1a6fb5'; }
-      else if (avgS >  0.15) { expDir = 'Arm Side';   expDirColor = '#b8892a'; }
-      else                   { expDir = 'Both Sides';  expDirColor = '#1a7a35'; }
+      if      (avgS < -0.15) { expDir = 'Away to RHH';   expDirColor = '#1a6fb5'; }
+      else if (avgS >  0.15) { expDir = 'Inside to RHH'; expDirColor = '#b8892a'; }
+      else                   { expDir = 'Both Sides';    expDirColor = '#1a7a35'; }
     } else if (stolen.length > 0) {
       expDir = 'Too Few'; expDirColor = '#7a8faa';
     }
