@@ -329,6 +329,124 @@ async function deleteGame(id) {
   } catch(e) { alert('Error: '+e.message); }
 }
 
+async function fetchLocationData(umpireRows) {
+  const noteEl = document.getElementById('locationNote');
+  noteEl.textContent = 'Loading pitch locations...';
+
+  // Clear canvas while loading
+  const cv = document.getElementById('cvLocation');
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#f8fafd'; ctx.fillRect(0, 0, cv.width, cv.height);
+
+  try {
+    const gameIds = umpireRows.map(r => r.game_id).filter(Boolean);
+    if (!gameIds.length) { noteEl.textContent = 'No game IDs found.'; return; }
+
+    // Fetch all called pitches across these games — no quotes around IDs for PostgREST
+    const idList = gameIds.join(',');
+    const pitches = await supaFetch(
+      'pitches?GameID=in.(' + idList + ')' +
+      '&PitchCall=in.(StrikeCalled,BallCalled)' +
+      '&select=PlateLocSide,PlateLocHeight,ZoneTop,ZoneBottom,PitchCall' +
+      '&limit=5000'
+    );
+
+    const SZ_W = 0.833;
+    const DEFAULT_TOP = 3.5, DEFAULT_BOT = 1.5;
+    const SHADOW = 1.455 / 12;
+
+    const stolen = [], lost = [];
+    const topVals = [], botVals = [];
+
+    pitches.forEach(r => {
+      const s = parseFloat(r.PlateLocSide), h = parseFloat(r.PlateLocHeight);
+      if (isNaN(s) || isNaN(h)) return;
+      const top = parseFloat(r.ZoneTop) || DEFAULT_TOP;
+      const bot = parseFloat(r.ZoneBottom) || DEFAULT_BOT;
+      topVals.push(top); botVals.push(bot);
+      const inZ = s >= -SZ_W && s <= SZ_W && h >= bot && h <= top;
+      if (r.PitchCall === 'StrikeCalled' && !inZ) stolen.push({s, h});
+      if (r.PitchCall === 'BallCalled'   &&  inZ) lost.push({s, h});
+    });
+
+    topVals.sort((a,b)=>a-b); botVals.sort((a,b)=>a-b);
+    const medTop = topVals.length ? topVals[Math.floor(topVals.length/2)] : DEFAULT_TOP;
+    const medBot = botVals.length ? botVals[Math.floor(botVals.length/2)] : DEFAULT_BOT;
+
+    drawLocationChart(stolen, lost, medTop, medBot);
+    noteEl.textContent = stolen.length + ' stolen strikes · ' + lost.length + ' lost strikes across ' + gameIds.length + ' games';
+  } catch(e) {
+    noteEl.textContent = 'Could not load pitch locations.';
+  }
+}
+
+function drawLocationChart(stolen, lost, medTop, medBot) {
+  const cv = document.getElementById('cvLocation');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height, PAD = 28;
+  const SZ_W = 0.833, SHADOW = 1.455 / 12;
+
+  const xMin = -1.5, xMax = 1.5, yMin = 0.8, yMax = 4.3;
+  const mx = v => PAD + (v - xMin) / (xMax - xMin) * (W - PAD * 2);
+  const my = v => H - PAD - (v - yMin) / (yMax - yMin) * (H - PAD * 2);
+
+  ctx.fillStyle = '#f8fafd'; ctx.fillRect(0, 0, W, H);
+
+  // Shadow zone
+  ctx.save();
+  ctx.strokeStyle = '#b0bec8'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+  ctx.strokeRect(
+    mx(-SZ_W - SHADOW), my(medTop + SHADOW),
+    mx(SZ_W + SHADOW) - mx(-SZ_W - SHADOW),
+    my(medBot - SHADOW) - my(medTop + SHADOW)
+  );
+  ctx.restore();
+
+  // Zone grid lines
+  const zl = mx(-SZ_W), zr = mx(SZ_W), zt = my(medTop), zb = my(medBot);
+  const zw = zr - zl, zh = zb - zt;
+  ctx.strokeStyle = '#c5d0dc'; ctx.lineWidth = 0.8; ctx.setLineDash([]);
+  for (let i = 1; i < 3; i++) {
+    ctx.beginPath(); ctx.moveTo(zl + zw*i/3, zt); ctx.lineTo(zl + zw*i/3, zb); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(zl, zt + zh*i/3); ctx.lineTo(zr, zt + zh*i/3); ctx.stroke();
+  }
+
+  // Strike zone box
+  ctx.strokeStyle = '#1a3a5c'; ctx.lineWidth = 2; ctx.setLineDash([]);
+  ctx.strokeRect(zl, zt, zw, zh);
+
+  // Center line
+  ctx.strokeStyle = '#d0d8e4'; ctx.lineWidth = 0.8; ctx.setLineDash([3, 4]);
+  ctx.beginPath(); ctx.moveTo(mx(0), zt - 10); ctx.lineTo(mx(0), zb + 8); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Zone height labels
+  ctx.fillStyle = '#8a9ab0'; ctx.font = '10px Barlow Condensed, sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText(medTop.toFixed(1) + 'ft', zr + 4, zt + 4);
+  ctx.fillText(medBot.toFixed(1) + 'ft', zr + 4, zb + 4);
+
+  // Lost strikes (blue) — drawn first so stolen strikes appear on top
+  lost.forEach(p => {
+    ctx.beginPath(); ctx.arc(mx(p.s), my(p.h), 4.5, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(26,111,181,0.65)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 0.6; ctx.stroke();
+  });
+
+  // Stolen strikes (red)
+  stolen.forEach(p => {
+    ctx.beginPath(); ctx.arc(mx(p.s), my(p.h), 4.5, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(217,48,37,0.70)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 0.6; ctx.stroke();
+  });
+
+  // Axis labels
+  ctx.fillStyle = '#8a9ab0'; ctx.font = '10px Barlow Condensed, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText("← GLOVE SIDE", mx(-0.5), H - 8);
+  ctx.fillText("ARM SIDE →", mx(0.5), H - 8);
+  ctx.fillText("CATCHER'S VIEW", W / 2, H - 8);
+}
+
 loadUmpires();
 </script>
 
