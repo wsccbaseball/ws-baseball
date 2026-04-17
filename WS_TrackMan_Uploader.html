@@ -1,136 +1,293 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>WS Baseball — TrackMan Uploader</title>
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Anton&family=Barlow+Condensed:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-  :root {
-    --bg: #f0f2f5;
-    --surface: #ffffff;
-    --border: #dde4ef;
-    --accent: #1a3a5c;
-    --accent-dim: rgba(26,58,92,0.08);
-    --green: #2a8a4a;
-    --green-dim: rgba(42,138,74,0.10);
-    --red: #c0360a;
-    --red-dim: rgba(192,54,10,0.08);
-    --text: #1a1a1a;
-    --text-dim: #888888;
-    --text-mid: #555555;
-  }
+:root {
+–bg: #f2ead8;
+–surface: #fffdf7;
+–border: #ddd5bc;
+–accent: #1a3a5c;
+–accent-dim: rgba(26,58,92,0.08);
+–green: #2a8a4a;
+–green-dim: rgba(42,138,74,0.10);
+–red: #c0360a;
+–red-dim: rgba(192,54,10,0.08);
+–text: #1a1a2e;
+–text-dim: #9b8c74;
+–text-mid: #6b5f47;
+}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+background: var(–bg);
+color: var(–text);
+font-family: ‘Barlow Condensed’, sans-serif;
+min-height: 100vh;
+padding: 16px 16px 48px;
+}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'IBM Plex Sans', sans-serif;
-    min-height: 100vh;
-    padding: 24px 16px 48px;
-  }
+header {
+display: flex;
+flex-direction: column;
+align-items: center;
+padding-bottom: 16px;
+border-bottom: 2px solid #1a1a2e;
+margin-bottom: 20px;
+gap: 10px;
+}
 
-  header {
-    display: -webkit-flex;
-    display: flex;
-    -webkit-flex-direction: column;
-    flex-direction: column;
-    -webkit-align-items: center;
-    align-items: center;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 28px;
-    gap: 12px;
-  }
+#logoWrap { display: none; }
+#logoWrap.has-logo { display: block; }
+#logoWrap img { height: 56px; width: auto; }
 
-  #logoWrap { display: none; }
-  #logoWrap.has-logo { display: block; }
-  #logoWrap img { height: 60px; width: auto; }
+.header-title {
+font-family: ‘Abril Fatface’, serif;
+font-size: 1.9rem;
+color: #1a1a2e;
+text-align: center;
+letter-spacing: .02em;
+line-height: 1;
+}
 
-  .header-title {
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text);
-    text-align: center;
-    letter-spacing: 0.01em;
-  }
+/* Press Box section banner */
+.pb-banner {
+background: #1a1a2e;
+color: #f2ead8;
+font-family: ‘Anton’, sans-serif;
+font-size: .7rem;
+letter-spacing: .12em;
+text-transform: uppercase;
+padding: .3rem .75rem;
+margin-bottom: 0;
+}
 
-  .config-section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 20px; }
-  .config-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px; }
-  .config-row { margin-bottom: 10px; }
-  .config-row:last-child { margin-bottom: 0; }
-  .config-row label { display: block; font-size: 11px; color: var(--text-mid); margin-bottom: 4px; font-family: 'IBM Plex Mono', monospace; }
-  .config-row input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 5px; padding: 9px 12px; color: var(--text); font-family: 'IBM Plex Mono', monospace; font-size: 11px; outline: none; -webkit-appearance: none; }
-  .config-row input:focus { border-color: var(--accent); }
+/* Flat cards */
+.surface-card {
+background: var(–surface);
+border: 1px solid var(–border);
+border-top: none;
+padding: 14px 16px;
+margin-bottom: 16px;
+}
 
-  .upload-zone { border: 1.5px dashed var(--border); border-radius: 8px; padding: 36px 20px; text-align: center; margin-bottom: 20px; position: relative; cursor: pointer; -webkit-transition: all 0.2s; transition: all 0.2s; background: var(--surface); }
-  .upload-zone.has-file { border-color: var(--accent); background: var(--accent-dim); }
-  .upload-icon { font-size: 32px; margin-bottom: 10px; display: block; }
-  .upload-title { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
-  .upload-hint { font-size: 12px; color: var(--text-dim); }
-  .file-name { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent); margin-top: 8px; word-break: break-all; }
+/* Upload zone */
+.upload-zone {
+border: 1.5px dashed var(–border);
+padding: 32px 20px;
+text-align: center;
+margin-bottom: 16px;
+cursor: pointer;
+transition: all 0.2s;
+background: var(–surface);
+}
+.upload-zone.has-file {
+border-color: var(–accent);
+border-style: solid;
+background: var(–accent-dim);
+}
+.upload-icon { font-size: 28px; margin-bottom: 8px; display: block; }
+.upload-title {
+font-family: ‘Anton’, sans-serif;
+font-size: .95rem;
+letter-spacing: .06em;
+text-transform: uppercase;
+color: var(–text);
+margin-bottom: 4px;
+}
+.upload-hint { font-size: .85rem; color: var(–text-dim); font-family: ‘Barlow Condensed’, sans-serif; font-style: italic; }
+.file-name {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 11px;
+color: var(–accent);
+margin-top: 8px;
+word-break: break-all;
+}
 
-  .stats-row { display: -webkit-flex; display: flex; gap: 10px; margin-bottom: 20px; }
-  .stat-box { -webkit-flex: 1; flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 10px; text-align: center; }
-  .stat-value { font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 600; color: var(--accent); display: block; }
-  .stat-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; display: block; }
+/* Display name */
+.config-label {
+font-family: ‘Anton’, sans-serif;
+font-size: .65rem;
+letter-spacing: .12em;
+text-transform: uppercase;
+color: var(–text-dim);
+margin-bottom: 8px;
+}
+.config-row { margin-bottom: 0; }
+.config-row label {
+display: block;
+font-size: .75rem;
+color: var(–text-mid);
+margin-bottom: 4px;
+font-family: ‘Barlow Condensed’, sans-serif;
+font-style: italic;
+}
+.config-row input {
+width: 100%;
+background: var(–bg);
+border: 1px solid var(–border);
+padding: 9px 12px;
+color: var(–text);
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 12px;
+outline: none;
+-webkit-appearance: none;
+}
+.config-row input:focus { border-color: #1a1a2e; }
 
-  .game-info { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 20px; display: none; }
-  .game-info.visible { display: block; }
-  .game-info-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
-  .game-info-value { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--text); }
-  .game-info-row { display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border); }
-  .game-info-row:last-child { border-bottom: none; }
+/* Stats row */
+.stats-row {
+display: flex;
+gap: 8px;
+margin-bottom: 16px;
+}
+.stat-box {
+flex: 1;
+background: var(–surface);
+border: 1px solid var(–border);
+padding: 12px 8px;
+text-align: center;
+}
+.stat-value {
+font-family: ‘Anton’, sans-serif;
+font-size: 1.6rem;
+color: var(–accent);
+display: block;
+letter-spacing: .02em;
+}
+.stat-label {
+font-size: .65rem;
+color: var(–text-dim);
+text-transform: uppercase;
+letter-spacing: .08em;
+margin-top: 2px;
+display: block;
+font-family: ‘Barlow Condensed’, sans-serif;
+}
 
-  .dup-warning { background: rgba(224,85,85,0.08); border: 1px solid rgba(224,85,85,0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: var(--red); display: none; font-family: 'IBM Plex Mono', monospace; }
-  .dup-warning.visible { display: block; }
+/* Game info */
+.game-info {
+background: var(–surface);
+border: 1px solid var(–border);
+padding: 12px 14px;
+margin-bottom: 16px;
+display: none;
+}
+.game-info.visible { display: block; }
+.game-info-label {
+font-family: ‘Anton’, sans-serif;
+font-size: .65rem;
+letter-spacing: .12em;
+text-transform: uppercase;
+color: var(–text-dim);
+margin-bottom: 8px;
+}
+.game-info-value {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 12px;
+color: var(–text);
+}
+.game-info-row {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 5px 0;
+border-bottom: 1px solid var(–border);
+}
+.game-info-row:last-child { border-bottom: none; }
 
-  .upload-btn { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 16px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; -webkit-appearance: none; -webkit-transition: opacity 0.2s; transition: opacity 0.2s; margin-bottom: 20px; }
-  .upload-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-  .upload-btn:not(:disabled):active { opacity: 0.8; }
+/* Duplicate warning */
+.dup-warning {
+background: rgba(192,54,10,0.07);
+border: 1px solid rgba(192,54,10,0.25);
+padding: 12px 14px;
+margin-bottom: 16px;
+font-size: .85rem;
+color: var(–red);
+display: none;
+font-family: ‘Barlow Condensed’, sans-serif;
+}
+.dup-warning.visible { display: block; }
 
-  .progress-wrap { display: none; margin-bottom: 20px; }
-  .progress-wrap.visible { display: block; }
-  .progress-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-mid); margin-bottom: 8px; display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between; }
-  .progress-track { background: var(--border); border-radius: 4px; height: 6px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--accent); border-radius: 4px; width: 0%; -webkit-transition: width 0.3s; transition: width 0.3s; }
+/* Upload button */
+.upload-btn {
+width: 100%;
+background: #1a1a2e;
+color: #f2ead8;
+border: none;
+padding: 15px;
+font-family: ‘Anton’, sans-serif;
+font-size: 1.05rem;
+letter-spacing: .1em;
+text-transform: uppercase;
+cursor: pointer;
+-webkit-appearance: none;
+transition: opacity 0.2s;
+margin-bottom: 16px;
+}
+.upload-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.upload-btn:not(:disabled):active { opacity: 0.8; }
 
-  .result { border-radius: 8px; padding: 16px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; line-height: 1.6; display: none; }
-  .result.visible { display: block; }
-  .result.success { background: var(--green-dim); border: 1px solid rgba(76,175,125,0.3); color: var(--green); }
-  .result.error { background: var(--red-dim); border: 1px solid rgba(224,85,85,0.3); color: var(--red); }
+/* Progress */
+.progress-wrap { display: none; margin-bottom: 16px; }
+.progress-wrap.visible { display: block; }
+.progress-label {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 11px;
+color: var(–text-mid);
+margin-bottom: 6px;
+display: flex;
+justify-content: space-between;
+}
+.progress-track {
+background: var(–border);
+height: 5px;
+overflow: hidden;
+}
+.progress-fill {
+height: 100%;
+background: #1a1a2e;
+width: 0%;
+transition: width 0.3s;
+}
 
-  .log { margin-top: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); max-height: 180px; overflow-y: auto; display: none; }
-  .log.visible { display: block; }
-  .log-line { margin-bottom: 4px; }
-  .log-line.ok { color: var(--green); }
-  .log-line.err { color: var(--red); }
-  .log-line.info { color: var(--accent); }
+/* Result */
+.result {
+padding: 14px;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 12px;
+line-height: 1.6;
+display: none;
+}
+.result.visible { display: block; }
+.result.success { background: var(–green-dim); border: 1px solid rgba(76,175,125,0.3); color: var(–green); }
+.result.error   { background: var(–red-dim);   border: 1px solid rgba(192,54,10,0.3);  color: var(–red); }
 
-  /* Post-upload game info modal */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 9999; align-items: flex-start; justify-content: center; padding: 16px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .modal-overlay.active { display: flex; }
-  .modal-box { background: var(--surface); border: 1px solid var(--accent); border-radius: 12px; padding: 24px; width: 100%; max-width: 500px; margin: auto; }
-  .modal-box h3 { font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
-  .modal-box p { font-size: 12px; color: var(--text-dim); margin-bottom: 20px; line-height: 1.5; }
-  .modal-field { margin-bottom: 14px; }
-  .modal-field label { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; }
-  .modal-field input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; color: var(--text); font-family: 'IBM Plex Mono', monospace; font-size: 12px; outline: none; -webkit-appearance: none; }
-  .modal-field input:focus { border-color: var(--accent); }
-  .modal-field .hint { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 4px; }
-  .modal-gameid { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dim); margin-bottom: 14px; word-break: break-all; }
-  .modal-existing { background: var(--green-dim); border: 1px solid rgba(42,138,74,0.25); border-radius: 6px; padding: 10px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--green); margin-bottom: 14px; }
-  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-  .modal-save-btn { flex: 1; background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; -webkit-appearance: none; }
-  .modal-save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .modal-skip-btn { flex: 0 0 auto; padding: 14px 20px; background: transparent; color: var(--text-dim); border: 1px solid var(--border); border-radius: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; cursor: pointer; -webkit-appearance: none; }
-  .modal-status { margin-top: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; min-height: 16px; }
-  .modal-status.ok { color: var(--green); }
-  .modal-status.err { color: var(--red); }
+/* Log */
+.log {
+margin-top: 12px;
+background: var(–surface);
+border: 1px solid var(–border);
+padding: 10px 12px;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 10px;
+color: var(–text-dim);
+max-height: 180px;
+overflow-y: auto;
+display: none;
+}
+.log.visible { display: block; }
+.log-line { margin-bottom: 4px; }
+.log-line.ok   { color: var(–green); }
+.log-line.err  { color: var(–red); }
+.log-line.info { color: var(–accent); }
 </style>
+
 </head>
 <body>
 
@@ -141,6 +298,8 @@
   <div class="header-title">Walters State Baseball 2026</div>
 </header>
 
+<!-- Upload zone -->
+
 <input type="file" id="fileInput" accept=".csv" style="display:none">
 <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
   <span class="upload-icon">⬆</span>
@@ -149,79 +308,76 @@
   <div class="file-name" id="fileName"></div>
 </div>
 
-<div class="config-section" id="displayNameSection" style="display:none;margin-bottom:20px">
-  <div class="config-label">Game Display Name</div>
-  <div class="config-row">
-    <label>How this game appears in dropdowns</label>
-    <input type="text" id="displayName" placeholder="e.g. Midweek — Pellissippi State Game 2" autocorrect="off" autocapitalize="words" spellcheck="false">
+<!-- Display name -->
+
+<div id="displayNameSection" style="display:none;">
+  <div class="pb-banner">Game Display Name</div>
+  <div class="surface-card">
+    <div class="config-row">
+      <label>How this game appears in dropdowns</label>
+      <input type="text" id="displayName" placeholder="e.g. Midweek — Pellissippi State Game 2" autocorrect="off" autocapitalize="words" spellcheck="false">
+    </div>
   </div>
 </div>
 
+<!-- Stats -->
+
 <div class="stats-row">
-  <div class="stat-box"><span class="stat-value" id="statPitches">—</span><span class="stat-label">Pitches</span></div>
-  <div class="stat-box"><span class="stat-value" id="statPitchers">—</span><span class="stat-label">Pitchers</span></div>
-  <div class="stat-box"><span class="stat-value" id="statGames">—</span><span class="stat-label">Games</span></div>
+  <div class="stat-box">
+    <span class="stat-value" id="statPitches">—</span>
+    <span class="stat-label">Pitches</span>
+  </div>
+  <div class="stat-box">
+    <span class="stat-value" id="statPitchers">—</span>
+    <span class="stat-label">Pitchers</span>
+  </div>
+  <div class="stat-box">
+    <span class="stat-value" id="statGames">—</span>
+    <span class="stat-label">Games</span>
+  </div>
 </div>
+
+<!-- Game info -->
 
 <div class="game-info" id="gameInfo">
   <div class="game-info-label">Detected Game(s)</div>
   <div id="gameInfoRows"></div>
 </div>
 
+<!-- Duplicate warning -->
+
 <div class="dup-warning" id="dupWarning"></div>
 
+<!-- Upload button -->
+
 <button class="upload-btn" id="uploadBtn" disabled>Upload to Database</button>
+
+<!-- Progress -->
 
 <div class="progress-wrap" id="progressWrap">
   <div class="progress-label">
     <span id="progressText">Uploading...</span>
     <span id="progressPct">0%</span>
   </div>
-  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-</div>
-
-<div class="result" id="result"></div>
-<div class="log" id="log"></div>
-
-<!-- Post-upload game info modal -->
-<div class="modal-overlay" id="gameModal">
-  <div class="modal-box">
-    <h3>📋 Save Game Info</h3>
-    <p>Pitches uploaded. Confirm the game details so it appears correctly in the report tool dropdowns.</p>
-    <div class="modal-field">
-      <label>Game ID (from CSV)</label>
-      <div class="modal-gameid" id="modalGameId">—</div>
-    </div>
-    <div class="modal-existing" id="modalExisting" style="display:none">
-      ✓ Already in database — you can update details below.
-    </div>
-    <div class="modal-field">
-      <label>Display Name</label>
-      <input type="text" id="modalDisplayName" placeholder="e.g. Pellissippi State Midweek Game 1" autocorrect="off" autocapitalize="words">
-    </div>
-    <div class="modal-field">
-      <label>Date</label>
-      <input type="text" id="modalDate" placeholder="YYYY-MM-DD">
-    </div>
-    <div class="modal-field">
-      <label>Box Score URL <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
-      <input type="text" id="modalBoxScoreUrl" placeholder="https://www.wsccathletics.com/...">
-      <div class="hint">From wsccathletics.com — enables auto-fetch in report tools</div>
-    </div>
-    <div class="modal-actions">
-      <button class="modal-save-btn" id="modalSaveBtn" onclick="saveGameInfo()">Save Game</button>
-      <button class="modal-skip-btn" onclick="closeGameModal()">Skip</button>
-    </div>
-    <div class="modal-status" id="modalStatus"></div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progressFill"></div>
   </div>
 </div>
 
+<!-- Result -->
+
+<div class="result" id="result"></div>
+
+<!-- Log -->
+
+<div class="log" id="log"></div>
+
 <script>
-// ── Config ───────────────────────────────────────────────────────────
+// ── Config ──────────────────────────────────────────────────────────
 var urlInput = { value: 'https://mghrapwhvihpwgqryail.supabase.co' };
 var keyInput = { value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc' };
 
-// ── CSV Parser ────────────────────────────────────────────────────────
+// ── CSV Parser ──────────────────────────────────────────────────────
 function parseCSV(text) {
   var lines = text.split(/\r?\n/);
   if (lines.length < 2) return [];
@@ -242,21 +398,35 @@ function parseCSV(text) {
 }
 
 function parseCSVLine(line) {
-  var result = [], current = '', inQuotes = false;
+  var result = [];
+  var current = '';
+  var inQuotes = false;
   for (var i = 0; i < line.length; i++) {
     var ch = line[i];
     if (ch === '"') {
       if (inQuotes && line[i+1] === '"') { current += '"'; i++; }
       else { inQuotes = !inQuotes; }
-    } else if (ch === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
-    else { current += ch; }
+    } else if (ch === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += ch;
+    }
   }
   result.push(current.trim());
   return result;
 }
 
-// ── Column mapping ────────────────────────────────────────────────────
-var NUMERIC_COLS = ['PAofInning','PitchofPA','Inning','Outs','Balls','Strikes','PitcherId','BatterId','CatcherId','RelSpeed','VertRelAngle','HorzRelAngle','SpinRate','SpinAxis','RelHeight','RelSide','Extension','VertBreak','InducedVertBreak','HorzBreak','PlateLocHeight','PlateLocSide','ZoneSpeed','VertApprAngle','HorzApprAngle','ExitSpeed','Angle','Direction','Distance','HangTime','Bearing','ZoneTime','ZoneTop','ZoneBottom','OutsOnPlay','RunsScored'];
+// ── Column mapping ──────────────────────────────────────────────────
+var NUMERIC_COLS = [
+  'PAofInning','PitchofPA','Inning','Outs','Balls','Strikes',
+  'PitcherId','BatterId','CatcherId',
+  'RelSpeed','VertRelAngle','HorzRelAngle','SpinRate','SpinAxis',
+  'RelHeight','RelSide','Extension','VertBreak','InducedVertBreak','HorzBreak',
+  'PlateLocHeight','PlateLocSide','ZoneSpeed','VertApprAngle','HorzApprAngle',
+  'ExitSpeed','Angle','Direction','Distance','HangTime','Bearing','ZoneTime',
+  'ZoneTop','ZoneBottom','OutsOnPlay','RunsScored'
+];
 var NUMERIC_SET = {};
 NUMERIC_COLS.forEach(function(c) { NUMERIC_SET[c] = true; });
 
@@ -266,28 +436,37 @@ function mapRow(csvRow) {
   keys.forEach(function(key) {
     if (!(key in csvRow)) return;
     var val = csvRow[key];
-    if (val === '' || val === null || val === undefined) { out[key] = null; }
-    else if (NUMERIC_SET[key]) { var n = parseFloat(val); out[key] = isNaN(n) ? null : n; }
-    else { out[key] = val; }
+    if (val === '' || val === null || val === undefined) {
+      out[key] = null;
+    } else if (NUMERIC_SET[key]) {
+      var n = parseFloat(val);
+      out[key] = isNaN(n) ? null : n;
+    } else {
+      out[key] = val;
+    }
   });
   return out;
 }
 
-// ── State ─────────────────────────────────────────────────────────────
+// ── State ───────────────────────────────────────────────────────────
 var parsedRows = [];
 var gameIds = [];
 var dbColumns = null;
 
 async function fetchDbColumns(url, key) {
   try {
-    var specRes = await fetch(url + '/rest/v1/', { headers: { 'apikey': key, 'Authorization': 'Bearer ' + key } });
-    var spec = await specRes.json();
+    var res = await fetch(url + '/rest/v1/', {
+      headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
+    });
+    var spec = await res.json();
     var props = spec && spec.definitions && spec.definitions.pitches && spec.definitions.pitches.properties;
-    if (props) dbColumns = Object.keys(props).filter(function(c) { return c !== 'id' && c !== 'created_at'; });
+    if (props) {
+      dbColumns = Object.keys(props).filter(function(c) { return c !== 'id' && c !== 'created_at'; });
+    }
   } catch(e) { dbColumns = null; }
 }
 
-// ── File input ────────────────────────────────────────────────────────
+// ── File input ──────────────────────────────────────────────────────
 document.getElementById('fileInput').addEventListener('change', function(e) {
   var file = e.target.files[0];
   if (!file) return;
@@ -297,16 +476,20 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
   var suggested = file.name.replace(/\.csv$/i, '').replace(/_/g, ' ');
   document.getElementById('displayName').value = suggested;
   var reader = new FileReader();
-  reader.onload = function(ev) { parsedRows = parseCSV(ev.target.result); analyzeCSV(parsedRows); };
+  reader.onload = function(ev) {
+    parsedRows = parseCSV(ev.target.result);
+    analyzeCSV(parsedRows);
+  };
   reader.readAsText(file);
 });
 
 function analyzeCSV(rows) {
-  if (!rows.length) { setStats('0','0','0'); return; }
-  var pitcherSet = {}, gameSet = {};
+  if (!rows.length) { setStats('0', '0', '0'); return; }
+  var pitcherSet = {};
+  rows.forEach(function(r) { if (r.Pitcher) pitcherSet[r.Pitcher] = true; });
+  var gameSet = {};
   rows.forEach(function(r) {
-    if (r.Pitcher) pitcherSet[r.Pitcher] = true;
-    var gid = r.GameID || (r.Date+'_'+(r.HomeTeam||'')+'_'+(r.AwayTeam||''));
+    var gid = r.GameID || (r.Date + '_' + (r.HomeTeam || '') + '_' + (r.AwayTeam || ''));
     if (gid) gameSet[gid] = true;
   });
   gameIds = Object.keys(gameSet);
@@ -325,11 +508,21 @@ function showGameInfo(rows) {
   var gameSet = {};
   rows.forEach(function(r) {
     var gid = r.GameID || '';
-    if (!gameSet[gid]) gameSet[gid] = { date: r.Date||'', home: r.HomeTeam||r.PitcherTeam||'', away: r.AwayTeam||r.BatterTeam||'', gid: gid };
+    if (!gameSet[gid]) {
+      gameSet[gid] = {
+        date: r.Date || '',
+        home: r.HomeTeam || r.PitcherTeam || '',
+        away: r.AwayTeam || r.BatterTeam || '',
+        gid: gid
+      };
+    }
   });
   var html = '';
   Object.values(gameSet).forEach(function(g) {
-    html += '<div class="game-info-row"><span class="game-info-value">'+(g.away||'?')+' @ '+(g.home||'?')+'</span><span style="font-size:11px;color:var(--text-dim);font-family:\'IBM Plex Mono\',monospace">'+g.date+'</span></div>';
+    html += '<div class="game-info-row">' +
+      '<span class="game-info-value">' + (g.away || '?') + ' @ ' + (g.home || '?') + '</span>' +
+      '<span style="font-size:11px;color:var(--text-dim);font-family:\'IBM Plex Mono\',monospace">' + g.date + '</span>' +
+      '</div>';
   });
   document.getElementById('gameInfoRows').innerHTML = html;
   document.getElementById('gameInfo').classList.add('visible');
@@ -338,19 +531,27 @@ function showGameInfo(rows) {
 async function checkDuplicates(gids) {
   var url = urlInput.value.trim().replace(/\/+$/, '');
   var key = keyInput.value.trim();
-  if (!url || !key || !gids.length) { document.getElementById('uploadBtn').disabled = false; return; }
+  if (!url || !key || !gids.length) {
+    document.getElementById('uploadBtn').disabled = false;
+    return;
+  }
   try {
-    var response = await fetch(url + '/rest/v1/pitches?select=GameID&GameID=in.('+gids.map(function(g){return '"'+g+'"';}).join(',')+'&limit=1', { headers: { 'apikey': key, 'Authorization': 'Bearer ' + key } });
+    var response = await fetch(
+      url + '/rest/v1/pitches?select=GameID&GameID=in.(' + gids.map(function(g) { return '"' + g + '"'; }).join(',') + ')&limit=1',
+      { headers: { 'apikey': key, 'Authorization': 'Bearer ' + key } }
+    );
     var data = await response.json();
     if (data && data.length > 0) {
       document.getElementById('dupWarning').textContent = '⚠ Game data already exists in database. Uploading will add duplicate rows.';
       document.getElementById('dupWarning').classList.add('visible');
-    } else { document.getElementById('dupWarning').classList.remove('visible'); }
+    } else {
+      document.getElementById('dupWarning').classList.remove('visible');
+    }
   } catch(e) {}
   document.getElementById('uploadBtn').disabled = false;
 }
 
-// ── Upload ────────────────────────────────────────────────────────────
+// ── Upload ──────────────────────────────────────────────────────────
 document.getElementById('uploadBtn').addEventListener('click', async function() {
   var url = urlInput.value.trim().replace(/\/+$/, '');
   var key = keyInput.value.trim();
@@ -364,207 +565,192 @@ document.getElementById('uploadBtn').addEventListener('click', async function() 
   clearLog();
   hideResult();
 
-  // Dedup check
-  var csvGameIds = Object.keys(parsedRows.reduce(function(acc,r){ if(r.GameID)acc[r.GameID]=true; return acc; },{}));
+  // Step 0: check for duplicate GameIDs
+  var csvGameIds = Object.keys(parsedRows.reduce(function(acc, r) {
+    if (r.GameID) acc[r.GameID] = true;
+    return acc;
+  }, {}));
+
   if (csvGameIds.length) {
     try {
-      var dupCheck = await fetch(url+'/rest/v1/pitches?select=GameID&GameID=in.('+csvGameIds.map(function(g){return '"'+g+'"';}).join(',')+'&limit=1', { headers: {'apikey':key,'Authorization':'Bearer '+key} });
+      var dupCheck = await fetch(url + '/rest/v1/pitches?select=GameID&GameID=in.(' + csvGameIds.map(function(g) { return '"' + g + '"'; }).join(',') + ')&limit=1', {
+        headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
+      });
       var dupData = await dupCheck.json();
       if (dupData && dupData.length > 0) {
-        log('info', 'Game already in database — skipping pitch upload.');
+        log('info', 'Game already in database. Saving display name only...');
+        var displayName = document.getElementById('displayName').value.trim();
+        var firstRow = parsedRows[0] || {};
+        var gameRecord = {
+          game_id: firstRow.GameID || null,
+          display_name: displayName || null,
+          date: firstRow.Date || null,
+          home_team: firstRow.HomeTeam || null,
+          away_team: firstRow.AwayTeam || null,
+          pitch_count: parsedRows.length
+        };
+        await fetch(url + '/rest/v1/games', {
+          method: 'POST',
+          headers: { 'apikey': key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Prefer': 'return=minimal,resolution=merge-duplicates' },
+          body: JSON.stringify([gameRecord])
+        });
         showProgress(false);
         btn.disabled = false;
         btn.textContent = 'Upload to Database';
-        showResult('success', '✓ Game already exists. Opening game info to update details.');
-        var firstRow = parsedRows[0] || {};
-        var rawDate = firstRow.Date || '';
-        var fmtDate = rawDate;
-        if (rawDate && rawDate.indexOf('/') > -1) { var dp=rawDate.split('/'); if(dp.length===3)fmtDate=dp[2]+'-'+(dp[0].length<2?'0'+dp[0]:dp[0])+'-'+(dp[1].length<2?'0'+dp[1]:dp[1]); }
-        openGameModal({ game_id: firstRow.GameID||'', date: fmtDate, home_team: firstRow.HomeTeam||'', away_team: firstRow.AwayTeam||'' });
+        showResult('success', '✓ Display name saved. Pitches already in database — skipped.');
+        log('ok', 'Game record updated: ' + (displayName || firstRow.GameID));
         return;
       }
     } catch(e) {}
   }
 
-  // Schema discovery
+  // Step 1: discover DB columns
+  log('info', 'Fetching DB schema...');
   var validColumns = null;
   try {
-    log('info', 'Fetching DB schema...');
-    var specRes = await fetch(url+'/rest/v1/', { headers: {'apikey':key,'Authorization':'Bearer '+key} });
+    var specRes = await fetch(url + '/rest/v1/', {
+      headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
+    });
     var spec = await specRes.json();
     var props = spec && spec.definitions && spec.definitions.pitches && spec.definitions.pitches.properties;
-    if (props) { validColumns = new Set(Object.keys(props).filter(function(c){return c!=='id'&&c!=='created_at';})); log('info','Schema loaded: '+validColumns.size+' columns'); }
-  } catch(e) { log('info','Schema fetch failed, using auto-detection'); }
+    if (props) {
+      validColumns = new Set(Object.keys(props).filter(function(c) { return c !== 'id' && c !== 'created_at'; }));
+      log('info', 'Schema loaded: ' + validColumns.size + ' columns found');
+    }
+  } catch(e) {
+    log('info', 'Schema fetch failed, proceeding with auto-detection');
+  }
 
   var csvColumns = parsedRows.length ? Object.keys(parsedRows[0]) : [];
   var skipSet = {};
+
   if (validColumns) {
-    csvColumns.forEach(function(col){ if(!validColumns.has(col))skipSet[col]=true; });
+    csvColumns.forEach(function(col) { if (!validColumns.has(col)) skipSet[col] = true; });
     var skipped = Object.keys(skipSet);
-    if (skipped.length) log('info','Pre-filtering '+skipped.length+' unknown columns: '+skipped.join(', '));
+    if (skipped.length) log('info', 'Pre-filtering ' + skipped.length + ' unknown columns: ' + skipped.join(', '));
   } else {
-    log('info','Probing schema with single row...');
+    log('info', 'Probing schema with single row...');
     var probeRow = mapRow(parsedRows[0]);
-    var probing = true, probeAttempts = 0, probeId = null;
+    var probing = true;
+    var probeAttempts = 0;
+    var probeId = null;
     while (probing && probeAttempts < 100) {
       probeAttempts++;
-      Object.keys(skipSet).forEach(function(k){delete probeRow[k];});
+      Object.keys(skipSet).forEach(function(k) { delete probeRow[k]; });
       try {
-        var pr = await fetch(url+'/rest/v1/pitches', { method:'POST', headers:{'apikey':key,'Authorization':'Bearer '+key,'Content-Type':'application/json','Prefer':'return=representation'}, body:JSON.stringify([probeRow]) });
+        var pr = await fetch(url + '/rest/v1/pitches', {
+          method: 'POST',
+          headers: { 'apikey': key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+          body: JSON.stringify([probeRow])
+        });
         if (pr.ok) {
           probing = false;
-          var pres = await pr.json();
-          if (pres && pres[0] && pres[0].id) probeId = pres[0].id;
-          log('info','Schema probe complete'+(Object.keys(skipSet).length?'. Skipped: '+Object.keys(skipSet).join(', '):''));
+          var probeResult = await pr.json();
+          if (probeResult && probeResult[0] && probeResult[0].id) probeId = probeResult[0].id;
+          log('info', 'Schema probe complete' + (Object.keys(skipSet).length ? '. Skipped: ' + Object.keys(skipSet).join(', ') : '. No unknown columns'));
         } else {
           var pt = await pr.text();
           var cm = pt.match(/Could not find the '([^']+)' column/);
-          if (cm) { skipSet[cm[1]] = true; } else { log('err','Probe error: '+pt.substring(0,120)); probing = false; }
+          if (cm) { skipSet[cm[1]] = true; }
+          else { log('err', 'Probe error: ' + pt.substring(0, 120)); probing = false; }
         }
-      } catch(e) { log('err','Probe failed: '+e.message); probing = false; }
+      } catch(e) { log('err', 'Probe failed: ' + e.message); probing = false; }
     }
-    if (probeId) { try { await fetch(url+'/rest/v1/pitches?id=eq.'+probeId,{method:'DELETE',headers:{'apikey':key,'Authorization':'Bearer '+key}}); log('info','Probe row cleaned up'); } catch(e){} }
+    if (probeId) {
+      try {
+        await fetch(url + '/rest/v1/pitches?id=eq.' + probeId, {
+          method: 'DELETE',
+          headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
+        });
+        log('info', 'Probe row cleaned up');
+      } catch(e) {}
+    }
   }
 
-  var BATCH = 500, total = parsedRows.length, uploaded = 0, errors = 0;
-  log('info','Starting upload: '+total+' pitches in '+Math.ceil(total/BATCH)+' batch(es)');
+  var BATCH = 500;
+  var total = parsedRows.length;
+  var uploaded = 0;
+  var errors = 0;
+
+  log('info', 'Starting upload: ' + total + ' pitches in ' + Math.ceil(total/BATCH) + ' batch(es)');
 
   for (var i = 0; i < total; i += BATCH) {
-    var batchNum = Math.floor(i/BATCH)+1;
-    var batch = parsedRows.slice(i, i+BATCH).map(function(row){ var m=mapRow(row); Object.keys(skipSet).forEach(function(k){delete m[k];}); return m; });
-    var success = false, attempts = 0;
+    var batchNum = Math.floor(i/BATCH) + 1;
+    var batch = parsedRows.slice(i, i + BATCH).map(function(row) {
+      var mapped = mapRow(row);
+      Object.keys(skipSet).forEach(function(k) { delete mapped[k]; });
+      return mapped;
+    });
+    var success = false;
+    var attempts = 0;
     while (!success && attempts < 5) {
       attempts++;
       try {
-        var res = await fetch(url+'/rest/v1/pitches', { method:'POST', headers:{'apikey':key,'Authorization':'Bearer '+key,'Content-Type':'application/json','Prefer':'return=minimal'}, body:JSON.stringify(batch) });
+        var res = await fetch(url + '/rest/v1/pitches', {
+          method: 'POST',
+          headers: { 'apikey': key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+          body: JSON.stringify(batch)
+        });
         if (res.ok) {
           uploaded += batch.length;
-          log('ok','Batch '+batchNum+': '+batch.length+' rows inserted');
+          log('ok', 'Batch ' + batchNum + ': ' + batch.length + ' rows inserted');
           success = true;
         } else {
           var errText = await res.text();
           var colMatch = errText.match(/Could not find the '([^']+)' column/);
-          if (colMatch) { skipSet[colMatch[1]]=true; batch=batch.map(function(r){var c=Object.assign({},r);delete c[colMatch[1]];return c;}); }
-          else { errors+=batch.length; log('err','Batch '+batchNum+' failed: '+errText.substring(0,120)); success=true; }
+          if (colMatch) {
+            skipSet[colMatch[1]] = true;
+            batch = batch.map(function(r) { var c = Object.assign({}, r); delete c[colMatch[1]]; return c; });
+          } else {
+            errors += batch.length;
+            log('err', 'Batch ' + batchNum + ' failed: ' + errText.substring(0, 120));
+            success = true;
+          }
         }
-      } catch(e) { errors+=batch.length; log('err','Batch '+batchNum+' error: '+e.message); success=true; }
+      } catch(e) { errors += batch.length; log('err', 'Batch ' + batchNum + ' error: ' + e.message); success = true; }
     }
-    if (!success) { errors+=batch.length; log('err','Batch '+batchNum+' gave up after retries'); }
-    setProgress(Math.round(Math.min((i+BATCH)/total*100,100)),'Batch '+batchNum+' of '+Math.ceil(total/BATCH));
+    if (!success) { errors += batch.length; log('err', 'Batch ' + batchNum + ' gave up after retries'); }
+    var pct = Math.round(Math.min((i + BATCH) / total * 100, 100));
+    setProgress(pct, 'Batch ' + batchNum + ' of ' + Math.ceil(total/BATCH));
   }
 
   showProgress(false);
+
+  if (errors === 0 && uploaded > 0) {
+    var displayName = document.getElementById('displayName').value.trim();
+    var firstRow = parsedRows[0] || {};
+    var gameRecord = {
+      game_id: firstRow.GameID || null,
+      display_name: displayName || null,
+      date: firstRow.Date || null,
+      home_team: firstRow.HomeTeam || null,
+      away_team: firstRow.AwayTeam || null,
+      pitch_count: uploaded
+    };
+    try {
+      await fetch(url + '/rest/v1/games', {
+        method: 'POST',
+        headers: { 'apikey': key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Prefer': 'return=minimal,resolution=merge-duplicates' },
+        body: JSON.stringify([gameRecord])
+      });
+      log('info', 'Game record saved: ' + (displayName || gameRecord.game_id));
+    } catch(e) {
+      log('info', 'Note: games table not yet created - run setup SQL');
+    }
+  }
+
   btn.disabled = false;
   btn.textContent = 'Upload to Database';
 
-  if (errors === 0 && uploaded > 0) {
-    showResult('success', '✓ '+uploaded+' pitches uploaded successfully.');
-    log('info','Done. '+uploaded+' rows written to database.');
-    // Open game info modal to confirm display name and add box score URL
-    var firstRow = parsedRows[0] || {};
-    var rawDate = firstRow.Date || '';
-    var fmtDate = rawDate;
-    if (rawDate && rawDate.indexOf('/') > -1) {
-      var dp = rawDate.split('/');
-      if (dp.length === 3) fmtDate = dp[2]+'-'+(dp[0].length<2?'0'+dp[0]:dp[0])+'-'+(dp[1].length<2?'0'+dp[1]:dp[1]);
-    }
-    openGameModal({ game_id: firstRow.GameID||'', date: fmtDate, home_team: firstRow.HomeTeam||'', away_team: firstRow.AwayTeam||'' });
+  if (errors === 0) {
+    showResult('success', '✓ ' + uploaded + ' pitches uploaded successfully.');
+    log('info', 'Done. ' + uploaded + ' rows written to database.');
   } else {
-    showResult('error', uploaded+' rows uploaded, '+errors+' failed. Check log below.');
+    showResult('error', uploaded + ' rows uploaded, ' + errors + ' failed. Check log below.');
   }
 });
 
-// ── Game Info Modal ───────────────────────────────────────────────────
-var _detectedGame = {};
-
-async function openGameModal(gameData) {
-  _detectedGame = gameData || {};
-  var gameId = _detectedGame.game_id || '';
-  var away   = (_detectedGame.away_team || '').replace(/_/g,' ');
-  var url    = urlInput.value.trim().replace(/\/+$/, '');
-  var key    = keyInput.value.trim();
-
-  document.getElementById('modalGameId').textContent = gameId || '(not detected)';
-  document.getElementById('modalDate').value = _detectedGame.date || '';
-  document.getElementById('modalBoxScoreUrl').value = '';
-  document.getElementById('modalStatus').textContent = '';
-  document.getElementById('modalStatus').className = 'modal-status';
-  document.getElementById('modalSaveBtn').disabled = false;
-  document.getElementById('modalSaveBtn').textContent = 'Save Game';
-
-  // Pre-fill display name from main page input or suggest from away team
-  var mainName = document.getElementById('displayName').value.trim();
-  document.getElementById('modalDisplayName').value = mainName ||
-    (away ? away.replace(/\b\w/g, function(c){return c.toUpperCase();}) : '');
-
-  // Check if already in DB
-  document.getElementById('modalExisting').style.display = 'none';
-  if (gameId && url && key) {
-    try {
-      var r = await fetch(url+'/rest/v1/games?game_id=eq.'+encodeURIComponent(gameId)+'&select=game_id,display_name,box_score_url',
-        { headers: {'apikey':key,'Authorization':'Bearer '+key} });
-      var ex = await r.json();
-      if (Array.isArray(ex) && ex.length) {
-        document.getElementById('modalExisting').style.display = 'block';
-        if (ex[0].display_name) document.getElementById('modalDisplayName').value = ex[0].display_name;
-        if (ex[0].box_score_url) document.getElementById('modalBoxScoreUrl').value = ex[0].box_score_url;
-      }
-    } catch(e) {}
-  }
-
-  document.getElementById('gameModal').classList.add('active');
-}
-
-async function saveGameInfo() {
-  var url    = urlInput.value.trim().replace(/\/+$/, '');
-  var key    = keyInput.value.trim();
-  var gameId = _detectedGame.game_id || '';
-  var displayName = document.getElementById('modalDisplayName').value.trim();
-  var date        = document.getElementById('modalDate').value.trim();
-  var boxUrl      = document.getElementById('modalBoxScoreUrl').value.trim();
-  var btn         = document.getElementById('modalSaveBtn');
-  var status      = document.getElementById('modalStatus');
-
-  if (!gameId)      { status.className='modal-status err'; status.textContent='No game ID detected.'; return; }
-  if (!displayName) { status.className='modal-status err'; status.textContent='Enter a display name.'; return; }
-
-  btn.disabled = true;
-  btn.textContent = 'Saving...';
-  status.textContent = '';
-
-  var record = {
-    game_id:       gameId,
-    display_name:  displayName,
-    date:          date || null,
-    home_team:     _detectedGame.home_team || null,
-    away_team:     _detectedGame.away_team || null,
-    box_score_url: boxUrl || null
-  };
-
-  try {
-    var res = await fetch(url+'/rest/v1/games', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json','apikey':key,'Authorization':'Bearer '+key,'Prefer':'return=minimal,resolution=merge-duplicates'},
-      body: JSON.stringify([record])
-    });
-    if (!res.ok) { var t = await res.text(); throw new Error(t); }
-    status.className = 'modal-status ok';
-    status.textContent = '✓ Game saved!';
-    btn.textContent = 'Saved ✓';
-    setTimeout(closeGameModal, 1200);
-  } catch(e) {
-    status.className = 'modal-status err';
-    status.textContent = '✗ ' + e.message;
-    btn.disabled = false;
-    btn.textContent = 'Save Game';
-  }
-}
-
-function closeGameModal() {
-  document.getElementById('gameModal').classList.remove('active');
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────
+// ── Helpers ─────────────────────────────────────────────────────────
 function showProgress(visible) {
   document.getElementById('progressWrap').classList.toggle('visible', visible);
   if (visible) setProgress(0, 'Starting...');
@@ -585,11 +771,16 @@ function log(type, msg) {
   logEl.classList.add('visible');
   var line = document.createElement('div');
   line.className = 'log-line ' + type;
-  line.textContent = '['+new Date().toLocaleTimeString()+'] '+msg;
+  line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
   logEl.appendChild(line);
   logEl.scrollTop = logEl.scrollHeight;
 }
-function clearLog() { var logEl=document.getElementById('log'); logEl.innerHTML=''; logEl.classList.remove('visible'); }
+function clearLog() {
+  var logEl = document.getElementById('log');
+  logEl.innerHTML = '';
+  logEl.classList.remove('visible');
+}
 </script>
+
 </body>
 </html>
