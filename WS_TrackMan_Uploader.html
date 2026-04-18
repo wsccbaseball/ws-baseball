@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -10,36 +9,36 @@
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
 :root {
-–bg: #f2ead8;
-–surface: #fffdf7;
-–border: #ddd5bc;
-–accent: #1a3a5c;
-–accent-dim: rgba(26,58,92,0.08);
-–green: #2a8a4a;
-–green-dim: rgba(42,138,74,0.10);
-–red: #c0360a;
-–red-dim: rgba(192,54,10,0.08);
-–text: #1a1a2e;
-–text-dim: #9b8c74;
-–text-mid: #6b5f47;
+  --bg: #f2ead8;
+  --surface: #fffdf7;
+  --border: #ddd5bc;
+  --accent: #1a3a5c;
+  --accent-dim: rgba(26,58,92,0.08);
+  --green: #2a8a4a;
+  --green-dim: rgba(42,138,74,0.10);
+  --red: #c0360a;
+  --red-dim: rgba(192,54,10,0.08);
+  --text: #1a1a2e;
+  --text-dim: #9b8c74;
+  --text-mid: #6b5f47;
 }
 
 body {
-background: var(–bg);
-color: var(–text);
-font-family: ‘Barlow Condensed’, sans-serif;
-min-height: 100vh;
-padding: 16px 16px 48px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Barlow Condensed', sans-serif;
+  min-height: 100vh;
+  padding: 16px 16px 48px;
 }
 
 header {
-display: flex;
-flex-direction: column;
-align-items: center;
-padding-bottom: 16px;
-border-bottom: 2px solid #1a1a2e;
-margin-bottom: 20px;
-gap: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #1a1a2e;
+  margin-bottom: 20px;
+  gap: 10px;
 }
 
 #logoWrap { display: none; }
@@ -47,188 +46,188 @@ gap: 10px;
 #logoWrap img { height: 56px; width: auto; }
 
 .header-title {
-font-family: ‘Abril Fatface’, serif;
-font-size: 1.9rem;
-color: #1a1a2e;
-text-align: center;
-letter-spacing: .02em;
-line-height: 1;
+  font-family: 'Abril Fatface', serif;
+  font-size: 1.9rem;
+  color: #1a1a2e;
+  text-align: center;
+  letter-spacing: .02em;
+  line-height: 1;
 }
 
 /* Press Box section banner */
 .pb-banner {
-background: #1a1a2e;
-color: #f2ead8;
-font-family: ‘Anton’, sans-serif;
-font-size: .7rem;
-letter-spacing: .12em;
-text-transform: uppercase;
-padding: .3rem .75rem;
-margin-bottom: 0;
+  background: #1a1a2e;
+  color: #f2ead8;
+  font-family: 'Anton', sans-serif;
+  font-size: .7rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: .3rem .75rem;
+  margin-bottom: 0;
 }
 
 /* Flat cards */
 .surface-card {
-background: var(–surface);
-border: 1px solid var(–border);
-border-top: none;
-padding: 14px 16px;
-margin-bottom: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: none;
+  padding: 14px 16px;
+  margin-bottom: 16px;
 }
 
 /* Upload zone */
 .upload-zone {
-border: 1.5px dashed var(–border);
-padding: 32px 20px;
-text-align: center;
-margin-bottom: 16px;
-cursor: pointer;
-transition: all 0.2s;
-background: var(–surface);
+  border: 1.5px dashed var(--border);
+  padding: 32px 20px;
+  text-align: center;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--surface);
 }
 .upload-zone.has-file {
-border-color: var(–accent);
-border-style: solid;
-background: var(–accent-dim);
+  border-color: var(--accent);
+  border-style: solid;
+  background: var(--accent-dim);
 }
 .upload-icon { font-size: 28px; margin-bottom: 8px; display: block; }
 .upload-title {
-font-family: ‘Anton’, sans-serif;
-font-size: .95rem;
-letter-spacing: .06em;
-text-transform: uppercase;
-color: var(–text);
-margin-bottom: 4px;
+  font-family: 'Anton', sans-serif;
+  font-size: .95rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin-bottom: 4px;
 }
-.upload-hint { font-size: .85rem; color: var(–text-dim); font-family: ‘Barlow Condensed’, sans-serif; font-style: italic; }
+.upload-hint { font-size: .85rem; color: var(--text-dim); font-family: 'Barlow Condensed', sans-serif; font-style: italic; }
 .file-name {
-font-family: ‘IBM Plex Mono’, monospace;
-font-size: 11px;
-color: var(–accent);
-margin-top: 8px;
-word-break: break-all;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  margin-top: 8px;
+  word-break: break-all;
 }
 
 /* Display name */
 .config-label {
-font-family: ‘Anton’, sans-serif;
-font-size: .65rem;
-letter-spacing: .12em;
-text-transform: uppercase;
-color: var(–text-dim);
-margin-bottom: 8px;
+  font-family: 'Anton', sans-serif;
+  font-size: .65rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 8px;
 }
 .config-row { margin-bottom: 0; }
 .config-row label {
-display: block;
-font-size: .75rem;
-color: var(–text-mid);
-margin-bottom: 4px;
-font-family: ‘Barlow Condensed’, sans-serif;
-font-style: italic;
+  display: block;
+  font-size: .75rem;
+  color: var(--text-mid);
+  margin-bottom: 4px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-style: italic;
 }
 .config-row input {
-width: 100%;
-background: var(–bg);
-border: 1px solid var(–border);
-padding: 9px 12px;
-color: var(–text);
-font-family: ‘IBM Plex Mono’, monospace;
-font-size: 12px;
-outline: none;
--webkit-appearance: none;
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 9px 12px;
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  outline: none;
+  -webkit-appearance: none;
 }
 .config-row input:focus { border-color: #1a1a2e; }
 
 /* Stats row */
 .stats-row {
-display: flex;
-gap: 8px;
-margin-bottom: 16px;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 .stat-box {
-flex: 1;
-background: var(–surface);
-border: 1px solid var(–border);
-padding: 12px 8px;
-text-align: center;
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 12px 8px;
+  text-align: center;
 }
 .stat-value {
-font-family: ‘Anton’, sans-serif;
-font-size: 1.6rem;
-color: var(–accent);
-display: block;
-letter-spacing: .02em;
+  font-family: 'Anton', sans-serif;
+  font-size: 1.6rem;
+  color: var(--accent);
+  display: block;
+  letter-spacing: .02em;
 }
 .stat-label {
-font-size: .65rem;
-color: var(–text-dim);
-text-transform: uppercase;
-letter-spacing: .08em;
-margin-top: 2px;
-display: block;
-font-family: ‘Barlow Condensed’, sans-serif;
+  font-size: .65rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-top: 2px;
+  display: block;
+  font-family: 'Barlow Condensed', sans-serif;
 }
 
 /* Game info */
 .game-info {
-background: var(–surface);
-border: 1px solid var(–border);
-padding: 12px 14px;
-margin-bottom: 16px;
-display: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  display: none;
 }
 .game-info.visible { display: block; }
 .game-info-label {
-font-family: ‘Anton’, sans-serif;
-font-size: .65rem;
-letter-spacing: .12em;
-text-transform: uppercase;
-color: var(–text-dim);
-margin-bottom: 8px;
+  font-family: 'Anton', sans-serif;
+  font-size: .65rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 8px;
 }
 .game-info-value {
-font-family: ‘IBM Plex Mono’, monospace;
-font-size: 12px;
-color: var(–text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--text);
 }
 .game-info-row {
-display: flex;
-justify-content: space-between;
-align-items: center;
-padding: 5px 0;
-border-bottom: 1px solid var(–border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
 }
 .game-info-row:last-child { border-bottom: none; }
 
 /* Duplicate warning */
 .dup-warning {
-background: rgba(192,54,10,0.07);
-border: 1px solid rgba(192,54,10,0.25);
-padding: 12px 14px;
-margin-bottom: 16px;
-font-size: .85rem;
-color: var(–red);
-display: none;
-font-family: ‘Barlow Condensed’, sans-serif;
+  background: rgba(192,54,10,0.07);
+  border: 1px solid rgba(192,54,10,0.25);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: .85rem;
+  color: var(--red);
+  display: none;
+  font-family: 'Barlow Condensed', sans-serif;
 }
 .dup-warning.visible { display: block; }
 
 /* Upload button */
 .upload-btn {
-width: 100%;
-background: #1a1a2e;
-color: #f2ead8;
-border: none;
-padding: 15px;
-font-family: ‘Anton’, sans-serif;
-font-size: 1.05rem;
-letter-spacing: .1em;
-text-transform: uppercase;
-cursor: pointer;
--webkit-appearance: none;
-transition: opacity 0.2s;
-margin-bottom: 16px;
+  width: 100%;
+  background: #1a1a2e;
+  color: #f2ead8;
+  border: none;
+  padding: 15px;
+  font-family: 'Anton', sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  -webkit-appearance: none;
+  transition: opacity 0.2s;
+  margin-bottom: 16px;
 }
 .upload-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 .upload-btn:not(:disabled):active { opacity: 0.8; }
@@ -237,57 +236,56 @@ margin-bottom: 16px;
 .progress-wrap { display: none; margin-bottom: 16px; }
 .progress-wrap.visible { display: block; }
 .progress-label {
-font-family: ‘IBM Plex Mono’, monospace;
-font-size: 11px;
-color: var(–text-mid);
-margin-bottom: 6px;
-display: flex;
-justify-content: space-between;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text-mid);
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
 }
 .progress-track {
-background: var(–border);
-height: 5px;
-overflow: hidden;
+  background: var(--border);
+  height: 5px;
+  overflow: hidden;
 }
 .progress-fill {
-height: 100%;
-background: #1a1a2e;
-width: 0%;
-transition: width 0.3s;
+  height: 100%;
+  background: #1a1a2e;
+  width: 0%;
+  transition: width 0.3s;
 }
 
 /* Result */
 .result {
-padding: 14px;
-font-family: ‘IBM Plex Mono’, monospace;
-font-size: 12px;
-line-height: 1.6;
-display: none;
+  padding: 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  display: none;
 }
 .result.visible { display: block; }
-.result.success { background: var(–green-dim); border: 1px solid rgba(76,175,125,0.3); color: var(–green); }
-.result.error   { background: var(–red-dim);   border: 1px solid rgba(192,54,10,0.3);  color: var(–red); }
+.result.success { background: var(--green-dim); border: 1px solid rgba(76,175,125,0.3); color: var(--green); }
+.result.error   { background: var(--red-dim);   border: 1px solid rgba(192,54,10,0.3);  color: var(--red); }
 
 /* Log */
 .log {
-margin-top: 12px;
-background: var(–surface);
-border: 1px solid var(–border);
-padding: 10px 12px;
-font-family: ‘IBM Plex Mono’, monospace;
-font-size: 10px;
-color: var(–text-dim);
-max-height: 180px;
-overflow-y: auto;
-display: none;
+  margin-top: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  max-height: 180px;
+  overflow-y: auto;
+  display: none;
 }
 .log.visible { display: block; }
 .log-line { margin-bottom: 4px; }
-.log-line.ok   { color: var(–green); }
-.log-line.err  { color: var(–red); }
-.log-line.info { color: var(–accent); }
+.log-line.ok   { color: var(--green); }
+.log-line.err  { color: var(--red); }
+.log-line.info { color: var(--accent); }
 </style>
-
 </head>
 <body>
 
@@ -299,7 +297,6 @@ display: none;
 </header>
 
 <!-- Upload zone -->
-
 <input type="file" id="fileInput" accept=".csv" style="display:none">
 <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
   <span class="upload-icon">⬆</span>
@@ -309,7 +306,6 @@ display: none;
 </div>
 
 <!-- Display name -->
-
 <div id="displayNameSection" style="display:none;">
   <div class="pb-banner">Game Display Name</div>
   <div class="surface-card">
@@ -318,10 +314,10 @@ display: none;
       <input type="text" id="displayName" placeholder="e.g. Midweek — Pellissippi State Game 2" autocorrect="off" autocapitalize="words" spellcheck="false">
     </div>
   </div>
+
 </div>
 
 <!-- Stats -->
-
 <div class="stats-row">
   <div class="stat-box">
     <span class="stat-value" id="statPitches">—</span>
@@ -338,22 +334,18 @@ display: none;
 </div>
 
 <!-- Game info -->
-
 <div class="game-info" id="gameInfo">
   <div class="game-info-label">Detected Game(s)</div>
   <div id="gameInfoRows"></div>
 </div>
 
 <!-- Duplicate warning -->
-
 <div class="dup-warning" id="dupWarning"></div>
 
 <!-- Upload button -->
-
 <button class="upload-btn" id="uploadBtn" disabled>Upload to Database</button>
 
 <!-- Progress -->
-
 <div class="progress-wrap" id="progressWrap">
   <div class="progress-label">
     <span id="progressText">Uploading...</span>
@@ -365,11 +357,9 @@ display: none;
 </div>
 
 <!-- Result -->
-
 <div class="result" id="result"></div>
 
 <!-- Log -->
-
 <div class="log" id="log"></div>
 
 <script>
@@ -581,13 +571,19 @@ document.getElementById('uploadBtn').addEventListener('click', async function() 
         log('info', 'Game already in database. Saving display name only...');
         var displayName = document.getElementById('displayName').value.trim();
         var firstRow = parsedRows[0] || {};
+        var normDate = normDateStr(firstRow.Date || '');
+        log('info', 'Auto-fetching box score URL...');
+        var boxScoreUrl = await autoFetchBoxScoreUrl(url, key, normDate, firstRow.GameID);
+        if (boxScoreUrl) { log('ok', 'Box score URL found: ' + boxScoreUrl); }
+        else { log('info', 'Box score URL not found — can add manually in Supabase later.'); }
         var gameRecord = {
           game_id: firstRow.GameID || null,
           display_name: displayName || null,
-          date: firstRow.Date || null,
+          date: normDate || null,
           home_team: firstRow.HomeTeam || null,
           away_team: firstRow.AwayTeam || null,
-          pitch_count: parsedRows.length
+          pitch_count: parsedRows.length,
+          box_score_url: boxScoreUrl
         };
         await fetch(url + '/rest/v1/games', {
           method: 'POST',
@@ -719,13 +715,19 @@ document.getElementById('uploadBtn').addEventListener('click', async function() 
   if (errors === 0 && uploaded > 0) {
     var displayName = document.getElementById('displayName').value.trim();
     var firstRow = parsedRows[0] || {};
+    var normDate = normDateStr(firstRow.Date || '');
+    log('info', 'Auto-fetching box score URL from schedule...');
+    var boxScoreUrl = await autoFetchBoxScoreUrl(url, key, normDate, firstRow.GameID);
+    if (boxScoreUrl) { log('ok', 'Box score URL found: ' + boxScoreUrl); }
+    else { log('info', 'Box score URL not found — can add manually in Supabase later.'); }
     var gameRecord = {
       game_id: firstRow.GameID || null,
       display_name: displayName || null,
-      date: firstRow.Date || null,
+      date: normDate || null,
       home_team: firstRow.HomeTeam || null,
       away_team: firstRow.AwayTeam || null,
-      pitch_count: uploaded
+      pitch_count: uploaded,
+      box_score_url: boxScoreUrl
     };
     try {
       await fetch(url + '/rest/v1/games', {
@@ -781,6 +783,5 @@ function clearLog() {
   logEl.classList.remove('visible');
 }
 </script>
-
 </body>
 </html>
