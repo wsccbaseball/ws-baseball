@@ -5,294 +5,234 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WS Pitcher Game Summary</title>
-<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Anton&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { overflow-x: hidden; }
 body {
-  font-family: 'Barlow Condensed', sans-serif;
-  background: #f2ead8;
+  font-family: 'Barlow', sans-serif;
+  background: #f0f2f5;
   display: flex; flex-direction: column; align-items: center;
-  padding: 16px 0 32px;
+  padding: 12px 0 32px;
+  min-height: 100vh;
   width: 100%;
   overflow-x: hidden;
 }
-
-/* ── Press Box upload screen ── */
-.up-title {
-text-align: center;
-width: 100%; max-width: 960px;
-margin-bottom: .5rem;
-padding: 0 8px;
-}
-.up-title h1 {
-font-family: ‘Abril Fatface’, serif;
-font-size: 2.6rem;
-color: #1a1a2e;
-line-height: 1;
-letter-spacing: .02em;
-}
-.up-title p {
-font-family: ‘Barlow Condensed’, sans-serif;
-font-size: 1rem;
-font-style: italic;
-color: #6b5f47;
-margin-top: .35rem;
-}
-
-/* Black Anton section banners */
-.pb-banner {
-background: #1a1a2e;
-color: #f2ead8;
-font-family: ‘Anton’, sans-serif;
-font-size: .72rem;
-letter-spacing: .12em;
-text-transform: uppercase;
-padding: .35rem .75rem;
-width: calc(100% - 16px);
-max-width: 960px;
-}
-
 .upload-section {
-background: #fffdf7;
-border: 1px solid #ddd5bc;
-border-top: none;
-padding: 14px 16px;
-width: calc(100% - 16px); max-width: 960px;
-margin: 0 auto 0;
+  background:#fff; border-radius:10px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.10);
+  padding:20px 16px;
+  width:calc(100% - 16px); max-width:960px;
+  margin:0 auto 16px;
 }
-.upload-section + .pb-banner {
-margin-top: .75rem;
-}
-
 .home-btn {
-display: inline-flex; align-items: center; gap: 6px;
-font-family: ‘Barlow Condensed’, sans-serif;
-font-size: 14px; font-weight: 600; color: #1a1a2e;
-text-decoration: none; background: transparent;
-border: 1px solid #ddd5bc; border-radius: 4px;
-padding: 5px 12px; margin-bottom: 10px;
+  display:inline-flex; align-items:center; gap:6px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:15px; font-weight:700; color:#1a3a5c;
+  text-decoration:none; background:#f9f2d8;
+  border:1px solid #d4a843; border-radius:6px;
+  padding:6px 14px; margin-bottom:12px;
 }
-.file-btn-wrap { }
+.upload-section h1 {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:24px; font-weight:800; color:#1a3a5c; margin-bottom:4px;
+}
+.upload-section p { font-size:13px; color:#666; margin-bottom:14px; }
+.file-btn-wrap { margin-bottom:14px; }
 .file-btn-wrap label {
-display: block; font-family: ‘Anton’, sans-serif;
-font-size: .65rem; color: #6b5f47;
-text-transform: uppercase; letter-spacing: .08em; margin-bottom: 5px;
+  display:block; font-size:11px; font-weight:700; color:#555;
+  text-transform:uppercase; letter-spacing:0.5px; margin-bottom:5px;
 }
-input[type=“file”] { font-size: 14px; padding: 6px 0; color: #333; width: 100%; font-family: ‘Barlow Condensed’, sans-serif; }
-.file-status { font-size: .85rem; color: #1a3a5c; font-weight: 600; min-height: 16px; margin-top: 4px; font-family: ‘Barlow Condensed’, sans-serif; }
-.divider { border: none; border-top: 1px solid #ddd5bc; margin: 12px 0; }
-.form-group { margin-bottom: 12px; }
-.form-group:last-child { margin-bottom: 0; }
-.form-group label {
-display: block;
-font-family: ‘Anton’, sans-serif;
-font-size: .65rem; color: #6b5f47;
-text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px;
-}
+input[type="file"] { font-size:14px; padding:8px 0; color:#333; width:100%; }
+.file-status { font-size:12px; color:#1a3a5c; font-weight:600; min-height:16px; margin-top:4px; }
+.divider { border:none; border-top:1px solid #e8eef6; margin:14px 0; }
+.form-group { margin-bottom:14px; }
+.form-group label { display:block; font-size:11px; font-weight:600; color:#555; margin-bottom:4px; text-transform:uppercase; }
 .form-group select {
-width: 100%; padding: 9px 10px;
-border: 1px solid #ddd5bc; border-radius: 4px;
-font-family: ‘Barlow Condensed’, sans-serif;
-font-size: 1rem; color: #1a1a2e; background: #fffdf7;
--webkit-appearance: none;
+  width:100%; padding:10px; border:1px solid #d4a843; border-radius:6px;
+  font-family:'Barlow',sans-serif; font-size:16px; color:#1a1a1a; background:#f8fafd;
+  -webkit-appearance:none;
 }
 .gen-btn {
-width: calc(100% - 16px); max-width: 960px;
-padding: .9rem;
-background: #1a1a2e;
-color: #f2ead8; border: none;
-font-family: ‘Anton’, sans-serif;
-font-size: 1.1rem; letter-spacing: .1em;
-text-transform: uppercase;
-cursor: pointer;
-margin-top: .75rem;
+  width:100%; padding:14px;
+  background:linear-gradient(135deg,#1a3a5c,#2d5a8e);
+  color:#d4a843; border:none; border-radius:8px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:20px; font-weight:800; cursor:pointer; letter-spacing:1px;
 }
-.gen-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.status-msg { font-size: .9rem; color: #1a3a5c; margin-top: 8px; min-height: 18px; font-family: ‘Barlow Condensed’, sans-serif; width: calc(100% - 16px); max-width: 960px; }
-
-/* ── Card (unchanged) ── */
+.gen-btn:disabled { opacity:0.4; cursor:not-allowed; }
+.status-msg { font-size:13px; color:#1a3a5c; margin-top:8px; min-height:18px; }
 .card {
-background:#fff;
-width:calc(100% - 16px); max-width:960px;
-border-radius:10px;
-box-shadow:0 4px 24px rgba(0,0,0,0.12);
-overflow:hidden;
-margin-top: 16px;
+  background:#fff;
+  width:calc(100% - 16px); max-width:960px;
+  border-radius:10px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.12);
+  overflow:hidden;
 }
 .header {
-background:linear-gradient(135deg,#1a3a5c 0%,#2d5a8e 100%);
-padding:12px 16px 10px;
-display:flex; align-items:center; justify-content:space-between;
+  background:linear-gradient(135deg,#1a3a5c 0%,#2d5a8e 100%);
+  padding:12px 16px 10px;
+  display:flex; align-items:center; justify-content:space-between;
 }
 .header-center { text-align:center; flex:1; padding:0 8px; }
 .player-name {
-font-family:‘Barlow Condensed’,sans-serif;
-font-size:clamp(22px,6vw,36px); font-weight:800; color:#fff; letter-spacing:1px; line-height:1;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:clamp(22px,6vw,36px); font-weight:800; color:#fff; letter-spacing:1px; line-height:1;
 }
 .player-info {
-font-family:‘Barlow Condensed’,sans-serif;
-font-size:clamp(11px,3vw,15px); color:#a8c8f0; margin-top:2px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:clamp(11px,3vw,15px); color:#d4a843; margin-top:2px;
 }
 .summary-title {
-font-family:‘Barlow Condensed’,sans-serif;
-font-size:clamp(13px,3.5vw,18px); font-weight:700; color:#fff; margin-top:4px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:clamp(13px,3.5vw,18px); font-weight:700; color:#fff; margin-top:4px;
 }
-.season-tag { font-size:clamp(10px,2.5vw,13px); font-style:italic; color:#7bb3e0; margin-top:1px; }
+.season-tag { font-size:clamp(10px,2.5vw,13px); font-style:italic; color:#b89e2a; margin-top:1px; }
 .logo-box { width:clamp(44px,12vw,64px); flex-shrink:0; }
 .logo-img { width:clamp(40px,11vw,56px); height:clamp(40px,11vw,56px); object-fit:contain; background:#fff; border-radius:6px; padding:3px; }
 .game-line {
-background:#e8f0fb; text-align:center; padding:6px 10px;
-font-family:‘Barlow Condensed’,sans-serif;
-font-size:clamp(12px,3.2vw,17px); font-weight:700; color:#1a3a5c;
-border-bottom:2px solid #c5d8f0; line-height:1.3;
+  background:#e8f0f8; text-align:center; padding:6px 10px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:clamp(12px,3.2vw,17px); font-weight:700; color:#1a3a5c;
+  border-bottom:2px solid #b8cce0; line-height:1.3;
 }
 .stat-table-wrap { padding:6px 10px 4px; overflow-x:auto; }
-.stat-table { width:100%; border-collapse:collapse; font-family:‘Barlow Condensed’,sans-serif; }
+.stat-table { width:100%; border-collapse:collapse; font-family:'Barlow Condensed',sans-serif; }
 .stat-table th {
-background:#1a3a5c; color:#fff;
-font-size:clamp(9px,2.6vw,13px); font-weight:700;
-padding:5px 3px; text-align:center; white-space:nowrap;
+  background:#1a3a5c; color:#fff;
+  font-size:clamp(9px,2.6vw,13px); font-weight:700;
+  padding:5px 3px; text-align:center; white-space:nowrap;
 }
 .stat-table td {
-text-align:center; padding:6px 3px;
-font-size:clamp(13px,3.8vw,18px); font-weight:600; color:#1a1a1a;
-border:1px solid #dde4ef; background:#f8fafd;
+  text-align:center; padding:6px 3px;
+  font-size:clamp(13px,3.8vw,18px); font-weight:600; color:#1a1a1a;
+  border:1px solid #dde4ef; background:#f8fafd;
 }
 .charts-row { display:flex; padding:4px 6px; gap:4px; align-items:flex-start; }
 .chart-box {
-flex:1; min-width:0; background:#f8fafd;
-border:1px solid #dde4ef; border-radius:6px; padding:5px 3px 3px;
+  flex:1; min-width:0; background:#f8fafd;
+  border:1px solid #dde4ef; border-radius:6px; padding:5px 3px 3px;
 }
 .chart-title {
-font-family:‘Barlow Condensed’,sans-serif;
-font-size:clamp(9px,2.4vw,13px); font-weight:700; color:#1a3a5c;
-text-align:center; margin-bottom:1px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:clamp(9px,2.4vw,13px); font-weight:700; color:#1a3a5c;
+  text-align:center; margin-bottom:1px;
 }
 .chart-subtitle { font-size:clamp(8px,2vw,11px); color:#7a8faa; text-align:center; margin-bottom:2px; }
 canvas { display:block; margin:0 auto; width:100% !important; height:auto !important; }
 .legend { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; padding:4px 10px; }
 .legend-item {
-display:flex; align-items:center; gap:5px;
-font-size:clamp(10px,2.8vw,13px); font-weight:600; color:#333;
-font-family:‘Barlow Condensed’,sans-serif;
+  display:flex; align-items:center; gap:5px;
+  font-size:clamp(10px,2.8vw,13px); font-weight:600; color:#333;
+  font-family:'Barlow Condensed',sans-serif;
 }
 .legend-dot { width:10px; height:10px; border-radius:50%; border:1.5px solid rgba(0,0,0,0.2); flex-shrink:0; }
 .pitch-table-wrap { padding:4px 4px; }
-.pitch-table { width:100%; border-collapse:collapse; font-family:‘Barlow Condensed’,sans-serif; table-layout:fixed; }
+.pitch-table { width:100%; border-collapse:collapse; font-family:'Barlow Condensed',sans-serif; table-layout:fixed; }
 .pitch-table th {
-background:#2d5a8e; color:#fff; padding:4px 1px; text-align:center;
-font-size:clamp(6px,2vw,8.5px); font-weight:700; border:1px solid #1a3a5c;
-white-space:nowrap; overflow:hidden;
+  background:#2d5a8e; color:#fff; padding:4px 1px; text-align:center;
+  font-size:clamp(6px,2vw,8.5px); font-weight:700; border:1px solid #1a3a5c;
+  white-space:nowrap; overflow:hidden;
 }
 .pitch-table td {
-text-align:center; padding:4px 1px;
-border:1px solid #dde4ef; font-size:clamp(7px,2.2vw,9.5px); font-weight:500;
+  text-align:center; padding:4px 1px;
+  border:1px solid #dde4ef; font-size:clamp(7px,2.2vw,9.5px); font-weight:500;
 }
 .pitch-table tr:nth-child(even) td { background:#f0f5fc; }
 .pitch-table tr:nth-child(odd) td { background:#f8fafd; }
 .pitch-table .total-row td { background:#e0eaf8 !important; font-weight:700; }
 .pname { font-weight:700; font-size:clamp(7px,2.2vw,9.5px); text-align:left !important; padding-left:3px !important; white-space:nowrap; overflow:hidden; }
 .footer {
-padding:5px 10px 6px; display:flex; justify-content:space-between; align-items:center;
-border-top:1px solid #dde4ef; flex-wrap:wrap; gap:2px;
+  padding:5px 10px 6px; display:flex; justify-content:space-between; align-items:center;
+  border-top:1px solid #dde4ef; flex-wrap:wrap; gap:2px;
 }
 .footer-left, .footer-right { font-size:clamp(8px,2.2vw,11px); color:#666; }
 .footer-center { font-size:clamp(7px,1.9vw,10px); color:#888; text-align:center; flex:1; }
 .save-btn-wrap { width:calc(100% - 16px); max-width:960px; margin:10px auto 0; }
 .save-btn {
-width:100%; padding:14px;
-background:linear-gradient(135deg,#1a6b3a,#28a05a);
-color:#fff; border:none; border-radius:8px;
-font-family:‘Barlow Condensed’,sans-serif;
-font-size:20px; font-weight:800; cursor:pointer; letter-spacing:1px;
-display:flex; align-items:center; justify-content:center; gap:8px;
-box-shadow:0 3px 12px rgba(0,0,0,0.15);
+  width:100%; padding:14px;
+  background:linear-gradient(135deg,#1a6b3a,#28a05a);
+  color:#fff; border:none; border-radius:8px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:20px; font-weight:800; cursor:pointer; letter-spacing:1px;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  box-shadow:0 3px 12px rgba(0,0,0,0.15);
 }
 .save-btn:active { opacity:0.85; transform:scale(0.99); }
 .save-btn:disabled { opacity:0.5; cursor:not-allowed; }
 .save-status { font-size:13px; color:#1a6b3a; margin-top:6px; text-align:center; min-height:18px; font-weight:600; }
 .img-modal {
-display:none; position:fixed; inset:0;
-background:rgba(0,0,0,0.85); z-index:9999;
-flex-direction:column; align-items:center; justify-content:center; padding:16px;
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.85); z-index:9999;
+  flex-direction:column; align-items:center; justify-content:center; padding:16px;
 }
 .img-modal.active { display:flex; }
 .img-modal img { max-width:100%; max-height:75vh; border-radius:8px; }
-.img-modal-tip { color:#fff; font-family:‘Barlow Condensed’,sans-serif; font-size:17px; font-weight:600; margin-top:14px; text-align:center; line-height:1.4; }
-.img-modal-close { margin-top:16px; padding:10px 32px; background:rgba(255,255,255,0.15); color:#fff; border:1.5px solid rgba(255,255,255,0.4); border-radius:8px; font-family:‘Barlow Condensed’,sans-serif; font-size:17px; font-weight:700; cursor:pointer; }
+.img-modal-tip { color:#fff; font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:600; margin-top:14px; text-align:center; line-height:1.4; }
+.img-modal-close { margin-top:16px; padding:10px 32px; background:rgba(255,255,255,0.15); color:#fff; border:1.5px solid rgba(255,255,255,0.4); border-radius:8px; font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:700; cursor:pointer; }
 </style>
-
 </head>
 <body>
 
-<!-- UPLOAD SCREEN -->
-
-<div class="up-title">
-  <h1>&#x26BE; Pitcher Game Summary</h1>
-  <p>Select a game, upload the box score PDF, select a pitcher, and generate.</p>
-</div>
-
-<div class="pb-banner">Step 1 — Select Game</div>
 <div class="upload-section">
   <a href="index.html" class="home-btn">&#8592; Home</a>
-  <div class="form-group" style="margin-bottom:0">
+  <h1>&#x26BE; Pitcher Game Summary</h1>
+  <p>Select a game, upload the box score PDF, select a pitcher, and generate.</p>
+
+  <div class="form-group">
+    <label>Step 1 &mdash; Select Game</label>
     <select id="gameSelect"><option value="">Loading games...</option></select>
   </div>
-</div>
 
-<div class="pb-banner">Step 2 — Box Score</div>
-<div class="upload-section">
   <div class="file-btn-wrap">
-    <div class="file-status" id="pdfStatus">Select a game to auto-fetch box score</div>
-    <div style="margin-top:8px;font-size:.8rem;color:#9b8c74;font-family:'Barlow Condensed',sans-serif;">Or upload PDF manually:</div>
+    <label>Step 2 &mdash; Box Score</label>
+    <div class="file-status" id="pdfStatus">Upload PDF box score to add IP/ER stats (optional).</div>
+    <div style="margin-top:8px;font-size:11px;color:#999;">Or upload PDF manually:</div>
     <input type="file" id="pdfFile" accept="*/*" style="margin-top:4px;">
   </div>
-</div>
 
-<div class="pb-banner">Step 3 — Pitcher</div>
-<div class="upload-section">
-  <div class="form-group" style="margin-bottom:0">
+  <hr class="divider">
+
+  <div class="form-group">
+    <label>Step 3 &mdash; Pitcher</label>
     <select id="pitcherSelect" disabled>
-      <option value="">— select game first —</option>
+      <option value="">&#8212; select game first &#8212;</option>
     </select>
   </div>
+
+<button class="gen-btn" id="generateBtn" disabled onclick="generate()">GENERATE CARD</button>
+
+  <div class="status-msg" id="statusMsg"></div>
 </div>
-
-<button class="gen-btn" id="generateBtn" disabled onclick="generate()">Generate Card</button>
-
-<div class="status-msg" id="statusMsg"></div>
-
-<!-- CARD (unchanged) -->
 
 <div class="card" id="card" style="display:none;">
   <div class="header">
-    <div class="logo-box"><img class="logo-img" src="data:image/png;base64,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" alt="WS"></div>
+    <div class="logo-box"><img class="logo-img" src="WS-RGB.png" alt="WS" onerror="this.style.display='none'"></div>
     <div class="header-center">
-      <div class="player-name" id="cardName">—</div>
-      <div class="player-info" id="cardHand">RHP — Walters State CC</div>
+      <div class="player-name" id="cardName">&#8212;</div>
+      <div class="player-info" id="cardHand">RHP &#8212; Walters State CC</div>
       <div class="summary-title">Pitcher Game Summary</div>
       <div class="season-tag">2026 NJCAA Season</div>
     </div>
-    <div class="logo-box"><img class="logo-img" src="data:image/png;base64,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" alt="WS"></div>
+    <div class="logo-box"><img class="logo-img" src="WS-RGB.png" alt="WS" onerror="this.style.display='none'"></div>
   </div>
-  <div class="game-line" id="cardGameLine">—</div>
+  <div class="game-line" id="cardGameLine">&#8212;</div>
   <div class="stat-table-wrap">
     <table class="stat-table">
       <thead><tr><th>IP</th><th>NP</th><th>PA</th><th>ER</th><th>H</th><th>K</th><th>BB</th><th>HBP</th><th>Strike%</th><th>Whiffs</th></tr></thead>
       <tbody><tr>
-        <td id="cIP">—</td><td id="cNP">—</td><td id="cPA">—</td><td id="cER">—</td>
-        <td id="cH">—</td><td id="cK">—</td><td id="cBB">—</td><td id="cHBP">—</td>
-        <td id="cSP">—</td><td id="cWH">—</td>
+        <td id="cIP">&#8212;</td><td id="cNP">&#8212;</td><td id="cPA">&#8212;</td><td id="cER">&#8212;</td>
+        <td id="cH">&#8212;</td><td id="cK">&#8212;</td><td id="cBB">&#8212;</td><td id="cHBP">&#8212;</td>
+        <td id="cSP">&#8212;</td><td id="cWH">&#8212;</td>
       </tr></tbody>
     </table>
   </div>
   <div class="charts-row">
     <div class="chart-box">
       <div class="chart-title">Pitch Locations vs LHH</div>
-      <div class="chart-subtitle" id="cLHHn">— Pitches</div>
+      <div class="chart-subtitle" id="cLHHn">&#8212; Pitches</div>
       <canvas id="cLHH"></canvas>
     </div>
     <div class="chart-box">
@@ -302,7 +242,7 @@ flex-direction:column; align-items:center; justify-content:center; padding:16px;
     </div>
     <div class="chart-box">
       <div class="chart-title">Pitch Locations vs RHH</div>
-      <div class="chart-subtitle" id="cRHHn">— Pitches</div>
+      <div class="chart-subtitle" id="cRHHn">&#8212; Pitches</div>
       <canvas id="cRHH"></canvas>
     </div>
   </div>
@@ -350,14 +290,21 @@ var SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
 
 var TYPE_MAP = {
-  'Four-Seam':'Fastball','Fastball':'Fastball','Four-Seam Fastball':'Fastball',
-  'Sinker':'Sinker','Two-Seam Fastball':'Sinker',
-  'Curveball':'Curveball','Slider':'Slider','Cutter':'Cutter',
-  'Changeup':'ChangeUp','ChangeUp':'ChangeUp','Splitter':'Splitter'
+  'Fastball':'Fastball','Four-Seam':'Fastball','Four-Seam Fastball':'Fastball',
+  'FourSeamFastBall':'Fastball','Four Seam':'Fastball','FA':'Fastball',
+  'Sinker':'Sinker','Two-Seam Fastball':'Sinker','TwoSeamFastBall':'Sinker',
+  'Two-Seam':'Sinker','Two Seam':'Sinker','SI':'Sinker',
+  'Curveball':'Curveball','CurveBall':'Curveball','Curve':'Curveball','CB':'Curveball','CU':'Curveball',
+  'Slider':'Slider','SL':'Slider',
+  'Cutter':'Cutter','Cut Fastball':'Cutter','FC':'Cutter','CT':'Cutter',
+  'Changeup':'ChangeUp','ChangeUp':'ChangeUp','Change-up':'ChangeUp','Change Up':'ChangeUp','CH':'ChangeUp',
+  'Splitter':'Splitter','Split-Finger':'Splitter','FS':'Splitter',
+  'Knuckleball':'Knuckleball','KN':'Knuckleball'
 };
 var TC = {
   Fastball:'#e63946', Sinker:'#e07020', Curveball:'#9b59b6',
-  Slider:'#2a9d8f', Cutter:'#1abc9c', ChangeUp:'#f4a261', Splitter:'#e8c141'
+  Slider:'#2a9d8f', Cutter:'#1abc9c', ChangeUp:'#f4a261', Splitter:'#e8c141',
+  Knuckleball:'#888888'
 };
 var SHORT = {Fastball:'FB',Sinker:'SI',Curveball:'CB',Slider:'SL',Cutter:'CT',ChangeUp:'CH',Splitter:'SP'};
 var CALL_MAP = {
@@ -401,7 +348,7 @@ async function loadGames() {
       return numB - numA;
     });
     var sel = document.getElementById('gameSelect');
-    sel.innerHTML = '<option value="">— select game —</option>';
+    sel.innerHTML = '<option value="">&#8212; select game &#8212;</option>';
     games.forEach(function(g) {
       var label = g.display_name || g.game_id;
       sel.innerHTML += '<option value="'+g.game_id+'" data-url="'+(g.box_score_url||'')+'">'+label+'</option>';
@@ -423,18 +370,21 @@ document.getElementById('gameSelect').addEventListener('change', async function(
   if (!gameId) {
     psel.innerHTML = '<option>Select game first</option>';
     psel.disabled = true;
-    statusEl.textContent = 'Select a game to auto-fetch box score';
+    statusEl.textContent = 'Upload PDF box score to add IP/ER stats (optional).';
     return;
   }
 
   psel.innerHTML = '<option>Loading pitchers...</option>';
   psel.disabled = true;
+
   try {
     var rows = await supaFetch('pitches?select=Pitcher,PitcherTeam&GameID=eq.' + encodeURIComponent(gameId));
 
-    var wsRows  = rows.filter(function(r) { return r.PitcherTeam && r.PitcherTeam.toLowerCase().indexOf('wal') > -1; });
+    // Split into Walters State and opponent
+    var murRows = rows.filter(function(r) { return r.PitcherTeam && r.PitcherTeam.toLowerCase().indexOf('wal') > -1; });
     var oppRows = rows.filter(function(r) { return !r.PitcherTeam || r.PitcherTeam.toLowerCase().indexOf('wal') === -1; });
-    var wsPitchers  = Array.from(new Set(wsRows.map(function(r){return r.Pitcher;}))).sort();
+
+    var murPitchers = Array.from(new Set(murRows.map(function(r){return r.Pitcher;}))).sort();
     var oppPitchers = Array.from(new Set(oppRows.map(function(r){return r.Pitcher;}))).sort();
 
     var oppTeamLabel = 'Opponent';
@@ -443,18 +393,17 @@ document.getElementById('gameSelect').addEventListener('change', async function(
       if (rawTeam) oppTeamLabel = rawTeam;
     }
 
-    psel.innerHTML = '<option value="">— select pitcher —</option>';
+    psel.innerHTML = '<option value="">&#8212; select pitcher &#8212;</option>';
 
-    if (wsPitchers.length) {
-      var wsGroup = document.createElement('optgroup');
-      wsGroup.label = 'Walters State';
-      wsPitchers.forEach(function(p) {
+    if (murPitchers.length) {
+      var murGroup = document.createElement('optgroup');
+      murGroup.label = 'Walters State';
+      murPitchers.forEach(function(p) {
         var o = document.createElement('option');
         o.value = p; o.textContent = flipName(p);
-        o.setAttribute('data-team','ws');
-        wsGroup.appendChild(o);
+        murGroup.appendChild(o);
       });
-      psel.appendChild(wsGroup);
+      psel.appendChild(murGroup);
     }
 
     if (oppPitchers.length) {
@@ -463,8 +412,6 @@ document.getElementById('gameSelect').addEventListener('change', async function(
       oppPitchers.forEach(function(p) {
         var o = document.createElement('option');
         o.value = p; o.textContent = flipName(p);
-        o.setAttribute('data-team','opp');
-        o.setAttribute('data-team-label', oppTeamLabel);
         oppGroup.appendChild(o);
       });
       psel.appendChild(oppGroup);
@@ -475,35 +422,7 @@ document.getElementById('gameSelect').addEventListener('change', async function(
     psel.innerHTML = '<option>Error loading pitchers</option>';
   }
 
-  var opt = this.options[this.selectedIndex];
-  var boxUrl = opt ? opt.getAttribute('data-url') : '';
-  if (!boxUrl) {
-    try {
-      var gRows = await supaFetch('games?select=box_score_url&game_id=eq.' + encodeURIComponent(gameId));
-      if (gRows && gRows[0] && gRows[0].box_score_url) boxUrl = gRows[0].box_score_url;
-    } catch(e) {}
-  }
-
-  if (boxUrl) {
-    boxUrl = boxUrl.replace('https://www.wsccathletics.com', 'https://wsccathletics.com');
-    statusEl.textContent = 'Fetching box score...';
-    try {
-      var edgeUrl = SUPABASE_URL + '/functions/v1/fetch-boxscore?url=' + encodeURIComponent(boxUrl);
-      var resp = await fetch(edgeUrl, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
-      var data = await resp.json();
-      window._boxScoreData = data;
-      if (data && data.pitching) {
-        var names = Object.keys(data.pitching);
-        statusEl.textContent = '✓ Box score loaded — ' + names.length + ' pitcher(s) found';
-      } else {
-        statusEl.textContent = 'Box score fetched but no pitching data found. Upload PDF manually.';
-      }
-    } catch(err) {
-      statusEl.textContent = 'Auto-fetch failed. Upload PDF manually.';
-    }
-  } else {
-    statusEl.textContent = 'No box score URL on file. Upload PDF manually.';
-  }
+  statusEl.textContent = 'Upload PDF box score to add IP/ER stats (optional).';
 });
 
 document.getElementById('pitcherSelect').addEventListener('change', function() {
@@ -529,7 +448,7 @@ document.getElementById('pdfFile').addEventListener('change', function() {
       var joined = allItems.join(' ');
       var oppMatch = joined.match(/^([A-Za-z\s]+?)\s+vs\.\s+Walters State/);
       pdfOpponent = oppMatch ? oppMatch[1].trim() : '';
-      document.getElementById('pdfStatus').textContent = '✓ Box score loaded (' + allItems.length + ' items)';
+      document.getElementById('pdfStatus').textContent = '\u2713 Box score loaded (' + allItems.length + ' items)';
     } catch(err) {
       document.getElementById('pdfStatus').textContent = 'Error: ' + err.message;
     }
@@ -538,13 +457,6 @@ document.getElementById('pdfFile').addEventListener('change', function() {
 });
 
 function extractPitcherStats(lastName) {
-  if (window._boxScoreData && window._boxScoreData.pitching && lastName) {
-    var pitching = window._boxScoreData.pitching;
-    var key = Object.keys(pitching).find(function(k) {
-      return k.toLowerCase().indexOf(lastName.toLowerCase()) > -1;
-    });
-    if (key) return pitching[key];
-  }
   if (!window._pdfItems || !lastName) return null;
   var text = window._pdfItems.join(' ');
   var namePat = new RegExp('\\b' + lastName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
@@ -583,7 +495,7 @@ async function generate() {
 
     var pitchData = rows.map(function(r) {
       return {
-        type: TYPE_MAP[r.TaggedPitchType] || r.TaggedPitchType || 'Other',
+        type: (function(t,a){var raw=(!t||t==='Undefined')?a:t;return TYPE_MAP[raw]||raw||'Other';})(r.TaggedPitchType,r.AutoPitchType),
         bs:   r.BatterSide,
         x:    parseFloat(r.PlateLocSide)     || 0,
         y:    parseFloat(r.PlateLocHeight)   || 0,
@@ -602,24 +514,33 @@ async function generate() {
     var np    = pitchData.length;
     var allS  = pitchData.filter(function(d) { return ['Strike','Whiff','InPlay','Foul'].indexOf(d.call)>-1; }).length;
     var allW  = pitchData.filter(function(d) { return d.call==='Whiff'; }).length;
-    var strPct = np > 0 ? (allS/np*100).toFixed(1)+'%' : '—';
+    var strPct = np > 0 ? (allS/np*100).toFixed(1)+'%' : '\u2014';
     var paVal  = rows.filter(function(r) { return r.PitchofPA==='1'; }).length;
 
     var hand = rows[0].PitcherThrows || 'R';
     var handStr = (hand==='Left'||hand==='L') ? 'LHP' : 'RHP';
-    var date = rows[0].Date || '—';
+    var date = rows[0].Date || '\u2014';
 
-    // Determine if WS or opponent pitcher
-    var selOpt = document.getElementById('pitcherSelect').options[document.getElementById('pitcherSelect').selectedIndex];
-    var isOpp  = selOpt && selOpt.getAttribute('data-team') === 'opp';
+    // Determine team from pitch data — the ground truth
+    var pitcherTeamRaw = rows[0].PitcherTeam || '';
+    var isOpp = pitcherTeamRaw.toLowerCase().indexOf('wal') === -1;
     var pitcherTeamLabel = isOpp
-      ? (selOpt.getAttribute('data-team-label') || 'Opponent')
+      ? (pitcherTeamRaw.replace(/_\d+$/,'').replace(/_/g,' ').trim() || 'Opponent')
       : 'Walters State CC';
 
-    // For WS pitcher: opponent = BatterTeam. For opp pitcher: opponent = WS
-    var opp = pdfOpponent || (rows[0].BatterTeam||'').replace(/_\d+$/,'').replace(/_/g,' ').trim();
+    var opp = pdfOpponent;
+    if (!opp) {
+      try {
+        var gRows = await supaFetch('games?select=display_name&game_id=eq.' + encodeURIComponent(gameId));
+        if (gRows && gRows[0] && gRows[0].display_name) {
+          opp = gRows[0].display_name.replace(/\s*(Game|Midweek)\s*\d*$/i,'').trim();
+        }
+      } catch(e) {}
+    }
+    if (!opp) opp = (rows[0].BatterTeam||'').replace(/_\d+$/,'').replace(/_/g,' ').trim() || 'Opponent';
+
     var gameLabel = isOpp
-      ? date + ' — ' + pitcherTeamLabel + ' vs Walters State'
+      ? date + ' \u2014 ' + pitcherTeamLabel + ' vs Walters State'
       : date + ' vs ' + opp;
 
     var innings = Array.from(new Set(rows.map(function(r){return parseInt(r.Inning);}).filter(function(n){return !isNaN(n);})));
@@ -637,14 +558,14 @@ async function generate() {
     document.getElementById('cardGameLine').textContent = gameLabel;
     document.getElementById('cFootL').textContent       = '\u26be ' + (isOpp ? 'vs Walters State' : opp) + ' (' + role + ')';
     document.getElementById('cFootC').textContent       = 'Data: TrackMan \u00b7 Walters State CC \u00b7 ' + date;
-    document.getElementById('cIP').textContent  = bs ? bs.ip  : '—';
+    document.getElementById('cIP').textContent  = bs ? bs.ip  : '\u2014';
     document.getElementById('cNP').textContent  = np;
     document.getElementById('cPA').textContent  = bs ? bs.pa  : paVal;
-    document.getElementById('cER').textContent  = bs ? bs.er  : '—';
-    document.getElementById('cH').textContent   = bs ? bs.h   : '—';
-    document.getElementById('cK').textContent   = bs ? bs.k   : '—';
-    document.getElementById('cBB').textContent  = bs ? bs.bb  : '—';
-    document.getElementById('cHBP').textContent = bs ? bs.hbp : '—';
+    document.getElementById('cER').textContent  = bs ? bs.er  : '\u2014';
+    document.getElementById('cH').textContent   = bs ? bs.h   : '\u2014';
+    document.getElementById('cK').textContent   = bs ? bs.k   : '\u2014';
+    document.getElementById('cBB').textContent  = bs ? bs.bb  : '\u2014';
+    document.getElementById('cHBP').textContent = bs ? bs.hbp : '\u2014';
     document.getElementById('cSP').textContent  = strPct;
     document.getElementById('cWH').textContent  = allW;
 
@@ -669,8 +590,8 @@ async function generate() {
     }, 80);
 
     document.getElementById('statusMsg').textContent = bs
-      ? '✓ Card generated! (IP='+bs.ip+', ER='+bs.er+')'
-      : '✓ Card generated (no PDF stats found — check pitcher name matches box score)';
+      ? '\u2713 Card generated! (IP='+bs.ip+', ER='+bs.er+')'
+      : '\u2713 Card generated (no PDF stats found \u2014 check pitcher name matches box score)';
 
   } catch(e) {
     document.getElementById('statusMsg').textContent = 'Error: '+e.message;
@@ -727,7 +648,7 @@ function buildPitchTable(data, types) {
   var tr=document.createElement('tr'); tr.className='total-row';
   tr.innerHTML=
     '<td class="pname">All</td><td>'+total+'</td><td>100%</td>'+
-    '<td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>'+
+    '<td>\u2014</td><td>\u2014</td><td>\u2014</td><td>\u2014</td><td>\u2014</td><td>\u2014</td><td>\u2014</td><td>\u2014</td>'+
     '<td>'+(allZ/total*100).toFixed(1)+'%</td>'+
     '<td>'+(allW/total*100).toFixed(1)+'%</td>'+
     '<td>'+(allSt/total*100).toFixed(1)+'%</td>';
@@ -801,8 +722,8 @@ function drawBrk(id,data){
   ctx.setLineDash([]);
   var fs=Math.max(7,W*0.045);
   ctx.fillStyle='#666';ctx.font=fs+'px Barlow Condensed,sans-serif';ctx.textAlign='center';
-  ctx.fillText('← Glove',mx(-13),H-4);
-  ctx.fillText('Arm →',mx(13),H-4);
+  ctx.fillText('\u2190 Glove',mx(-13),H-4);
+  ctx.fillText('Arm \u2192',mx(13),H-4);
   ctx.save();ctx.translate(10,my(5));ctx.rotate(-Math.PI/2);
   ctx.fillText('iVB (in)',0,0);ctx.restore();
   ctx.font=Math.max(6,W*0.038)+'px Barlow,sans-serif';ctx.fillStyle='#aaa';
@@ -831,11 +752,11 @@ async function saveCardImage(){
     if(isIOS()){
       document.getElementById('modalImg').src=dataUrl;
       document.getElementById('imgModal').classList.add('active');
-      status.textContent='✓ Long-press the image to save to Photos.';
+      status.textContent='\u2713 Long-press the image to save to Photos.';
     } else {
       var link=document.createElement('a');
       link.download=fileName;link.href=dataUrl;link.click();
-      status.textContent='✓ Image saved!';
+      status.textContent='\u2713 Image saved!';
     }
   }catch(err){status.textContent='Error: '+err.message;}
   btn.disabled=false;
