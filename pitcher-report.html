@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -189,6 +188,7 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
   <div class="file-btn-wrap">
     <label>Step 2 &mdash; Box Score</label>
     <div class="file-status" id="pdfStatus">Upload PDF box score to add IP/ER stats (optional).</div>
+    <button id="fetchUrlBtn" onclick="fetchBoxScoreUrl()" style="display:none;margin-top:8px;width:100%;padding:9px;background:#2a8a4a;border:none;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;letter-spacing:.5px;">&#x21BB; Fetch Box Score URL</button>
     <div style="margin-top:8px;font-size:11px;color:#999;">Or upload PDF manually:</div>
     <input type="file" id="pdfFile" accept="*/*" style="margin-top:4px;">
   </div>
@@ -202,8 +202,7 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
     </select>
   </div>
 
-<button class="gen-btn" id="generateBtn" disabled onclick="generate()">GENERATE CARD</button>
-
+  <button class="gen-btn" id="generateBtn" disabled onclick="generate()">GENERATE CARD</button>
   <div class="status-msg" id="statusMsg"></div>
 </div>
 
@@ -422,7 +421,18 @@ document.getElementById('gameSelect').addEventListener('change', async function(
     psel.innerHTML = '<option>Error loading pitchers</option>';
   }
 
-  statusEl.textContent = 'Upload PDF box score to add IP/ER stats (optional).';
+  // Check if box score URL exists; show fetch button if not
+  var selectedOpt = document.getElementById('gameSelect').options[document.getElementById('gameSelect').selectedIndex];
+  var boxUrl = selectedOpt ? selectedOpt.getAttribute('data-url') : '';
+  var fetchBtn = document.getElementById('fetchUrlBtn');
+  if (boxUrl) {
+    statusEl.textContent = 'Auto-fetching box score...';
+    fetchBtn.style.display = 'none';
+    tryAutoFetch(gameId, boxUrl, statusEl);
+  } else {
+    statusEl.textContent = 'No box score URL on file. Upload PDF or click Fetch.';
+    fetchBtn.style.display = 'block';
+  }
 });
 
 document.getElementById('pitcherSelect').addEventListener('change', function() {
@@ -549,7 +559,7 @@ async function generate() {
     var lastName = pitcherRaw;
     if (lastName.indexOf(',')>-1) lastName=lastName.split(',')[0].trim();
     else lastName=lastName.split(' ').pop();
-    var bs = extractPitcherStats(lastName);
+    var bs = extractPitcherStatsFromEdge(lastName) || extractPitcherStats(lastName);
 
     var displayName = flipName(pitcherRaw);
 
@@ -589,9 +599,10 @@ async function generate() {
       document.getElementById('card').scrollIntoView({behavior:'smooth'});
     }, 80);
 
+    var bsSrc = extractPitcherStatsFromEdge(lastName) ? 'auto-fetched' : (window._pdfItems ? 'PDF' : null);
     document.getElementById('statusMsg').textContent = bs
-      ? '\u2713 Card generated! (IP='+bs.ip+', ER='+bs.er+')'
-      : '\u2713 Card generated (no PDF stats found \u2014 check pitcher name matches box score)';
+      ? '\u2713 Card generated! (IP='+bs.ip+', ER='+bs.er+(bsSrc?' · source: '+bsSrc:'')+' )'
+      : '\u2713 Card generated (no box score stats — upload PDF or check URL in Supabase)';
 
   } catch(e) {
     document.getElementById('statusMsg').textContent = 'Error: '+e.message;
@@ -767,8 +778,78 @@ function closeModal(e){
     document.getElementById('imgModal').classList.remove('active');
 }
 
+
+async function fetchBoxScoreUrl() {
+  var gameId = document.getElementById('gameSelect').value;
+  if (!gameId) return;
+  var statusEl = document.getElementById('pdfStatus');
+  var btn = document.getElementById('fetchUrlBtn');
+  btn.textContent = 'Fetching...';
+  btn.disabled = true;
+  // Extract date from gameId (first 8 chars YYYYMMDD)
+  var dateRaw = gameId.substring(0, 8);
+  var normDate = dateRaw.substring(0,4) + '-' + dateRaw.substring(4,6) + '-' + dateRaw.substring(6,8);
+  try {
+    var res = await fetch('https://mghrapwhvihpwgqryail.supabase.co/functions/v1/fetch-schedule-url', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date: normDate, game_id: gameId })
+    });
+    var data = await res.json();
+    if (data && data.url) {
+      // Save to Supabase games table
+      await fetch(SUPABASE_URL + '/rest/v1/games', {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal,resolution=merge-duplicates' },
+        body: JSON.stringify([{ game_id: gameId, box_score_url: data.url }])
+      });
+      statusEl.textContent = 'Auto-fetching box score...';
+      btn.style.display = 'none';
+      tryAutoFetch(gameId, data.url, statusEl);
+    } else {
+      statusEl.textContent = 'Could not find box score URL — upload PDF manually.';
+      btn.textContent = '\u21BB Fetch Box Score URL';
+      btn.disabled = false;
+    }
+  } catch(e) {
+    statusEl.textContent = 'Fetch error: ' + e.message;
+    btn.textContent = '\u21BB Fetch Box Score URL';
+    btn.disabled = false;
+  }
+}
+
+
+// ── Auto-fetch box score from Edge Function ───────────────────────────────
+async function tryAutoFetch(gameId, boxUrl, statusEl) {
+  try {
+    var edgeUrl = SUPABASE_URL + '/functions/v1/fetch-boxscore?url=' + encodeURIComponent(boxUrl);
+    var resp = await fetch(edgeUrl, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
+    var data = await resp.json();
+    if (data && data.pitching && Object.keys(data.pitching).length > 0) {
+      window._boxScoreData = data;
+      statusEl.textContent = '✓ Box score loaded (' + Object.keys(data.pitching).length + ' pitcher(s))';
+    } else {
+      window._boxScoreData = null;
+      statusEl.textContent = 'Box score fetched but no pitching data found — upload PDF manually.';
+    }
+  } catch(e) {
+    window._boxScoreData = null;
+    statusEl.textContent = 'Auto-fetch failed — upload PDF manually.';
+  }
+}
+
+// ── Extract pitcher stats: edge function data first, fall back to PDF ─────
+function extractPitcherStatsFromEdge(lastName) {
+  if (!window._boxScoreData || !window._boxScoreData.pitching) return null;
+  var p = window._boxScoreData.pitching;
+  // Try exact last name match
+  if (p[lastName]) return p[lastName];
+  // Try case-insensitive
+  var key = Object.keys(p).find(function(k) { return k.toLowerCase() === lastName.toLowerCase(); });
+  return key ? p[key] : null;
+}
+
 loadGames();
 </script>
-
 </body>
 </html>
