@@ -394,38 +394,20 @@ document.getElementById('gameSelect').addEventListener('change', async function(
       var edgeUrl = SUPABASE_URL + '/functions/v1/fetch-boxscore?url=' + encodeURIComponent(boxUrl);
       var resp = await fetch(edgeUrl, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
       var data = await resp.json();
-      window._boxScoreData = data;
-      if (data && data.pitching) {
-        document.getElementById('pdfStatus').textContent = '✓ Box score auto-loaded';
-        boxScoreText = JSON.stringify(data);
-      } else {
-        document.getElementById('pdfStatus').textContent = 'Auto-fetch found no data — upload PDF manually';
-      }
-    } catch(err) {
-      document.getElementById('pdfStatus').textContent = 'Auto-fetch failed — upload PDF manually';
-    }
-  // Auto-fetch box score when game has a URL
-  var gd2 = window._gameData && window._gameData[gameId];
-  var boxUrl = gd2 && gd2.box_score_url ? gd2.box_score_url : '';
-  if (boxUrl) {
-    document.getElementById('pdfStatus').textContent = 'Fetching box score...';
-    try {
-      var edgeUrl = SUPABASE_URL + '/functions/v1/fetch-boxscore?url=' + encodeURIComponent(boxUrl);
-      var resp = await fetch(edgeUrl, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
-      var data = await resp.json();
       if (data && data.batting && Object.keys(data.batting).length > 0) {
         window._edgeBatting = data.batting;
         document.getElementById('pdfStatus').textContent = '\u2713 Box score auto-loaded';
       } else {
         window._edgeBatting = null;
-        document.getElementById('pdfStatus').textContent = 'Box score fetched but no data \u2014 upload PDF if needed.';
+        document.getElementById('pdfStatus').textContent = 'No batting data found \u2014 upload PDF if needed.';
       }
-    } catch(e) {
+    } catch(err) {
       window._edgeBatting = null;
-      document.getElementById('pdfStatus').textContent = 'Tap to upload \u2014 or auto-fetched when available';
+      document.getElementById('pdfStatus').textContent = 'Auto-fetch failed \u2014 upload PDF manually';
     }
   } else {
     window._edgeBatting = null;
+    document.getElementById('pdfStatus').textContent = 'No box score URL on file \u2014 upload PDF manually';
   }
 });
 
