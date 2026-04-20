@@ -611,7 +611,7 @@ async function generate() {
     document.getElementById('cFootC').textContent       = 'Data: TrackMan \u00b7 Walters State CC \u00b7 ' + date;
     document.getElementById('cIP').textContent  = bs ? bs.ip  : '\u2014';
     document.getElementById('cNP').textContent  = np;
-    document.getElementById('cPA').textContent  = bs ? bs.pa  : paVal;
+    document.getElementById('cPA').textContent  = bs && bs.bf ? bs.bf : paVal;
     document.getElementById('cER').textContent  = bs ? bs.er  : '\u2014';
     document.getElementById('cH').textContent   = bs ? bs.h   : '\u2014';
     document.getElementById('cK').textContent   = bs ? bs.k   : '\u2014';
