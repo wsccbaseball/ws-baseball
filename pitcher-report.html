@@ -260,11 +260,11 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
   <div class="game-line" id="cardGameLine">&#8212;</div>
   <div class="stat-table-wrap">
     <table class="stat-table">
-      <thead><tr><th>IP</th><th>NP</th><th>PA</th><th>ER</th><th>H</th><th>K</th><th>BB</th><th>HBP</th><th>Strike%</th><th>Whiffs</th></tr></thead>
+      <thead><tr><th>IP</th><th>NP</th><th>PA</th><th>ER</th><th>H</th><th>K</th><th>BB</th><th>HBP</th><th>Strike%</th><th>Whiffs</th><th>WEGS</th></tr></thead>
       <tbody><tr>
         <td id="cIP">&#8212;</td><td id="cNP">&#8212;</td><td id="cPA">&#8212;</td><td id="cER">&#8212;</td>
         <td id="cH">&#8212;</td><td id="cK">&#8212;</td><td id="cBB">&#8212;</td><td id="cHBP">&#8212;</td>
-        <td id="cSP">&#8212;</td><td id="cWH">&#8212;</td>
+        <td id="cSP">&#8212;</td><td id="cWH">&#8212;</td><td id="cWEGS">&#8212;</td>
       </tr></tbody>
     </table>
   </div>
@@ -620,6 +620,15 @@ async function generate() {
     document.getElementById('cHBP').textContent = bs ? bs.hbp : '\u2014';
     document.getElementById('cSP').textContent  = strPct;
     document.getElementById('cWH').textContent  = allW;
+
+    // WEGS = 38 + 2×Outs + K – 2×BB – 2×H – 3×ER – 6×HR + 0.5×Whiffs
+    var wegs = '\u2014';
+    if (bs) {
+      var outs = bs.ip ? (function(ip){ var p=String(ip).split('.'); return parseInt(p[0]||0)*3+parseInt(p[1]||0); })(bs.ip) : 0;
+      var wegsVal = 38 + 2*outs + (bs.k||0) - 2*(bs.bb||0) - 2*(bs.h||0) - 3*(bs.er||0) - 6*(bs.hr||0) + 0.5*allW;
+      wegs = Math.round(wegsVal).toString();
+    }
+    document.getElementById('cWEGS').textContent = wegs;
 
     var types = Array.from(new Set(pitchData.map(function(d){return d.type;}))).filter(function(t){return TC[t];})
       .sort(function(a,b){return pitchData.filter(function(d){return d.type===b;}).length-pitchData.filter(function(d){return d.type===a;}).length;});
