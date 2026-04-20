@@ -789,24 +789,20 @@ function drawBrk(id,data){
     ctx.fillStyle=col+'44';ctx.fill();
     ctx.strokeStyle='rgba(0,0,0,0.08)';ctx.lineWidth=0.5;ctx.stroke();
   });
-  // Draw average movement dot per pitch type (larger, full color, white ring)
+  // Draw average movement dot per pitch type
   var types={};
   data.forEach(function(d){
     if(!types[d.type]) types[d.type]={hbSum:0,ivbSum:0,n:0};
     types[d.type].hbSum+=d.hb; types[d.type].ivbSum+=d.ivb; types[d.type].n++;
   });
-  var avgR=W*0.062;
+  var avgR=W*0.0495;
   Object.keys(types).forEach(function(t){
     var avg=types[t];
     var ax=mx(avg.hbSum/avg.n), ay=my(avg.ivbSum/avg.n);
     var col=TC[t]||'#888';
-    // White halo
-    ctx.beginPath();ctx.arc(ax,ay,avgR+2,0,Math.PI*2);
-    ctx.fillStyle='rgba(255,255,255,0.9)';ctx.fill();
-    // Colored fill
     ctx.beginPath();ctx.arc(ax,ay,avgR,0,Math.PI*2);
     ctx.fillStyle=col;ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,0.85)';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.strokeStyle='rgba(0,0,0,0.2)';ctx.lineWidth=0.8;ctx.stroke();
   });
 }
 
