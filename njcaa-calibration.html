@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NJCAA D1 GSv2 Calibration</title>
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Anton&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Barlow Condensed', sans-serif; background: #f2ead8; min-height: 100vh; padding: 16px 10px 40px; }
+.up-title { text-align: center; max-width: 560px; margin: 0 auto 14px; }
+.up-title h1 { font-family: 'Abril Fatface', serif; font-size: 1.6rem; color: #1a1a2e; line-height: 1.1; }
+.up-title p { font-style: italic; font-size: .9rem; color: #6b5f47; margin-top: .3rem; }
+.pb-banner { background: #1a1a2e; color: #f2ead8; font-family: 'Anton', sans-serif; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; padding: .3rem .75rem; max-width: 560px; margin: 0 auto; display: block; }
+.surface-card { background: #fffdf7; border: 1px solid #ddd5bc; border-top: none; padding: 12px 14px; max-width: 560px; margin: 0 auto 10px; }
+.field-group label { font-family: 'Anton', sans-serif; font-size: .65rem; color: #6b5f47; text-transform: uppercase; letter-spacing: .08em; display: block; margin-bottom: 4px; }
+.field-group input { width: 100%; padding: 9px 10px; border: 1px solid #ddd5bc; font-family: 'Barlow Condensed', sans-serif; font-size: .95rem; color: #1a1a2e; background: #fffdf7; }
+.run-btn { display: block; width: 100%; max-width: 560px; margin: 0 auto 6px; padding: 14px; background: #1a1a2e; border: none; font-family: 'Anton', sans-serif; font-size: 1.1rem; letter-spacing: .1em; text-transform: uppercase; color: #f2ead8; cursor: pointer; }
+.stop-btn { display: none; width: 100%; max-width: 560px; margin: 0 auto 6px; padding: 14px; background: #c0360a; border: none; font-family: 'Anton', sans-serif; font-size: 1.1rem; letter-spacing: .1em; text-transform: uppercase; color: #fff; cursor: pointer; }
+.clear-btn { display: block; width: 100%; max-width: 560px; margin: 0 auto 10px; padding: 8px; background: transparent; border: 1px solid #ddd5bc; font-family: 'Anton', sans-serif; font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: #9b8c74; cursor: pointer; }
+.results { display: none; max-width: 560px; margin: 16px auto 0; }
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding: 10px; }
+.stat-box { background: #f4f0e8; border: 1px solid #ddd5bc; padding: 10px; text-align: center; }
+.stat-box .val { font-family: 'Anton', sans-serif; font-size: 1.8rem; color: #1a1a2e; line-height: 1; }
+.stat-box .lbl { font-size: .62rem; color: #9b8c74; text-transform: uppercase; letter-spacing: .08em; margin-top: 3px; }
+.constant-box { background: #1a1a2e; padding: 20px; text-align: center; }
+.constant-box .val { font-family: 'Anton', sans-serif; font-size: 3.5rem; color: #f2ead8; line-height: 1; }
+.constant-box .lbl { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: #9b8c74; margin-top: 6px; }
+.constant-box .sub { font-size: .8rem; color: #9b8c74; margin-top: 8px; font-style: italic; }
+.log { background: #fffdf7; border: 1px solid #ddd5bc; padding: 10px; max-height: 240px; overflow-y: auto; font-size: .78rem; color: #6b5f47; font-family: 'Barlow Condensed', sans-serif; }
+.log-line { padding: 2px 0; border-bottom: 1px solid #f0e8d4; }
+.log-line.ok { color: #2a8a4a; }
+.log-line.err { color: #c0360a; }
+.log-line.info { color: #1a3a5c; font-weight: 700; }
+.progress-bar-wrap { background: #ddd5bc; height: 8px; max-width: 560px; margin: 0 auto 6px; }
+.progress-bar { height: 100%; background: #1a1a2e; width: 0%; transition: width 0.3s; }
+.status { font-size: .82rem; color: #6b5f47; max-width: 560px; margin: 0 auto 8px; text-align: center; font-style: italic; min-height: 1.2rem; }
+</style>
+</head>
+<body>
+
+<div class="up-title">
+  <h1>⚾ NJCAA D1 GSv2 Calibration</h1>
+  <p>Scrapes all NJCAA D1 baseball box scores to find the correct GSv2 constant for your league.</p>
+</div>
+
+<div class="pb-banner">Configuration</div>
+<div class="surface-card">
+  <div class="field-group" style="margin-bottom:10px;">
+    <label>NJCAA D1 Baseball Composite Schedule URL</label>
+    <input type="text" id="startUrl" value="https://njcaastats.prestosports.com/sports/bsb/2025-26/div1/composite">
+  </div>
+  <div class="field-group" style="margin-bottom:10px;">
+    <label>Delay Between Requests (ms) — 1500 recommended</label>
+    <input type="number" id="delay" value="1500" min="500" max="5000">
+  </div>
+  <div class="field-group">
+    <label>Proxy Edge Function URL</label>
+    <input type="text" id="edgeUrl" value="https://mghrapwhvihpwgqryail.supabase.co/functions/v1/fetch-njcaa-proxy">
+  </div>
+</div>
+
+<button class="run-btn" id="runBtn" onclick="startScrape()">Start Scrape</button>
+<button class="stop-btn" id="stopBtn" onclick="stopScrape()">Stop</button>
+<button class="clear-btn" onclick="clearProgress()">Clear Saved Progress &amp; Start Over</button>
+
+<div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+<div class="status" id="statusMsg">Ready to start.</div>
+
+<div class="results" id="results">
+  <div class="pb-banner">Results</div>
+  <div class="surface-card" style="padding:0;">
+    <div class="constant-box">
+      <div class="val" id="rConstant">—</div>
+      <div class="lbl">Recommended GSv2 Constant</div>
+      <div class="sub" id="rConstantSub">Replace 38 in the WEGS formula with this value</div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="val" id="rGames">—</div><div class="lbl">Games</div></div>
+      <div class="stat-box"><div class="val" id="rAppearances">—</div><div class="lbl">Appearances</div></div>
+      <div class="stat-box"><div class="val" id="rMeanRaw">—</div><div class="lbl">Mean Raw</div></div>
+    </div>
+  </div>
+  <div class="pb-banner" style="margin-top:10px;">Log</div>
+  <div class="log" id="log"></div>
+</div>
+
+<script>
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
+var running = false;
+var stats = { games:0, appearances:0, rawScoreSum:0 };
+var processedUrls = new Set();
+var allBoxScoreLinks = [];
+
+function loadProgress() {
+  try {
+    var saved = localStorage.getItem('njcaa_cal_v2');
+    if (saved) {
+      var d = JSON.parse(saved);
+      stats = d.stats || { games:0, appearances:0, rawScoreSum:0 };
+      processedUrls = new Set(d.processedUrls || []);
+      allBoxScoreLinks = d.allBoxScoreLinks || [];
+    }
+  } catch(e) {}
+}
+
+function saveProgress() {
+  try {
+    localStorage.setItem('njcaa_cal_v2', JSON.stringify({
+      stats: stats,
+      processedUrls: Array.from(processedUrls),
+      allBoxScoreLinks: allBoxScoreLinks
+    }));
+  } catch(e) {}
+}
+
+function clearProgress() {
+  if (running) return;
+  if (!confirm('Clear all saved progress and start over?')) return;
+  localStorage.removeItem('njcaa_cal_v2');
+  stats = { games:0, appearances:0, rawScoreSum:0 };
+  processedUrls = new Set();
+  allBoxScoreLinks = [];
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('log').innerHTML = '';
+  document.getElementById('progressBar').style.width = '0%';
+  document.getElementById('statusMsg').textContent = 'Cleared. Ready to start.';
+  document.getElementById('runBtn').textContent = 'Start Scrape';
+}
+
+function log(type, msg) {
+  var div = document.getElementById('log');
+  var line = document.createElement('div');
+  line.className = 'log-line ' + type;
+  line.textContent = new Date().toLocaleTimeString() + ' — ' + msg;
+  div.appendChild(line);
+  div.scrollTop = div.scrollHeight;
+}
+
+function updateResults() {
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('rGames').textContent = stats.games;
+  document.getElementById('rAppearances').textContent = stats.appearances;
+  var mean = stats.appearances > 0 ? (stats.rawScoreSum / stats.appearances).toFixed(1) : '—';
+  document.getElementById('rMeanRaw').textContent = mean;
+  if (stats.appearances > 0) {
+    var constant = Math.round(50 - stats.rawScoreSum / stats.appearances);
+    document.getElementById('rConstant').textContent = constant;
+    document.getElementById('rConstantSub').textContent =
+      'Based on ' + stats.appearances + ' appearances across ' + stats.games + ' games · mean raw: ' + mean;
+  }
+}
+
+async function fetchHtml(url) {
+  var edgeUrl = document.getElementById('edgeUrl').value.trim();
+  var resp = await fetch(edgeUrl + '?url=' + encodeURIComponent(url), {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+  });
+  var data = await resp.json();
+  if (data.error) throw new Error(data.error);
+  return data.html || '';
+}
+
+function sleep(ms) { return new Promise(function(r){ setTimeout(r,ms); }); }
+
+function extractBoxScoreLinks(html, baseUrl) {
+  var links = [];
+  var base = new URL(baseUrl);
+  function resolve(href) {
+    if (href.startsWith('http')) return href;
+    return base.origin + (href.startsWith('/') ? href : '/' + href);
+  }
+  // Baseball-only: must contain /sports/bsb/
+  var re1 = /href="([^"]*\/sports\/bsb\/[^"]*\/boxscores\/[^"]+\.xml[^"]*)"/gi;
+  var m;
+  while ((m = re1.exec(html)) !== null) {
+    var u = resolve(m[1]);
+    if (!u.includes('tmpl=')) u += (u.includes('?') ? '&' : '?') + 'tmpl=bsxml-monospace-template';
+    if (!links.includes(u)) links.push(u);
+  }
+  var re2 = /href="([^"]*\/sports\/bsb\/[^"]*\/boxscores\/[^"]+\.htm[^"]*)"/gi;
+  while ((m = re2.exec(html)) !== null) {
+    var u2 = resolve(m[1]);
+    if (!links.includes(u2)) links.push(u2);
+  }
+  return links;
+}
+
+function extractPaginationLinks(html, baseUrl) {
+  var links = [];
+  var base = new URL(baseUrl);
+  var re = /href="([^"]*composite[^"]*(?:[?&](?:page|start)=\d+)[^"]*)"/gi;
+  var m;
+  while ((m = re.exec(html)) !== null) {
+    var href = m[1].startsWith('http') ? m[1] : base.origin + m[1];
+    if (!links.includes(href) && href !== baseUrl) links.push(href);
+  }
+  return links;
+}
+
+function parsePitchingLines(html) {
+  var appearances = [];
+  function stripTags(s) {
+    return s.replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ')
+            .replace(/&#160;/g,' ').replace(/\s+/g,' ').trim();
+  }
+  var allRows = (html.match(/<tr[^>]*>[\s\S]*?<\/tr>/gi)||[]).map(function(r){
+    return (r.match(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/gi)||[]).map(function(c){return stripTags(c);});
+  }).filter(function(r){return r.length>=2;});
+
+  var inPitching = false;
+  for (var i=0; i<allRows.length; i++) {
+    var row = allRows[i];
+    if (row[1] && /^ip$/i.test(row[1].trim()) && row.length>5) { inPitching=true; continue; }
+    if (row[0] && /^player$/i.test(row[0].trim()) && row.some(function(c){return /^ab$/i.test(c.trim());})) { inPitching=false; continue; }
+    if (!inPitching || row.length<7) continue;
+    var name = row[0].replace(/\([^)]+\)/g,'').trim();
+    if (!name || /totals/i.test(name)) continue;
+    if (!/^\d+\.\d$/.test((row[1]||'').trim())) continue;
+    var g = function(idx){ return parseInt(row[idx]||'0')||0; };
+    var ipParts = row[1].split('.');
+    var outs = parseInt(ipParts[0]||0)*3 + parseInt(ipParts[1]||0);
+    // raw GSv2 = 2*outs + K - 2*BB - 2*H - 3*R - 6*HR (no constant)
+    var raw = 2*outs + g(6) - 2*g(5) - 2*g(2) - 3*g(3) - 6*g(7);
+    appearances.push(raw);
+  }
+  return appearances;
+}
+
+async function startScrape() {
+  running = true;
+  document.getElementById('runBtn').style.display = 'none';
+  document.getElementById('stopBtn').style.display = 'block';
+  loadProgress();
+  updateResults();
+
+  var startUrl = document.getElementById('startUrl').value.trim();
+  var delay = parseInt(document.getElementById('delay').value)||1500;
+
+  // Phase 1: Collect box score links from composite page
+  if (allBoxScoreLinks.length === 0) {
+    log('info', 'Phase 1: Fetching composite schedule...');
+    document.getElementById('statusMsg').textContent = 'Fetching composite schedule...';
+    try {
+      var html = await fetchHtml(startUrl);
+      allBoxScoreLinks = extractBoxScoreLinks(html, startUrl);
+      log('info', allBoxScoreLinks.length + ' box score links found on main page.');
+
+      // Check for pagination
+      var pageLinks = extractPaginationLinks(html, startUrl);
+      if (pageLinks.length > 0) {
+        log('info', pageLinks.length + ' pagination pages found — fetching...');
+        for (var p=0; p<pageLinks.length && running; p++) {
+          await sleep(delay);
+          try {
+            var ph = await fetchHtml(pageLinks[p]);
+            var pl = extractBoxScoreLinks(ph, pageLinks[p]);
+            pl.forEach(function(l){ if (!allBoxScoreLinks.includes(l)) allBoxScoreLinks.push(l); });
+            log('ok', 'Page ' + (p+1) + ': +' + pl.length + ' links (' + allBoxScoreLinks.length + ' total).');
+          } catch(e) { log('err', 'Pagination: ' + e.message); }
+        }
+      }
+
+      saveProgress();
+      if (allBoxScoreLinks.length === 0) {
+        log('err', 'No box score links found. The page may use JavaScript rendering.');
+        log('err', 'Open the URL in a browser and check "View Source" for box score links.');
+        running = false;
+        document.getElementById('runBtn').style.display = 'block';
+        document.getElementById('stopBtn').style.display = 'none';
+        document.getElementById('statusMsg').textContent = 'No links found — see log.';
+        return;
+      }
+      log('info', 'Total: ' + allBoxScoreLinks.length + ' box scores to process.');
+    } catch(e) {
+      log('err', 'Error fetching composite page: ' + e.message);
+      running = false;
+      document.getElementById('runBtn').style.display = 'block';
+      document.getElementById('stopBtn').style.display = 'none';
+      document.getElementById('statusMsg').textContent = 'Error — see log.';
+      return;
+    }
+    await sleep(delay);
+  } else {
+    log('info', 'Resuming with ' + allBoxScoreLinks.length + ' URLs (' + processedUrls.size + ' already done).');
+  }
+
+  // Phase 2: Process each box score
+  log('info', 'Phase 2: Processing box scores...');
+  var processed = 0;
+
+  for (var j=0; j<allBoxScoreLinks.length && running; j++) {
+    var boxUrl = allBoxScoreLinks[j];
+    if (processedUrls.has(boxUrl)) { processed++; continue; }
+
+    try {
+      var boxHtml = await fetchHtml(boxUrl);
+      var appearances = parsePitchingLines(boxHtml);
+      if (appearances.length > 0) {
+        stats.games++;
+        stats.appearances += appearances.length;
+        stats.rawScoreSum += appearances.reduce(function(a,b){return a+b;},0);
+        log('ok', 'Game ' + stats.games + ': ' + appearances.length + ' app · raw [' + appearances.join(', ') + ']');
+      }
+    } catch(e) {
+      log('err', boxUrl.split('/').pop().split('?')[0] + ' — ' + e.message);
+    }
+
+    processedUrls.add(boxUrl);
+    processed++;
+    document.getElementById('progressBar').style.width = (processed/allBoxScoreLinks.length*100) + '%';
+    document.getElementById('statusMsg').textContent =
+      processed + ' / ' + allBoxScoreLinks.length + ' · ' + stats.appearances + ' appearances · ' + stats.games + ' games';
+
+    updateResults();
+    if (processed % 20 === 0) saveProgress();
+    await sleep(delay);
+  }
+
+  saveProgress();
+  running = false;
+  document.getElementById('runBtn').style.display = 'block';
+  document.getElementById('stopBtn').style.display = 'none';
+
+  if (processed >= allBoxScoreLinks.length) {
+    log('info', '✓ Complete! ' + stats.appearances + ' appearances across ' + stats.games + ' games.');
+    document.getElementById('progressBar').style.width = '100%';
+    document.getElementById('statusMsg').textContent = 'Complete!';
+    document.getElementById('runBtn').textContent = 'Done';
+  } else {
+    document.getElementById('statusMsg').textContent = 'Stopped. Progress saved.';
+    document.getElementById('runBtn').textContent = 'Resume';
+  }
+  updateResults();
+}
+
+function stopScrape() { running = false; }
+
+window.addEventListener('load', function() {
+  loadProgress();
+  if (stats.appearances > 0 || allBoxScoreLinks.length > 0) {
+    updateResults();
+    document.getElementById('runBtn').textContent = 'Resume Scrape';
+    log('info', 'Saved progress: ' + allBoxScoreLinks.length + ' URLs, ' + stats.appearances + ' appearances.');
+  }
+});
+</script>
+</body>
+</html>
