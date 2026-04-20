@@ -795,7 +795,7 @@ function drawBrk(id,data){
     if(!types[d.type]) types[d.type]={hbSum:0,ivbSum:0,n:0};
     types[d.type].hbSum+=d.hb; types[d.type].ivbSum+=d.ivb; types[d.type].n++;
   });
-  var avgR=W*0.0495;
+  var avgR=W*0.0413;
   Object.keys(types).forEach(function(t){
     var avg=types[t];
     var ax=mx(avg.hbSum/avg.n), ay=my(avg.ivbSum/avg.n);
