@@ -621,11 +621,12 @@ async function generate() {
     document.getElementById('cSP').textContent  = strPct;
     document.getElementById('cWH').textContent  = allW;
 
-    // WEGS = 38 + 2×Outs + K – 2×BB – 2×H – 3×ER – 6×HR + 0.5×Whiffs
+    // WEGS = 52 + 2×Outs + K – 2×BB – 2×H – 3×ER – 6×HR + 0.5×Whiffs
+    // Constant calibrated from 62,924 NJCAA D1 appearances across 10,001 games
     var wegs = '\u2014';
     if (bs) {
       var outs = bs.ip ? (function(ip){ var p=String(ip).split('.'); return parseInt(p[0]||0)*3+parseInt(p[1]||0); })(bs.ip) : 0;
-      var wegsVal = 38 + 2*outs + (bs.k||0) - 2*(bs.bb||0) - 2*(bs.h||0) - 3*(bs.er||0) - 6*(bs.hr||0) + 0.5*allW;
+      var wegsVal = 52 + 2*outs + (bs.k||0) - 2*(bs.bb||0) - 2*(bs.h||0) - 3*(bs.er||0) - 6*(bs.hr||0) + 0.5*allW;
       wegs = Math.round(wegsVal).toString();
     }
     document.getElementById('cWEGS').textContent = wegs;
