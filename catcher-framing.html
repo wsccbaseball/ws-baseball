@@ -37,9 +37,9 @@ body.results-mode { background:#f2ead8; color:#1a1a2e; font-family:‘Barlow Con
 .legend { margin-bottom:1rem; font-size:.8rem; color:#6b5f47; font-family:‘Barlow Condensed’,sans-serif; }
 .dot { width:9px; height:9px; border-radius:50%; display:inline-block; margin-right:3px; vertical-align:middle; }
 .ccard { background:#fffdf7; border:1px solid #ddd5bc; border-top:3px solid #1a1a2e; overflow:hidden; margin-bottom:1.2rem; }
-.ccard-head { background:#1a3a5c; padding:.9rem 1.1rem; border-bottom:1px solid #ddd5bc; display:flex; align-items:center; justify-content:space-between; }
-.cname { font-family:‘Abril Fatface’,serif; font-size:1.5rem; color:#fff; letter-spacing:.02em; }
-.cpitches { font-size:.75rem; color:rgba(255,255,255,0.6); margin-top:.1rem; font-family:‘Barlow Condensed’,sans-serif; font-style:italic; }
+.ccard-head { background:#1a1a2e; padding:.9rem 1.1rem; border-bottom:1px solid #ddd5bc; display:flex; align-items:center; justify-content:space-between; }
+.cname { font-family:‘Abril Fatface’,serif; font-size:1.5rem; color:#f2ead8; letter-spacing:.02em; }
+.cpitches { font-size:.75rem; color:rgba(242,234,216,0.55); margin-top:.1rem; font-family:‘Barlow Condensed’,sans-serif; font-style:italic; }
 .score-badge { font-family:‘Anton’,sans-serif; font-size:1.6rem; padding:.2rem .6rem; letter-spacing:.05em; }
 .score-g { background:rgba(42,138,74,0.12); color:#2a8a4a; border:1px solid rgba(42,138,74,0.3); }
 .score-r { background:rgba(192,54,10,0.10); color:#c0360a; border:1px solid rgba(192,54,10,0.3); }
@@ -248,7 +248,7 @@ function drawZone(id,pts,medTop,medBot){
   ctx.restore();
   ctx.strokeStyle='#1a3a5c';ctx.lineWidth=1.8;
   ctx.strokeRect(mx(-SZ_W),my(szTop),mx(SZ_W)-mx(-SZ_W),my(szBot)-my(szTop));
-  for(var i=0;i<pts.length;i++){var p=pts[i];ctx.beginPath();ctx.arc(mx(p.s),my(p.h),3.2,0,Math.PI*2);ctx.fillStyle=p.isStr?'rgba(63,185,80,0.75)':'rgba(248,81,73,0.65)';ctx.fill();}
+  for(var i=0;i<pts.length;i++){var p=pts[i];ctx.beginPath();ctx.arc(mx(p.s),my(p.h),3.2,0,Math.PI*2);ctx.fillStyle=p.isStr?'rgba(63,185,80,0.95)':'rgba(248,81,73,0.90)';ctx.fill();}
   ctx.fillStyle='#9b8c74';ctx.font='9px Barlow Condensed, sans-serif';ctx.textAlign='center';ctx.fillText("CATCHER'S VIEW",W/2,H-5);
 }
 
