@@ -574,9 +574,6 @@ async function generate() {
     // Determine team from pitch data — the ground truth
     var pitcherTeamRaw = rows[0].PitcherTeam || '';
     var isOpp = pitcherTeamRaw.toLowerCase().indexOf('wal') === -1;
-    var pitcherTeamLabel = isOpp
-      ? (pitcherTeamRaw.replace(/_\d+$/,'').replace(/_/g,' ').trim() || 'Opponent')
-      : 'Walters State CC';
 
     var opp = pdfOpponent;
     if (!opp) {
@@ -587,7 +584,11 @@ async function generate() {
         }
       } catch(e) {}
     }
+    if (!opp && window._boxScoreData && window._boxScoreData.opponent) opp = window._boxScoreData.opponent;
     if (!opp) opp = (rows[0].BatterTeam||'').replace(/_\d+$/,'').replace(/_/g,' ').trim() || 'Opponent';
+
+    // Use clean opp name for opponent pitcher team label
+    var pitcherTeamLabel = isOpp ? opp : 'Walters State CC';
 
     var gameLabel = isOpp
       ? date + ' \u2014 ' + pitcherTeamLabel + ' vs Walters State'
