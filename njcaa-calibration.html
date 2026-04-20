@@ -47,8 +47,8 @@ body { font-family: 'Barlow Condensed', sans-serif; background: #f2ead8; min-hei
 <div class="pb-banner">Configuration</div>
 <div class="surface-card">
   <div class="field-group" style="margin-bottom:10px;">
-    <label>NJCAA D1 Baseball Composite Schedule URL</label>
-    <input type="text" id="startUrl" value="https://njcaastats.prestosports.com/sports/bsb/2025-26/div1/composite">
+    <label>NJCAA D1 Baseball Teams Page URL</label>
+    <input type="text" id="startUrl" value="https://njcaastats.prestosports.com/sports/bsb/teams-page">
   </div>
   <div class="field-group" style="margin-bottom:10px;">
     <label>Delay Between Requests (ms) — 1500 recommended</label>
@@ -237,50 +237,71 @@ async function startScrape() {
   var startUrl = document.getElementById('startUrl').value.trim();
   var delay = parseInt(document.getElementById('delay').value)||1500;
 
-  // Phase 1: Collect box score links from composite page
+  // Phase 1: Collect box score links via teams page → schedule pages
   if (allBoxScoreLinks.length === 0) {
-    log('info', 'Phase 1: Fetching composite schedule...');
-    document.getElementById('statusMsg').textContent = 'Fetching composite schedule...';
+    log('info', 'Phase 1: Fetching NJCAA D1 teams page...');
+    document.getElementById('statusMsg').textContent = 'Fetching teams list...';
     try {
-      var html = await fetchHtml(startUrl);
-      allBoxScoreLinks = extractBoxScoreLinks(html, startUrl);
-      log('info', allBoxScoreLinks.length + ' box score links found on main page.');
+      var teamsHtml = await fetchHtml(startUrl);
 
-      // Check for pagination
-      var pageLinks = extractPaginationLinks(html, startUrl);
-      if (pageLinks.length > 0) {
-        log('info', pageLinks.length + ' pagination pages found — fetching...');
-        for (var p=0; p<pageLinks.length && running; p++) {
-          await sleep(delay);
-          try {
-            var ph = await fetchHtml(pageLinks[p]);
-            var pl = extractBoxScoreLinks(ph, pageLinks[p]);
-            pl.forEach(function(l){ if (!allBoxScoreLinks.includes(l)) allBoxScoreLinks.push(l); });
-            log('ok', 'Page ' + (p+1) + ': +' + pl.length + ' links (' + allBoxScoreLinks.length + ' total).');
-          } catch(e) { log('err', 'Pagination: ' + e.message); }
-        }
+      // Extract schedule links from data-schedule-url attributes
+      var scheduleLinks = [];
+      var re = /data-schedule-url="([^"]*)"/gi;
+      var m;
+      while ((m = re.exec(teamsHtml)) !== null) {
+        var href = m[1].replace('&amp;', '&').replace('&jsRendering=true', '');
+        if (!href.startsWith('http')) href = 'https://njcaastats.prestosports.com' + href;
+        if (!scheduleLinks.includes(href)) scheduleLinks.push(href);
       }
+      log('info', 'Found ' + scheduleLinks.length + ' team schedule pages.');
 
-      saveProgress();
-      if (allBoxScoreLinks.length === 0) {
-        log('err', 'No box score links found. The page may use JavaScript rendering.');
-        log('err', 'Open the URL in a browser and check "View Source" for box score links.');
+      if (scheduleLinks.length === 0) {
+        log('err', 'No schedule links found on teams page — it may be JavaScript-rendered.');
+        log('err', 'Open the URL in browser, View Source, and check if schedule links appear in the HTML.');
         running = false;
         document.getElementById('runBtn').style.display = 'block';
         document.getElementById('stopBtn').style.display = 'none';
         document.getElementById('statusMsg').textContent = 'No links found — see log.';
         return;
       }
-      log('info', 'Total: ' + allBoxScoreLinks.length + ' box scores to process.');
+
+      // Visit each team's schedule page and collect box score links
+      for (var s = 0; s < scheduleLinks.length && running; s++) {
+        var schedUrl = scheduleLinks[s];
+        document.getElementById('statusMsg').textContent =
+          'Collecting box scores: team ' + (s+1) + '/' + scheduleLinks.length;
+        document.getElementById('progressBar').style.width = (s / scheduleLinks.length * 30) + '%';
+        try {
+          var schedHtml = await fetchHtml(schedUrl);
+          var newLinks = extractBoxScoreLinks(schedHtml, schedUrl);
+          newLinks.forEach(function(l){ if (!allBoxScoreLinks.includes(l)) allBoxScoreLinks.push(l); });
+          log('ok', 'Team ' + (s+1) + ': +' + newLinks.length + ' box scores (' + allBoxScoreLinks.length + ' total)');
+        } catch(e) {
+          log('err', 'Schedule error (' + (s+1) + '): ' + e.message);
+        }
+        saveProgress();
+        await sleep(delay);
+      }
+
+      log('info', 'Total box scores found: ' + allBoxScoreLinks.length);
+      saveProgress();
+
+      if (allBoxScoreLinks.length === 0) {
+        log('err', 'No box score links found across all schedule pages.');
+        running = false;
+        document.getElementById('runBtn').style.display = 'block';
+        document.getElementById('stopBtn').style.display = 'none';
+        document.getElementById('statusMsg').textContent = 'No box scores found — see log.';
+        return;
+      }
     } catch(e) {
-      log('err', 'Error fetching composite page: ' + e.message);
+      log('err', 'Error in Phase 1: ' + e.message);
       running = false;
       document.getElementById('runBtn').style.display = 'block';
       document.getElementById('stopBtn').style.display = 'none';
       document.getElementById('statusMsg').textContent = 'Error — see log.';
       return;
     }
-    await sleep(delay);
   } else {
     log('info', 'Resuming with ' + allBoxScoreLinks.length + ' URLs (' + processedUrls.size + ' already done).');
   }
