@@ -151,27 +151,16 @@ margin-bottom: 3px;
 }
 .count-outer-grid {
 display: grid;
-grid-template-columns: 18px repeat(4, 1fr);
-gap: 3px;
+grid-template-columns: repeat(4, 1fr);
+grid-template-rows: repeat(3, 1fr);
+gap: 4px;
 flex: 1;
-}
-.count-col-hdr {
-font-family: ‘Barlow Condensed’, sans-serif;
-font-size: 8px; font-weight: 700; color: #7a8faa;
-text-align: center; line-height: 1;
-display: flex; align-items: center; justify-content: center;
-}
-.count-row-lbl {
-font-family: ‘Barlow Condensed’, sans-serif;
-font-size: 8px; font-weight: 700; color: #7a8faa;
-display: flex; align-items: center; justify-content: center;
-line-height: 1;
 }
 .count-cell {
 background: #f4f8fd;
 border: 1px solid #dde4ef;
 border-radius: 4px;
-padding: 2px 1px 2px;
+padding: 2px 2px 2px;
 display: flex; flex-direction: column; align-items: center;
 min-width: 0;
 }
@@ -180,12 +169,7 @@ font-family: ‘Barlow Condensed’, sans-serif;
 font-size: 8px; font-weight: 700; color: #1a3a5c;
 line-height: 1; margin-bottom: 1px;
 }
-.count-cell-n {
-font-family: ‘Barlow Condensed’, sans-serif;
-font-size: 7px; color: #9aa8bb;
-line-height: 1; margin-top: 1px;
-}
-.count-cell canvas { display: block; width: 100% !important; height: auto !important; }
+.count-cell canvas { display: block; width: 100% !important; height: auto !important; flex: 1; }
 
 /* ── Spray / EV ── */
 .ev-legend { display: flex; justify-content: center; align-items: center; gap: 8px; padding: 2px 4px; flex-wrap: wrap; }
