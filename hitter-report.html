@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -19,159 +20,203 @@ body {
 
 /* ── Upload screen ── */
 .up-title {
-  text-align: center;
-  max-width: 500px;
-  margin: 0 auto 12px;
+text-align: center;
+max-width: 500px;
+margin: 0 auto 12px;
 }
 .up-title h1 {
-  font-family: 'Abril Fatface', serif;
-  font-size: 2.2rem;
-  color: #1a1a2e;
-  line-height: 1;
-  letter-spacing: .02em;
+font-family: ‘Abril Fatface’, serif;
+font-size: 2.2rem;
+color: #1a1a2e;
+line-height: 1;
+letter-spacing: .02em;
 }
 .up-title p {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-style: italic;
-  font-size: .95rem;
-  color: #6b5f47;
-  margin-top: .3rem;
+font-family: ‘Barlow Condensed’, sans-serif;
+font-style: italic;
+font-size: .95rem;
+color: #6b5f47;
+margin-top: .3rem;
 }
 
 .pb-banner {
-  background: #1a1a2e;
-  color: #f2ead8;
-  font-family: 'Anton', sans-serif;
-  font-size: .68rem;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  padding: .3rem .75rem;
-  max-width: 500px;
-  margin: 0 auto;
-  display: block;
+background: #1a1a2e;
+color: #f2ead8;
+font-family: ‘Anton’, sans-serif;
+font-size: .68rem;
+letter-spacing: .12em;
+text-transform: uppercase;
+padding: .3rem .75rem;
+max-width: 500px;
+margin: 0 auto;
+display: block;
 }
 
 .surface-card {
-  background: #fffdf7;
-  border: 1px solid #ddd5bc;
-  border-top: none;
-  padding: 12px 14px;
-  max-width: 500px;
-  margin: 0 auto 10px;
+background: #fffdf7;
+border: 1px solid #ddd5bc;
+border-top: none;
+padding: 12px 14px;
+max-width: 500px;
+margin: 0 auto 10px;
 }
 
 .field-group label {
-  font-family: 'Anton', sans-serif;
-  font-size: .65rem;
-  color: #6b5f47;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  display: block;
-  margin-bottom: 4px;
+font-family: ‘Anton’, sans-serif;
+font-size: .65rem;
+color: #6b5f47;
+text-transform: uppercase;
+letter-spacing: .08em;
+display: block;
+margin-bottom: 4px;
 }
 .field-group select {
-  width: 100%; padding: 9px 10px;
-  border: 1px solid #ddd5bc;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 1rem; color: #1a1a2e; background: #fffdf7;
-  -webkit-appearance: none;
+width: 100%; padding: 9px 10px;
+border: 1px solid #ddd5bc;
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 1rem; color: #1a1a2e; background: #fffdf7;
+-webkit-appearance: none;
 }
 
-.upload-box {
-  cursor: pointer;
-}
+.upload-box { cursor: pointer; }
 .upload-box .fname {
-  font-size: .8rem;
-  color: #9b8c74;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-style: italic;
-  margin-top: 4px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+font-size: .8rem;
+color: #9b8c74;
+font-family: ‘Barlow Condensed’, sans-serif;
+font-style: italic;
+margin-top: 4px;
+white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .upload-box input[type=file] { display: none; }
 
 .generate-btn {
-  display: block; width: 100%; max-width: 500px; margin: 0 auto 6px;
-  padding: 14px;
-  background: #1a1a2e; border: none;
-  font-family: 'Anton', sans-serif;
-  font-size: 1.1rem; letter-spacing: .1em; text-transform: uppercase;
-  color: #f2ead8; cursor: pointer;
+display: block; width: 100%; max-width: 500px; margin: 0 auto 6px;
+padding: 14px;
+background: #1a1a2e; border: none;
+font-family: ‘Anton’, sans-serif;
+font-size: 1.1rem; letter-spacing: .1em; text-transform: uppercase;
+color: #f2ead8; cursor: pointer;
 }
 .generate-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .status-msg {
-  font-size: .85rem; color: #2a8a4a; font-weight: 600;
-  margin: 4px auto 0; text-align: center; min-height: 16px;
-  max-width: 500px; display: block;
-  font-family: 'Barlow Condensed', sans-serif;
+font-size: .85rem; color: #2a8a4a; font-weight: 600;
+margin: 4px auto 0; text-align: center; min-height: 16px;
+max-width: 500px; display: block;
+font-family: ‘Barlow Condensed’, sans-serif;
 }
 .status-msg.warn { color: #c0630a; }
 
-/* ── Card (unchanged) ── */
+/* ── Card ── */
 .card {
-  background: #fff; width: 100%; max-width: 500px;
-  border-radius: 10px; box-shadow: 0 4px 24px rgba(0,0,0,0.13);
-  overflow: hidden; margin: 16px auto 20px; display: none;
+background: #fff; width: 100%; max-width: 500px;
+border-radius: 10px; box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+overflow: hidden; margin: 16px auto 20px; display: none;
 }
 .header {
-  background: linear-gradient(135deg, #1a3a5c 0%, #2d5a8e 100%);
-  padding: 8px 12px 7px;
-  display: flex; align-items: center; justify-content: space-between;
+background: linear-gradient(135deg, #1a3a5c 0%, #2d5a8e 100%);
+padding: 8px 12px 7px;
+display: flex; align-items: center; justify-content: space-between;
 }
 .header-center { text-align: center; flex: 1; }
-.player-name { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 800; color: #fff; letter-spacing: 1px; line-height: 1; }
-.player-info { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; color: #a8c8f0; margin-top: 1px; }
-.summary-title { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; color: #fff; margin-top: 2px; }
+.player-name { font-family: ‘Barlow Condensed’, sans-serif; font-size: 26px; font-weight: 800; color: #fff; letter-spacing: 1px; line-height: 1; }
+.player-info { font-family: ‘Barlow Condensed’, sans-serif; font-size: 11px; color: #a8c8f0; margin-top: 1px; }
+.summary-title { font-family: ‘Barlow Condensed’, sans-serif; font-size: 13px; font-weight: 700; color: #fff; margin-top: 2px; }
 .season-tag { font-size: 10px; font-style: italic; color: #7bb3e0; }
 .logo-box { width: 42px; text-align: center; }
-.game-line { background: #e8f0fb; text-align: center; padding: 5px 8px; font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; color: #1a3a5c; border-bottom: 2px solid #c5d8f0; }
+.game-line { background: #e8f0fb; text-align: center; padding: 5px 8px; font-family: ‘Barlow Condensed’, sans-serif; font-size: 13px; font-weight: 700; color: #1a3a5c; border-bottom: 2px solid #c5d8f0; }
 .stat-table-wrap { padding: 4px 6px 3px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.stat-table { width: 100%; border-collapse: collapse; font-family: 'Barlow Condensed', sans-serif; }
+.stat-table { width: 100%; border-collapse: collapse; font-family: ‘Barlow Condensed’, sans-serif; }
 .stat-table th { background: #1a3a5c; color: #fff; font-size: 10px; font-weight: 700; padding: 4px 3px; text-align: center; white-space: nowrap; }
 .stat-table td { text-align: center; padding: 5px 3px; font-size: 14px; font-weight: 700; color: #1a1a1a; border: 1px solid #dde4ef; background: #f8fafd; }
 .mid-section { display: flex; border-top: 1px solid #e4eaf4; align-items: stretch; }
 .left-panel { width: 154px; flex-shrink: 0; border-right: 1px solid #e4eaf4; padding: 6px 5px; display: flex; flex-direction: column; gap: 5px; }
-.panel-title { font-family: 'Barlow Condensed', sans-serif; font-size: 9px; font-weight: 700; color: #1a3a5c; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1px; }
+.panel-title { font-family: ‘Barlow Condensed’, sans-serif; font-size: 9px; font-weight: 700; color: #1a3a5c; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1px; }
 canvas.pie { display: block; margin: 0 auto; }
 .pie-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 1px 5px; margin-top: 2px; }
-.pie-legend-item { display: flex; align-items: center; gap: 2px; font-family: 'Barlow Condensed', sans-serif; font-size: 8px; color: #333; }
+.pie-legend-item { display: flex; align-items: center; gap: 2px; font-family: ‘Barlow Condensed’, sans-serif; font-size: 8px; color: #333; }
 .pie-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 .rate-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
 .rate-box { background: #f4f8fd; border: 1px solid #dde4ef; border-radius: 4px; padding: 4px 2px; text-align: center; }
-.rate-box .rb-val { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800; color: #1a3a5c; line-height: 1; }
-.rate-box .rb-lbl { font-family: 'Barlow Condensed', sans-serif; font-size: 7px; font-weight: 600; color: #7a8faa; margin-top: 1px; }
+.rate-box .rb-val { font-family: ‘Barlow Condensed’, sans-serif; font-size: 13px; font-weight: 800; color: #1a3a5c; line-height: 1; }
+.rate-box .rb-lbl { font-family: ‘Barlow Condensed’, sans-serif; font-size: 7px; font-weight: 600; color: #7a8faa; margin-top: 1px; }
 .right-panel { flex: 1; padding: 5px 4px; min-width: 0; overflow: hidden; display: flex; flex-direction: column; }
-.zone-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; flex: 1; }
-.chart-box { background: #f8fafd; border: 1px solid #dde4ef; border-radius: 5px; padding: 3px 2px; min-width: 0; overflow: hidden; }
-.chart-title { font-family: 'Barlow Condensed', sans-serif; font-size: 9px; font-weight: 700; color: #1a3a5c; text-align: center; margin-bottom: 1px; }
-.chart-sub { font-size: 7.5px; color: #7a8faa; text-align: center; margin-bottom: 1px; }
-canvas { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+
+/* ── Swings by Count grid ── */
+.count-section-title {
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 9px; font-weight: 700; color: #1a3a5c;
+text-align: center; text-transform: uppercase; letter-spacing: 0.5px;
+margin-bottom: 3px;
+}
+.count-outer-grid {
+display: grid;
+grid-template-columns: 18px repeat(4, 1fr);
+gap: 3px;
+flex: 1;
+}
+.count-col-hdr {
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 8px; font-weight: 700; color: #7a8faa;
+text-align: center; line-height: 1;
+display: flex; align-items: center; justify-content: center;
+}
+.count-row-lbl {
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 8px; font-weight: 700; color: #7a8faa;
+display: flex; align-items: center; justify-content: center;
+line-height: 1;
+}
+.count-cell {
+background: #f4f8fd;
+border: 1px solid #dde4ef;
+border-radius: 4px;
+padding: 2px 1px 2px;
+display: flex; flex-direction: column; align-items: center;
+min-width: 0;
+}
+.count-cell-lbl {
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 8px; font-weight: 700; color: #1a3a5c;
+line-height: 1; margin-bottom: 1px;
+}
+.count-cell-n {
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 7px; color: #9aa8bb;
+line-height: 1; margin-top: 1px;
+}
+.count-cell canvas { display: block; width: 100% !important; height: auto !important; }
+
+/* ── Spray / EV ── */
 .ev-legend { display: flex; justify-content: center; align-items: center; gap: 8px; padding: 2px 4px; flex-wrap: wrap; }
-.ev-legend-item { display: flex; align-items: center; gap: 2px; font-family: 'Barlow Condensed', sans-serif; font-size: 8px; color: #555; }
+.ev-legend-item { display: flex; align-items: center; gap: 2px; font-family: ‘Barlow Condensed’, sans-serif; font-size: 8px; color: #555; }
 .ev-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── PA section ── */
 .pa-section { border-top: 2px solid #e4eaf4; padding: 5px 6px 6px; }
-.pa-section-title { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; font-weight: 800; color: #1a3a5c; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.pa-section-title { font-family: ‘Barlow Condensed’, sans-serif; font-size: 10px; font-weight: 800; color: #1a3a5c; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
 .pa-legend { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-bottom: 5px; }
-.pa-legend-item { display: flex; align-items: center; gap: 3px; font-family: 'Barlow Condensed', sans-serif; font-size: 8px; color: #444; }
+.pa-legend-item { display: flex; align-items: center; gap: 3px; font-family: ‘Barlow Condensed’, sans-serif; font-size: 8px; color: #444; }
 .pa-grid { display: flex; flex-wrap: wrap; gap: 4px; }
 .pa-card { background: #f8fafd; border: 1px solid #dde4ef; border-radius: 5px; padding: 3px; flex: 0 0 calc(20% - 4px); min-width: 68px; }
-.pa-header { font-family: 'Barlow Condensed', sans-serif; font-size: 8px; font-weight: 700; color: #1a3a5c; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pa-result { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 800; text-align: center; margin-top: 1px; }
-.pa-seq { font-family: 'Barlow Condensed', sans-serif; font-size: 7px; color: #7a8faa; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.footer { background: #f0f4fa; border-top: 1px solid #dde4ef; padding: 5px 10px; display: flex; justify-content: space-between; font-family: 'Barlow Condensed', sans-serif; font-size: 9px; color: #6a7f9a; }
-.save-btn { display: block; width: calc(100% - 16px); margin: 8px auto; padding: 11px; background: #1a3a5c; border: none; border-radius: 8px; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 800; color: #fff; cursor: pointer; letter-spacing: 1px; }
+.pa-header { font-family: ‘Barlow Condensed’, sans-serif; font-size: 8px; font-weight: 700; color: #1a3a5c; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pa-result { font-family: ‘Barlow Condensed’, sans-serif; font-size: 11px; font-weight: 800; text-align: center; margin-top: 1px; }
+.pa-seq { font-family: ‘Barlow Condensed’, sans-serif; font-size: 7px; color: #7a8faa; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.footer { background: #f0f4fa; border-top: 1px solid #dde4ef; padding: 5px 10px; display: flex; justify-content: space-between; font-family: ‘Barlow Condensed’, sans-serif; font-size: 9px; color: #6a7f9a; }
+.save-btn { display: block; width: calc(100% - 16px); margin: 8px auto; padding: 11px; background: #1a3a5c; border: none; border-radius: 8px; font-family: ‘Barlow Condensed’, sans-serif; font-size: 15px; font-weight: 800; color: #fff; cursor: pointer; letter-spacing: 1px; }
 .save-btn:active { background: #e63946; }
 .img-overlay { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.88); align-items: center; justify-content: center; flex-direction: column; padding: 16px; }
 .img-overlay.active { display: flex; }
 .img-overlay img { max-width: 100%; max-height: 80vh; border-radius: 6px; box-shadow: 0 8px 40px rgba(0,0,0,0.6); }
-.overlay-hint { margin-top: 14px; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.75); text-align: center; }
-.overlay-close { margin-top: 16px; padding: 10px 32px; background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.3); border-radius: 8px; color: #fff; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; }
+.overlay-hint { margin-top: 14px; font-family: ‘Barlow Condensed’, sans-serif; font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.75); text-align: center; }
+.overlay-close { margin-top: 16px; padding: 10px 32px; background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.3); border-radius: 8px; color: #fff; font-family: ‘Barlow Condensed’, sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; }
 </style>
+
 </head>
 <body>
 
 <!-- Upload screen -->
+
 <div class="up-title">
   <h1>&#x26BE; Hitter Game Summary</h1>
   <p>Select a game, upload the box score PDF, and select a batter.</p>
@@ -200,7 +245,8 @@ canvas { display: block; margin: 0 auto; max-width: 100%; height: auto; }
 <button class="generate-btn" id="generateBtn" disabled onclick="generate()">Generate Card</button>
 <span class="status-msg" id="statusMsg"></span>
 
-<!-- Card (unchanged) -->
+<!-- Card -->
+
 <div class="card" id="card">
   <div class="header">
     <div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px;"></div>
@@ -250,12 +296,9 @@ canvas { display: block; margin: 0 auto; max-width: 100%; height: auto; }
       </div>
     </div>
     <div class="right-panel">
-      <div class="zone-grid">
-        <div class="chart-box"><div class="chart-title">Swings vs RHP</div><div class="chart-sub" id="subSwRHP">—</div><canvas id="zSwRHP" width="120" height="120"></canvas></div>
-        <div class="chart-box"><div class="chart-title">Swings vs LHP</div><div class="chart-sub" id="subSwLHP">—</div><canvas id="zSwLHP" width="120" height="120"></canvas></div>
-        <div class="chart-box"><div class="chart-title">Whiffs vs RHP</div><div class="chart-sub" id="subWhRHP">—</div><canvas id="zWhRHP" width="120" height="120"></canvas></div>
-        <div class="chart-box"><div class="chart-title">Whiffs vs LHP</div><div class="chart-sub" id="subWhLHP">—</div><canvas id="zWhLHP" width="120" height="120"></canvas></div>
-      </div>
+      <div class="count-section-title">Swings by Count</div>
+      <!-- col headers row -->
+      <div class="count-outer-grid" id="countOuterGrid"></div>
     </div>
   </div>
   <div class="pa-section">
@@ -534,36 +577,82 @@ function normPitch(t) { return PITCH_NORM[t] || t || 'Other'; }
 function pitchColor(t) { return PITCH_COLORS[t] || '#888'; }
 function pct(n, d, dec=1) { if (!d) return '—'; return (n/d*100).toFixed(dec)+'%'; }
 
-function drawZoneChart(canvasId, pitches, showWhiffs) {
-  const cv = document.getElementById(canvasId); if (!cv) return;
-  const ctx = cv.getContext('2d'), W = cv.width, H = cv.height;
-  const xMin=-1.5,xMax=1.5,yMin=0.8,yMax=4.2;
-  const mx = v => (v-xMin)/(xMax-xMin)*(W-20)+10;
-  const my = v => H-10-(v-yMin)/(yMax-yMin)*(H-20);
-  ctx.clearRect(0,0,W,H); ctx.fillStyle='#f8fafd'; ctx.fillRect(0,0,W,H);
-  ctx.strokeStyle='#333'; ctx.lineWidth=1.8;
-  ctx.strokeRect(mx(-0.83),my(3.5),mx(0.83)-mx(-0.83),my(1.5)-my(3.5));
-  const zW=(mx(0.83)-mx(-0.83))/3,zH=(my(1.5)-my(3.5))/3;
-  ctx.strokeStyle='#ccc'; ctx.lineWidth=0.6;
-  for (let i=1;i<3;i++) {
+// ── Swings by Count ──────────────────────────────────────────────────────────
+function drawCountZone(canvas, swings) {
+  const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height;
+  const xMin=-1.5, xMax=1.5, yMin=0.8, yMax=4.2;
+  const mx = v => (v-xMin)/(xMax-xMin)*(W-6)+3;
+  const my = v => H-3-(v-yMin)/(yMax-yMin)*(H-6);
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#f8fafd'; ctx.fillRect(0,0,W,H);
+  // Strike zone box
+  ctx.strokeStyle='#1a3a5c'; ctx.lineWidth=1;
+  ctx.strokeRect(mx(-0.83), my(3.5), mx(0.83)-mx(-0.83), my(1.5)-my(3.5));
+  // Inner grid
+  const zW=(mx(0.83)-mx(-0.83))/3, zH=(my(1.5)-my(3.5))/3;
+  ctx.strokeStyle='#ccc'; ctx.lineWidth=0.4;
+  for(let i=1;i<3;i++){
     ctx.beginPath();ctx.moveTo(mx(-0.83)+zW*i,my(3.5));ctx.lineTo(mx(-0.83)+zW*i,my(1.5));ctx.stroke();
     ctx.beginPath();ctx.moveTo(mx(-0.83),my(3.5)+zH*i);ctx.lineTo(mx(0.83),my(3.5)+zH*i);ctx.stroke();
   }
-  const px=mx(0),py=my(0.2);
-  ctx.beginPath();ctx.moveTo(px-6,py-4);ctx.lineTo(px+6,py-4);ctx.lineTo(px+6,py+1);ctx.lineTo(px,py+5);ctx.lineTo(px-6,py+1);ctx.closePath();ctx.strokeStyle='#888';ctx.lineWidth=1;ctx.stroke();
-  pitches.forEach(r => {
-    const x=parseFloat(r.PlateLocSide),y=parseFloat(r.PlateLocHeight); if(isNaN(x)||isNaN(y))return;
-    const col=pitchColor(normPitch(r.TaggedPitchType));
-    const isW=isWhiff(r),isS=isSwing(r);
-    if(showWhiffs&&!isW)return; if(!showWhiffs&&!isS)return;
-    const cx=mx(x),cy=my(y);
-    ctx.beginPath();ctx.arc(cx,cy,3.8,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
-    ctx.strokeStyle='rgba(0,0,0,0.3)';ctx.lineWidth=0.6;ctx.stroke();
-    if(isW){ctx.strokeStyle='#fff';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(cx-2,cy-2);ctx.lineTo(cx+2,cy+2);ctx.stroke();ctx.beginPath();ctx.moveTo(cx+2,cy-2);ctx.lineTo(cx-2,cy+2);ctx.stroke();}
+  // Swings
+  swings.forEach(r => {
+    const x=parseFloat(r.PlateLocSide), y=parseFloat(r.PlateLocHeight);
+    if(isNaN(x)||isNaN(y)) return;
+    const col = pitchColor(normPitch(r.TaggedPitchType));
+    const cx=mx(x), cy=my(y);
+    ctx.beginPath(); ctx.arc(cx,cy,2.8,0,Math.PI*2);
+    ctx.fillStyle=col; ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,0.2)'; ctx.lineWidth=0.4; ctx.stroke();
+    if(isWhiff(r)){
+      ctx.strokeStyle='rgba(255,255,255,0.85)'; ctx.lineWidth=0.9;
+      ctx.beginPath();ctx.moveTo(cx-1.6,cy-1.6);ctx.lineTo(cx+1.6,cy+1.6);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(cx+1.6,cy-1.6);ctx.lineTo(cx-1.6,cy+1.6);ctx.stroke();
+    }
   });
-  ctx.fillStyle='#9aa8bb';ctx.font='7.5px Barlow Condensed, sans-serif';ctx.textAlign='center';
-  ctx.fillText('← Away',mx(-0.4),H-2);ctx.fillText('In →',mx(0.4),H-2);
 }
+
+function buildCountGrid(rows) {
+  // Build swing map: key = "balls-strikes"
+  const countMap = {};
+  for(let b=0;b<=3;b++) for(let s=0;s<=2;s++) countMap[`${b}-${s}`]=[];
+  rows.forEach(r => {
+    if(!isSwing(r)) return;
+    const b=parseInt(r.Balls), s=parseInt(r.Strikes);
+    if(isNaN(b)||isNaN(s)) return;
+    const key=`${b}-${s}`;
+    if(countMap[key]) countMap[key].push(r);
+  });
+
+  const container = document.getElementById('countOuterGrid');
+  container.innerHTML = '';
+
+  // Row 0: column headers (blank corner + 0B 1B 2B 3B)
+  const corner = document.createElement('div'); corner.className='count-col-hdr'; container.appendChild(corner);
+  ['0B','1B','2B','3B'].forEach(lbl => {
+    const d=document.createElement('div'); d.className='count-col-hdr'; d.textContent=lbl; container.appendChild(d);
+  });
+
+  // Rows 1-3: strike label + 4 count cells
+  [0,1,2].forEach(s => {
+    const rowLbl=document.createElement('div'); rowLbl.className='count-row-lbl'; rowLbl.textContent=s+'K'; container.appendChild(rowLbl);
+    [0,1,2,3].forEach(b => {
+      const key=`${b}-${s}`;
+      const swings=countMap[key];
+      const cell=document.createElement('div'); cell.className='count-cell';
+      const lbl=document.createElement('div'); lbl.className='count-cell-lbl'; lbl.textContent=`${b}-${s}`;
+      const canvasId='cnt_'+b+'_'+s;
+      const cv=document.createElement('canvas'); cv.id=canvasId; cv.width=64; cv.height=64;
+      cv.style.cssText='display:block;width:100%;height:auto;';
+      const n=document.createElement('div'); n.className='count-cell-n';
+      n.textContent=swings.length>0?swings.length+(swings.length===1?' sw':' sw'):'—';
+      cell.appendChild(lbl); cell.appendChild(cv); cell.appendChild(n);
+      container.appendChild(cell);
+      setTimeout(()=>drawCountZone(cv, swings), 10);
+    });
+  });
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 const FIELD={lf:315,lcf:370,cf:385,rcf:370,rf:315};
 function wallDistAtDir(deg){
@@ -701,7 +790,6 @@ function generate(){
   const opp=(gameInfo&&gameInfo.display_name)?gameInfo.display_name.replace(/\s*(Game|Midweek)\s*\d*$/i,'').trim():oppClean[rawOpp.toUpperCase()]||rawOpp.replace(/_/g,' ').replace(/\w/g,c=>c.toUpperCase());
   document.getElementById('cardGameLine').textContent=date+' vs '+opp;
   window._bsDebugSnippet=null;
-  // Try edge function batting first, fall back to PDF
   let bs = null;
   if (window._edgeBatting) {
     const bsParts = batterName.split(',');
@@ -744,14 +832,8 @@ function generate(){
   document.getElementById('card').style.display='block';
   setTimeout(()=>{
     drawPieChart(rows);
-    const vsRHP=rows.filter(r=>r.PitcherThrows==='Right'||!r.PitcherThrows),vsLHP=rows.filter(r=>r.PitcherThrows==='Left');
-    const rRows=vsRHP.length>0?vsRHP:rows,lRows=vsLHP;
-    drawZoneChart('zSwRHP',rRows,false);drawZoneChart('zSwLHP',lRows,false);drawZoneChart('zWhRHP',rRows,true);drawZoneChart('zWhLHP',lRows,true);
     drawSprayChart('sprayChart',rows);
-    document.getElementById('subSwRHP').textContent=rRows.filter(isSwing).length+' swings';
-    document.getElementById('subSwLHP').textContent=lRows.length?lRows.filter(isSwing).length+' swings':'No LHP faced';
-    document.getElementById('subWhRHP').textContent=rRows.filter(isWhiff).length+' whiffs';
-    document.getElementById('subWhLHP').textContent=lRows.length?lRows.filter(isWhiff).length+' whiffs':'No LHP faced';
+    buildCountGrid(rows);
     document.getElementById('evLegend').innerHTML=`<div class="ev-legend-item"><div class="ev-dot" style="background:#6ab0e0"></div>&lt;90</div><div class="ev-legend-item"><div class="ev-dot" style="background:#f4a261"></div>90–99</div><div class="ev-legend-item"><div class="ev-dot" style="background:#e63946"></div>100+</div>`;
     const grid=document.getElementById('paGrid');grid.innerHTML='';
     paList.forEach((paPitches,idx)=>{
@@ -784,5 +866,6 @@ function closeOverlay(){document.getElementById('imgOverlay').classList.remove('
 
 loadGames();
 </script>
+
 </body>
 </html>
