@@ -566,33 +566,33 @@ function pct(n, d, dec=1) { if (!d) return '—'; return (n/d*100).toFixed(dec)+
 function drawCountZone(canvas, swings) {
   const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height;
   const xMin=-1.5, xMax=1.5, yMin=1.0, yMax=4.0;
-  const mx = v => (v-xMin)/(xMax-xMin)*(W-6)+3;
-  const my = v => H-3-(v-yMin)/(yMax-yMin)*(H-6);
+  const mx = v => (v-xMin)/(xMax-xMin)*(W-10)+5;
+  const my = v => H-5-(v-yMin)/(yMax-yMin)*(H-10);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#f8fafd'; ctx.fillRect(0,0,W,H);
-  // Strike zone box
-  ctx.strokeStyle='#1a3a5c'; ctx.lineWidth=1;
-  ctx.strokeRect(mx(-0.83), my(3.5), mx(0.83)-mx(-0.83), my(1.5)-my(3.5));
-  // Inner grid
+  // Inner zone grid
   const zW=(mx(0.83)-mx(-0.83))/3, zH=(my(1.5)-my(3.5))/3;
-  ctx.strokeStyle='#ccc'; ctx.lineWidth=0.4;
+  ctx.strokeStyle='#ccc'; ctx.lineWidth=1.2;
   for(let i=1;i<3;i++){
     ctx.beginPath();ctx.moveTo(mx(-0.83)+zW*i,my(3.5));ctx.lineTo(mx(-0.83)+zW*i,my(1.5));ctx.stroke();
     ctx.beginPath();ctx.moveTo(mx(-0.83),my(3.5)+zH*i);ctx.lineTo(mx(0.83),my(3.5)+zH*i);ctx.stroke();
   }
+  // Strike zone border
+  ctx.strokeStyle='#333'; ctx.lineWidth=3.5;
+  ctx.strokeRect(mx(-0.83), my(3.5), mx(0.83)-mx(-0.83), my(1.5)-my(3.5));
   // Swings
   swings.forEach(r => {
     const x=parseFloat(r.PlateLocSide), y=parseFloat(r.PlateLocHeight);
     if(isNaN(x)||isNaN(y)) return;
     const col = pitchColor(normPitch(r.TaggedPitchType));
     const cx=mx(x), cy=my(y);
-    ctx.beginPath(); ctx.arc(cx,cy,2.8,0,Math.PI*2);
+    ctx.beginPath(); ctx.arc(cx,cy,7,0,Math.PI*2);
     ctx.fillStyle=col; ctx.fill();
-    ctx.strokeStyle='rgba(0,0,0,0.2)'; ctx.lineWidth=0.4; ctx.stroke();
+    ctx.strokeStyle='rgba(0,0,0,0.25)'; ctx.lineWidth=1; ctx.stroke();
     if(isWhiff(r)){
-      ctx.strokeStyle='rgba(255,255,255,0.85)'; ctx.lineWidth=0.9;
-      ctx.beginPath();ctx.moveTo(cx-1.6,cy-1.6);ctx.lineTo(cx+1.6,cy+1.6);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(cx+1.6,cy-1.6);ctx.lineTo(cx-1.6,cy+1.6);ctx.stroke();
+      ctx.strokeStyle='rgba(255,255,255,0.9)'; ctx.lineWidth=1.8;
+      ctx.beginPath();ctx.moveTo(cx-3.5,cy-3.5);ctx.lineTo(cx+3.5,cy+3.5);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(cx+3.5,cy-3.5);ctx.lineTo(cx-3.5,cy+3.5);ctx.stroke();
     }
   });
 }
