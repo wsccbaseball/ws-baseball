@@ -171,6 +171,9 @@ line-height: 1; margin-bottom: 1px;
 flex-shrink: 0;
 }
 .count-cell canvas { display: block; width: 100% !important; aspect-ratio: 1 !important; flex: 1; min-height: 0; }
+.count-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 8px; margin-top: 5px; padding: 0 2px; }
+.count-legend-item { display: flex; align-items: center; gap: 3px; font-family: ‘Barlow Condensed’, sans-serif; font-size: 8px; color: #444; }
+.count-legend-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 
 /* ── Spray / EV ── */
 .ev-legend { display: flex; justify-content: center; align-items: center; gap: 8px; padding: 2px 4px; flex-wrap: wrap; }
@@ -626,6 +629,19 @@ function buildCountGrid(rows) {
       setTimeout(()=>drawCountZone(cv, swings), 10);
     });
   });
+
+  // Build legend from pitch types seen in swings
+  const seenTypes = [];
+  const seenSet = new Set();
+  rows.forEach(r => {
+    if(!isSwing(r)) return;
+    const t = normPitch(r.TaggedPitchType);
+    if(!seenSet.has(t)){ seenSet.add(t); seenTypes.push(t); }
+  });
+  const legend = document.getElementById('countLegend');
+  legend.innerHTML = seenTypes.map(t =>
+    `<div class="count-legend-item"><div class="count-legend-dot" style="background:${pitchColor(t)}"></div>${t}</div>`
+  ).join('');
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
