@@ -597,7 +597,6 @@ function drawCountZone(canvas, swings) {
 }
 
 function buildCountGrid(rows) {
-  // Build swing map: key = "balls-strikes"
   const countMap = {};
   for(let b=0;b<=3;b++) for(let s=0;s<=2;s++) countMap[`${b}-${s}`]=[];
   rows.forEach(r => {
@@ -611,26 +610,17 @@ function buildCountGrid(rows) {
   const container = document.getElementById('countOuterGrid');
   container.innerHTML = '';
 
-  // Row 0: column headers (blank corner + 0B 1B 2B 3B)
-  const corner = document.createElement('div'); corner.className='count-col-hdr'; container.appendChild(corner);
-  ['0B','1B','2B','3B'].forEach(lbl => {
-    const d=document.createElement('div'); d.className='count-col-hdr'; d.textContent=lbl; container.appendChild(d);
-  });
-
-  // Rows 1-3: strike label + 4 count cells
+  // 4 cols × 3 rows, no headers, no row labels — just count label + zone
   [0,1,2].forEach(s => {
-    const rowLbl=document.createElement('div'); rowLbl.className='count-row-lbl'; rowLbl.textContent=s+'K'; container.appendChild(rowLbl);
     [0,1,2,3].forEach(b => {
       const key=`${b}-${s}`;
       const swings=countMap[key];
       const cell=document.createElement('div'); cell.className='count-cell';
       const lbl=document.createElement('div'); lbl.className='count-cell-lbl'; lbl.textContent=`${b}-${s}`;
       const canvasId='cnt_'+b+'_'+s;
-      const cv=document.createElement('canvas'); cv.id=canvasId; cv.width=64; cv.height=64;
+      const cv=document.createElement('canvas'); cv.id=canvasId; cv.width=80; cv.height=80;
       cv.style.cssText='display:block;width:100%;height:auto;';
-      const n=document.createElement('div'); n.className='count-cell-n';
-      n.textContent=swings.length>0?swings.length+(swings.length===1?' sw':' sw'):'—';
-      cell.appendChild(lbl); cell.appendChild(cv); cell.appendChild(n);
+      cell.appendChild(lbl); cell.appendChild(cv);
       container.appendChild(cell);
       setTimeout(()=>drawCountZone(cv, swings), 10);
     });
