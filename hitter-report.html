@@ -566,7 +566,7 @@ function pct(n, d, dec=1) { if (!d) return '—'; return (n/d*100).toFixed(dec)+
 // ── Swings by Count ──────────────────────────────────────────────────────────
 function drawCountZone(canvas, swings) {
   const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height;
-  const xMin=-1.5, xMax=1.5, yMin=1.0, yMax=4.0;
+  const xMin=-1.9, xMax=1.9, yMin=0.6, yMax=4.4;
   const mx = v => (v-xMin)/(xMax-xMin)*(W-10)+5;
   const my = v => H-5-(v-yMin)/(yMax-yMin)*(H-10);
   ctx.clearRect(0,0,W,H);
