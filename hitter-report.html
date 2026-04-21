@@ -152,9 +152,7 @@ margin-bottom: 3px;
 .count-outer-grid {
 display: grid;
 grid-template-columns: repeat(4, 1fr);
-grid-template-rows: repeat(3, 1fr);
 gap: 4px;
-flex: 1;
 }
 .count-cell {
 background: #f4f8fd;
@@ -163,13 +161,16 @@ border-radius: 4px;
 padding: 2px 2px 2px;
 display: flex; flex-direction: column; align-items: center;
 min-width: 0;
+aspect-ratio: 1;
+overflow: hidden;
 }
 .count-cell-lbl {
 font-family: ‘Barlow Condensed’, sans-serif;
 font-size: 8px; font-weight: 700; color: #1a3a5c;
 line-height: 1; margin-bottom: 1px;
+flex-shrink: 0;
 }
-.count-cell canvas { display: block; width: 100% !important; height: auto !important; flex: 1; }
+.count-cell canvas { display: block; width: 100% !important; aspect-ratio: 1 !important; flex: 1; min-height: 0; }
 
 /* ── Spray / EV ── */
 .ev-legend { display: flex; justify-content: center; align-items: center; gap: 8px; padding: 2px 4px; flex-wrap: wrap; }
@@ -564,7 +565,7 @@ function pct(n, d, dec=1) { if (!d) return '—'; return (n/d*100).toFixed(dec)+
 // ── Swings by Count ──────────────────────────────────────────────────────────
 function drawCountZone(canvas, swings) {
   const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height;
-  const xMin=-1.5, xMax=1.5, yMin=0.8, yMax=4.2;
+  const xMin=-1.5, xMax=1.5, yMin=1.0, yMax=4.0;
   const mx = v => (v-xMin)/(xMax-xMin)*(W-6)+3;
   const my = v => H-3-(v-yMin)/(yMax-yMin)*(H-6);
   ctx.clearRect(0,0,W,H);
@@ -618,7 +619,7 @@ function buildCountGrid(rows) {
       const cell=document.createElement('div'); cell.className='count-cell';
       const lbl=document.createElement('div'); lbl.className='count-cell-lbl'; lbl.textContent=`${b}-${s}`;
       const canvasId='cnt_'+b+'_'+s;
-      const cv=document.createElement('canvas'); cv.id=canvasId; cv.width=80; cv.height=80;
+      const cv=document.createElement('canvas'); cv.id=canvasId; cv.width=160; cv.height=160;
       cv.style.cssText='display:block;width:100%;height:auto;';
       cell.appendChild(lbl); cell.appendChild(cv);
       container.appendChild(cell);
