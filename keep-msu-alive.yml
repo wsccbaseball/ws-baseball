@@ -1,7 +1,7 @@
 name: Keep MSU Supabase Active
 on:
   schedule:
-    - cron: '0 12 * * 1,4'  # Runs Monday and Thursday at noon UTC
+    - cron: '0 12 * * 1,4'
   workflow_dispatch:
 
 jobs:
