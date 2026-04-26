@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -19,13 +20,13 @@ h1 { font-size: 22px; font-weight: 800; color: #1a1a2e; margin-bottom: 4px; }
 .subtitle { font-size: 13px; color: #666; margin-bottom: 16px; font-family: 'Barlow', sans-serif; }
 
 .upload-card {
-  background: #fff; border-radius: 10px; padding: 20px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.10); margin-bottom: 16px;
+background: #fff; border-radius: 10px; padding: 20px;
+box-shadow: 0 2px 12px rgba(0,0,0,0.10); margin-bottom: 16px;
 }
 .upload-label {
-  display: block; border: 2px dashed #ccc; border-radius: 8px;
-  padding: 24px; text-align: center; cursor: pointer; color: #666;
-  font-size: 15px; font-weight: 600; transition: border-color 0.2s;
+display: block; border: 2px dashed #ccc; border-radius: 8px;
+padding: 24px; text-align: center; cursor: pointer; color: #666;
+font-size: 15px; font-weight: 600; transition: border-color 0.2s;
 }
 .upload-label:hover { border-color: #1a1a2e; color: #1a1a2e; }
 input[type=file] { display: none; }
@@ -33,18 +34,18 @@ input[type=file] { display: none; }
 
 /* Game header */
 .game-header {
-  background: #1a1a2e; color: #fff; border-radius: 10px;
-  padding: 14px 16px; margin-bottom: 12px; display: none;
+background: #1a1a2e; color: #fff; border-radius: 10px;
+padding: 14px 16px; margin-bottom: 12px; display: none;
 }
 .game-title { font-size: 18px; font-weight: 800; letter-spacing: 0.5px; }
-.game-meta { font-size: 12px; color: #aaa; margin-top: 2px; font-family: 'Barlow', sans-serif; }
+.game-meta { font-size: 12px; color: #aaa; margin-top: 2px; font-family: ‘Barlow’, sans-serif; }
 
 /* Linescore */
 .linescore-wrap {
-  background: #fff; border-radius: 10px; padding: 12px 14px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 12px; display: none; overflow-x: auto;
+background: #fff; border-radius: 10px; padding: 12px 14px;
+box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 12px; display: none; overflow-x: auto;
 }
-.linescore { border-collapse: collapse; width: 100%; font-family: 'Barlow Condensed', sans-serif; }
+.linescore { border-collapse: collapse; width: 100%; font-family: ‘Barlow Condensed’, sans-serif; }
 .linescore th { background: #1a1a2e; color: #fff; padding: 5px 8px; font-size: 11px; text-align: center; }
 .linescore td { padding: 5px 8px; font-size: 13px; font-weight: 600; text-align: center; border: 1px solid #e4eaf4; }
 .linescore td.team-name { text-align: left; font-weight: 700; background: #f8fafd; min-width: 100px; }
@@ -52,19 +53,19 @@ input[type=file] { display: none; }
 
 /* Pitch count compliance */
 .section {
-  background: #fff; border-radius: 10px; padding: 14px 16px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 12px; display: none;
+background: #fff; border-radius: 10px; padding: 14px 16px;
+box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 12px; display: none;
 }
 .section-title {
-  font-size: 11px; font-weight: 700; color: #1a1a2e;
-  text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px;
+font-size: 11px; font-weight: 700; color: #1a1a2e;
+text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px;
 }
 
 /* Compliance cards */
 .compliance-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .compliance-card {
-  flex: 1 1 140px; border-radius: 8px; padding: 10px 12px;
-  border: 2px solid #e4eaf4; background: #f8fafd;
+flex: 1 1 140px; border-radius: 8px; padding: 10px 12px;
+border: 2px solid #e4eaf4; background: #f8fafd;
 }
 .compliance-card.safe { border-color: #4ade80; background: #f0fdf4; }
 .compliance-card.warn { border-color: #fbbf24; background: #fffbeb; }
@@ -89,37 +90,38 @@ input[type=file] { display: none; }
 .limit-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
 .limit-row label { font-size: 11px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
 .limit-row select {
-  padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px;
-  font-family: 'Barlow Condensed', sans-serif; font-size: 14px; color: #1a1a2e; background: #fff;
+padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px;
+font-family: ‘Barlow Condensed’, sans-serif; font-size: 14px; color: #1a1a2e; background: #fff;
 }
-.limit-note { font-size: 11px; color: #888; font-family: 'Barlow', sans-serif; }
+.limit-note { font-size: 11px; color: #888; font-family: ‘Barlow’, sans-serif; }
 
 /* Pitching table */
-.data-table { width: 100%; border-collapse: collapse; font-family: 'Barlow Condensed', sans-serif; }
+.data-table { width: 100%; border-collapse: collapse; font-family: ‘Barlow Condensed’, sans-serif; }
 .data-table th {
-  background: #1a1a2e; color: #fff; font-size: 10px; font-weight: 700;
-  padding: 5px 4px; text-align: center; white-space: nowrap;
+background: #1a1a2e; color: #fff; font-size: 10px; font-weight: 700;
+padding: 5px 4px; text-align: center; white-space: nowrap;
 }
 .data-table th.left { text-align: left; padding-left: 8px; }
 .data-table td {
-  text-align: center; padding: 5px 4px; font-size: 12px;
-  border: 1px solid #e4eaf4; background: #f8fafd;
+text-align: center; padding: 5px 4px; font-size: 12px;
+border: 1px solid #e4eaf4; background: #f8fafd;
 }
 .data-table td.left { text-align: left; padding-left: 8px; font-weight: 700; }
 .data-table tr:nth-child(even) td { background: #f0f5fc; }
 .data-table .total-row td { background: #e0eaf8 !important; font-weight: 700; }
 .team-header td {
-  background: #2d3748 !important; color: #fff !important;
-  font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+background: #2d3748 !important; color: #fff !important;
+font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
 }
 
 /* Status */
 .parse-status {
-  font-size: 12px; color: #2a8a4a; font-weight: 600;
-  margin-top: 6px; min-height: 16px; font-family: 'Barlow', sans-serif;
+font-size: 12px; color: #2a8a4a; font-weight: 600;
+margin-top: 6px; min-height: 16px; font-family: ‘Barlow’, sans-serif;
 }
 .parse-status.warn { color: #c0630a; }
 </style>
+
 </head>
 <body>
 <div class="page">
@@ -136,17 +138,20 @@ input[type=file] { display: none; }
   </div>
 
   <!-- Game header -->
+
   <div class="game-header" id="gameHeader">
     <div class="game-title" id="gameTitle">—</div>
     <div class="game-meta" id="gameMeta">—</div>
   </div>
 
   <!-- Linescore -->
+
   <div class="linescore-wrap" id="linescoreWrap">
     <table class="linescore" id="linescoreTable"></table>
   </div>
 
   <!-- Pitch Count Compliance -->
+
   <div class="section" id="complianceSection">
     <div class="section-title">⚠️ Pitch Count Compliance</div>
     <div class="limit-row">
@@ -161,6 +166,7 @@ input[type=file] { display: none; }
   </div>
 
   <!-- Pitching Stats -->
+
   <div class="section" id="pitchingSection">
     <div class="section-title">Pitching</div>
     <div style="overflow-x:auto;">
@@ -169,6 +175,7 @@ input[type=file] { display: none; }
   </div>
 
   <!-- Save to Database -->
+
   <div class="section" id="saveSection" style="display:none;">
     <div class="section-title">💾 Save to Database</div>
     <div style="font-family:'Barlow',sans-serif;font-size:13px;color:#555;margin-bottom:12px;">
@@ -189,6 +196,7 @@ input[type=file] { display: none; }
   </div>
 
   <!-- Batting Stats -->
+
   <div class="section" id="battingSection">
     <div class="section-title">Batting</div>
     <div style="overflow-x:auto;">
@@ -224,16 +232,22 @@ async function saveToSupabase() {
   statusEl.style.color = '#555';
 
   try {
-    // Determine which side Farragut is on using linescore codes
-    var farrCode = 'FRRG';
+    // Detect which side Farragut is on by checking team name labels
     var farragutIsHome = true;
-    var oppCode = parsedData.awayCode || 'opp';
+    var oppCode = 'opp';
     if (parsedData.linescore && parsedData.linescore.length >= 2) {
-      // If FRRG is the first linescore row they are away, second row = home
-      farragutIsHome = parsedData.linescore[1].team === farrCode ||
-                       parsedData.linescore[1].team.indexOf('FRR') > -1;
-      if (!farragutIsHome) oppCode = parsedData.linescore[1].team;
-      else oppCode = parsedData.linescore[0].team;
+      var row0 = parsedData.linescore[0].team.toUpperCase();
+      var row1 = parsedData.linescore[1].team.toUpperCase();
+      farragutIsHome = row1.indexOf('FRR') > -1 || row1.indexOf('FAR') > -1;
+      oppCode = farragutIsHome ? row0 : row1;
+    }
+    // Also cross-check against team full names from batting headers
+    if (parsedData.awayTeamFull && parsedData.awayTeamFull.toUpperCase().indexOf('FARR') > -1) {
+      farragutIsHome = false;
+      oppCode = parsedData.homeTeamFull ? parsedData.homeTeamFull.replace(/\s+/g,'-') : oppCode;
+    } else if (parsedData.homeTeamFull && parsedData.homeTeamFull.toUpperCase().indexOf('FARR') > -1) {
+      farragutIsHome = true;
+      oppCode = parsedData.awayTeamFull ? parsedData.awayTeamFull.replace(/\s+/g,'-') : oppCode;
     }
     var farrBatting  = farragutIsHome ? parsedData.batting.home  : parsedData.batting.away;
     var farrPitching = farragutIsHome ? parsedData.pitching.home : parsedData.pitching.away;
@@ -590,5 +604,6 @@ function renderBatting(data) {
   document.getElementById('battingSection').style.display = 'block';
 }
 </script>
+
 </body>
 </html>
