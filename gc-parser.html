@@ -367,9 +367,11 @@ function parseGameChanger(text) {
   }
 
   // ── P-S pitch counts ──────────────────────────────────────────────────────
-  var psMatches = flat.matchAll(/P-S:\s*((?:(?:[A-Z][a-z]?\s+)?[A-Z][a-z]+\s+\d+-\d+)(?:,\s*(?:[A-Z][a-z]?\s+)?[A-Z][a-z]+\s+\d+-\d+)*)/g);
+  // Handles: "L Louttit 46-29", "T Brummitt Jr. 82-59", "R Pendergrass 106-61"
+  var psMatches = flat.matchAll(/P-S:\s*((?:(?:[A-Z][a-z]?\.?\s+)?[A-Z][a-z]+(?:\s+[A-Z][a-z]+\.?)?\s+\d+-\d+)(?:,\s*(?:[A-Z][a-z]?\.?\s+)?[A-Z][a-z]+(?:\s+[A-Z][a-z]+\.?)?\s+\d+-\d+)*)/g);
   for (var psm of psMatches) {
-    var entries = psm[1].matchAll(/(?:[A-Z][a-z]?\s+)?([A-Z][a-z]+)\s+(\d+)-(\d+)/g);
+    // Match: optional initial, last name, optional suffix, then NP-S
+    var entries = psm[1].matchAll(/(?:[A-Z][a-z]?\.?\s+)?([A-Z][a-z]+)(?:\s+[A-Z][a-z]+\.?)?\s+(\d+)-(\d+)/g);
     for (var entry of entries) {
       var ln = entry[1].trim();
       if (!data.pitchCounts[ln]) {
