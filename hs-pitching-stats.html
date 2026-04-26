@@ -332,6 +332,8 @@ function fmt(v, dec, suffix) {
 function renderSeason() {
   var minIP = parseFloat(document.getElementById('minIP').value) || 0;
   var rows  = aggregatePitchers(minIP);
+  var colMap = { ip: 'ipNum' };
+  var sortKey = colMap[seasonSort.col] || seasonSort.col;
 
   // Sort
   rows.sort(function(a, b) {
@@ -385,8 +387,6 @@ function renderSeason() {
 
   document.getElementById('seasonLoading').style.display = 'none';
   document.getElementById('seasonTableWrap').style.display = 'block';
-
-  // Update sort indicators
   document.querySelectorAll('#seasonTable th').forEach(function(th) {
     th.classList.remove('sort-asc','sort-desc');
   });
@@ -397,14 +397,9 @@ function sortSeason(col) {
     seasonSort.dir = seasonSort.dir === 'asc' ? 'desc' : 'asc';
   } else {
     seasonSort.col = col;
-    // ERA, FIP, WHIP, BB% — lower is better → default asc
-    // K%, K-BB%, EGS, K — higher is better → default desc
     var higherBetter = ['kpct','kbb','k9','avgEGS','k','strpct'];
     seasonSort.dir = higherBetter.indexOf(col) > -1 ? 'desc' : 'asc';
   }
-  // Map display col names to data keys
-  var colMap = { ip: 'ipNum' };
-  var sortKey = colMap[seasonSort.col] || seasonSort.col;
   renderSeason();
 }
 
