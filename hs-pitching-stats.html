@@ -335,7 +335,7 @@ function renderSeason() {
 
   // Sort
   rows.sort(function(a, b) {
-    var av = a[seasonSort.col], bv = b[seasonSort.col];
+    var av = a[sortKey], bv = b[sortKey];
     if (av === null || av === undefined) return 1;
     if (bv === null || bv === undefined) return -1;
     if (typeof av === 'string') return seasonSort.dir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
@@ -402,6 +402,9 @@ function sortSeason(col) {
     var higherBetter = ['kpct','kbb','k9','avgEGS','k','strpct'];
     seasonSort.dir = higherBetter.indexOf(col) > -1 ? 'desc' : 'asc';
   }
+  // Map display col names to data keys
+  var colMap = { ip: 'ipNum' };
+  var sortKey = colMap[seasonSort.col] || seasonSort.col;
   renderSeason();
 }
 
