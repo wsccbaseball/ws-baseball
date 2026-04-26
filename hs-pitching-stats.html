@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farragut Baseball — Pitching Stats</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { overflow-x: hidden; }
+body {
+  font-family: 'Barlow Condensed', sans-serif;
+  background: #0d1117;
+  color: #e6edf3;
+  min-height: 100vh;
+  padding: 16px 8px 48px;
+}
+.page { max-width: 960px; margin: 0 auto; }
+
+/* Header */
+.site-header {
+background: linear-gradient(135deg, #002147 0%, #003d7a 100%);
+border-radius: 12px; padding: 16px 20px; margin-bottom: 16px;
+display: flex; align-items: center; justify-content: space-between;
+}
+.site-header h1 {
+font-size: clamp(18px, 5vw, 28px); font-weight: 800;
+color: #CFB53B; letter-spacing: 1px;
+}
+.site-header p { font-size: 12px; color: #8899aa; margin-top: 2px; }
+.home-btn {
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 13px; font-weight: 700; color: #CFB53B;
+text-decoration: none; background: rgba(207,181,59,0.12);
+border: 1px solid rgba(207,181,59,0.3); border-radius: 6px;
+padding: 6px 14px; white-space: nowrap;
+}
+
+/* Tabs */
+.tabs { display: flex; gap: 4px; margin-bottom: 14px; }
+.tab {
+flex: 1; padding: 10px 4px; text-align: center;
+font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 13px; font-weight: 700; letter-spacing: 0.5px;
+background: #161b22; border: 1px solid #30363d; border-radius: 8px;
+color: #8b949e; cursor: pointer; transition: all 0.15s;
+}
+.tab.active { background: #002147; border-color: #CFB53B; color: #CFB53B; }
+
+/* Cards row */
+.summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+.stat-card {
+background: #161b22; border: 1px solid #30363d; border-radius: 10px;
+padding: 12px 10px; text-align: center;
+}
+.stat-card .val { font-size: clamp(20px, 5vw, 28px); font-weight: 800; color: #CFB53B; line-height: 1; }
+.stat-card .lbl { font-size: 9px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
+
+/* Filter row */
+.filter-row {
+display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap;
+}
+.filter-row label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; }
+.filter-row select {
+padding: 6px 10px; background: #161b22; border: 1px solid #30363d;
+border-radius: 6px; color: #e6edf3; font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 13px;
+}
+
+/* Tables */
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 10px; }
+table { width: 100%; border-collapse: collapse; font-family: ‘Barlow Condensed’, sans-serif; min-width: 600px; }
+thead tr { background: #002147; }
+th {
+padding: 8px 6px; font-size: 10px; font-weight: 700; color: #CFB53B;
+text-transform: uppercase; letter-spacing: 0.5px; text-align: center;
+white-space: nowrap; cursor: pointer; user-select: none;
+}
+th.left { text-align: left; padding-left: 12px; }
+th:hover { color: #fff; }
+th.sort-asc::after { content: ’ ↑’; }
+th.sort-desc::after { content: ’ ↓’; }
+tbody tr { border-bottom: 1px solid #21262d; transition: background 0.1s; }
+tbody tr:hover { background: #1c2128; }
+td {
+padding: 7px 6px; font-size: 12px; color: #e6edf3;
+text-align: center; white-space: nowrap;
+}
+td.left { text-align: left; padding-left: 12px; font-weight: 700; color: #CFB53B; }
+td.name-cell { text-align: left; padding-left: 12px; font-weight: 800; font-size: 13px; }
+
+/* EGS color coding */
+.egs-great { color: #4ade80; font-weight: 800; }
+.egs-good  { color: #86efac; font-weight: 700; }
+.egs-avg   { color: #fbbf24; font-weight: 700; }
+.egs-poor  { color: #f87171; font-weight: 700; }
+
+/* Game log */
+.game-log-header {
+display: flex; align-items: center; gap: 10px;
+margin-bottom: 10px; flex-wrap: wrap;
+}
+.game-log-header select {
+padding: 6px 10px; background: #161b22; border: 1px solid #30363d;
+border-radius: 6px; color: #e6edf3; font-family: ‘Barlow Condensed’, sans-serif;
+font-size: 14px; font-weight: 700;
+}
+.game-log-header label { font-size: 11px; color: #8b949e; text-transform: uppercase; }
+
+/* Loading */
+.loading { text-align: center; padding: 40px; color: #8b949e; font-size: 14px; }
+.section { display: none; }
+.section.active { display: block; }
+</style>
+
+</head>
+<body>
+<div class="page">
+  <div class="site-header">
+    <div>
+      <h1>⚾ Farragut Baseball</h1>
+      <p>2026 Season · Pitching Statistics</p>
+    </div>
+    <a href="index.html" class="home-btn">← Home</a>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('season')">Season Stats</div>
+    <div class="tab" onclick="switchTab('gamelog')">Game Log</div>
+  </div>
+
+  <!-- Season Stats -->
+
+  <div class="section active" id="tab-season">
+    <div class="summary-row" id="summaryCards">
+      <div class="stat-card"><div class="val" id="s-era">—</div><div class="lbl">Team ERA</div></div>
+      <div class="stat-card"><div class="val" id="s-whip">—</div><div class="lbl">Team WHIP</div></div>
+      <div class="stat-card"><div class="val" id="s-kpct">—</div><div class="lbl">K%</div></div>
+      <div class="stat-card"><div class="val" id="s-fip">—</div><div class="lbl">Team FIP</div></div>
+    </div>
+    <div class="filter-row">
+      <label>Min IP:</label>
+      <select id="minIP" onchange="renderSeason()">
+        <option value="0">All</option>
+        <option value="5" selected>5+</option>
+        <option value="10">10+</option>
+        <option value="20">20+</option>
+      </select>
+    </div>
+    <div class="loading" id="seasonLoading">Loading...</div>
+    <div class="table-wrap" id="seasonTableWrap" style="display:none;">
+      <table id="seasonTable">
+        <thead><tr>
+          <th class="left" onclick="sortSeason('name')">Pitcher</th>
+          <th onclick="sortSeason('gp')">GP</th>
+          <th onclick="sortSeason('ip')">IP</th>
+          <th onclick="sortSeason('era')">ERA</th>
+          <th onclick="sortSeason('fip')">FIP</th>
+          <th onclick="sortSeason('whip')">WHIP</th>
+          <th onclick="sortSeason('kpct')">K%</th>
+          <th onclick="sortSeason('bbpct')">BB%</th>
+          <th onclick="sortSeason('kbb')">K-BB%</th>
+          <th onclick="sortSeason('k9')">K/9</th>
+          <th onclick="sortSeason('bb9')">BB/9</th>
+          <th onclick="sortSeason('hr9')">HR/9</th>
+          <th onclick="sortSeason('strpct')">Str%</th>
+          <th onclick="sortSeason('avgEGS')">EGS</th>
+          <th onclick="sortSeason('k')">K</th>
+          <th onclick="sortSeason('bb')">BB</th>
+          <th onclick="sortSeason('h')">H</th>
+          <th onclick="sortSeason('er')">ER</th>
+        </tr></thead>
+        <tbody id="seasonBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Game Log -->
+
+  <div class="section" id="tab-gamelog">
+    <div class="game-log-header">
+      <label>Pitcher:</label>
+      <select id="logPitcher" onchange="renderGameLog()">
+        <option value="">— select —</option>
+      </select>
+    </div>
+    <div class="loading" id="logLoading" style="display:none;">Loading...</div>
+    <div class="table-wrap" id="logTableWrap" style="display:none;">
+      <table id="logTable">
+        <thead><tr>
+          <th class="left">Date</th>
+          <th class="left">Opponent</th>
+          <th>IP</th>
+          <th>H</th>
+          <th>R</th>
+          <th>ER</th>
+          <th>BB</th>
+          <th>K</th>
+          <th>HR</th>
+          <th>NP</th>
+          <th>Str</th>
+          <th>EGS</th>
+        </tr></thead>
+        <tbody id="logBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+var SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
+var SCHOOL_ID = 'frrg';
+
+var allPitching = [];
+var allGames = {};
+var seasonSort = { col: 'era', dir: 'asc' };
+
+async function supaFetch(path) {
+  var rows = [], from = 0;
+  while (true) {
+    var sep = path.indexOf('?') > -1 ? '&' : '?';
+    var r = await fetch(SUPABASE_URL + '/rest/v1/' + path + sep + 'limit=1000&offset=' + from,
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
+    var d = await r.json();
+    if (!Array.isArray(d) || !d.length) break;
+    rows = rows.concat(d); if (d.length < 1000) break; from += 1000;
+  }
+  return rows;
+}
+
+function ipToOuts(ip) {
+  if (!ip) return 0;
+  var parts = String(ip).split('.');
+  return parseInt(parts[0]||0)*3 + parseInt(parts[1]||0);
+}
+function outsToIP(outs) {
+  return Math.floor(outs/3) + '.' + (outs%3);
+}
+
+function calcEGS(row) {
+  var outs  = ipToOuts(row.ip);
+  var uner  = Math.max(0, (row.r||0) - (row.er||0));
+  return 40 + 2*outs + (row.k||0) - 2*(row.bb||0) - 2*(row.h||0) - 3*(row.er||0) - 6*(row.hr||0) - 4*uner;
+}
+
+function egsClass(v) {
+  if (v >= 70) return 'egs-great';
+  if (v >= 55) return 'egs-good';
+  if (v >= 40) return 'egs-avg';
+  return 'egs-poor';
+}
+
+function calcFIP(k, bb, hr, outs) {
+  if (!outs) return null;
+  var ip = outs / 3;
+  // FIP constant ~3.10 for HS approximation
+  return ((13*hr + 3*bb - 2*k) / ip + 3.10);
+}
+
+async function loadData() {
+  try {
+    var pitching = await supaFetch('hs_pitching?school_id=eq.' + SCHOOL_ID + '&order=game_id.asc');
+    var games    = await supaFetch('hs_games?school_id=eq.' + SCHOOL_ID + '&select=game_id,date,opponent,our_score,opp_score&order=date.asc');
+
+    games.forEach(function(g) { allGames[g.game_id] = g; });
+    allPitching = pitching;
+
+    // Populate pitcher dropdown
+    var names = Array.from(new Set(pitching.map(function(r){ return r.player_name; }))).sort();
+    var sel = document.getElementById('logPitcher');
+    names.forEach(function(n) {
+      var o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o);
+    });
+
+    renderSeason();
+  } catch(e) {
+    document.getElementById('seasonLoading').textContent = 'Error loading data: ' + e.message;
+  }
+}
+
+function aggregatePitchers(minIP) {
+  var map = {};
+  allPitching.forEach(function(r) {
+    var n = r.player_name;
+    if (!map[n]) map[n] = { name:n, gp:0, outs:0, h:0, r:0, er:0, bb:0, k:0, hr:0, pitches:0, strikes:0, egsSum:0, egsN:0 };
+    var m = map[n];
+    m.gp++;
+    m.outs   += ipToOuts(r.ip);
+    m.h      += r.h  || 0;
+    m.r      += r.r  || 0;
+    m.er     += r.er || 0;
+    m.bb     += r.bb || 0;
+    m.k      += r.k  || 0;
+    m.hr     += r.hr || 0;
+    if (r.pitches) { m.pitches += r.pitches; m.strikes += (r.strikes || 0); }
+    var egs = calcEGS(r);
+    m.egsSum += egs; m.egsN++;
+  });
+
+  return Object.values(map).filter(function(m) {
+    return m.outs / 3 >= minIP;
+  }).map(function(m) {
+    var ip   = m.outs / 3;
+    var bf   = m.outs + m.h + m.bb + m.hr; // estimate
+    var era  = ip > 0 ? (m.er / ip * 9) : null;
+    var whip = ip > 0 ? ((m.bb + m.h) / ip) : null;
+    var k9   = ip > 0 ? (m.k / ip * 9) : null;
+    var bb9  = ip > 0 ? (m.bb / ip * 9) : null;
+    var hr9  = ip > 0 ? (m.hr / ip * 9) : null;
+    var kpct  = bf > 0 ? (m.k  / bf * 100) : null;
+    var bbpct = bf > 0 ? (m.bb / bf * 100) : null;
+    var kbb   = (kpct !== null && bbpct !== null) ? kpct - bbpct : null;
+    var fip  = calcFIP(m.k, m.bb, m.hr, m.outs);
+    var strpct = m.pitches > 0 ? (m.strikes / m.pitches * 100) : null;
+    var avgEGS = m.egsN > 0 ? m.egsSum / m.egsN : null;
+
+    return Object.assign(m, {
+      ip: outsToIP(m.outs), ipNum: ip,
+      era, whip, k9, bb9, hr9, kpct, bbpct, kbb, fip, strpct, avgEGS
+    });
+  });
+}
+
+function fmt(v, dec, suffix) {
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  var s = v.toFixed(dec !== undefined ? dec : 2);
+  return suffix ? s + suffix : s;
+}
+
+function renderSeason() {
+  var minIP = parseFloat(document.getElementById('minIP').value) || 0;
+  var rows  = aggregatePitchers(minIP);
+
+  // Sort
+  rows.sort(function(a, b) {
+    var av = a[seasonSort.col], bv = b[seasonSort.col];
+    if (av === null || av === undefined) return 1;
+    if (bv === null || bv === undefined) return -1;
+    if (typeof av === 'string') return seasonSort.dir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+    return seasonSort.dir === 'asc' ? av - bv : bv - av;
+  });
+
+  // Team summary cards
+  var totOuts = 0, totER = 0, totBB = 0, totH = 0, totK = 0, totBF = 0;
+  allPitching.forEach(function(r) {
+    var o = ipToOuts(r.ip);
+    totOuts += o; totER += r.er||0; totBB += r.bb||0;
+    totH += r.h||0; totK += r.k||0;
+    totBF += o + (r.h||0) + (r.bb||0) + (r.hr||0);
+  });
+  var teamIP = totOuts/3;
+  document.getElementById('s-era').textContent  = teamIP > 0 ? (totER/teamIP*9).toFixed(2) : '—';
+  document.getElementById('s-whip').textContent = teamIP > 0 ? ((totBB+totH)/teamIP).toFixed(2) : '—';
+  document.getElementById('s-kpct').textContent = totBF > 0 ? (totK/totBF*100).toFixed(1)+'%' : '—';
+  document.getElementById('s-fip').textContent  = teamIP > 0 ? (calcFIP(totK, totBB, 0, totOuts)||0).toFixed(2) : '—';
+
+  var tbody = document.getElementById('seasonBody');
+  tbody.innerHTML = '';
+  rows.forEach(function(r) {
+    var egsVal = r.avgEGS !== null ? Math.round(r.avgEGS) : null;
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="name-cell">' + r.name + '</td>' +
+      '<td>' + r.gp + '</td>' +
+      '<td>' + r.ip + '</td>' +
+      '<td>' + fmt(r.era) + '</td>' +
+      '<td>' + fmt(r.fip) + '</td>' +
+      '<td>' + fmt(r.whip) + '</td>' +
+      '<td>' + fmt(r.kpct, 1, '%') + '</td>' +
+      '<td>' + fmt(r.bbpct, 1, '%') + '</td>' +
+      '<td>' + fmt(r.kbb, 1, '%') + '</td>' +
+      '<td>' + fmt(r.k9) + '</td>' +
+      '<td>' + fmt(r.bb9) + '</td>' +
+      '<td>' + fmt(r.hr9) + '</td>' +
+      '<td>' + fmt(r.strpct, 1, '%') + '</td>' +
+      '<td class="' + (egsVal !== null ? egsClass(egsVal) : '') + '">' + (egsVal !== null ? egsVal : '—') + '</td>' +
+      '<td>' + r.k + '</td>' +
+      '<td>' + r.bb + '</td>' +
+      '<td>' + r.h + '</td>' +
+      '<td>' + r.er + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('seasonLoading').style.display = 'none';
+  document.getElementById('seasonTableWrap').style.display = 'block';
+
+  // Update sort indicators
+  document.querySelectorAll('#seasonTable th').forEach(function(th) {
+    th.classList.remove('sort-asc','sort-desc');
+  });
+}
+
+function sortSeason(col) {
+  if (seasonSort.col === col) {
+    seasonSort.dir = seasonSort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    seasonSort.col = col;
+    // ERA, FIP, WHIP, BB% — lower is better → default asc
+    // K%, K-BB%, EGS, K — higher is better → default desc
+    var higherBetter = ['kpct','kbb','k9','avgEGS','k','strpct'];
+    seasonSort.dir = higherBetter.indexOf(col) > -1 ? 'desc' : 'asc';
+  }
+  renderSeason();
+}
+
+function renderGameLog() {
+  var name = document.getElementById('logPitcher').value;
+  if (!name) return;
+  var rows = allPitching.filter(function(r) { return r.player_name === name; });
+  rows.sort(function(a, b) {
+    var ga = allGames[a.game_id], gb = allGames[b.game_id];
+    var da = ga ? ga.date : ''; var db = gb ? gb.date : '';
+    return da < db ? -1 : da > db ? 1 : 0;
+  });
+
+  var tbody = document.getElementById('logBody');
+  tbody.innerHTML = '';
+  var totalEGS = 0, count = 0;
+  rows.forEach(function(r) {
+    var g = allGames[r.game_id] || {};
+    var egs = calcEGS(r);
+    totalEGS += egs; count++;
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="left" style="font-size:11px;">' + (g.date || r.game_id) + '</td>' +
+      '<td class="left">' + (g.opponent || '—') + '</td>' +
+      '<td>' + (r.ip || '—') + '</td>' +
+      '<td>' + (r.h  ?? '—') + '</td>' +
+      '<td>' + (r.r  ?? '—') + '</td>' +
+      '<td>' + (r.er ?? '—') + '</td>' +
+      '<td>' + (r.bb ?? '—') + '</td>' +
+      '<td>' + (r.k  ?? '—') + '</td>' +
+      '<td>' + (r.hr ?? '—') + '</td>' +
+      '<td>' + (r.pitches || '—') + '</td>' +
+      '<td>' + (r.strikes || '—') + '</td>' +
+      '<td class="' + egsClass(egs) + '">' + Math.round(egs) + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  // Totals row
+  var agg = aggregatePitchers(0).find(function(p){ return p.name === name; });
+  if (agg) {
+    var tfoot = document.createElement('tr');
+    tfoot.style.cssText = 'background:#002147;font-weight:800;border-top:2px solid #CFB53B;';
+    tfoot.innerHTML =
+      '<td class="left" style="color:#CFB53B;">SEASON</td>' +
+      '<td style="color:#CFB53B;">' + agg.gp + ' GP</td>' +
+      '<td style="color:#CFB53B;">' + agg.ip + '</td>' +
+      '<td>' + agg.h  + '</td>' +
+      '<td>' + agg.r  + '</td>' +
+      '<td>' + agg.er + '</td>' +
+      '<td>' + agg.bb + '</td>' +
+      '<td>' + agg.k  + '</td>' +
+      '<td>' + agg.hr + '</td>' +
+      '<td colspan="2" style="color:#8b949e;font-size:10px;">ERA ' + fmt(agg.era) + ' · FIP ' + fmt(agg.fip) + ' · WHIP ' + fmt(agg.whip) + '</td>' +
+      '<td class="' + egsClass(count > 0 ? totalEGS/count : 0) + '">' + (count > 0 ? Math.round(totalEGS/count) : '—') + ' avg</td>';
+    tbody.appendChild(tfoot);
+  }
+
+  document.getElementById('logLoading').style.display = 'none';
+  document.getElementById('logTableWrap').style.display = 'block';
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(function(t,i) {
+    t.classList.toggle('active', (i===0&&tab==='season')||(i===1&&tab==='gamelog'));
+  });
+  document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+
+loadData();
+</script>
+
+</body>
+</html>
