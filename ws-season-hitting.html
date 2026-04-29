@@ -399,8 +399,67 @@ function swingTakeRV(balls, strikes, outs, baseState) {
 // SEAGER: sum of (optimal decision value - actual decision value) across all pitches
 // Positive = making good decisions, capturing value
 // Uses sigmoid strike probability to weight borderline pitches
+// Hit value from exit velocity — expected run contribution of batted ball
+function hitValueFromEV(ev) {
+  if (isNaN(ev) || ev <= 0) return 0.08; // weak contact default
+  if (ev >= 105) return 1.55;  // near-certain extra base hit
+  if (ev >= 100) return 1.10;  // hard hit, high XBH rate
+  if (ev >= 95)  return 0.80;  // solid contact, good hit rate
+  if (ev >= 90)  return 0.55;  // medium-hard, decent hit rate
+  if (ev >= 85)  return 0.35;  // medium, coin flip
+  if (ev >= 78)  return 0.18;  // weak-medium, mostly outs
+  return 0.07;                  // weak contact, almost always out
+}
+
+// Build contact profile from this hitter's actual swing data
+// Returns contact rate and avg EV for 3 zone buckets: heart, shadow, outside
+function buildContactProfile(rows) {
+  var buckets = {
+    heart:   { swings:0, contacts:0, evSum:0, evCount:0 },
+    shadow:  { swings:0, contacts:0, evSum:0, evCount:0 },
+    outside: { swings:0, contacts:0, evSum:0, evCount:0 }
+  };
+  rows.forEach(function(r) {
+    var call = (r.PitchCall||'').trim();
+    var isSwing = ['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
+    if (!isSwing) return;
+    var side = parseFloat(r.PlateLocSide);
+    var height = parseFloat(r.PlateLocHeight);
+    if (isNaN(side) || isNaN(height)) return;
+    var zTop = parseFloat(r.ZoneTop)||3.5;
+    var zBot = parseFloat(r.ZoneBottom)||1.5;
+    var SHADOW = 0.0833;
+    var inZone = Math.abs(side)<=0.833 && height>=zBot && height<=zTop;
+    var inShadow = !inZone && Math.abs(side)<=(0.833+SHADOW) && height>=(zBot-SHADOW) && height<=(zTop+SHADOW);
+    var bucket = inZone ? 'heart' : inShadow ? 'shadow' : 'outside';
+    var isContact = call === 'InPlay' || call === 'FoulBall' || call === 'FoulBallNotFieldable';
+    buckets[bucket].swings++;
+    if (isContact) {
+      buckets[bucket].contacts++;
+      var ev = parseFloat(r.ExitSpeed);
+      if (!isNaN(ev) && ev > 0 && call === 'InPlay') {
+        buckets[bucket].evSum += ev;
+        buckets[bucket].evCount++;
+      }
+    }
+  });
+  // Calculate rates — use minimums to avoid dividing by zero, fall back to league averages
+  function bucketStats(b, defaultContact, defaultEV) {
+    var cr = b.swings >= 5 ? b.contacts / b.swings : defaultContact;
+    var avgEV = b.evCount >= 3 ? b.evSum / b.evCount : defaultEV;
+    return { contactRate: cr, avgEV: avgEV };
+  }
+  return {
+    heart:   bucketStats(buckets.heart,   0.88, 88),
+    shadow:  bucketStats(buckets.shadow,  0.78, 83),
+    outside: bucketStats(buckets.outside, 0.62, 78)
+  };
+}
+
 function computeSEAGER(rows) {
+  var profile = buildContactProfile(rows);
   var totalScore = 0, pitchCount = 0;
+
   rows.forEach(function(r) {
     var call = (r.PitchCall||'').trim();
     var isSwing = ['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
@@ -418,24 +477,41 @@ function computeSEAGER(rows) {
     var baseState = (on1b?1:0)|(on2b?2:0)|(on3b?4:0);
     var zTop = parseFloat(r.ZoneTop)||3.5;
     var zBot = parseFloat(r.ZoneBottom)||1.5;
+
+    // Strike probability at this location (sigmoid)
     var sp = strikeProbability(side, height, zTop, zBot, 0.833);
+
+    // Determine zone bucket for this pitch
+    var SHADOW = 0.0833;
+    var inZone = Math.abs(side)<=0.833 && height>=zBot && height<=zTop;
+    var inShadow = !inZone && Math.abs(side)<=(0.833+SHADOW) && height>=(zBot-SHADOW) && height<=(zTop+SHADOW);
+    var pBucket = inZone ? 'heart' : inShadow ? 'shadow' : 'outside';
+    var prof = profile[pBucket];
+
+    // RE24 run values for strike/ball outcomes at this count
     var rv = swingTakeRV(balls, strikes, outs, baseState);
-    // Expected value of taking = sp * strikeVal + (1-sp) * ballVal
-    // Expected value of swinging = approximated by contact probability * hit value
-    // Simplified: value on table = |delta| * sp weighting
-    // Decision value: if pitch is worth swinging at (EV of swing > EV of take), swing is right
-    // For takes: value captured = (1-sp) * (-rv.delta)  [taking a likely ball is good]
-    // For swings: value captured = sp * rv.delta * contact adjustment
-    // Net: score = actual_decision_value - expected_value_of_random_decision
-    var evTake  =  sp * rv.strikeVal + (1-sp) * rv.ballVal; // exp val of taking
-    var evSwing = -sp * rv.delta * 0.35; // simplified swing value (contact rate ~35% results in positive outcome)
-    // Optimal decision
+
+    // Expected value of TAKING this pitch
+    // = prob(called strike) * RE_after_strike + prob(called ball) * RE_after_ball
+    var evTake = sp * rv.strikeVal + (1 - sp) * rv.ballVal;
+
+    // Expected value of SWINGING at this pitch using hitter's actual contact profile
+    // = contactRate * hitValue(avgEV) + (1-contactRate) * RE_after_swinging_strike
+    var soVal = strikes >= 2 ? (outs >= 2 ? 0 : RE24[Math.min(outs+1,2)][baseState]) : rv.strikeVal;
+    var evSwing = prof.contactRate * hitValueFromEV(prof.avgEV) +
+                  (1 - prof.contactRate) * soVal;
+
+    // Optimal decision value vs actual decision value
     var optVal = Math.max(evTake, evSwing);
     var actVal = isSwing ? evSwing : evTake;
-    totalScore += (actVal - optVal); // will be 0 or negative per pitch (captures missed value)
+
+    // Score = how much value the hitter captured relative to optimal
+    // Summing gives total missed value; we normalize and flip sign
+    totalScore += (actVal - optVal);
     pitchCount++;
   });
-  // Normalize to per-100-pitches and flip sign so positive = good
+
+  // Normalize per 100 pitches, flip sign: positive = good decisions
   return pitchCount > 0 ? -(totalScore / pitchCount) * 100 : 0;
 }
 
