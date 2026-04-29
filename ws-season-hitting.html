@@ -424,11 +424,9 @@ function hitValueFromEV(ev){
   return 0.07;
 }
 
-// -- Full SEAGER score --
+// -- Full SEAGER score (uniform contact rate) --
 function computeSEAGER(rows){
-  var profile=buildContactProfile(rows);
   var totalScore=0,pitchCount=0;
-  var SHADOW=0.0833;
   rows.forEach(function(r){
     var call=(r.PitchCall||'').trim();
     var isSwing=['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
@@ -443,14 +441,10 @@ function computeSEAGER(rows){
     var baseState=(on1b?1:0)|(on2b?2:0)|(on3b?4:0);
     var zTop=parseFloat(r.ZoneTop)||3.5,zBot=parseFloat(r.ZoneBottom)||1.5;
     var sp=strikeProbability(side,height,zTop,zBot,0.833);
-    var inZone=Math.abs(side)<=0.833&&height>=zBot&&height<=zTop;
-    var inShadow=!inZone&&Math.abs(side)<=(0.833+SHADOW)&&height>=(zBot-SHADOW)&&height<=(zTop+SHADOW);
-    var pBucket=inZone?'heart':inShadow?'shadow':'outside';
-    var prof=profile[pBucket];
     var rv=swingTakeRV(balls,strikes,outs,baseState);
     var evTake=sp*rv.strikeVal+(1-sp)*rv.ballVal;
     var soVal=strikes>=2?(outs>=2?0:RE24[Math.min(outs+1,2)][baseState]):rv.strikeVal;
-    var evSwing=prof.contactRate*hitValueFromEV(prof.avgEV)+(1-prof.contactRate)*soVal;
+    var evSwing=0.35*hitValueFromEV(88)+(1-0.35)*soVal;
     var optVal=Math.max(evTake,evSwing);
     var actVal=isSwing?evSwing:evTake;
     totalScore+=(actVal-optVal);
