@@ -275,6 +275,61 @@ function setProgress(pct,msg){
   document.getElementById('loadMsg').textContent=msg;
 }
 
+
+// ── Calculate team-level contact defaults from all WS pitches ───────────────
+function calcTeamContactDefaults(pitches) {
+  var wsPitches = pitches.filter(function(r){
+    return r.BatterTeam && r.BatterTeam.toLowerCase().includes('wal');
+  });
+  var buckets = {
+    heart:   { swings:0, contacts:0, evSum:0, evCount:0 },
+    shadow:  { swings:0, contacts:0, evSum:0, evCount:0 },
+    outside: { swings:0, contacts:0, evSum:0, evCount:0 }
+  };
+  var SHADOW = 0.0833;
+  wsPitches.forEach(function(r) {
+    var call = (r.PitchCall||'').trim();
+    var isSwing = ['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
+    if (!isSwing) return;
+    var side = parseFloat(r.PlateLocSide);
+    var height = parseFloat(r.PlateLocHeight);
+    if (isNaN(side) || isNaN(height)) return;
+    var zTop = parseFloat(r.ZoneTop)||3.5;
+    var zBot = parseFloat(r.ZoneBottom)||1.5;
+    var inZone = Math.abs(side)<=0.833 && height>=zBot && height<=zTop;
+    var inShadow = !inZone && Math.abs(side)<=(0.833+SHADOW) && height>=(zBot-SHADOW) && height<=(zTop+SHADOW);
+    var bkt = inZone ? 'heart' : inShadow ? 'shadow' : 'outside';
+    var isContact = call==='InPlay'||call==='FoulBall'||call==='FoulBallNotFieldable';
+    buckets[bkt].swings++;
+    if (isContact) {
+      buckets[bkt].contacts++;
+      var ev = parseFloat(r.ExitSpeed);
+      if (!isNaN(ev) && ev > 0 && call === 'InPlay') {
+        buckets[bkt].evSum += ev;
+        buckets[bkt].evCount++;
+      }
+    }
+  });
+  function def(b) {
+    return {
+      cr: b.swings > 0 ? b.contacts / b.swings : 0,
+      ev: b.evCount > 0 ? b.evSum / b.evCount : 0
+    };
+  }
+  var defaults = {
+    heart:   def(buckets.heart),
+    shadow:  def(buckets.shadow),
+    outside: def(buckets.outside)
+  };
+  // Log so you can see the actual values
+  console.log('Team contact defaults:', JSON.stringify({
+    heart:   { contactRate: (defaults.heart.cr*100).toFixed(1)+'%',   avgEV: defaults.heart.ev.toFixed(1) },
+    shadow:  { contactRate: (defaults.shadow.cr*100).toFixed(1)+'%',  avgEV: defaults.shadow.ev.toFixed(1) },
+    outside: { contactRate: (defaults.outside.cr*100).toFixed(1)+'%', avgEV: defaults.outside.ev.toFixed(1) }
+  }));
+  window._teamContactDefaults = defaults;
+}
+
 async function boot(){
   try{
     setProgress(5,'Loading season stats...');
@@ -295,6 +350,7 @@ async function boot(){
     }
 
     setProgress(98,'Building stats...');
+    calcTeamContactDefaults(allPitches);
     rebuildTableData(allPitches);
     populatePlayerFilter();
     renderTable();
@@ -443,16 +499,17 @@ function buildContactProfile(rows) {
       }
     }
   });
-  // Calculate rates — use minimums to avoid dividing by zero, fall back to league averages
+  // Calculate rates — use player minimums, fall back to team-level defaults
   function bucketStats(b, defaultContact, defaultEV) {
     var cr = b.swings >= 5 ? b.contacts / b.swings : defaultContact;
     var avgEV = b.evCount >= 3 ? b.evSum / b.evCount : defaultEV;
     return { contactRate: cr, avgEV: avgEV };
   }
+  var td = window._teamContactDefaults || { heart:{cr:0.88,ev:88}, shadow:{cr:0.78,ev:83}, outside:{cr:0.62,ev:78} };
   return {
-    heart:   bucketStats(buckets.heart,   0.88, 88),
-    shadow:  bucketStats(buckets.shadow,  0.78, 83),
-    outside: bucketStats(buckets.outside, 0.62, 78)
+    heart:   bucketStats(buckets.heart,   td.heart.cr,   td.heart.ev),
+    shadow:  bucketStats(buckets.shadow,  td.shadow.cr,  td.shadow.ev),
+    outside: bucketStats(buckets.outside, td.outside.cr, td.outside.ev)
   };
 }
 
