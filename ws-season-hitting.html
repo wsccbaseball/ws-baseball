@@ -211,11 +211,11 @@ canvas{display:block;border-radius:4px}
 <!-- Whiff heat map -->
 <div class="hmap-section">
   <div class="hmap-title-row">
-    <div class="hmap-title">Whiff Zones by Pitch Type</div>
-    <div class="hmap-legend" id="whiffLegend"></div>
+    <div class="hmap-title">Weak Contact Zones</div>
+    <div class="hmap-legend" id="weakLegend"></div>
   </div>
-  <canvas id="hmapWhiff" width="468" height="240" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:2px">Average whiff location by pitch type</div>
+  <canvas id="hmapWeak" width="468" height="240" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:2px">Catcher's View · KDE of contact under 85 mph · dot = weak contact zone per pitch type</div>
 </div>
 
 <!-- Pitch type table -->
@@ -348,7 +348,7 @@ function computeProfile(name,rows){
     var call=(r.PitchCall||'').trim();
     var side=parseFloat(r.PlateLocSide),height=parseFloat(r.PlateLocHeight);
     var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||'Other');
-    if(!pitchTypes[pt])pitchTypes[pt]={total:0,swings:0,whiffs:0,chases:0,ozTotal:0,ev:[],contacts:0,bip:[],whiffPts:[]};
+    if(!pitchTypes[pt])pitchTypes[pt]={total:0,swings:0,whiffs:0,chases:0,ozTotal:0,ev:[],contacts:0,bip:[],whiffPts:[],weakPts:[]};
     pitchTypes[pt].total++;
 
     var isSwing=['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
@@ -360,7 +360,7 @@ function computeProfile(name,rows){
     if(isSwing){swings++;pitchTypes[pt].swings++;}
     if(isWhiff){
       whiffs++;pitchTypes[pt].whiffs++;
-      if(!isNaN(side)&&!isNaN(height))pitchTypes[pt].whiffPts.push({side:-side,height:height});
+      // weak contact stored below
     }
     if(isContact)pitchTypes[pt].contacts++;
     if(inside){inZone++;if(isSwing)inZoneSwings++;}
@@ -373,6 +373,7 @@ function computeProfile(name,rows){
       pitchTypes[pt].ev.push(ev);
       if(!isNaN(side)&&!isNaN(height)){
         bip.push({side:side,height:height,ev:ev,pt:pt,result:(r.PlayResult||'')});
+      if(call==='InPlay'&&!isNaN(ev)&&ev>0&&ev<85&&!isNaN(side)&&!isNaN(height))pitchTypes[pt].weakPts.push({side:side,height:height,ev:ev});
         pitchTypes[pt].bip.push({side:side,height:height,ev:ev,result:(r.PlayResult||'')});
       }
       if(!isNaN(la)&&ev>=98&&la>=26&&la<=30)barrels++;
@@ -589,23 +590,39 @@ function drawDamageHeatmap(canvasId, pitchTypes){
   return legendItems;
 }
 
-function drawWhiffHeatmap(canvasId, pitchTypes){
+function drawWeakHeatmap(canvasId, pitchTypes){
   var cv=document.getElementById(canvasId);if(!cv)return;
   var ctx=cv.getContext('2d'),W=cv.width,H=cv.height,PAD=12;
   var xMin=-1.55,xMax=1.55,yMin=0.8,yMax=4.2;
   var fns=drawZoneBase(ctx,W,H,PAD,xMin,xMax,yMin,yMax);
   var mx=fns.mx,my=fns.my;
 
-  var legendItems=[];
   var entries=Object.entries(pitchTypes).sort(function(a,b){return b[1].total-a[1].total;});
+  var legendItems=[];
 
-  // Just average dots — no KDE, no gradient
+  // Combine all weak contact into one blue KDE
+  var allWeak=[];
+  entries.forEach(function(e){allWeak=allWeak.concat(e[1].weakPts);});
+  if(allWeak.length>=2){
+    var minEV=allWeak.reduce(function(m,p){return Math.min(m,p.ev);},85);
+    var maxEV=84; // all are <85
+    var evRange=Math.max(maxEV-minEV,1);
+    var combinedGrid=computeKDE(allWeak,W,H,PAD,xMin,xMax,yMin,yMax,0.28,function(p){
+      // Weight inversely by EV — weaker contact = hotter
+      return 0.3+(85-p.ev)/20*0.7;
+    });
+    var globalMax=0;
+    for(var i=0;i<combinedGrid.length;i++)if(combinedGrid[i]>globalMax)globalMax=combinedGrid[i];
+    renderKDE(ctx,combinedGrid,W,H,PAD,'#1a6fb5',globalMax*0.65,0.9);
+  }
+
+  // Avg dot per pitch type
   entries.forEach(function(entry){
     var pt=entry[0],d=entry[1];
-    if(!d.whiffPts.length)return;
+    if(!d.weakPts.length)return;
     var color=pitchColor(pt);
-    drawAvgDot(ctx,d.whiffPts,mx,my,color);
-    legendItems.push({pt:pt,color:color,count:d.whiffPts.length});
+    drawAvgDot(ctx,d.weakPts,mx,my,color);
+    legendItems.push({pt:pt,color:color,count:d.weakPts.length});
   });
 
   ctx.fillStyle='#8a9ab0';ctx.font='8px Barlow Condensed,sans-serif';ctx.textAlign='center';
