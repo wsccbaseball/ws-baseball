@@ -1063,7 +1063,7 @@ function drawZoneGrid(canvasId, rows, valueFn, minVal, maxVal, label){
 
   // Render smooth gradient pixel by pixel using bilinear interpolation
   // Sample at higher resolution for smooth look
-  var RENDER_COLS=ZONE_COLS*12, RENDER_ROWS=ZONE_ROWS*12;
+  var RENDER_COLS=ZONE_COLS*16, RENDER_ROWS=ZONE_ROWS*16;
   var rCellW=gridW/RENDER_COLS, rCellH=gridH/RENDER_ROWS;
 
   for(var ry=0;ry<RENDER_ROWS;ry++){
