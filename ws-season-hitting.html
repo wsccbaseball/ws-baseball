@@ -215,7 +215,7 @@ canvas{display:block;border-radius:4px}
     <div class="hmap-legend" id="weakLegend"></div>
   </div>
   <canvas id="hmapWeak" width="468" height="240" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:2px">Catcher's View · KDE of contact under 85 mph · dot = weak contact zone per pitch type</div>
+  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:2px">Catcher's View · KDE of contact under 90 mph · dot = avg weak contact zone per pitch type</div>
 </div>
 
 <!-- Pitch type table -->
@@ -373,7 +373,7 @@ function computeProfile(name,rows){
       pitchTypes[pt].ev.push(ev);
       if(!isNaN(side)&&!isNaN(height)){
         bip.push({side:side,height:height,ev:ev,pt:pt,result:(r.PlayResult||'')});
-      if(call==='InPlay'&&!isNaN(ev)&&ev>0&&ev<85&&!isNaN(side)&&!isNaN(height))pitchTypes[pt].weakPts.push({side:side,height:height,ev:ev});
+      if(call==='InPlay'&&!isNaN(ev)&&ev>0&&ev<90&&!isNaN(side)&&!isNaN(height))pitchTypes[pt].weakPts.push({side:side,height:height,ev:ev});
         pitchTypes[pt].bip.push({side:side,height:height,ev:ev,result:(r.PlayResult||'')});
       }
       if(!isNaN(la)&&ev>=98&&la>=26&&la<=30)barrels++;
@@ -566,8 +566,11 @@ function drawDamageHeatmap(canvasId, pitchTypes){
       }
     });
     if(wobaCount<2||totalW<=0)return;
-    var avgWoba=sumWoba/d.bip.length; // per PA wOBA contribution
-    var cx=mx(sumX/totalW),cy=my(sumY/totalW);
+    var avgWoba=sumWoba/d.bip.length;
+    // Clamp centroid to visible range
+    var centX=Math.max(-1.4,Math.min(1.4,sumX/totalW));
+    var centY=Math.max(0.9,Math.min(4.1,sumY/totalW));
+    var cx=mx(centX),cy=my(centY);
     // Scale dot size by wOBA — range roughly 0.05 to 0.4 per pitch
     var minR=6,maxR=18;
     var norm=Math.min(avgWoba/0.35,1);
@@ -609,7 +612,7 @@ function drawWeakHeatmap(canvasId, pitchTypes){
     var evRange=Math.max(maxEV-minEV,1);
     var combinedGrid=computeKDE(allWeak,W,H,PAD,xMin,xMax,yMin,yMax,0.28,function(p){
       // Weight inversely by EV — weaker contact = hotter
-      return 0.3+(85-p.ev)/20*0.7;
+      return 0.3+(90-p.ev)/25*0.7;
     });
     var globalMax=0;
     for(var i=0;i<combinedGrid.length;i++)if(combinedGrid[i]>globalMax)globalMax=combinedGrid[i];
@@ -639,25 +642,30 @@ function buildLegend(containerId, items){
 }
 
 function buildPitchTable(p){
-  var tbody=document.getElementById('pitchTableBody');tbody.innerHTML='';
-  Object.entries(p.pitchTypes).sort(function(a,b){return b[1].total-a[1].total;}).forEach(function(e){
-    var pt=e[0],d=e[1];
-    var sw=d.total>0?d.swings/d.total:0;
-    var wh=d.swings>0?d.whiffs/d.swings:0;
-    var ch=d.ozTotal>0?d.chases/d.ozTotal:0;
-    var hard=d.ev.length>0?d.ev.filter(function(v){return v>=95;}).length/d.ev.length:0;
-    var avgEV=d.ev.length>0?(d.ev.reduce(function(a,b){return a+b;},0)/d.ev.length).toFixed(1):'—';
-    var color=pitchColor(pt);
-    tbody.innerHTML+='<tr>'+
-      '<td><div class="pitch-dot" style="background:'+color+'"></div>'+escH(pt)+'</td>'+
-      '<td>'+d.total+'</td>'+
-      '<td>'+pct(sw)+'</td>'+
-      '<td>'+pct(wh)+'</td>'+
-      '<td>'+pct(ch)+'</td>'+
-      '<td>'+pct(hard)+'</td>'+
-      '<td>'+avgEV+'</td>'+
-      '</tr>';
-  });
+  var tbody=document.getElementById('pitchTableBody');
+  if(!tbody)return;
+  tbody.innerHTML='';
+  Object.entries(p.pitchTypes)
+    .filter(function(e){return e[1].total>=3;})
+    .sort(function(a,b){return b[1].total-a[1].total;})
+    .forEach(function(e){
+      var pt=e[0],d=e[1];
+      var sw=d.total>0?d.swings/d.total:0;
+      var wh=d.swings>0?d.whiffs/d.swings:0;
+      var ch=d.ozTotal>0?d.chases/d.ozTotal:0;
+      var hard=d.ev.length>0?d.ev.filter(function(v){return v>=95;}).length/d.ev.length:0;
+      var avgEV=d.ev.length>0?(d.ev.reduce(function(a,b){return a+b;},0)/d.ev.length).toFixed(1):'—';
+      var color=pitchColor(pt);
+      tbody.innerHTML+='<tr>'+
+        '<td style="display:flex;align-items:center;gap:4px"><div class="pitch-dot" style="background:'+color+'"></div>'+escH(pt)+'</td>'+
+        '<td>'+d.total+'</td>'+
+        '<td>'+pct(sw)+'</td>'+
+        '<td>'+pct(wh)+'</td>'+
+        '<td>'+ch>0?pct(ch):'—'+'</td>'+
+        '<td>'+pct(hard)+'</td>'+
+        '<td>'+avgEV+'</td>'+
+        '</tr>';
+    });
 }
 
 function buildCard(){
