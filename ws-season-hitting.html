@@ -324,11 +324,7 @@ function calcTeamContactDefaults(pitches) {
     shadow:  def(buckets.shadow),
     outside: def(buckets.outside)
   };
-  console.log('Team contact defaults (Best Speed):', JSON.stringify({
-    heart:   { contactRate: (defaults.heart.cr*100).toFixed(1)+'%',   bestSpeed: defaults.heart.ev.toFixed(1) },
-    shadow:  { contactRate: (defaults.shadow.cr*100).toFixed(1)+'%',  bestSpeed: defaults.shadow.ev.toFixed(1) },
-    outside: { contactRate: (defaults.outside.cr*100).toFixed(1)+'%', bestSpeed: defaults.outside.ev.toFixed(1) }
-  }));
+
   window._teamContactDefaults = defaults;
 }
 
