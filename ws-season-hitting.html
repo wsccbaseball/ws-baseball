@@ -373,7 +373,10 @@ function computeProfile(name,rows){
       pitchTypes[pt].ev.push(ev);
       if(!isNaN(side)&&!isNaN(height)){
         bip.push({side:side,height:height,ev:ev,pt:pt,result:(r.PlayResult||'')});
-      if(call==='InPlay'&&!isNaN(ev)&&ev>0&&ev<90&&!isNaN(side)&&!isNaN(height))pitchTypes[pt].weakPts.push({side:side,height:height,ev:ev});
+      // Store weak contact — any batted ball under 90 mph
+    if(!isNaN(ev)&&ev>0&&ev<90&&!isNaN(side)&&!isNaN(height)&&['InPlay','FoulBall','FoulBallNotFieldable'].includes(call)){
+      pitchTypes[pt].weakPts.push({side:side,height:height,ev:ev});
+    }
         pitchTypes[pt].bip.push({side:side,height:height,ev:ev,result:(r.PlayResult||'')});
       }
       if(!isNaN(la)&&ev>=98&&la>=26&&la<=30)barrels++;
