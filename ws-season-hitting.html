@@ -491,7 +491,7 @@ function computeProfile(name,rows){
     var call=(r.PitchCall||'').trim();
     var side=parseFloat(r.PlateLocSide),height=parseFloat(r.PlateLocHeight);
     var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||'Other');
-    if(!pitchTypes[pt])pitchTypes[pt]={total:0,swings:0,whiffs:0,chases:0,ozTotal:0,ev:[],contacts:0,bip:[],whiffPts:[],weakPts:[]};
+    if(!pitchTypes[pt])pitchTypes[pt]={total:0,swings:0,whiffs:0,chases:0,ozTotal:0,ozPitches:0,ev:[],contacts:0,bip:[],whiffPts:[],weakPts:[]};
     pitchTypes[pt].total++;
 
     var isSwing=['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
@@ -507,7 +507,7 @@ function computeProfile(name,rows){
     }
     if(isContact)pitchTypes[pt].contacts++;
     if(inside){inZone++;if(isSwing)inZoneSwings++;}
-    if(outside){ozPitches++;if(isSwing){ozSwings++;pitchTypes[pt].chases++;pitchTypes[pt].ozTotal++;}}
+    if(outside){ozPitches++;pitchTypes[pt].ozPitches++;if(isSwing){ozSwings++;pitchTypes[pt].chases++;pitchTypes[pt].ozTotal++;}}
 
     var ev=parseFloat(r.ExitSpeed);
     var la=parseFloat(r.Angle||r.LaunchAngle||r.VertAngle||'NaN');
@@ -770,7 +770,7 @@ function buildPitchTable(p){
       var pt=e[0],d=e[1];
       var sw=d.total>0?d.swings/d.total:0;
       var wh=d.swings>0?d.whiffs/d.swings:0;
-      var ch=d.ozTotal>0?d.chases/d.ozTotal:0;
+      var ch=d.ozPitches>0?d.chases/d.ozPitches:0;
       var hard=d.ev.length>0?d.ev.filter(function(v){return v>=95;}).length/d.ev.length:0;
       var avgEV=d.ev.length>0?(d.ev.reduce(function(a,b){return a+b;},0)/d.ev.length).toFixed(1):'--';
       var color=pitchColor(pt);
@@ -825,10 +825,30 @@ function buildCard(){
 
   setTimeout(function(){
     var allRows=p.rows;
-    drawZoneGrid('zmapWoba', allRows, wobaVal, 0, 0.5, 'wOBA');
-    drawZoneGrid('zmapHard', allRows, hardVal, 0, 1, 'Hard%');
-    drawZoneGrid('zmapIso',  allRows, isoVal,  0, 0.6, 'ISO');
-    drawZoneGrid('zmapWhiff',allRows, whiffVal,0, 1, 'Whiff%');
+
+    function getDynamicRange(rows, valueFn) {
+      var vals=[];
+      rows.forEach(function(r){var v=valueFn(r);if(v!==null&&v!==undefined&&!isNaN(v))vals.push(v);});
+      if(!vals.length)return{min:0,max:1};
+      // Use zone-cell averages for range to avoid outlier distortion
+      var cells=buildZoneGrid(rows,valueFn);
+      var cellVals=cells.filter(function(c){return c.count>=2;}).map(function(c){return c.sum/c.count;});
+      if(!cellVals.length)return{min:0,max:1};
+      var mn=Math.min.apply(null,cellVals);
+      var mx=Math.max.apply(null,cellVals);
+      var pad=(mx-mn)*0.1;
+      return{min:Math.max(0,mn-pad),max:mx+pad};
+    }
+
+    var wobaRange=getDynamicRange(allRows,wobaVal);
+    var hardRange=getDynamicRange(allRows,hardVal);
+    var isoRange =getDynamicRange(allRows,isoVal);
+    var whiffRange=getDynamicRange(allRows,whiffVal);
+
+    drawZoneGrid('zmapWoba', allRows, wobaVal, wobaRange.min, wobaRange.max, 'wOBA');
+    drawZoneGrid('zmapHard', allRows, hardVal, hardRange.min, hardRange.max, 'Hard%');
+    drawZoneGrid('zmapIso',  allRows, isoVal,  isoRange.min,  isoRange.max,  'ISO');
+    drawZoneGrid('zmapWhiff',allRows, whiffVal,whiffRange.min,whiffRange.max,'Whiff%');
     buildPitchTable(p);
   },30);
 
@@ -1148,7 +1168,7 @@ function buildPitchTable(p){
       var pt=e[0],d=e[1];
       var sw=d.total>0?d.swings/d.total:0;
       var wh=d.swings>0?d.whiffs/d.swings:0;
-      var ch=d.ozTotal>0?d.chases/d.ozTotal:0;
+      var ch=d.ozPitches>0?d.chases/d.ozPitches:0;
       var hard=d.ev.length>0?d.ev.filter(function(v){return v>=95;}).length/d.ev.length:0;
       var avgEV=d.ev.length>0?(d.ev.reduce(function(a,b){return a+b;},0)/d.ev.length).toFixed(1):'--';
       var color=pitchColor(pt);
@@ -1203,10 +1223,30 @@ function buildCard(){
 
   setTimeout(function(){
     var allRows=p.rows;
-    drawZoneGrid('zmapWoba', allRows, wobaVal, 0, 0.5, 'wOBA');
-    drawZoneGrid('zmapHard', allRows, hardVal, 0, 1, 'Hard%');
-    drawZoneGrid('zmapIso',  allRows, isoVal,  0, 0.6, 'ISO');
-    drawZoneGrid('zmapWhiff',allRows, whiffVal,0, 1, 'Whiff%');
+
+    function getDynamicRange(rows, valueFn) {
+      var vals=[];
+      rows.forEach(function(r){var v=valueFn(r);if(v!==null&&v!==undefined&&!isNaN(v))vals.push(v);});
+      if(!vals.length)return{min:0,max:1};
+      // Use zone-cell averages for range to avoid outlier distortion
+      var cells=buildZoneGrid(rows,valueFn);
+      var cellVals=cells.filter(function(c){return c.count>=2;}).map(function(c){return c.sum/c.count;});
+      if(!cellVals.length)return{min:0,max:1};
+      var mn=Math.min.apply(null,cellVals);
+      var mx=Math.max.apply(null,cellVals);
+      var pad=(mx-mn)*0.1;
+      return{min:Math.max(0,mn-pad),max:mx+pad};
+    }
+
+    var wobaRange=getDynamicRange(allRows,wobaVal);
+    var hardRange=getDynamicRange(allRows,hardVal);
+    var isoRange =getDynamicRange(allRows,isoVal);
+    var whiffRange=getDynamicRange(allRows,whiffVal);
+
+    drawZoneGrid('zmapWoba', allRows, wobaVal, wobaRange.min, wobaRange.max, 'wOBA');
+    drawZoneGrid('zmapHard', allRows, hardVal, hardRange.min, hardRange.max, 'Hard%');
+    drawZoneGrid('zmapIso',  allRows, isoVal,  isoRange.min,  isoRange.max,  'ISO');
+    drawZoneGrid('zmapWhiff',allRows, whiffVal,whiffRange.min,whiffRange.max,'Whiff%');
     buildPitchTable(p);
   },30);
 
