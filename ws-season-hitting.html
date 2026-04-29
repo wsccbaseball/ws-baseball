@@ -794,11 +794,13 @@ async function boot(){
     allPitches=[];
     for(var i=0;i<gamesMeta.length;i++){var rows=await supaFetch('pitches?GameID=eq.'+encodeURIComponent(gamesMeta[i].game_id));allPitches=allPitches.concat(rows);setProgress(30+Math.round(((i+1)/gamesMeta.length)*60),'Loading game '+(i+1)+' of '+gamesMeta.length+'...');}
     setProgress(96,'Building stats...');
-    rebuildTableData(allPitches);populatePlayerFilter();renderTable();
+    try{rebuildTableData(allPitches);}catch(e2){document.getElementById('loadMsg').textContent='rebuildTableData error: '+e2.message;console.error('rebuildTableData',e2);throw e2;}
+    try{populatePlayerFilter();}catch(e3){document.getElementById('loadMsg').textContent='populatePlayerFilter error: '+e3.message;throw e3;}
+    try{renderTable();}catch(e4){document.getElementById('loadMsg').textContent='renderTable error: '+e4.message;throw e4;}
     document.getElementById('loading-screen').style.display='none';
     document.getElementById('main-screen').style.display='block';
     document.getElementById('bottomBar').style.display='flex';
-  }catch(e){document.getElementById('loadMsg').textContent='Error: '+e.message;}
+  }catch(e){document.getElementById('loadMsg').textContent='Error: '+e.message+' | '+e.stack;console.error(e);}
 }
 
 function populateGameFilter(){
