@@ -113,7 +113,7 @@ canvas{display:block;border-radius:4px;max-width:100%}
     </div>
     <div class="fg" style="flex:2;min-width:110px">
       <label>Player</label>
-      <select id="playerFilter"><option value="">All Players</option></select>
+      <select id="playerFilter" multiple style="height:52px"></select>
     </div>
     <div class="filter-count" id="filterCount"></div>
   </div>
@@ -293,7 +293,7 @@ function populatePlayerFilter(){
     .map(function(r){return r.Batter||'';}).filter(Boolean)
   )).sort();
   var sel=document.getElementById('playerFilter');
-  sel.innerHTML='<option value="">All Players</option>';
+  sel.innerHTML='<option value="" disabled style="color:#9b8c74;font-style:italic">All Players (default)</option>';
   names.forEach(function(n){
     var p=n.split(','),d=p.length>1?(p[1]||'').trim()+' '+p[0].trim():n;
     sel.innerHTML+='<option value="'+n+'">'+escH(d)+'</option>';
@@ -379,8 +379,9 @@ function getSelectedGames(){
 }
 
 function renderTable(){
-  var playerF=document.getElementById('playerFilter').value;
-  var data=tableData.filter(function(p){return p.pa>0&&(!playerF||p.name===playerF);});
+  var playerSel=document.getElementById('playerFilter');
+  var selectedPlayers=Array.from(playerSel.selectedOptions).map(function(o){return o.value;}).filter(Boolean);
+  var data=tableData.filter(function(p){return p.pa>0&&(!selectedPlayers.length||selectedPlayers.includes(p.name));});
   data.sort(function(a,b){
     var av=a[sortCol]||0,bv=b[sortCol]||0;
     if(typeof av==='string')return sortAsc?av.localeCompare(bv):bv.localeCompare(av);
