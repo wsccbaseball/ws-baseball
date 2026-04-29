@@ -340,7 +340,7 @@ var PITCH_NORM={
 function normPitch(t){return PITCH_NORM[t]||t||'Other';}
 function pitchColor(t){return PITCH_COLORS[normPitch(t)]||PITCH_COLORS[t]||'#888888';}
 
-var allPitches=[], seasonStats={batting:[]}, playerData={};
+var allPitches=[], seasonStats={batting:[]};
 
 async function supaFetch(path){
   var rows=[],from=0;
@@ -369,10 +369,7 @@ function buildPlayerProfiles(){
     if(!players[n])players[n]=[];
     players[n].push(r);
   });
-  playerData={};
-  Object.keys(players).forEach(function(name){
-    playerData[name]=computeProfile(name,players[name]);
-  });
+
 }
 
 function computeProfile(name,rows){
@@ -468,9 +465,6 @@ function computeProfile(name,rows){
 }
 
 );
-  sel.addEventListener('change',function(){document.getElementById('genBtn').disabled=!this.value;});
-}
-
 // ── Heat map drawing ─────────────────────────────────────────────────────────
 // ── KDE Heat Map Engine ──────────────────────────────────────────────────────
 var GRID=60; // resolution of KDE grid
@@ -750,14 +744,14 @@ function buildCard(){
     buildPitchTable(p);
   },30);
 
-  document.getElementById('select-screen').style.display='none';
+  document.getElementById('main-screen').style.display='none';
   document.getElementById('card-screen').style.display='block';
   window.scrollTo(0,0);
 }
 
 function showSelect(){
   document.getElementById('card-screen').style.display='none';
-  document.getElementById('select-screen').style.display='block';
+  document.getElementById('main-screen').style.display='block';
 }
 
 async function saveCard(){
