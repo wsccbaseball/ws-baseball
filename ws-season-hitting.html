@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -12,28 +13,28 @@ html,body{max-width:100vw;overflow-x:hidden}
 body{font-family:'Barlow Condensed',sans-serif;background:#f2ead8;min-height:100vh}
 
 #loading-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px}
-.load-title{font-family:'Abril Fatface',serif;font-size:2rem;color:#1a1a2e}
-.load-sub{font-size:.9rem;color:#6b5f47;font-family:'Barlow',sans-serif}
+.load-title{font-family:‘Abril Fatface’,serif;font-size:2rem;color:#1a1a2e}
+.load-sub{font-size:.9rem;color:#6b5f47;font-family:‘Barlow’,sans-serif}
 .progress-bar{width:260px;height:6px;background:#ddd5bc;border-radius:3px;overflow:hidden}
 .progress-fill{height:100%;background:#1a3a5c;border-radius:3px;width:0%;transition:width .4s ease}
-.load-msg{font-size:.8rem;color:#9b8c74;font-family:'Barlow',sans-serif;text-align:center}
+.load-msg{font-size:.8rem;color:#9b8c74;font-family:‘Barlow’,sans-serif;text-align:center}
 
 #main-screen{display:none}
 .page-header{background:#1a3a5c;padding:12px 14px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:20}
-.page-header-title{font-family:'Abril Fatface',serif;font-size:1.3rem;color:#fff;line-height:1}
-.page-header-sub{font-size:.7rem;color:#a8c8f0;font-family:'Barlow',sans-serif;margin-top:1px}
-.home-btn{background:transparent;border:1px solid rgba(255,255,255,.3);padding:5px 10px;font-family:'Barlow Condensed',sans-serif;font-size:.75rem;color:#a8c8f0;cursor:pointer;border-radius:4px;text-decoration:none;white-space:nowrap}
+.page-header-title{font-family:‘Abril Fatface’,serif;font-size:1.3rem;color:#fff;line-height:1}
+.page-header-sub{font-size:.7rem;color:#a8c8f0;font-family:‘Barlow’,sans-serif;margin-top:1px}
+.home-btn{background:transparent;border:1px solid rgba(255,255,255,.3);padding:5px 10px;font-family:‘Barlow Condensed’,sans-serif;font-size:.75rem;color:#a8c8f0;cursor:pointer;border-radius:4px;text-decoration:none;white-space:nowrap}
 
 .filter-bar{background:#fffdf7;border-bottom:2px solid #1a3a5c;padding:10px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
 .fg{display:flex;flex-direction:column;gap:3px;min-width:80px}
-.fg label{font-family:'Anton',sans-serif;font-size:.58rem;color:#6b5f47;text-transform:uppercase;letter-spacing:.08em}
-.fg select,.fg input{padding:6px 8px;border:1px solid #ddd5bc;font-family:'Barlow Condensed',sans-serif;font-size:.85rem;color:#1a1a2e;background:#fff;-webkit-appearance:none;border-radius:3px;height:32px}
+.fg label{font-family:‘Anton’,sans-serif;font-size:.58rem;color:#6b5f47;text-transform:uppercase;letter-spacing:.08em}
+.fg select,.fg input{padding:6px 8px;border:1px solid #ddd5bc;font-family:‘Barlow Condensed’,sans-serif;font-size:.85rem;color:#1a1a2e;background:#fff;-webkit-appearance:none;border-radius:3px;height:32px}
 .fg select[multiple]{height:80px}
-.filter-count{font-family:'Barlow',sans-serif;font-size:.72rem;color:#6b5f47;align-self:flex-end;padding-bottom:6px;white-space:nowrap}
+.filter-count{font-family:‘Barlow’,sans-serif;font-size:.72rem;color:#6b5f47;align-self:flex-end;padding-bottom:6px;white-space:nowrap}
 
 #table-screen{padding:0 0 80px}
 .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-table{width:100%;border-collapse:collapse;font-family:'Barlow Condensed',sans-serif;min-width:680px}
+table{width:100%;border-collapse:collapse;font-family:‘Barlow Condensed’,sans-serif;min-width:680px}
 thead tr{background:#1a3a5c}
 th{color:#fff;font-size:.7rem;font-weight:700;padding:8px 6px;text-align:center;white-space:nowrap;cursor:pointer;user-select:none;border-right:1px solid rgba(255,255,255,.1)}
 th:first-child{text-align:left;min-width:110px;position:sticky;left:0;z-index:2;background:#1a3a5c}
@@ -49,59 +50,60 @@ tr.selected td{background:#e8f0fb!important}
 .val-hi{color:#1a3a5c;font-weight:800}
 .val-good{color:#2a7a3a}
 .val-warn{color:#b05000}
-.no-data{text-align:center;padding:40px;color:#9b8c74;font-family:'Barlow',sans-serif;font-size:.9rem}
+.no-data{text-align:center;padding:40px;color:#9b8c74;font-family:‘Barlow’,sans-serif;font-size:.9rem}
 
 .bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#1a3a5c;padding:10px 14px;display:flex;gap:8px;z-index:20}
-.gen-btn{flex:1;padding:11px;background:#fff;border:none;font-family:'Anton',sans-serif;font-size:.9rem;letter-spacing:.08em;color:#1a3a5c;cursor:pointer;border-radius:6px}
+.gen-btn{flex:1;padding:11px;background:#fff;border:none;font-family:‘Anton’,sans-serif;font-size:.9rem;letter-spacing:.08em;color:#1a3a5c;cursor:pointer;border-radius:6px}
 .gen-btn:disabled{background:rgba(255,255,255,.3);color:rgba(255,255,255,.5);cursor:not-allowed}
-.sel-hint{font-family:'Barlow',sans-serif;font-size:.72rem;color:#a8c8f0;display:flex;align-items:center;white-space:nowrap}
+.sel-hint{font-family:‘Barlow’,sans-serif;font-size:.72rem;color:#a8c8f0;display:flex;align-items:center;white-space:nowrap}
 
 #card-screen{display:none;padding:12px 10px 80px;max-width:520px;margin:0 auto}
 .card{background:#fff;width:100%;max-width:500px;border-radius:10px;box-shadow:0 4px 24px rgba(0,0,0,.13);overflow:hidden;margin:0 auto 16px}
 .card-header{background:linear-gradient(135deg,#1a3a5c 0%,#2d5a8e 100%);padding:8px 12px 7px;display:flex;align-items:center;justify-content:space-between}
 .hdr-center{text-align:center;flex:1}
-.player-name{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:#fff;letter-spacing:1px;line-height:1}
-.player-sub{font-family:'Barlow Condensed',sans-serif;font-size:11px;color:#a8c8f0;margin-top:1px}
-.card-type{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:#fff;margin-top:2px}
+.player-name{font-family:‘Barlow Condensed’,sans-serif;font-size:26px;font-weight:800;color:#fff;letter-spacing:1px;line-height:1}
+.player-sub{font-family:‘Barlow Condensed’,sans-serif;font-size:11px;color:#a8c8f0;margin-top:1px}
+.card-type{font-family:‘Barlow Condensed’,sans-serif;font-size:13px;font-weight:700;color:#fff;margin-top:2px}
 .season-tag{font-size:10px;font-style:italic;color:#7bb3e0}
 .logo-box{width:42px;text-align:center}
-.game-line{background:#e8f0fb;text-align:center;padding:5px 8px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:#1a3a5c;border-bottom:2px solid #c5d8f0}
+.game-line{background:#e8f0fb;text-align:center;padding:5px 8px;font-family:‘Barlow Condensed’,sans-serif;font-size:13px;font-weight:700;color:#1a3a5c;border-bottom:2px solid #c5d8f0}
 .stat-table-wrap{padding:4px 6px 3px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-.stat-table{width:100%;border-collapse:collapse;font-family:'Barlow Condensed',sans-serif;min-width:380px}
+.stat-table{width:100%;border-collapse:collapse;font-family:‘Barlow Condensed’,sans-serif;min-width:380px}
 .stat-table th{background:#1a3a5c;color:#fff;font-size:10px;font-weight:700;padding:4px;text-align:center;white-space:nowrap}
 .stat-table td{text-align:center;padding:5px 4px;font-size:14px;font-weight:700;color:#1a1a1a;border:1px solid #dde4ef;background:#f8fafd}
 .mid-section{display:flex;border-top:1px solid #e4eaf4;align-items:stretch}
 .left-panel{width:154px;flex-shrink:0;border-right:1px solid #e4eaf4;padding:6px 5px;display:flex;flex-direction:column;gap:5px}
-.panel-title{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;color:#1a3a5c;text-align:center;text-transform:uppercase;letter-spacing:.5px;margin-bottom:1px}
+.panel-title{font-family:‘Barlow Condensed’,sans-serif;font-size:9px;font-weight:700;color:#1a3a5c;text-align:center;text-transform:uppercase;letter-spacing:.5px;margin-bottom:1px}
 .rate-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px}
 .rate-box{background:#f4f8fd;border:1px solid #dde4ef;border-radius:4px;padding:3px 2px;text-align:center}
-.rate-box .rb-val{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;color:#1a3a5c;line-height:1}
-.rate-box .rb-lbl{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:600;color:#7a8faa;margin-top:2px}
+.rate-box .rb-val{font-family:‘Barlow Condensed’,sans-serif;font-size:17px;font-weight:800;color:#1a3a5c;line-height:1}
+.rate-box .rb-lbl{font-family:‘Barlow Condensed’,sans-serif;font-size:8px;font-weight:600;color:#7a8faa;margin-top:2px}
 .right-panel{flex:1;padding:5px 4px;min-width:0;display:flex;flex-direction:column;gap:4px}
-.hmap-title{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;color:#1a3a5c;text-align:center;text-transform:uppercase;letter-spacing:.5px}
+.hmap-title{font-family:‘Barlow Condensed’,sans-serif;font-size:9px;font-weight:700;color:#1a3a5c;text-align:center;text-transform:uppercase;letter-spacing:.5px}
 canvas{display:block;border-radius:4px;max-width:100%}
-.card-footer{background:#f0f4fa;border-top:1px solid #dde4ef;padding:5px 10px;display:flex;justify-content:space-between;font-family:'Barlow Condensed',sans-serif;font-size:9px;color:#6a7f9a}
-.save-btn{display:block;width:calc(100% - 16px);margin:8px auto;padding:11px;background:#1a3a5c;border:none;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:#fff;cursor:pointer;letter-spacing:1px}
+.card-footer{background:#f0f4fa;border-top:1px solid #dde4ef;padding:5px 10px;display:flex;justify-content:space-between;font-family:‘Barlow Condensed’,sans-serif;font-size:9px;color:#6a7f9a}
+.save-btn{display:block;width:calc(100% - 16px);margin:8px auto;padding:11px;background:#1a3a5c;border:none;border-radius:8px;font-family:‘Barlow Condensed’,sans-serif;font-size:15px;font-weight:800;color:#fff;cursor:pointer;letter-spacing:1px}
 
 .img-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.88);align-items:center;justify-content:center;flex-direction:column;padding:16px}
 .img-overlay.active{display:flex}
 .img-overlay img{max-width:100%;max-height:80vh;border-radius:6px}
-.overlay-hint{margin-top:14px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:600;color:rgba(255,255,255,.75);text-align:center}
-.overlay-close{margin-top:16px;padding:10px 32px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:8px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;cursor:pointer}
+.overlay-hint{margin-top:14px;font-family:‘Barlow Condensed’,sans-serif;font-size:15px;font-weight:600;color:rgba(255,255,255,.75);text-align:center}
+.overlay-close{margin-top:16px;padding:10px 32px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:8px;color:#fff;font-family:‘Barlow Condensed’,sans-serif;font-size:15px;font-weight:700;cursor:pointer}
 
 .dd-wrap{position:relative;width:100%}
-.dd-trigger{background:#fff;border:1px solid #ddd5bc;border-radius:3px;padding:5px 28px 5px 8px;font-family:'Barlow Condensed',sans-serif;font-size:.85rem;color:#1a1a2e;cursor:pointer;height:32px;display:flex;align-items:center;justify-content:space-between;user-select:none;white-space:nowrap;overflow:hidden}
+.dd-trigger{background:#fff;border:1px solid #ddd5bc;border-radius:3px;padding:5px 28px 5px 8px;font-family:‘Barlow Condensed’,sans-serif;font-size:.85rem;color:#1a1a2e;cursor:pointer;height:32px;display:flex;align-items:center;justify-content:space-between;user-select:none;white-space:nowrap;overflow:hidden}
 .dd-trigger span:first-child{overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
 .dd-arrow{font-size:.65rem;color:#9b8c74;flex-shrink:0;margin-left:4px;transition:transform .2s}
 .dd-wrap.open .dd-arrow{transform:rotate(180deg)}
 .dd-menu{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #ddd5bc;border-top:none;border-radius:0 0 4px 4px;z-index:50;max-height:220px;overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:0 4px 12px rgba(0,0,0,.12)}
 .dd-wrap.open .dd-menu{display:block}
-.dd-item{display:flex;align-items:center;gap:8px;padding:7px 10px;font-family:'Barlow Condensed',sans-serif;font-size:.85rem;color:#1a1a2e;cursor:pointer;border-bottom:1px solid #f0e8d8}
+.dd-item{display:flex;align-items:center;gap:8px;padding:7px 10px;font-family:‘Barlow Condensed’,sans-serif;font-size:.85rem;color:#1a1a2e;cursor:pointer;border-bottom:1px solid #f0e8d8}
 .dd-item:last-child{border-bottom:none}
 .dd-item:hover{background:#f4efe4}
 .dd-item input[type=checkbox]{width:14px;height:14px;accent-color:#1a3a5c;flex-shrink:0;cursor:pointer}
 .dd-item.checked{background:#eef4fc}
 </style>
+
 </head>
 <body>
 
@@ -351,6 +353,89 @@ function rebuildTableData(pitches){
   tableData=Object.values(players).map(function(rows){return computeMetrics(rows[0].Batter,rows);});
 }
 
+
+// ── SEAGER metric helpers ────────────────────────────────────────────────────
+// Sigmoid strike probability based on distance from zone edge
+function strikeProbability(side, height, zTop, zBot, halfW) {
+  zTop = zTop || 3.5; zBot = zBot || 1.5; halfW = halfW || 0.833;
+  // Distance from zone edge (negative = inside zone)
+  var dx = Math.max(0, Math.abs(side) - halfW);
+  var dy = Math.max(0, Math.max(zBot - height, height - zTop));
+  var dist = Math.sqrt(dx*dx + dy*dy);
+  var inside = Math.abs(side) <= halfW && height >= zBot && height <= zTop;
+  // Sigmoid: k controls steepness, center at 0 (zone edge)
+  // Inside zone: dist is 0, prob approaches 1
+  // Outside zone: dist grows, prob approaches 0
+  if (inside) {
+    return 1 / (1 + Math.exp(15 * (dist - 0.15)));
+  } else {
+    return 1 / (1 + Math.exp(15 * (dist + 0.05)));
+  }
+}
+
+// Run value of a called strike vs called ball at this count/state
+function swingTakeRV(balls, strikes, outs, baseState) {
+  var so = Math.min(Math.max(isNaN(outs)?0:outs, 0), 2);
+  var bst = isNaN(baseState)||baseState<0||baseState>7 ? 0 : baseState;
+  function walkRes(bs) {
+    var on1=!!(bs&1),on2=!!(bs&2),on3=!!(bs&4),runs=0,n1=true,n2=on2,n3=on3;
+    if(on1){n2=true;if(on2){n3=true;if(on3)runs=1;}}
+    return {newState:(n1?1:0)|(n2?2:0)|(n3?4:0),runs:runs};
+  }
+  function reVal(b,s) {
+    if(b>=4){var w=walkRes(bst);return w.runs+RE24[so][w.newState];}
+    if(s>=3){return so===2?0:RE24[so+1][bst];}
+    return COUNT_RE[b+'-'+s]||COUNT_RE['0-0'];
+  }
+  // Value of strike outcome minus ball outcome
+  var strikeVal = reVal(balls, strikes+1);
+  var ballVal   = reVal(balls+1, strikes);
+  return { strikeVal: strikeVal, ballVal: ballVal, delta: strikeVal - ballVal };
+}
+
+// SEAGER: sum of (optimal decision value - actual decision value) across all pitches
+// Positive = making good decisions, capturing value
+// Uses sigmoid strike probability to weight borderline pitches
+function computeSEAGER(rows) {
+  var totalScore = 0, pitchCount = 0;
+  rows.forEach(function(r) {
+    var call = (r.PitchCall||'').trim();
+    var isSwing = ['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
+    var isTake  = call === 'StrikeCalled' || call === 'BallCalled';
+    if (!isSwing && !isTake) return;
+    var side   = parseFloat(r.PlateLocSide);
+    var height = parseFloat(r.PlateLocHeight);
+    if (isNaN(side) || isNaN(height)) return;
+    var balls   = parseInt(r.Balls||r.BallCount||0)||0;
+    var strikes = parseInt(r.Strikes||r.StrikeCount||0)||0;
+    var outs    = parseInt(r.Outs||r.OutsBeforePitch||0)||0;
+    var on1b = !!(r.Runner1B||'').trim();
+    var on2b = !!(r.Runner2B||'').trim();
+    var on3b = !!(r.Runner3B||'').trim();
+    var baseState = (on1b?1:0)|(on2b?2:0)|(on3b?4:0);
+    var zTop = parseFloat(r.ZoneTop)||3.5;
+    var zBot = parseFloat(r.ZoneBottom)||1.5;
+    var sp = strikeProbability(side, height, zTop, zBot, 0.833);
+    var rv = swingTakeRV(balls, strikes, outs, baseState);
+    // Expected value of taking = sp * strikeVal + (1-sp) * ballVal
+    // Expected value of swinging = approximated by contact probability * hit value
+    // Simplified: value on table = |delta| * sp weighting
+    // Decision value: if pitch is worth swinging at (EV of swing > EV of take), swing is right
+    // For takes: value captured = (1-sp) * (-rv.delta)  [taking a likely ball is good]
+    // For swings: value captured = sp * rv.delta * contact adjustment
+    // Net: score = actual_decision_value - expected_value_of_random_decision
+    var evTake  =  sp * rv.strikeVal + (1-sp) * rv.ballVal; // exp val of taking
+    var evSwing = -sp * rv.delta * 0.35; // simplified swing value (contact rate ~35% results in positive outcome)
+    // Optimal decision
+    var optVal = Math.max(evTake, evSwing);
+    var actVal = isSwing ? evSwing : evTake;
+    totalScore += (actVal - optVal); // will be 0 or negative per pitch (captures missed value)
+    pitchCount++;
+  });
+  // Normalize to per-100-pitches and flip sign so positive = good
+  return pitchCount > 0 ? -(totalScore / pitchCount) * 100 : 0;
+}
+
 function computeMetrics(name,rows){
   var swings=0,whiffs=0,inZone=0,inZoneSwings=0,ozPitches=0,ozSwings=0,pa=0;
   var bip=[],maxEV=0,totalEV=0,evCount=0;
@@ -430,6 +515,7 @@ function computeMetrics(name,rows){
   var gbPct=bipCount>0?gbCount/bipCount:0;
   var fbPct=bipCount>0?fbCount/bipCount:0;
   var sgr=(inZone>0&&ozPitches>0)?(inZoneSwings/inZone)-(ozSwings/ozPitches):0;
+  var seagerScore=computeSEAGER(rows);
 
   return{
     name:name,displayName:displayName,lastName:lastName,
@@ -444,7 +530,7 @@ function computeMetrics(name,rows){
     woba:woba,
     swingPct:tp>0?swings/tp:0,whiffPct:swings>0?whiffs/swings:0,
     chasePct:ozPitches>0?ozSwings/ozPitches:0,zSwingPct:inZone>0?inZoneSwings/inZone:0,
-    sgr:sgr,hardHit:hardHitPct,barrelPct:barrelPct,
+    sgr:sgr,seagerScore:seagerScore,hardHit:hardHitPct,barrelPct:barrelPct,
     gbPct:gbPct,fbPct:fbPct,bestSpeed:bestSpeed,
     maxEV:maxEV,totalPitches:tp,pitchTypes:pitchTypes,bip:bip,rows:rows
   };
@@ -516,7 +602,7 @@ function renderTable(){
       '<td>'+pct(p.swingPct)+'</td>'+
       '<td class="'+(p.chasePct>=.30?'val-warn':'')+'">'+pct(p.chasePct)+'</td>'+
       '<td>'+pct(p.zSwingPct)+'</td>'+
-      '<td class="'+(p.sgr>=.15?'val-good':p.sgr<0?'val-warn':'')+'">'+pct(p.sgr)+'</td>'+
+      '<td class="'+(p.seagerScore>=5?'val-good':p.seagerScore<0?'val-warn':'')+'">'+p.seagerScore.toFixed(2)+'</td>'+
       '<td>'+pct(p.gbPct)+'</td>'+
       '<td>'+pct(p.fbPct)+'</td>'+
       '<td class="val-hi">'+(p.bestSpeed>0?p.bestSpeed.toFixed(1):'—')+'</td>'+
@@ -620,5 +706,6 @@ function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 
 boot();
 </script>
+
 </body>
 </html>
