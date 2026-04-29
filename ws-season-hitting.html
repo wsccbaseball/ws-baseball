@@ -779,7 +779,7 @@ function buildPitchTable(p){
         '<td>'+d.total+'</td>'+
         '<td>'+pct(sw)+'</td>'+
         '<td>'+pct(wh)+'</td>'+
-        '<td>'+ch>0?pct(ch):'--'+'</td>'+
+        '<td>'+(ch>0?pct(ch):'--')+'</td>'+
         '<td>'+pct(hard)+'</td>'+
         '<td>'+avgEV+'</td>'+
         '</tr>';
@@ -825,9 +825,9 @@ function buildCard(){
 
   setTimeout(function(){
     var allRows=p.rows;
-    drawZoneGrid('zmapWoba', allRows, wobaVal, 0, 0.8, 'wOBA');
+    drawZoneGrid('zmapWoba', allRows, wobaVal, 0, 0.5, 'wOBA');
     drawZoneGrid('zmapHard', allRows, hardVal, 0, 1, 'Hard%');
-    drawZoneGrid('zmapIso',  allRows, isoVal,  0, 1.5, 'ISO');
+    drawZoneGrid('zmapIso',  allRows, isoVal,  0, 0.6, 'ISO');
     drawZoneGrid('zmapWhiff',allRows, whiffVal,0, 1, 'Whiff%');
     buildPitchTable(p);
   },30);
@@ -1043,7 +1043,7 @@ function drawZoneGrid(canvasId, rows, valueFn, minVal, maxVal, label){
 
   // Render smooth gradient pixel by pixel using bilinear interpolation
   // Sample at higher resolution for smooth look
-  var RENDER_COLS=ZONE_COLS*4, RENDER_ROWS=ZONE_ROWS*4;
+  var RENDER_COLS=ZONE_COLS*8, RENDER_ROWS=ZONE_ROWS*8;
   var rCellW=gridW/RENDER_COLS, rCellH=gridH/RENDER_ROWS;
 
   for(var ry=0;ry<RENDER_ROWS;ry++){
@@ -1157,7 +1157,7 @@ function buildPitchTable(p){
         '<td>'+d.total+'</td>'+
         '<td>'+pct(sw)+'</td>'+
         '<td>'+pct(wh)+'</td>'+
-        '<td>'+ch>0?pct(ch):'--'+'</td>'+
+        '<td>'+(ch>0?pct(ch):'--')+'</td>'+
         '<td>'+pct(hard)+'</td>'+
         '<td>'+avgEV+'</td>'+
         '</tr>';
@@ -1203,9 +1203,9 @@ function buildCard(){
 
   setTimeout(function(){
     var allRows=p.rows;
-    drawZoneGrid('zmapWoba', allRows, wobaVal, 0, 0.8, 'wOBA');
+    drawZoneGrid('zmapWoba', allRows, wobaVal, 0, 0.5, 'wOBA');
     drawZoneGrid('zmapHard', allRows, hardVal, 0, 1, 'Hard%');
-    drawZoneGrid('zmapIso',  allRows, isoVal,  0, 1.5, 'ISO');
+    drawZoneGrid('zmapIso',  allRows, isoVal,  0, 0.6, 'ISO');
     drawZoneGrid('zmapWhiff',allRows, whiffVal,0, 1, 'Whiff%');
     buildPitchTable(p);
   },30);
