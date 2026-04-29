@@ -215,7 +215,7 @@ canvas{display:block;border-radius:4px}
     <div class="hmap-legend" id="whiffLegend"></div>
   </div>
   <canvas id="hmapWhiff" width="468" height="240" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:2px">KDE of swinging strikes · dot = average whiff location per pitch type</div>
+  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:2px">Average whiff location by pitch type</div>
 </div>
 
 <!-- Pitch type table -->
@@ -531,31 +531,16 @@ function drawDamageHeatmap(canvasId, pitchTypes){
   var legendItems=[];
   var entries=Object.entries(pitchTypes).sort(function(a,b){return b[1].total-a[1].total;});
 
-  // Compute max density across all pitch types for consistent scaling
+  // Combine ALL bip points into one grid — single color KDE weighted by EV
+  var allBip=[];
+  entries.forEach(function(entry){allBip=allBip.concat(entry[1].bip);});
+  var combinedGrid=computeKDE(allBip,W,H,PAD,xMin,xMax,yMin,yMax,0.28,function(p){
+    return 0.3+(p.ev-minEV)/evRange*0.7;
+  });
   var globalMax=0;
-  var grids={};
-  entries.forEach(function(entry){
-    var pt=entry[0],d=entry[1];
-    if(d.bip.length<2)return;
-    var grid=computeKDE(d.bip,W,H,PAD,xMin,xMax,yMin,yMax,0.28,function(p){
-      return 0.3+(p.ev-minEV)/evRange*0.7; // weight by EV
-    });
-    var localMax=0;
-    for(var i=0;i<grid.length;i++)if(grid[i]>localMax)localMax=grid[i];
-    grids[pt]={grid:grid,max:localMax};
-    if(localMax>globalMax)globalMax=localMax;
-  });
-
-  // Render each pitch type's KDE
-  entries.forEach(function(entry){
-    var pt=entry[0],d=entry[1];
-    if(d.bip.length<2)return;
-    var color=pitchColor(pt);
-    var g=grids[pt];
-    renderKDE(ctx,g.grid,W,H,PAD,color,globalMax*0.7,0.85);
-    // Average damage location dot
-    legendItems.push({pt:pt,color:color,count:d.bip.length});
-  });
+  for(var i=0;i<combinedGrid.length;i++)if(combinedGrid[i]>globalMax)globalMax=combinedGrid[i];
+  renderKDE(ctx,combinedGrid,W,H,PAD,'#1a3a5c',globalMax*0.65,0.9);
+  legendItems=null;
 
   ctx.fillStyle='#8a9ab0';ctx.font='8px Barlow Condensed,sans-serif';ctx.textAlign='center';
   ctx.fillText("CATCHER'S VIEW",W/2,H-4);
@@ -572,33 +557,13 @@ function drawWhiffHeatmap(canvasId, pitchTypes){
   var legendItems=[];
   var entries=Object.entries(pitchTypes).sort(function(a,b){return b[1].total-a[1].total;});
 
-  var globalMax=0;
-  var grids={};
+  // Just average dots — no KDE, no gradient
   entries.forEach(function(entry){
     var pt=entry[0],d=entry[1];
-    if(d.whiffPts.length<2)return;
-    var grid=computeKDE(d.whiffPts,W,H,PAD,xMin,xMax,yMin,yMax,0.28,null);
-    var localMax=0;
-    for(var i=0;i<grid.length;i++)if(grid[i]>localMax)localMax=grid[i];
-    grids[pt]={grid:grid,max:localMax};
-    if(localMax>globalMax)globalMax=localMax;
-  });
-
-  entries.forEach(function(entry){
-    var pt=entry[0],d=entry[1];
-    if(d.whiffPts.length<2)return;
+    if(!d.whiffPts.length)return;
     var color=pitchColor(pt);
-    var g=grids[pt];
-    renderKDE(ctx,g.grid,W,H,PAD,color,globalMax*0.7,0.85);
+    drawAvgDot(ctx,d.whiffPts,mx,my,color);
     legendItems.push({pt:pt,color:color,count:d.whiffPts.length});
-  });
-
-  // For pitch types with only 1 whiff point, just draw the dot
-  entries.forEach(function(entry){
-    var pt=entry[0],d=entry[1];
-    if(d.whiffPts.length!==1)return;
-    var color=pitchColor(pt);
-    legendItems.push({pt:pt,color:color,count:1});
   });
 
   ctx.fillStyle='#8a9ab0';ctx.font='8px Barlow Condensed,sans-serif';ctx.textAlign='center';
