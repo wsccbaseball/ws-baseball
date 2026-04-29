@@ -107,21 +107,9 @@ canvas{display:block;border-radius:4px;max-width:100%}
   </div>
 
   <div class="filter-bar">
-    <div class="fg" style="min-width:130px;flex:2">
-      <label>Filter by Game(s)</label>
+    <div class="fg" style="min-width:150px;flex:3">
+      <label>Narrow by Game(s) <span style="font-weight:400;opacity:.6;font-size:.55rem">leave blank for full season</span></label>
       <select id="gameFilter" multiple style="height:70px"></select>
-    </div>
-    <div class="fg" style="min-width:65px">
-      <label>Min PA</label>
-      <input type="number" id="minPA" value="1" min="1">
-    </div>
-    <div class="fg" style="min-width:65px">
-      <label>Hand</label>
-      <select id="handFilter">
-        <option value="">Both</option>
-        <option value="Right">Right</option>
-        <option value="Left">Left</option>
-      </select>
     </div>
     <div class="fg" style="flex:2;min-width:110px">
       <label>Player</label>
@@ -286,8 +274,6 @@ async function boot(){
     document.getElementById('bottomBar').style.display='flex';
 
     document.getElementById('gameFilter').addEventListener('change',onFilterChange);
-    document.getElementById('minPA').addEventListener('input',onFilterChange);
-    document.getElementById('handFilter').addEventListener('change',onFilterChange);
     document.getElementById('playerFilter').addEventListener('change',onFilterChange);
   }catch(e){
     document.getElementById('loadMsg').textContent='Error: '+e.message;
@@ -298,7 +284,7 @@ function populateGameFilter(){
   var sel=document.getElementById('gameFilter');
   sel.innerHTML='';
   gamesMeta.forEach(function(g){sel.innerHTML+='<option value="'+g.game_id+'">'+(g.display_name||g.game_id)+'</option>';});
-  Array.from(sel.options).forEach(function(o){o.selected=true;});
+  // nothing selected by default = full season
 }
 
 function populatePlayerFilter(){
@@ -370,11 +356,9 @@ function computeMetrics(name,rows){
 
 function onFilterChange(){
   var selGames=getSelectedGames();
-  var hand=document.getElementById('handFilter').value;
   var filtered=allPitches.filter(function(r){
     return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal')&&
-      (!selGames.length||selGames.includes(r.GameID))&&
-      (!hand||r.BatterSide===hand);
+      (!selGames.length||selGames.includes(r.GameID));
   });
   var players={};
   filtered.forEach(function(r){var n=(r.Batter||'').trim();if(!n)return;if(!players[n])players[n]=[];players[n].push(r);});
@@ -384,15 +368,12 @@ function onFilterChange(){
 
 function getSelectedGames(){
   var sel=document.getElementById('gameFilter');
-  var selected=Array.from(sel.selectedOptions).map(function(o){return o.value;});
-  if(selected.length===sel.options.length)return[];
-  return selected;
+  return Array.from(sel.selectedOptions).map(function(o){return o.value;});
 }
 
 function renderTable(){
-  var minPA=parseInt(document.getElementById('minPA').value)||1;
   var playerF=document.getElementById('playerFilter').value;
-  var data=tableData.filter(function(p){return p.pa>=minPA&&(!playerF||p.name===playerF);});
+  var data=tableData.filter(function(p){return p.pa>0&&(!playerF||p.name===playerF);});
   data.sort(function(a,b){
     var av=a[sortCol]||0,bv=b[sortCol]||0;
     if(typeof av==='string')return sortAsc?av.localeCompare(bv):bv.localeCompare(av);
