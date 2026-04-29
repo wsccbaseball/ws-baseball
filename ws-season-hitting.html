@@ -205,7 +205,7 @@ canvas{display:block;border-radius:4px}
     <div class="hmap-legend" id="dmgLegend"></div>
   </div>
   <canvas id="hmapDmg" width="468" height="240" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:2px">Catcher's View · Dot size & opacity weighted by exit velocity</div>
+  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:2px">Catcher's View · KDE weighted by EV · dot = wOBA damage zone per pitch type</div>
 </div>
 
 <!-- Whiff heat map -->
@@ -508,6 +508,11 @@ function drawZoneBase(ctx, W, H, PAD, xMin, xMax, yMin, yMax) {
     ctx.beginPath();ctx.moveTo(mx(-0.833)+zw*i,my(3.5));ctx.lineTo(mx(-0.833)+zw*i,my(1.5));ctx.stroke();
     ctx.beginPath();ctx.moveTo(mx(-0.833),my(3.5)+zh*i);ctx.lineTo(mx(0.833),my(3.5)+zh*i);ctx.stroke();
   }
+  // Shadow zone dashed outline for context
+  ctx.strokeStyle='#c0c8d8';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  var SHADOW=0.0833;
+  ctx.strokeRect(mx(-0.833-SHADOW),my(3.5+SHADOW),mx(0.833+SHADOW)-mx(-0.833-SHADOW),my(1.5-SHADOW)-my(3.5+SHADOW));
+  ctx.setLineDash([]);
   // Zone border
   ctx.strokeStyle='#1a3a5c';ctx.lineWidth=2;
   ctx.strokeRect(mx(-0.833),my(3.5),mx(0.833)-mx(-0.833),my(1.5)-my(3.5));
@@ -563,7 +568,7 @@ function drawDamageHeatmap(canvasId, pitchTypes){
     var avgWoba=sumWoba/d.bip.length; // per PA wOBA contribution
     var cx=mx(sumX/totalW),cy=my(sumY/totalW);
     // Scale dot size by wOBA — range roughly 0.05 to 0.4 per pitch
-    var minR=5,maxR=14;
+    var minR=6,maxR=18;
     var norm=Math.min(avgWoba/0.35,1);
     var r=minR+norm*(maxR-minR);
     // Outer glow
