@@ -36,11 +36,13 @@ body{font-family:'Barlow Condensed',sans-serif;background:#f2ead8;min-height:100
 table{width:100%;border-collapse:collapse;font-family:'Barlow Condensed',sans-serif;min-width:680px}
 thead tr{background:#1a3a5c}
 th{color:#fff;font-size:.7rem;font-weight:700;padding:8px 6px;text-align:center;white-space:nowrap;cursor:pointer;user-select:none;border-right:1px solid rgba(255,255,255,.1)}
-th:first-child{text-align:left;min-width:110px}
+th:first-child{text-align:left;min-width:110px;position:sticky;left:0;z-index:2;background:#1a3a5c}
 th:last-child{border-right:none}
 th.sorted{color:#a8c8f0;background:#152d4a}
 td{padding:8px 6px;text-align:center;font-size:.88rem;border-bottom:1px solid #e8e0d0;color:#1a1a2e;border-right:1px solid #ede6d8}
-td:first-child{text-align:left;font-weight:700;border-right:2px solid #c5b88a}
+td:first-child{text-align:left;font-weight:700;border-right:2px solid #c5b88a;position:sticky;left:0;z-index:1;background:#fffdf7}
+tr:hover td:first-child{background:#f4efe4}
+tr.selected td:first-child{background:#e8f0fb!important}
 td:last-child{border-right:none}
 tr:hover td{background:#f4efe4;cursor:pointer}
 tr.selected td{background:#e8f0fb!important}
