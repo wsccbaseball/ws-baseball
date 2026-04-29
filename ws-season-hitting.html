@@ -444,7 +444,7 @@ function computeSEAGER(rows){
     var rv=swingTakeRV(balls,strikes,outs,baseState);
     var evTake=sp*rv.strikeVal+(1-sp)*rv.ballVal;
     var soVal=strikes>=2?(outs>=2?0:RE24[Math.min(outs+1,2)][baseState]):rv.strikeVal;
-    var evSwing=0.35*hitValueFromEV(88)+(1-0.35)*soVal;
+    var evSwing=-sp*rv.delta*0.35;
     var optVal=Math.max(evTake,evSwing);
     var actVal=isSwing?evSwing:evTake;
     totalScore+=(actVal-optVal);
