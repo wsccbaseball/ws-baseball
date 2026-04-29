@@ -500,16 +500,16 @@ function drawZoneBase(ctx, W, H, PAD, xMin, xMax, yMin, yMax) {
   function mx(v){return PAD+(v-xMin)/(xMax-xMin)*(W-PAD*2);}
   function my(v){return H-PAD-(v-yMin)/(yMax-yMin)*(H-PAD*2);}
   // Dark background
-  ctx.fillStyle='#0d1b2e';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#f8fafd';ctx.fillRect(0,0,W,H);
   // Subtle zone grid
-  ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=1;
+  ctx.strokeStyle='#d0d8e8';ctx.lineWidth=1;
   var zw=(mx(0.833)-mx(-0.833))/3,zh=(my(1.5)-my(3.5))/3;
   for(var i=1;i<3;i++){
     ctx.beginPath();ctx.moveTo(mx(-0.833)+zw*i,my(3.5));ctx.lineTo(mx(-0.833)+zw*i,my(1.5));ctx.stroke();
     ctx.beginPath();ctx.moveTo(mx(-0.833),my(3.5)+zh*i);ctx.lineTo(mx(0.833),my(3.5)+zh*i);ctx.stroke();
   }
   // Zone border
-  ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=1.8;
+  ctx.strokeStyle='#1a3a5c';ctx.lineWidth=2;
   ctx.strokeRect(mx(-0.833),my(3.5),mx(0.833)-mx(-0.833),my(1.5)-my(3.5));
   return {mx:mx,my:my};
 }
@@ -554,11 +554,10 @@ function drawDamageHeatmap(canvasId, pitchTypes){
     var g=grids[pt];
     renderKDE(ctx,g.grid,W,H,PAD,color,globalMax*0.7,0.85);
     // Average damage location dot
-    drawAvgDot(ctx,d.bip,mx,my,color);
     legendItems.push({pt:pt,color:color,count:d.bip.length});
   });
 
-  ctx.fillStyle='rgba(255,255,255,0.35)';ctx.font='8px Barlow Condensed,sans-serif';ctx.textAlign='center';
+  ctx.fillStyle='#8a9ab0';ctx.font='8px Barlow Condensed,sans-serif';ctx.textAlign='center';
   ctx.fillText("CATCHER'S VIEW",W/2,H-4);
   return legendItems;
 }
@@ -591,7 +590,6 @@ function drawWhiffHeatmap(canvasId, pitchTypes){
     var color=pitchColor(pt);
     var g=grids[pt];
     renderKDE(ctx,g.grid,W,H,PAD,color,globalMax*0.7,0.85);
-    drawAvgDot(ctx,d.whiffPts,mx,my,color);
     legendItems.push({pt:pt,color:color,count:d.whiffPts.length});
   });
 
@@ -600,11 +598,10 @@ function drawWhiffHeatmap(canvasId, pitchTypes){
     var pt=entry[0],d=entry[1];
     if(d.whiffPts.length!==1)return;
     var color=pitchColor(pt);
-    drawAvgDot(ctx,d.whiffPts,mx,my,color);
     legendItems.push({pt:pt,color:color,count:1});
   });
 
-  ctx.fillStyle='rgba(255,255,255,0.35)';ctx.font='8px Barlow Condensed,sans-serif';ctx.textAlign='center';
+  ctx.fillStyle='#8a9ab0';ctx.font='8px Barlow Condensed,sans-serif';ctx.textAlign='center';
   ctx.fillText("CATCHER'S VIEW",W/2,H-4);
   return legendItems;
 }
