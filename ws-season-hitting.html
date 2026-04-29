@@ -4,104 +4,65 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>WS Season Hitting Summary</title>
+<title>WS Season Hitting</title>
 <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Anton&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{max-width:100vw;overflow-x:hidden}
 body{font-family:'Barlow Condensed',sans-serif;background:#f2ead8;min-height:100vh}
-
 #loading-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px}
-.load-title{font-family:‘Abril Fatface’,serif;font-size:2rem;color:#1a1a2e}
-.load-sub{font-size:.9rem;color:#6b5f47;font-family:‘Barlow’,sans-serif}
+.load-title{font-family:'Abril Fatface',serif;font-size:2rem;color:#1a1a2e}
+.load-sub{font-size:.9rem;color:#6b5f47;font-family:'Barlow',sans-serif}
 .progress-bar{width:260px;height:6px;background:#ddd5bc;border-radius:3px;overflow:hidden}
 .progress-fill{height:100%;background:#1a3a5c;border-radius:3px;width:0%;transition:width .4s ease}
-.load-msg{font-size:.8rem;color:#9b8c74;font-family:‘Barlow’,sans-serif;text-align:center}
-
+.load-msg{font-size:.8rem;color:#9b8c74;font-family:'Barlow',sans-serif;text-align:center}
 #main-screen{display:none}
 .page-header{background:#1a3a5c;padding:12px 14px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:20}
-.page-header-title{font-family:‘Abril Fatface’,serif;font-size:1.3rem;color:#fff;line-height:1}
-.page-header-sub{font-size:.7rem;color:#a8c8f0;font-family:‘Barlow’,sans-serif;margin-top:1px}
-.home-btn{background:transparent;border:1px solid rgba(255,255,255,.3);padding:5px 10px;font-family:‘Barlow Condensed’,sans-serif;font-size:.75rem;color:#a8c8f0;cursor:pointer;border-radius:4px;text-decoration:none;white-space:nowrap}
-
+.page-header-title{font-family:'Abril Fatface',serif;font-size:1.3rem;color:#fff;line-height:1}
+.page-header-sub{font-size:.7rem;color:#a8c8f0;font-family:'Barlow',sans-serif;margin-top:1px}
+.home-btn{background:transparent;border:1px solid rgba(255,255,255,.3);padding:5px 10px;font-family:'Barlow Condensed',sans-serif;font-size:.75rem;color:#a8c8f0;cursor:pointer;border-radius:4px;text-decoration:none;white-space:nowrap}
 .filter-bar{background:#fffdf7;border-bottom:2px solid #1a3a5c;padding:10px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
 .fg{display:flex;flex-direction:column;gap:3px;min-width:80px}
-.fg label{font-family:‘Anton’,sans-serif;font-size:.58rem;color:#6b5f47;text-transform:uppercase;letter-spacing:.08em}
-.fg select,.fg input{padding:6px 8px;border:1px solid #ddd5bc;font-family:‘Barlow Condensed’,sans-serif;font-size:.85rem;color:#1a1a2e;background:#fff;-webkit-appearance:none;border-radius:3px;height:32px}
-.fg select[multiple]{height:80px}
-.filter-count{font-family:‘Barlow’,sans-serif;font-size:.72rem;color:#6b5f47;align-self:flex-end;padding-bottom:6px;white-space:nowrap}
-
-#table-screen{padding:0 0 80px}
-.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-table{width:100%;border-collapse:collapse;font-family:‘Barlow Condensed’,sans-serif;min-width:680px}
-thead tr{background:#1a3a5c}
-th{color:#fff;font-size:.7rem;font-weight:700;padding:8px 6px;text-align:center;white-space:nowrap;cursor:pointer;user-select:none;border-right:1px solid rgba(255,255,255,.1)}
-th:first-child{text-align:left;min-width:110px;position:sticky;left:0;z-index:2;background:#1a3a5c}
-th:last-child{border-right:none}
-th.sorted{color:#a8c8f0;background:#152d4a}
-td{padding:8px 6px;text-align:center;font-size:.88rem;border-bottom:1px solid #e8e0d0;color:#1a1a2e;border-right:1px solid #ede6d8}
-td:first-child{text-align:left;font-weight:700;border-right:2px solid #c5b88a;position:sticky;left:0;z-index:1;background:#fffdf7}
-tr:hover td:first-child{background:#f4efe4}
-tr.selected td:first-child{background:#e8f0fb!important}
-td:last-child{border-right:none}
-tr:hover td{background:#f4efe4;cursor:pointer}
-tr.selected td{background:#e8f0fb!important}
-.val-hi{color:#1a3a5c;font-weight:800}
-.val-good{color:#2a7a3a}
-.val-warn{color:#b05000}
-.no-data{text-align:center;padding:40px;color:#9b8c74;font-family:‘Barlow’,sans-serif;font-size:.9rem}
-
-.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#1a3a5c;padding:10px 14px;display:flex;gap:8px;z-index:20}
-.gen-btn{flex:1;padding:11px;background:#fff;border:none;font-family:‘Anton’,sans-serif;font-size:.9rem;letter-spacing:.08em;color:#1a3a5c;cursor:pointer;border-radius:6px}
-.gen-btn:disabled{background:rgba(255,255,255,.3);color:rgba(255,255,255,.5);cursor:not-allowed}
-.sel-hint{font-family:‘Barlow’,sans-serif;font-size:.72rem;color:#a8c8f0;display:flex;align-items:center;white-space:nowrap}
-
-#card-screen{display:none;padding:12px 10px 80px;max-width:520px;margin:0 auto}
-.card{background:#fff;width:100%;max-width:500px;border-radius:10px;box-shadow:0 4px 24px rgba(0,0,0,.13);overflow:hidden;margin:0 auto 16px}
-.card-header{background:linear-gradient(135deg,#1a3a5c 0%,#2d5a8e 100%);padding:8px 12px 7px;display:flex;align-items:center;justify-content:space-between}
-.hdr-center{text-align:center;flex:1}
-.player-name{font-family:‘Barlow Condensed’,sans-serif;font-size:26px;font-weight:800;color:#fff;letter-spacing:1px;line-height:1}
-.player-sub{font-family:‘Barlow Condensed’,sans-serif;font-size:11px;color:#a8c8f0;margin-top:1px}
-.card-type{font-family:‘Barlow Condensed’,sans-serif;font-size:13px;font-weight:700;color:#fff;margin-top:2px}
-.season-tag{font-size:10px;font-style:italic;color:#7bb3e0}
-.logo-box{width:42px;text-align:center}
-.game-line{background:#e8f0fb;text-align:center;padding:5px 8px;font-family:‘Barlow Condensed’,sans-serif;font-size:13px;font-weight:700;color:#1a3a5c;border-bottom:2px solid #c5d8f0}
-.stat-table-wrap{padding:4px 6px 3px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-.stat-table{width:100%;border-collapse:collapse;font-family:‘Barlow Condensed’,sans-serif;min-width:380px}
-.stat-table th{background:#1a3a5c;color:#fff;font-size:10px;font-weight:700;padding:4px;text-align:center;white-space:nowrap}
-.stat-table td{text-align:center;padding:5px 4px;font-size:14px;font-weight:700;color:#1a1a1a;border:1px solid #dde4ef;background:#f8fafd}
-.mid-section{display:flex;border-top:1px solid #e4eaf4;align-items:stretch}
-.left-panel{width:154px;flex-shrink:0;border-right:1px solid #e4eaf4;padding:6px 5px;display:flex;flex-direction:column;gap:5px}
-.panel-title{font-family:‘Barlow Condensed’,sans-serif;font-size:9px;font-weight:700;color:#1a3a5c;text-align:center;text-transform:uppercase;letter-spacing:.5px;margin-bottom:1px}
-.rate-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px}
-.rate-box{background:#f4f8fd;border:1px solid #dde4ef;border-radius:4px;padding:3px 2px;text-align:center}
-.rate-box .rb-val{font-family:‘Barlow Condensed’,sans-serif;font-size:17px;font-weight:800;color:#1a3a5c;line-height:1}
-.rate-box .rb-lbl{font-family:‘Barlow Condensed’,sans-serif;font-size:8px;font-weight:600;color:#7a8faa;margin-top:2px}
-.right-panel{flex:1;padding:5px 4px;min-width:0;display:flex;flex-direction:column;gap:4px}
-.hmap-title{font-family:‘Barlow Condensed’,sans-serif;font-size:9px;font-weight:700;color:#1a3a5c;text-align:center;text-transform:uppercase;letter-spacing:.5px}
-canvas{display:block;border-radius:4px;max-width:100%}
-.card-footer{background:#f0f4fa;border-top:1px solid #dde4ef;padding:5px 10px;display:flex;justify-content:space-between;font-family:‘Barlow Condensed’,sans-serif;font-size:9px;color:#6a7f9a}
-.save-btn{display:block;width:calc(100% - 16px);margin:8px auto;padding:11px;background:#1a3a5c;border:none;border-radius:8px;font-family:‘Barlow Condensed’,sans-serif;font-size:15px;font-weight:800;color:#fff;cursor:pointer;letter-spacing:1px}
-
-.img-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.88);align-items:center;justify-content:center;flex-direction:column;padding:16px}
-.img-overlay.active{display:flex}
-.img-overlay img{max-width:100%;max-height:80vh;border-radius:6px}
-.overlay-hint{margin-top:14px;font-family:‘Barlow Condensed’,sans-serif;font-size:15px;font-weight:600;color:rgba(255,255,255,.75);text-align:center}
-.overlay-close{margin-top:16px;padding:10px 32px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:8px;color:#fff;font-family:‘Barlow Condensed’,sans-serif;font-size:15px;font-weight:700;cursor:pointer}
-
+.fg label{font-family:'Anton',sans-serif;font-size:.58rem;color:#6b5f47;text-transform:uppercase;letter-spacing:.08em}
 .dd-wrap{position:relative;width:100%}
-.dd-trigger{background:#fff;border:1px solid #ddd5bc;border-radius:3px;padding:5px 28px 5px 8px;font-family:‘Barlow Condensed’,sans-serif;font-size:.85rem;color:#1a1a2e;cursor:pointer;height:32px;display:flex;align-items:center;justify-content:space-between;user-select:none;white-space:nowrap;overflow:hidden}
+.dd-trigger{background:#fff;border:1px solid #ddd5bc;border-radius:3px;padding:5px 28px 5px 8px;font-family:'Barlow Condensed',sans-serif;font-size:.85rem;color:#1a1a2e;cursor:pointer;height:32px;display:flex;align-items:center;justify-content:space-between;user-select:none;white-space:nowrap;overflow:hidden}
 .dd-trigger span:first-child{overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
 .dd-arrow{font-size:.65rem;color:#9b8c74;flex-shrink:0;margin-left:4px;transition:transform .2s}
 .dd-wrap.open .dd-arrow{transform:rotate(180deg)}
 .dd-menu{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #ddd5bc;border-top:none;border-radius:0 0 4px 4px;z-index:50;max-height:220px;overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:0 4px 12px rgba(0,0,0,.12)}
 .dd-wrap.open .dd-menu{display:block}
-.dd-item{display:flex;align-items:center;gap:8px;padding:7px 10px;font-family:‘Barlow Condensed’,sans-serif;font-size:.85rem;color:#1a1a2e;cursor:pointer;border-bottom:1px solid #f0e8d8}
+.dd-item{display:flex;align-items:center;gap:8px;padding:7px 10px;font-family:'Barlow Condensed',sans-serif;font-size:.85rem;color:#1a1a2e;cursor:pointer;border-bottom:1px solid #f0e8d8}
 .dd-item:last-child{border-bottom:none}
 .dd-item:hover{background:#f4efe4}
 .dd-item input[type=checkbox]{width:14px;height:14px;accent-color:#1a3a5c;flex-shrink:0;cursor:pointer}
 .dd-item.checked{background:#eef4fc}
+.filter-count{font-family:'Barlow',sans-serif;font-size:.72rem;color:#6b5f47;align-self:flex-end;padding-bottom:6px;white-space:nowrap}
+#table-screen{padding:0 0 80px}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.stats-tbl{width:100%;border-collapse:collapse;font-family:'Barlow Condensed',sans-serif;min-width:680px}
+table.stats-tbl thead tr{background:#1a3a5c}
+table.stats-tbl th{color:#fff;font-size:.7rem;font-weight:700;padding:8px 6px;text-align:center;white-space:nowrap;cursor:pointer;user-select:none;border-right:1px solid rgba(255,255,255,.1)}
+table.stats-tbl th:first-child{text-align:left;min-width:110px;position:sticky;left:0;z-index:2;background:#1a3a5c}
+table.stats-tbl th.sorted{color:#a8c8f0;background:#152d4a}
+table.stats-tbl td{padding:8px 6px;text-align:center;font-size:.88rem;border-bottom:1px solid #e8e0d0;color:#1a1a2e;border-right:1px solid #ede6d8}
+table.stats-tbl td:first-child{text-align:left;font-weight:700;border-right:2px solid #c5b88a;position:sticky;left:0;z-index:1;background:#fffdf7}
+table.stats-tbl tr:hover td{background:#f4efe4;cursor:pointer}
+table.stats-tbl tr:hover td:first-child{background:#f4efe4}
+table.stats-tbl tr.selected td{background:#e8f0fb!important}
+table.stats-tbl tr.selected td:first-child{background:#e8f0fb!important}
+.val-hi{color:#1a3a5c;font-weight:800}
+.val-good{color:#2a7a3a}
+.val-warn{color:#b05000}
+.no-data{text-align:center;padding:40px;color:#9b8c74;font-family:'Barlow',sans-serif;font-size:.9rem}
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#1a3a5c;padding:10px 14px;display:flex;gap:8px;z-index:20}
+.gen-btn{flex:1;padding:11px;background:#fff;border:none;font-family:'Anton',sans-serif;font-size:.9rem;letter-spacing:.08em;color:#1a3a5c;cursor:pointer;border-radius:6px}
+.gen-btn:disabled{background:rgba(255,255,255,.3);color:rgba(255,255,255,.5);cursor:not-allowed}
+.sel-hint{font-family:'Barlow',sans-serif;font-size:.72rem;color:#a8c8f0;display:flex;align-items:center;white-space:nowrap}
+#card-screen{display:none;padding:12px 10px 80px;max-width:520px;margin:0 auto}
+.back-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.back-row-title{font-family:'Abril Fatface',serif;font-size:1.3rem;color:#1a1a2e}
+.back-btn{background:transparent;border:1px solid #ddd5bc;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:.8rem;color:#6b5f47;cursor:pointer}
 /* ── THE CARD ── */
 .card{background:#fff;width:100%;max-width:500px;border-radius:10px;box-shadow:0 4px 24px rgba(0,0,0,.13);overflow:hidden;margin:0 auto 16px}
 
@@ -161,1467 +122,202 @@ canvas{display:block;border-radius:4px}
 .overlay-hint{margin-top:14px;font-family:‘Barlow Condensed’,sans-serif;font-size:15px;font-weight:600;color:rgba(255,255,255,.75);text-align:center}
 .overlay-close{margin-top:16px;padding:10px 32px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:8px;color:#fff;font-family:‘Barlow Condensed’,sans-serif;font-size:15px;font-weight:700;cursor:pointer}
 
+.img-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.88);align-items:center;justify-content:center;flex-direction:column;padding:16px}
+.img-overlay.active{display:flex}
+.img-overlay img{max-width:100%;max-height:80vh;border-radius:6px}
+.overlay-hint{margin-top:14px;font-family:‘Barlow Condensed’,sans-serif;font-size:15px;font-weight:600;color:rgba(255,255,255,.75);text-align:center}
+.overlay-close{margin-top:16px;padding:10px 32px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:8px;color:#fff;font-family:‘Barlow Condensed’,sans-serif;font-size:15px;font-weight:700;cursor:pointer}
 </style>
+
 </head>
 <body>
 
 <div id="loading-screen">
-  <div class="load-title">⚾ Season Hitting</div>
-  <div class="load-sub">Walters State CC · TrackMan Analytics</div>
+  <div class="load-title">&#x26BE; Season Hitting</div>
+  <div class="load-sub">Walters State CC &middot; TrackMan Analytics</div>
   <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
   <div class="load-msg" id="loadMsg">Loading season data...</div>
 </div>
 
 <div id="main-screen">
   <div class="page-header">
-    <div>
-      <div class="page-header-title">Season Hitting</div>
-      <div class="page-header-sub">Walters State CC · 2026</div>
-    </div>
-    <a href="index.html" class="home-btn">← Home</a>
+    <div><div class="page-header-title">Season Hitting</div><div class="page-header-sub">Walters State CC &middot; 2026</div></div>
+    <a href="index.html" class="home-btn">&larr; Home</a>
   </div>
-
   <div class="filter-bar">
     <div class="fg" style="min-width:150px;flex:3;position:relative">
       <label>Select Game(s) <span style="font-weight:400;opacity:.6;font-size:.55rem">leave blank for full season</span></label>
       <div class="dd-wrap" id="gameDD">
-        <div class="dd-trigger" onclick="toggleDD('gameDD')">
-          <span id="gameDDLabel">All Games (full season)</span>
-          <span class="dd-arrow">&#9660;</span>
-        </div>
+        <div class="dd-trigger" onclick="toggleDD('gameDD')"><span id="gameDDLabel">All Games (full season)</span><span class="dd-arrow">&#9660;</span></div>
         <div class="dd-menu" id="gameDDMenu"></div>
       </div>
     </div>
     <div class="fg" style="flex:2;min-width:110px;position:relative">
       <label>Player</label>
       <div class="dd-wrap" id="playerDD">
-        <div class="dd-trigger" onclick="toggleDD('playerDD')">
-          <span id="playerDDLabel">All Players</span>
-          <span class="dd-arrow">&#9660;</span>
-        </div>
+        <div class="dd-trigger" onclick="toggleDD('playerDD')"><span id="playerDDLabel">All Players</span><span class="dd-arrow">&#9660;</span></div>
         <div class="dd-menu" id="playerDDMenu"></div>
       </div>
     </div>
     <div class="filter-count" id="filterCount"></div>
   </div>
-
   <div id="table-screen">
     <div class="table-wrap">
-      <table id="statsTable">
-        <thead>
-          <tr>
-            <th onclick="sortTable('displayName')">Player</th>
-            <th onclick="sortTable('pa')">PA</th>
-            <th onclick="sortTable('woba')">wOBA</th>
-            <th onclick="sortTable('barrelPct')">Barrel%</th>
-            <th onclick="sortTable('hardHit')">Hard%</th>
-            <th onclick="sortTable('swingPct')">Swing%</th>
-            <th onclick="sortTable('chasePct')">Chase%</th>
-            <th onclick="sortTable('zSwingPct')">Z-Swing%</th>
-            <th onclick="sortTable('seagerScore')">SGR</th>
-            <th onclick="sortTable('gbPct')">GB%</th>
-            <th onclick="sortTable('fbPct')">FB%</th>
-            <th onclick="sortTable('bestSpeed')">Best Speed</th>
-            <th onclick="sortTable('maxEV')">MaxEV</th>
-          </tr>
-        </thead>
+      <table class="stats-tbl">
+        <thead><tr>
+          <th onclick="sortTable('displayName')">Player</th>
+          <th onclick="sortTable('pa')">PA</th>
+          <th onclick="sortTable('woba')">wOBA</th>
+          <th onclick="sortTable('barrelPct')">Barrel%</th>
+          <th onclick="sortTable('hardHit')">Hard%</th>
+          <th onclick="sortTable('swingPct')">Swing%</th>
+          <th onclick="sortTable('chasePct')">Chase%</th>
+          <th onclick="sortTable('zSwingPct')">Z-Swing%</th>
+          <th onclick="sortTable('seagerScore')">SGR</th>
+          <th onclick="sortTable('gbPct')">GB%</th>
+          <th onclick="sortTable('fbPct')">FB%</th>
+          <th onclick="sortTable('bestSpeed')">Best Speed</th>
+          <th onclick="sortTable('maxEV')">MaxEV</th>
+        </tr></thead>
         <tbody id="tableBody"></tbody>
       </table>
     </div>
   </div>
 </div>
 
+<!-- Card -->
+
 <div id="card-screen">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-    <div style="font-family:'Abril Fatface',serif;font-size:1.3rem;color:#1a1a2e">Season Card</div>
-    <button onclick="showMain()" style="background:transparent;border:1px solid #ddd5bc;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:.8rem;color:#6b5f47;cursor:pointer">← Back</button>
+  <div class="back-row">
+    <div class="back-row-title">Season Card</div>
+    <button class="back-btn" onclick="showSelect()">← Back</button>
   </div>
+
   <div class="card" id="card">
     <div class="card-header">
       <div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div>
       <div class="hdr-center">
         <div class="player-name" id="cardName">—</div>
-        <div class="player-sub">Walters State CC</div>
+        <div class="player-pos" id="cardPos">Walters State CC</div>
         <div class="card-type">Season Hitting Summary</div>
         <div class="season-tag">2026 NJCAA Season</div>
       </div>
       <div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div>
     </div>
-    <div class="game-line" id="cardGameLine">—</div>
-    <div class="stat-table-wrap">
-      <table class="stat-table">
-        <thead><tr><th>GP</th><th>PA</th><th>AVG</th><th>OBP</th><th>SLG</th><th>OPS</th><th>H</th><th>2B</th><th>HR</th><th>RBI</th><th>BB</th><th>SO</th></tr></thead>
-        <tbody><tr>
-          <td id="cGP">—</td><td id="cPA">—</td><td id="cAVG">—</td><td id="cOBP">—</td>
-          <td id="cSLG">—</td><td id="cOPS">—</td><td id="cH">—</td><td id="c2B">—</td>
-          <td id="cHR">—</td><td id="cRBI">—</td><td id="cBB">—</td><td id="cSO">—</td>
-        </tr></tbody>
-      </table>
-    </div>
-    <div class="mid-section">
-      <div class="left-panel">
-        <div class="panel-title">Plate Discipline</div>
-        <div class="rate-grid">
-          <div class="rate-box"><div class="rb-val" id="dSwing">—</div><div class="rb-lbl">Swing%</div></div>
-          <div class="rate-box"><div class="rb-val" id="dZSwing">—</div><div class="rb-lbl">Z-Swing%</div></div>
-          <div class="rate-box"><div class="rb-val" id="dChase">—</div><div class="rb-lbl">Chase%</div></div>
-          <div class="rate-box"><div class="rb-val" id="dWhiff">—</div><div class="rb-lbl">Whiff%</div></div>
-          <div class="rate-box"><div class="rb-val" id="dHardHit">—</div><div class="rb-lbl">Hard%</div></div>
-          <div class="rate-box"><div class="rb-val" id="dMaxEV">—</div><div class="rb-lbl">MaxEV</div></div>
-        </div>
-      </div>
-      <div class="right-panel">
-        <div class="hmap-title">Hard Hit Zones (95+ EV)</div>
-        <canvas id="hmapSlg" width="160" height="130"></canvas>
-        <div class="hmap-title" style="margin-top:3px">Whiff Zones</div>
-        <canvas id="hmapWhiff" width="160" height="130"></canvas>
-      </div>
-    </div>
-    <div style="padding:4px 6px 6px;border-top:1px solid #e4eaf4">
-      <div class="panel-title" style="text-align:left;margin-bottom:4px">Pitch Mix Seen</div>
-      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
-        <table class="stat-table" style="min-width:320px">
-          <thead><tr><th style="text-align:left">Pitch</th><th>Seen</th><th>Swing%</th><th>Whiff%</th><th>Chase%</th><th>AvgEV</th></tr></thead>
-          <tbody id="pitchTableBody"></tbody>
-        </table>
-      </div>
-    </div>
-    <div class="card-footer">
-      <div>⚾ Walters State CC</div>
-      <div>Data: TrackMan · wsccbaseball</div>
-      <div id="footR">2026 Season</div>
-    </div>
-    <button class="save-btn" onclick="saveCardImage()">📥 SAVE IMAGE</button>
+
+```
+<div class="game-line" id="cardGameLine">—</div>
+
+<!-- Traditional stats -->
+<div class="stat-section">
+  <span class="stat-section-label">Season Stats</span>
+  <div class="stat-row">
+    <div class="stat-box"><span class="stat-val hi" id="sAVG">—</span><span class="stat-lbl">AVG</span></div>
+    <div class="stat-box"><span class="stat-val" id="sOBP">—</span><span class="stat-lbl">OBP</span></div>
+    <div class="stat-box"><span class="stat-val" id="sSLG">—</span><span class="stat-lbl">SLG</span></div>
+    <div class="stat-box"><span class="stat-val hi" id="sWOBA">—</span><span class="stat-lbl">wOBA</span></div>
+    <div class="stat-box"><span class="stat-val" id="sHR">—</span><span class="stat-lbl">HR</span></div>
+    <div class="stat-box"><span class="stat-val" id="sRBI">—</span><span class="stat-lbl">RBI</span></div>
+    <div class="stat-box"><span class="stat-val" id="sSB">—</span><span class="stat-lbl">SB</span></div>
   </div>
 </div>
+
+<!-- Contact quality -->
+<div class="stat-section">
+  <span class="stat-section-label">Contact Quality · TrackMan</span>
+  <div class="stat-row">
+    <div class="stat-box"><span class="stat-val" id="tHard">—</span><span class="stat-lbl">Hard%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tBarrel">—</span><span class="stat-lbl">Barrel%</span></div>
+    <div class="stat-box"><span class="stat-val hi" id="tBestSpeed">—</span><span class="stat-lbl">Best Speed</span></div>
+    <div class="stat-box"><span class="stat-val" id="tMaxEV">—</span><span class="stat-lbl">Max EV</span></div>
+    <div class="stat-box"><span class="stat-val" id="tGB">—</span><span class="stat-lbl">GB%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tFB">—</span><span class="stat-lbl">FB%</span></div>
+  </div>
+</div>
+
+<!-- Plate discipline -->
+<div class="stat-section">
+  <span class="stat-section-label">Plate Discipline · TrackMan</span>
+  <div class="stat-row">
+    <div class="stat-box"><span class="stat-val" id="tSwing">—</span><span class="stat-lbl">Swing%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tChase">—</span><span class="stat-lbl">Chase%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tZSwing">—</span><span class="stat-lbl">Z-Swing%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tWhiff">—</span><span class="stat-lbl">Whiff%</span></div>
+    <div class="stat-box"><span class="stat-val hi" id="tSGR">—</span><span class="stat-lbl">SGR</span></div>
+  </div>
+</div>
+
+<!-- Damage heat map -->
+<div class="hmap-section">
+  <div class="hmap-title-row">
+    <div class="hmap-title">Damage Zones by Pitch Type</div>
+    <div class="hmap-legend" id="dmgLegend"></div>
+  </div>
+  <canvas id="hmapDmg" width="468" height="240" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:2px">Catcher's View · KDE weighted by EV · dot = wOBA damage zone per pitch type</div>
+</div>
+
+<!-- Whiff heat map -->
+<div class="hmap-section">
+  <div class="hmap-title-row">
+    <div class="hmap-title">Weak Contact Zones</div>
+    <div class="hmap-legend" id="weakLegend"></div>
+  </div>
+  <canvas id="hmapWeak" width="468" height="240" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:2px">Catcher's View · KDE of contact under 90 mph · dot = avg weak contact zone per pitch type</div>
+</div>
+
+<!-- Pitch type table -->
+<div class="pitch-section">
+  <span class="stat-section-label" style="display:block;margin-bottom:4px">Pitch Mix Seen · TrackMan</span>
+  <table class="pitch-table">
+    <thead><tr>
+      <th style="text-align:left">Pitch</th>
+      <th>Seen</th><th>Swing%</th><th>Whiff%</th><th>Chase%</th>
+      <th>Hard%</th><th>Avg EV</th>
+    </tr></thead>
+    <tbody id="pitchTableBody"></tbody>
+  </table>
+</div>
+
+<div class="card-footer">
+  <div>⚾ Walters State CC · 2026</div>
+  <div>Data: TrackMan</div>
+  <div id="footR">wsccbaseball.github.io</div>
+</div>
+
+<button class="save-btn" onclick="saveCard()">📥 SAVE CARD IMAGE</button>
+```
+
+  </div>
+</div>
+
+<div class="img-overlay" id="imgOverlay" onclick="closeOverlay()">
+  <img id="overlayImg" src="" alt="Season Card">
+  <div class="overlay-hint">Hold the image to save to your photos</div>
+  <button class="overlay-close" onclick="closeOverlay()">✕ Close</button>
+</div>
+
+</body>
+</html>
 
 <div class="bottom-bar" id="bottomBar" style="display:none">
   <div class="sel-hint" id="selHint">Tap a player to select</div>
-  <button class="gen-btn" id="genCardBtn" disabled onclick="buildCard()">Generate Season Card →</button>
+  <button class="gen-btn" id="genCardBtn" disabled onclick="buildCard()">Generate Season Card &rarr;</button>
 </div>
-
 <div class="img-overlay" id="imgOverlay" onclick="closeOverlay()">
   <img id="overlayImg" src="" alt="Season Card">
   <div class="overlay-hint">Hold the image to save to your photos</div>
-  <button class="overlay-close" onclick="closeOverlay()">✕ Close</button>
-</div>
-
-<script>
-var PITCH_COLORS={
-  'Fastball':'#e63946','Four-Seam':'#e63946','FourSeamFastBall':'#e63946',
-  'Sinker':'#ff6a00','TwoSeamFastBall':'#ff6a00',
-  'Curveball':'#a020f0','CurveBall':'#a020f0',
-  'Slider':'#00c2a8',
-  'Cutter':'#00e0b0',
-  'ChangeUp':'#ff9900','Changeup':'#ff9900','Change-up':'#ff9900',
-  'Splitter':'#f0d000',
-  'Knuckleball':'#888888','Other':'#666666'
-};
-var PITCH_NORM={
-  'Four-Seam':'Fastball','FourSeamFastBall':'Fastball','Fastball':'Fastball',
-  'Sinker':'Sinker','TwoSeamFastBall':'Sinker',
-  'Curveball':'Curveball','CurveBall':'Curveball',
-  'Slider':'Slider','Cutter':'Cutter',
-  'Changeup':'ChangeUp','ChangeUp':'ChangeUp','Change-up':'ChangeUp',
-  'Splitter':'Splitter','Knuckleball':'Knuckleball'
-};
-function normPitch(t){return PITCH_NORM[t]||t||'Other';}
-function pitchColor(t){return PITCH_COLORS[normPitch(t)]||PITCH_COLORS[t]||'#888888';}
-
-var allPitches=[], seasonStats={batting:[]}, playerData={};
-
-async function supaFetch(path){
-  var rows=[],from=0;
-  while(true){
-    var sep=path.indexOf('?')>-1?'&':'?';
-    var r=await fetch(SUPABASE_URL+'/rest/v1/'+path+sep+'limit=1000&offset='+from,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
-    var d=await r.json();
-    if(!Array.isArray(d)||!d.length)break;
-    rows=rows.concat(d);if(d.length<1000)break;from+=1000;
-  }
-  return rows;
-}
-
-function setProgress(pct,msg){
-  document.getElementById('progressFill').style.width=pct+'%';
-  document.getElementById('loadMsg').textContent=msg;
-}
-
-async function boot(){
-  try{
-    setProgress(5,'Loading season stats...');
-    var edgeRes=await fetch(SUPABASE_URL+'/functions/v1/fetch-boxscore?url=season-stats',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
-    var edgeData=await edgeRes.json();
-    if(edgeData.batting)seasonStats=edgeData;
-
-    setProgress(20,'Loading games...');
-    var games=await supaFetch('games?select=game_id,display_name,date&order=date.asc');
-
-    setProgress(30,'Loading pitch data...');
-    allPitches=[];
-    for(var i=0;i<games.length;i++){
-      var rows=await supaFetch('pitches?GameID=eq.'+encodeURIComponent(games[i].game_id));
-      allPitches=allPitches.concat(rows);
-      setProgress(30+Math.round(((i+1)/games.length)*60),'Loading game '+(i+1)+' of '+games.length+'...');
-    }
-
-    setProgress(95,'Building player profiles...');
-    buildPlayerProfiles();
-    populatePlayerSelect();
-
-    document.getElementById('loading-screen').style.display='none';
-    document.getElementById('select-screen').style.display='block';
-  }catch(e){
-    document.getElementById('loadMsg').textContent='Error: '+e.message;
-  }
-}
-
-function buildPlayerProfiles(){
-  var wsPitches=allPitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal');});
-  var players={};
-  wsPitches.forEach(function(r){
-    var n=(r.Batter||'').trim();if(!n)return;
-    if(!players[n])players[n]=[];
-    players[n].push(r);
-  });
-  playerData={};
-  Object.keys(players).forEach(function(name){
-    playerData[name]=computeProfile(name,players[name]);
-  });
-}
-
-function computeProfile(name,rows){
-  var parts=name.split(','),lastName=(parts[0]||'').trim();
-  var displayName=parts.length>1?(parts[1]||'').trim()+' '+parts[0].trim():name;
-  var swings=0,whiffs=0,inZone=0,inZoneSwings=0,ozPitches=0,ozSwings=0,pa=0;
-  var bip=[],maxEV=0,totalEV=0,evCount=0,allEVs=[];
-  var gbCount=0,fbCount=0,bipCount=0,barrels=0;
-  var pitchTypes={};
-
-  rows.forEach(function(r){
-    var call=(r.PitchCall||'').trim();
-    var side=parseFloat(r.PlateLocSide),height=parseFloat(r.PlateLocHeight);
-    var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||'Other');
-    if(!pitchTypes[pt])pitchTypes[pt]={total:0,swings:0,whiffs:0,chases:0,ozTotal:0,ev:[],contacts:0,bip:[],whiffPts:[],weakPts:[]};
-    pitchTypes[pt].total++;
-
-    var isSwing=['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
-    var isWhiff=call==='StrikeSwinging';
-    var isContact=['FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
-    var inside=!isNaN(side)&&!isNaN(height)&&Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
-    var outside=!isNaN(side)&&!isNaN(height)&&!inside;
-
-    if(isSwing){swings++;pitchTypes[pt].swings++;}
-    if(isWhiff){
-      whiffs++;pitchTypes[pt].whiffs++;
-      // weak contact stored below
-    }
-    if(isContact)pitchTypes[pt].contacts++;
-    if(inside){inZone++;if(isSwing)inZoneSwings++;}
-    if(outside){ozPitches++;if(isSwing){ozSwings++;pitchTypes[pt].chases++;pitchTypes[pt].ozTotal++;}}
-
-    var ev=parseFloat(r.ExitSpeed);
-    var la=parseFloat(r.Angle||r.LaunchAngle||r.VertAngle||'NaN');
-    if(!isNaN(ev)&&ev>0){
-      if(ev>maxEV)maxEV=ev;totalEV+=ev;evCount++;allEVs.push(ev);
-      pitchTypes[pt].ev.push(ev);
-      if(!isNaN(side)&&!isNaN(height)){
-        bip.push({side:side,height:height,ev:ev,pt:pt,result:(r.PlayResult||'')});
-      // Store weak contact — any batted ball under 90 mph
-    if(!isNaN(ev)&&ev>0&&ev<90&&!isNaN(side)&&!isNaN(height)&&['InPlay','FoulBall','FoulBallNotFieldable'].includes(call)){
-      pitchTypes[pt].weakPts.push({side:side,height:height,ev:ev});
-    }
-        pitchTypes[pt].bip.push({side:side,height:height,ev:ev,result:(r.PlayResult||'')});
-      }
-      if(!isNaN(la)&&ev>=98&&la>=26&&la<=30)barrels++;
-      if(call==='InPlay'){
-        bipCount++;
-        var ht=(r.TaggedHitType||r.HitType||'').toLowerCase();
-        if(ht.includes('ground')){gbCount++;}
-        else if(ht.includes('fly')||ht.includes('popup')){fbCount++;}
-        else if(!isNaN(la)){if(la<10)gbCount++;else if(la>=25)fbCount++;}
-      }
-    }
-    if(parseInt(r.PitchofPA)===1)pa++;
-  });
-
-  allEVs.sort(function(a,b){return b-a;});
-  var topHalf=allEVs.slice(0,Math.ceil(allEVs.length/2));
-  var bestSpeed=topHalf.length>0?topHalf.reduce(function(a,b){return a+b;},0)/topHalf.length:0;
-
-  var bs=null;
-  if(seasonStats.batting){
-    bs=seasonStats.batting.find(function(b){return b.name&&b.name.split(' ').pop().toLowerCase()===lastName.toLowerCase();});
-  }
-  var bsAB=bs?parseInt(bs.ab)||0:0;
-  var bsBB=bs?parseInt(bs.bb)||0:0;
-  var bsHBP=bs?parseInt(bs.hbp)||0:0;
-  var bsSF=bs?parseInt(bs.sf)||0:0;
-  var bsSH=bs?parseInt(bs.sh)||0:0;
-  var bsPA=bsAB+bsBB+bsHBP+bsSF+bsSH;
-  var bs1B=Math.max(0,(bs?parseInt(bs.h)||0:0)-(bs?parseInt(bs.doubles)||0:0)-(bs?parseInt(bs.triples)||0:0)-(bs?parseInt(bs.hr)||0:0));
-  var woba=bsPA>0?(bsBB*.69+bsHBP*.72+bs1B*.88+(bs?parseInt(bs.doubles)||0:0)*1.24+(bs?parseInt(bs.triples)||0:0)*1.56+(bs?parseInt(bs.hr)||0:0)*2.08)/bsPA:0;
-  var tp=rows.length;
-
-  return{
-    name:name,displayName:displayName,lastName:lastName,
-    gp:bs?parseInt(bs.gp)||0:0,pa:bsPA,
-    avg:bs?parseFloat(bs.avg)||0:0,obp:bs?parseFloat(bs.obp)||0:0,
-    slg:bs?parseFloat(bs.slg)||0:0,woba:woba,
-    hr:bs?parseInt(bs.hr)||0:0,rbi:bs?parseInt(bs.rbi)||0:0,
-    sb:bs?parseInt(bs.sb)||0:0,h:bs?parseInt(bs.h)||0:0,
-    swingPct:tp>0?swings/tp:0,whiffPct:swings>0?whiffs/swings:0,
-    chasePct:ozPitches>0?ozSwings/ozPitches:0,
-    zSwingPct:inZone>0?inZoneSwings/inZone:0,
-    sgr:(inZone>0&&ozPitches>0)?(inZoneSwings/inZone)-(ozSwings/ozPitches):0,
-    hardHit:evCount>0?bip.filter(function(b){return b.ev>=95;}).length/evCount:0,
-    barrelPct:evCount>0?barrels/evCount:0,
-    gbPct:bipCount>0?gbCount/bipCount:0,fbPct:bipCount>0?fbCount/bipCount:0,
-    bestSpeed:bestSpeed,maxEV:maxEV,totalPitches:tp,
-    pitchTypes:pitchTypes,bip:bip,rows:rows
-  };
-}
-
-function populatePlayerSelect(){
-  var sel=document.getElementById('playerSelect');
-  sel.innerHTML='<option value="">— select player —</option>';
-  Object.values(playerData).sort(function(a,b){return b.pa-a.pa;}).forEach(function(p){
-    sel.innerHTML+='<option value="'+p.name+'">'+escH(p.displayName)+(p.pa?' ('+p.pa+' PA)':'')+'</option>';
-  });
-  sel.addEventListener('change',function(){document.getElementById('genBtn').disabled=!this.value;});
-}
-
-// ── Heat map drawing ─────────────────────────────────────────────────────────
-// ── KDE Heat Map Engine ──────────────────────────────────────────────────────
-var GRID=60; // resolution of KDE grid
-
-function computeKDE(points, W, H, PAD, xMin, xMax, yMin, yMax, sigma, weightFn) {
-  var grid=new Float32Array(GRID*GRID);
-  var scaleX=(W-PAD*2)/(xMax-xMin);
-  var scaleY=(H-PAD*2)/(yMax-yMin);
-  var sigX=sigma*scaleX, sigY=sigma*scaleY;
-  points.forEach(function(p){
-    if(isNaN(p.side)||isNaN(p.height))return;
-    var px=(p.side-xMin)*scaleX;
-    var py=(yMax-p.height)*scaleY; // flip Y
-    var w=weightFn?weightFn(p):1;
-    // Only fill cells within 3 sigma
-    var cellX=Math.round(px/((W-PAD*2)/GRID));
-    var cellY=Math.round(py/((H-PAD*2)/GRID));
-    var radius=Math.ceil(3*sigX/((W-PAD*2)/GRID));
-    for(var gy=Math.max(0,cellY-radius);gy<Math.min(GRID,cellY+radius+1);gy++){
-      for(var gx=Math.max(0,cellX-radius);gx<Math.min(GRID,cellX+radius+1);gx++){
-        var cx=gx*((W-PAD*2)/GRID);
-        var cy=gy*((H-PAD*2)/GRID);
-        var dx=px-cx, dy=py-cy;
-        var kernel=Math.exp(-(dx*dx)/(2*sigX*sigX)-(dy*dy)/(2*sigY*sigY));
-        grid[gy*GRID+gx]+=kernel*w;
-      }
-    }
-  });
-  return grid;
-}
-
-function renderKDE(ctx, grid, W, H, PAD, color, maxVal, alpha) {
-  if(maxVal<=0)return;
-  var cellW=(W-PAD*2)/GRID, cellH=(H-PAD*2)/GRID;
-  var r=parseInt(color.slice(1,3),16);
-  var g=parseInt(color.slice(3,5),16);
-  var b=parseInt(color.slice(5,7),16);
-  for(var gy=0;gy<GRID;gy++){
-    for(var gx=0;gx<GRID;gx++){
-      var val=grid[gy*GRID+gx];
-      if(val<0.001)continue;
-      var intensity=Math.pow(val/maxVal,0.6); // power <1 spreads the color more
-      var a=intensity*alpha;
-      ctx.fillStyle='rgba('+r+','+g+','+b+','+a+')';
-      ctx.fillRect(PAD+gx*cellW-0.5, PAD+gy*cellH-0.5, cellW+1, cellH+1);
-    }
-  }
-}
-
-function drawAvgDot(ctx, pts, mx, my, color) {
-  if(!pts.length)return;
-  var avgS=pts.reduce(function(s,p){return s+p.side;},0)/pts.length;
-  var avgH=pts.reduce(function(s,p){return s+p.height;},0)/pts.length;
-  var cx=mx(avgS), cy=my(avgH);
-  // Outer ring
-  ctx.beginPath();ctx.arc(cx,cy,7,0,Math.PI*2);
-  ctx.fillStyle='rgba(255,255,255,0.9)';ctx.fill();
-  ctx.strokeStyle=color;ctx.lineWidth=2;ctx.stroke();
-  // Inner dot
-  ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);
-  ctx.fillStyle=color;ctx.fill();
-}
-
-function drawZoneBase(ctx, W, H, PAD, xMin, xMax, yMin, yMax) {
-  function mx(v){return PAD+(v-xMin)/(xMax-xMin)*(W-PAD*2);}
-  function my(v){return H-PAD-(v-yMin)/(yMax-yMin)*(H-PAD*2);}
-  // Dark background
-  ctx.fillStyle='#f8fafd';ctx.fillRect(0,0,W,H);
-  // Subtle zone grid
-  ctx.strokeStyle='#d0d8e8';ctx.lineWidth=1;
-  var zw=(mx(0.833)-mx(-0.833))/3,zh=(my(1.5)-my(3.5))/3;
-  for(var i=1;i<3;i++){
-    ctx.beginPath();ctx.moveTo(mx(-0.833)+zw*i,my(3.5));ctx.lineTo(mx(-0.833)+zw*i,my(1.5));ctx.stroke();
-    ctx.beginPath();ctx.moveTo(mx(-0.833),my(3.5)+zh*i);ctx.lineTo(mx(0.833),my(3.5)+zh*i);ctx.stroke();
-  }
-  // Shadow zone dashed outline for context
-  ctx.strokeStyle='#c0c8d8';ctx.lineWidth=1;ctx.setLineDash([3,3]);
-  var SHADOW=0.0833;
-  ctx.strokeRect(mx(-0.833-SHADOW),my(3.5+SHADOW),mx(0.833+SHADOW)-mx(-0.833-SHADOW),my(1.5-SHADOW)-my(3.5+SHADOW));
-  ctx.setLineDash([]);
-  // Zone border
-  ctx.strokeStyle='#1a3a5c';ctx.lineWidth=2;
-  ctx.strokeRect(mx(-0.833),my(3.5),mx(0.833)-mx(-0.833),my(1.5)-my(3.5));
-  return {mx:mx,my:my};
-}
-
-function drawDamageHeatmap(canvasId, pitchTypes){
-  var cv=document.getElementById(canvasId);if(!cv)return;
-  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height,PAD=12;
-  var xMin=-1.55,xMax=1.55,yMin=0.8,yMax=4.2;
-  var fns=drawZoneBase(ctx,W,H,PAD,xMin,xMax,yMin,yMax);
-  var mx=fns.mx,my=fns.my;
-
-  // Get global max EV for weight normalization
-  var allEVs=[];
-  Object.values(pitchTypes).forEach(function(d){d.bip.forEach(function(p){if(p.ev>0)allEVs.push(p.ev);});});
-  var minEV=allEVs.length?Math.min.apply(null,allEVs):60;
-  var maxEV=allEVs.length?Math.max.apply(null,allEVs):110;
-  var evRange=Math.max(maxEV-minEV,1);
-
-  var legendItems=[];
-  var entries=Object.entries(pitchTypes).sort(function(a,b){return b[1].total-a[1].total;});
-
-  // Combine ALL bip points into one grid — single color KDE weighted by EV
-  var allBip=[];
-  entries.forEach(function(entry){allBip=allBip.concat(entry[1].bip);});
-  var combinedGrid=computeKDE(allBip,W,H,PAD,xMin,xMax,yMin,yMax,0.28,function(p){
-    return 0.3+(p.ev-minEV)/evRange*0.7;
-  });
-  var globalMax=0;
-  for(var i=0;i<combinedGrid.length;i++)if(combinedGrid[i]>globalMax)globalMax=combinedGrid[i];
-  renderKDE(ctx,combinedGrid,W,H,PAD,'#cc2222',globalMax*0.65,0.9);
-  legendItems=null;
-
-
-  // wOBA dot overlay per pitch type — bigger/brighter = more production
-  var wobaWeights={'Single':0.88,'Double':1.24,'Triple':1.56,'HomeRun':2.08,'Home Run':2.08,'Walk':0.69,'HitByPitch':0.72};
-  entries.forEach(function(entry){
-    var pt=entry[0],d=entry[1];
-    if(!d.bip.length)return;
-    var color=pitchColor(pt);
-    // Calculate wOBA weighted centroid
-    var totalW=0,sumX=0,sumY=0,sumWoba=0,wobaCount=0;
-    d.bip.forEach(function(p){
-      if(isNaN(p.side)||isNaN(p.height))return;
-      var result=p.result||'';
-      var w=wobaWeights[result]||0;
-      if(w>0){
-        sumX+=p.side*w;sumY+=p.height*w;totalW+=w;sumWoba+=w;wobaCount++;
-      }
-    });
-    if(wobaCount<2||totalW<=0)return;
-    var avgWoba=sumWoba/d.bip.length;
-    // Clamp centroid to visible range
-    var centX=Math.max(-1.4,Math.min(1.4,sumX/totalW));
-    var centY=Math.max(0.9,Math.min(4.1,sumY/totalW));
-    var cx=mx(centX),cy=my(centY);
-    // Scale dot size by wOBA — range roughly 0.05 to 0.4 per pitch
-    var minR=6,maxR=18;
-    var norm=Math.min(avgWoba/0.35,1);
-    var r=minR+norm*(maxR-minR);
-    // Outer glow
-    var grad=ctx.createRadialGradient(cx,cy,0,cx,cy,r*2.5);
-    grad.addColorStop(0,hexToRGBA(color,0.25));
-    grad.addColorStop(1,hexToRGBA(color,0));
-    ctx.beginPath();ctx.arc(cx,cy,r*2.5,0,Math.PI*2);
-    ctx.fillStyle=grad;ctx.fill();
-    // Dot
-    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
-    ctx.fillStyle=color;ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,0.9)';ctx.lineWidth=1.5;ctx.stroke();
-    legendItems=legendItems||[];
-    legendItems.push({pt:pt,color:color,count:d.bip.length,woba:avgWoba});
-  });
-  ctx.fillStyle='#8a9ab0';ctx.font='8px Barlow Condensed,sans-serif';ctx.textAlign='center';
-  ctx.fillText("CATCHER'S VIEW",W/2,H-4);
-  return legendItems;
-}
-
-function drawWeakHeatmap(canvasId, pitchTypes){
-  var cv=document.getElementById(canvasId);if(!cv)return;
-  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height,PAD=12;
-  var xMin=-1.55,xMax=1.55,yMin=0.8,yMax=4.2;
-  var fns=drawZoneBase(ctx,W,H,PAD,xMin,xMax,yMin,yMax);
-  var mx=fns.mx,my=fns.my;
-
-  var entries=Object.entries(pitchTypes).sort(function(a,b){return b[1].total-a[1].total;});
-  var legendItems=[];
-
-  // Combine all weak contact into one blue KDE
-  var allWeak=[];
-  entries.forEach(function(e){allWeak=allWeak.concat(e[1].weakPts);});
-  if(allWeak.length>=2){
-    var minEV=allWeak.reduce(function(m,p){return Math.min(m,p.ev);},85);
-    var maxEV=84; // all are <85
-    var evRange=Math.max(maxEV-minEV,1);
-    var combinedGrid=computeKDE(allWeak,W,H,PAD,xMin,xMax,yMin,yMax,0.28,function(p){
-      // Weight inversely by EV — weaker contact = hotter
-      return 0.3+(90-p.ev)/25*0.7;
-    });
-    var globalMax=0;
-    for(var i=0;i<combinedGrid.length;i++)if(combinedGrid[i]>globalMax)globalMax=combinedGrid[i];
-    renderKDE(ctx,combinedGrid,W,H,PAD,'#1a6fb5',globalMax*0.65,0.9);
-  }
-
-  // Avg dot per pitch type
-  entries.forEach(function(entry){
-    var pt=entry[0],d=entry[1];
-    if(!d.weakPts.length)return;
-    var color=pitchColor(pt);
-    drawAvgDot(ctx,d.weakPts,mx,my,color);
-    legendItems.push({pt:pt,color:color,count:d.weakPts.length});
-  });
-
-  ctx.fillStyle='#8a9ab0';ctx.font='8px Barlow Condensed,sans-serif';ctx.textAlign='center';
-  ctx.fillText("CATCHER'S VIEW",W/2,H-4);
-  return legendItems;
-}
-
-function buildLegend(containerId, items){
-  var el=document.getElementById(containerId);
-  if(!items||!items.length){el.innerHTML='';return;}
-  el.innerHTML=items.slice(0,6).map(function(item){
-    return'<div class="hmap-legend-item"><div class="hmap-dot" style="background:'+item.color+'"></div>'+escH(item.pt)+' ('+item.count+')</div>';
-  }).join('');
-}
-
-function buildPitchTable(p){
-  var tbody=document.getElementById('pitchTableBody');
-  if(!tbody)return;
-  tbody.innerHTML='';
-  Object.entries(p.pitchTypes)
-    .filter(function(e){return e[1].total>=3;})
-    .sort(function(a,b){return b[1].total-a[1].total;})
-    .forEach(function(e){
-      var pt=e[0],d=e[1];
-      var sw=d.total>0?d.swings/d.total:0;
-      var wh=d.swings>0?d.whiffs/d.swings:0;
-      var ch=d.ozTotal>0?d.chases/d.ozTotal:0;
-      var hard=d.ev.length>0?d.ev.filter(function(v){return v>=95;}).length/d.ev.length:0;
-      var avgEV=d.ev.length>0?(d.ev.reduce(function(a,b){return a+b;},0)/d.ev.length).toFixed(1):'—';
-      var color=pitchColor(pt);
-      tbody.innerHTML+='<tr>'+
-        '<td style="display:flex;align-items:center;gap:4px"><div class="pitch-dot" style="background:'+color+'"></div>'+escH(pt)+'</td>'+
-        '<td>'+d.total+'</td>'+
-        '<td>'+pct(sw)+'</td>'+
-        '<td>'+pct(wh)+'</td>'+
-        '<td>'+ch>0?pct(ch):'—'+'</td>'+
-        '<td>'+pct(hard)+'</td>'+
-        '<td>'+avgEV+'</td>'+
-        '</tr>';
-    });
-}
-
-function buildCard(){
-  var name=document.getElementById('playerSelect').value;
-  if(!name)return;
-  var p=playerData[name];
-  if(!p){document.getElementById('statusMsg').textContent='No data for this player.';return;}
-
-  document.getElementById('cardName').textContent=p.displayName;
-  document.getElementById('cardGameLine').textContent=
-    '2026 Season · '+p.gp+' GP · '+p.pa+' PA · '+p.totalPitches+' pitches seen (TrackMan)';
-
-  // Traditional stats
-  document.getElementById('sAVG').textContent=fmt3(p.avg);
-  document.getElementById('sOBP').textContent=fmt3(p.obp);
-  document.getElementById('sSLG').textContent=fmt3(p.slg);
-  document.getElementById('sWOBA').textContent=fmt3(p.woba);
-  document.getElementById('sHR').textContent=p.hr;
-  document.getElementById('sRBI').textContent=p.rbi;
-  document.getElementById('sSB').textContent=p.sb;
-
-  // Contact quality
-  var hardEl=document.getElementById('tHard');
-  hardEl.textContent=pct(p.hardHit);
-  hardEl.className='stat-val'+(p.hardHit>=.35?' good':'');
-  document.getElementById('tBarrel').textContent=pct(p.barrelPct);
-  document.getElementById('tBestSpeed').textContent=p.bestSpeed>0?p.bestSpeed.toFixed(1):'—';
-  document.getElementById('tMaxEV').textContent=p.maxEV>0?p.maxEV.toFixed(1):'—';
-  document.getElementById('tGB').textContent=pct(p.gbPct);
-  document.getElementById('tFB').textContent=pct(p.fbPct);
-
-  // Discipline
-  var chaseEl=document.getElementById('tChase');
-  chaseEl.textContent=pct(p.chasePct);
-  chaseEl.className='stat-val'+(p.chasePct>=.30?' warn':'');
-  document.getElementById('tSwing').textContent=pct(p.swingPct);
-  document.getElementById('tZSwing').textContent=pct(p.zSwingPct);
-  document.getElementById('tWhiff').textContent=pct(p.whiffPct);
-  document.getElementById('tSGR').textContent=p.sgr.toFixed(2);
-
-  setTimeout(function(){
-    var dmgItems=drawDamageHeatmap('hmapDmg',p.pitchTypes);
-    buildLegend('dmgLegend',dmgItems);
-    var whiffItems=drawWhiffHeatmap('hmapWhiff',p.pitchTypes);
-    buildLegend('whiffLegend',whiffItems);
-    buildPitchTable(p);
-  },30);
-
-  document.getElementById('select-screen').style.display='none';
-  document.getElementById('card-screen').style.display='block';
-  window.scrollTo(0,0);
-}
-
-function showSelect(){
-  document.getElementById('card-screen').style.display='none';
-  document.getElementById('select-screen').style.display='block';
-}
-
-async function saveCard(){
-  var card=document.getElementById('card'),btn=card.querySelector('.save-btn'),orig=btn.textContent;
-  btn.textContent='Rendering…';btn.disabled=true;
-  try{
-    var canvas=await html2canvas(card,{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',scrollX:0,scrollY:-window.scrollY,ignoreElements:function(el){return el===btn;}});
-    document.getElementById('overlayImg').src=canvas.toDataURL('image/png');
-    document.getElementById('imgOverlay').classList.add('active');
-  }catch(e){alert('Render failed.');}
-  btn.textContent=orig;btn.disabled=false;
-}
-function closeOverlay(){document.getElementById('imgOverlay').classList.remove('active');}
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-function hexToRGBA(hex,alpha){
-  var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-  return'rgba('+r+','+g+','+b+','+alpha+')';
-}
-function fmt3(v){if(!v&&v!==0)return'—';var s=parseFloat(v).toFixed(3);return s.startsWith('0.')?s.slice(1):s;}
-function pct(v){if(isNaN(v)||v===null||v===undefined)return'—';return(v*100).toFixed(1)+'%';}
-function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
-boot();
-</script>
-
-</body>
-</html>
-
-var SUPABASE_URL=‘https://mghrapwhvihpwgqryail.supabase.co’;
-var SUPABASE_KEY=‘eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc’;
-
-var RE24=[[0.544,0.941,1.170,1.556,1.321,1.743,1.978,2.395],[0.291,0.587,0.700,1.068,0.890,1.088,1.399,1.756],[0.112,0.242,0.325,0.552,0.375,0.529,0.661,0.978]];
-var COUNT_RE={‘0-0’:0.444,‘1-0’:0.562,‘2-0’:0.628,‘3-0’:0.765,‘0-1’:0.306,‘1-1’:0.380,‘2-1’:0.437,‘3-1’:0.622,‘0-2’:0.191,‘1-2’:0.250,‘2-2’:0.305,‘3-2’:0.456};
-
-var allPitches=[], seasonStats={batting:[]}, gamesMeta=[], tableData=[];
-var sortCol=‘woba’, sortAsc=false, selectedPlayer=null;
-
-async function supaFetch(path){
-var rows=[],from=0;
-while(true){
-var sep=path.indexOf(’?’)>-1?’&’:’?’;
-var r=await fetch(SUPABASE_URL+’/rest/v1/’+path+sep+‘limit=1000&offset=’+from,{headers:{‘apikey’:SUPABASE_KEY,‘Authorization’:’Bearer ’+SUPABASE_KEY}});
-var d=await r.json();
-if(!Array.isArray(d)||!d.length)break;
-rows=rows.concat(d);if(d.length<1000)break;from+=1000;
-}
-return rows;
-}
-
-function setProgress(pct,msg){
-document.getElementById(‘progressFill’).style.width=pct+’%’;
-document.getElementById(‘loadMsg’).textContent=msg;
-}
-
-// ── Calculate team-level contact defaults from all WS pitches ───────────────
-function calcTeamContactDefaults(pitches) {
-var wsPitches = pitches.filter(function(r){
-return r.BatterTeam && r.BatterTeam.toLowerCase().includes(‘wal’);
-});
-var buckets = {
-heart:   { swings:0, contacts:0, evs:[] },
-shadow:  { swings:0, contacts:0, evs:[] },
-outside: { swings:0, contacts:0, evs:[] }
-};
-var SHADOW = 0.0833;
-wsPitches.forEach(function(r) {
-var call = (r.PitchCall||’’).trim();
-var isSwing = [‘StrikeSwinging’,‘FoulBall’,‘FoulBallNotFieldable’,‘InPlay’].includes(call);
-if (!isSwing) return;
-var side = parseFloat(r.PlateLocSide);
-var height = parseFloat(r.PlateLocHeight);
-if (isNaN(side) || isNaN(height)) return;
-var zTop = parseFloat(r.ZoneTop)||3.5;
-var zBot = parseFloat(r.ZoneBottom)||1.5;
-var inZone = Math.abs(side)<=0.833 && height>=zBot && height<=zTop;
-var inShadow = !inZone && Math.abs(side)<=(0.833+SHADOW) && height>=(zBot-SHADOW) && height<=(zTop+SHADOW);
-var bkt = inZone ? ‘heart’ : inShadow ? ‘shadow’ : ‘outside’;
-var isContact = call===‘InPlay’||call===‘FoulBall’||call===‘FoulBallNotFieldable’;
-buckets[bkt].swings++;
-if (isContact) {
-buckets[bkt].contacts++;
-var ev = parseFloat(r.ExitSpeed);
-if (!isNaN(ev) && ev > 0 && call === ‘InPlay’) {
-buckets[bkt].evs.push(ev);
-}
-}
-});
-function bestSpeedFromList(evs) {
-if (!evs.length) return 0;
-evs.sort(function(a,b){return b-a;});
-var top=evs.slice(0,Math.ceil(evs.length/2));
-return top.reduce(function(a,b){return a+b;},0)/top.length;
-}
-function def(b) {
-return {
-cr: b.swings > 0 ? b.contacts / b.swings : 0,
-ev: bestSpeedFromList(b.evs.slice())
-};
-}
-var defaults = {
-heart:   def(buckets.heart),
-shadow:  def(buckets.shadow),
-outside: def(buckets.outside)
-};
-
-window._teamContactDefaults = defaults;
-}
-
-async function boot(){
-try{
-setProgress(5,‘Loading season stats…’);
-var edgeRes=await fetch(SUPABASE_URL+’/functions/v1/fetch-boxscore?url=season-stats’,{headers:{‘apikey’:SUPABASE_KEY,‘Authorization’:’Bearer ’+SUPABASE_KEY}});
-var edgeData=await edgeRes.json();
-if(edgeData.batting)seasonStats=edgeData;
-
-```
-setProgress(20,'Loading games...');
-gamesMeta=await supaFetch('games?select=game_id,display_name,date&order=date.asc,display_name.asc');
-populateGameFilter();
-
-setProgress(30,'Loading pitch data...');
-allPitches=[];
-for(var i=0;i<gamesMeta.length;i++){
-  var rows=await supaFetch('pitches?GameID=eq.'+encodeURIComponent(gamesMeta[i].game_id));
-  allPitches=allPitches.concat(rows);
-  setProgress(30+Math.round(((i+1)/gamesMeta.length)*65),'Loading game '+(i+1)+' of '+gamesMeta.length+'...');
-}
-
-setProgress(98,'Building stats...');
-calcTeamContactDefaults(allPitches);
-rebuildTableData(allPitches);
-populatePlayerFilter();
-renderTable();
-
-document.getElementById('loading-screen').style.display='none';
-document.getElementById('main-screen').style.display='block';
-document.getElementById('bottomBar').style.display='flex';
-
-// filter changes handled inline by checkbox events
-```
-
-}catch(e){
-document.getElementById(‘loadMsg’).textContent=’Error: ’+e.message;
-}
-}
-
-function populateGameFilter(){
-var menu=document.getElementById(‘gameDDMenu’);
-menu.innerHTML=’’;
-gamesMeta.forEach(function(g){
-var item=document.createElement(‘div’);
-item.className=‘dd-item’;
-var cb=document.createElement(‘input’);
-cb.type=‘checkbox’;cb.value=g.game_id;
-cb.addEventListener(‘change’,function(){item.classList.toggle(‘checked’,cb.checked);onFilterChange();});
-item.appendChild(cb);
-var lbl=document.createElement(‘span’);
-lbl.textContent=g.display_name||g.game_id;
-item.appendChild(lbl);
-item.addEventListener(‘click’,function(e){if(e.target!==cb){cb.checked=!cb.checked;item.classList.toggle(‘checked’,cb.checked);onFilterChange();}});
-menu.appendChild(item);
-});
-}
-
-function populatePlayerFilter(){
-var names=Array.from(new Set(
-allPitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes(‘wal’);})
-.map(function(r){return r.Batter||’’;}).filter(Boolean)
-)).sort();
-var menu=document.getElementById(‘playerDDMenu’);
-menu.innerHTML=’’;
-names.forEach(function(n){
-var p=n.split(’,’),d=p.length>1?(p[1]||’’).trim()+’ ’+p[0].trim():n;
-var item=document.createElement(‘div’);
-item.className=‘dd-item’;
-var cb=document.createElement(‘input’);
-cb.type=‘checkbox’;cb.value=n;
-cb.addEventListener(‘change’,function(){item.classList.toggle(‘checked’,cb.checked);onFilterChange();});
-item.appendChild(cb);
-var lbl=document.createElement(‘span’);lbl.textContent=d;
-item.appendChild(lbl);
-item.addEventListener(‘click’,function(e){if(e.target!==cb){cb.checked=!cb.checked;item.classList.toggle(‘checked’,cb.checked);onFilterChange();}});
-menu.appendChild(item);
-});
-}
-
-function rebuildTableData(pitches){
-var wsPitches=pitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes(‘wal’);});
-var players={};
-wsPitches.forEach(function(r){var n=(r.Batter||’’).trim();if(!n)return;if(!players[n])players[n]=[];players[n].push(r);});
-tableData=Object.values(players).map(function(rows){return computeProfile(rows[0].Batter,rows);});
-}
-
-// ── SEAGER metric helpers ────────────────────────────────────────────────────
-// Sigmoid strike probability based on distance from zone edge
-function strikeProbability(side, height, zTop, zBot, halfW) {
-zTop = zTop || 3.5; zBot = zBot || 1.5; halfW = halfW || 0.833;
-// Distance from zone edge (negative = inside zone)
-var dx = Math.max(0, Math.abs(side) - halfW);
-var dy = Math.max(0, Math.max(zBot - height, height - zTop));
-var dist = Math.sqrt(dx*dx + dy*dy);
-var inside = Math.abs(side) <= halfW && height >= zBot && height <= zTop;
-// Sigmoid: k controls steepness, center at 0 (zone edge)
-// Inside zone: dist is 0, prob approaches 1
-// Outside zone: dist grows, prob approaches 0
-if (inside) {
-return 1 / (1 + Math.exp(15 * (dist - 0.15)));
-} else {
-return 1 / (1 + Math.exp(15 * (dist + 0.05)));
-}
-}
-
-// Run value of a called strike vs called ball at this count/state
-function swingTakeRV(balls, strikes, outs, baseState) {
-var so = Math.min(Math.max(isNaN(outs)?0:outs, 0), 2);
-var bst = isNaN(baseState)||baseState<0||baseState>7 ? 0 : baseState;
-function walkRes(bs) {
-var on1=!!(bs&1),on2=!!(bs&2),on3=!!(bs&4),runs=0,n1=true,n2=on2,n3=on3;
-if(on1){n2=true;if(on2){n3=true;if(on3)runs=1;}}
-return {newState:(n1?1:0)|(n2?2:0)|(n3?4:0),runs:runs};
-}
-function reVal(b,s) {
-if(b>=4){var w=walkRes(bst);return w.runs+RE24[so][w.newState];}
-if(s>=3){return so===2?0:RE24[so+1][bst];}
-return COUNT_RE[b+’-’+s]||COUNT_RE[‘0-0’];
-}
-// Value of strike outcome minus ball outcome
-var strikeVal = reVal(balls, strikes+1);
-var ballVal   = reVal(balls+1, strikes);
-return { strikeVal: strikeVal, ballVal: ballVal, delta: strikeVal - ballVal };
-}
-
-// SEAGER: sum of (optimal decision value - actual decision value) across all pitches
-// Positive = making good decisions, capturing value
-// Uses sigmoid strike probability to weight borderline pitches
-// Hit value from exit velocity — expected run contribution of batted ball
-function hitValueFromEV(ev) {
-if (isNaN(ev) || ev <= 0) return 0.08; // weak contact default
-if (ev >= 105) return 1.55;  // near-certain extra base hit
-if (ev >= 100) return 1.10;  // hard hit, high XBH rate
-if (ev >= 95)  return 0.80;  // solid contact, good hit rate
-if (ev >= 90)  return 0.55;  // medium-hard, decent hit rate
-if (ev >= 85)  return 0.35;  // medium, coin flip
-if (ev >= 78)  return 0.18;  // weak-medium, mostly outs
-return 0.07;                  // weak contact, almost always out
-}
-
-// Build contact profile from this hitter’s actual swing data
-// Returns contact rate and Best Speed (top 50% EV avg) for 3 zone buckets
-function buildContactProfile(rows) {
-var buckets = {
-heart:   { swings:0, contacts:0, evs:[] },
-shadow:  { swings:0, contacts:0, evs:[] },
-outside: { swings:0, contacts:0, evs:[] }
-};
-rows.forEach(function(r) {
-var call = (r.PitchCall||’’).trim();
-var isSwing = [‘StrikeSwinging’,‘FoulBall’,‘FoulBallNotFieldable’,‘InPlay’].includes(call);
-if (!isSwing) return;
-var side = parseFloat(r.PlateLocSide);
-var height = parseFloat(r.PlateLocHeight);
-if (isNaN(side) || isNaN(height)) return;
-var zTop = parseFloat(r.ZoneTop)||3.5;
-var zBot = parseFloat(r.ZoneBottom)||1.5;
-var SHADOW = 0.0833;
-var inZone = Math.abs(side)<=0.833 && height>=zBot && height<=zTop;
-var inShadow = !inZone && Math.abs(side)<=(0.833+SHADOW) && height>=(zBot-SHADOW) && height<=(zTop+SHADOW);
-var bucket = inZone ? ‘heart’ : inShadow ? ‘shadow’ : ‘outside’;
-var isContact = call===‘InPlay’||call===‘FoulBall’||call===‘FoulBallNotFieldable’;
-buckets[bucket].swings++;
-if (isContact) {
-buckets[bucket].contacts++;
-var ev = parseFloat(r.ExitSpeed);
-if (!isNaN(ev) && ev > 0 && call === ‘InPlay’) {
-buckets[bucket].evs.push(ev);
-}
-}
-});
-// Best Speed = avg of top 50% of InPlay EVs per bucket
-function bestSpeedFromEVs(evs) {
-if (!evs.length) return 0;
-evs.sort(function(a,b){return b-a;});
-var top = evs.slice(0, Math.ceil(evs.length/2));
-return top.reduce(function(a,b){return a+b;},0) / top.length;
-}
-function bucketStats(b, defaultContact, defaultBS) {
-var cr = b.swings >= 5 ? b.contacts / b.swings : defaultContact;
-var bs = b.evs.length >= 3 ? bestSpeedFromEVs(b.evs) : defaultBS;
-return { contactRate: cr, bestSpeed: bs };
-}
-var td = window._teamContactDefaults || { heart:{cr:0.904,ev:90.3}, shadow:{cr:0.783,ev:81.9}, outside:{cr:0.614,ev:74.4} };
-return {
-heart:   bucketStats(buckets.heart,   td.heart.cr,   td.heart.ev),
-shadow:  bucketStats(buckets.shadow,  td.shadow.cr,  td.shadow.ev),
-outside: bucketStats(buckets.outside, td.outside.cr, td.outside.ev)
-};
-}
-
-function computeSEAGER(rows) {
-var profile = buildContactProfile(rows);
-var totalScore = 0, pitchCount = 0;
-
-rows.forEach(function(r) {
-var call = (r.PitchCall||’’).trim();
-var isSwing = [‘StrikeSwinging’,‘FoulBall’,‘FoulBallNotFieldable’,‘InPlay’].includes(call);
-var isTake  = call === ‘StrikeCalled’ || call === ‘BallCalled’;
-if (!isSwing && !isTake) return;
-var side   = parseFloat(r.PlateLocSide);
-var height = parseFloat(r.PlateLocHeight);
-if (isNaN(side) || isNaN(height)) return;
-var balls   = parseInt(r.Balls||r.BallCount||0)||0;
-var strikes = parseInt(r.Strikes||r.StrikeCount||0)||0;
-var outs    = parseInt(r.Outs||r.OutsBeforePitch||0)||0;
-var on1b = !!(r.Runner1B||’’).trim();
-var on2b = !!(r.Runner2B||’’).trim();
-var on3b = !!(r.Runner3B||’’).trim();
-var baseState = (on1b?1:0)|(on2b?2:0)|(on3b?4:0);
-var zTop = parseFloat(r.ZoneTop)||3.5;
-var zBot = parseFloat(r.ZoneBottom)||1.5;
-
-```
-// Strike probability at this location (sigmoid)
-var sp = strikeProbability(side, height, zTop, zBot, 0.833);
-
-// Determine zone bucket for this pitch
-var SHADOW = 0.0833;
-var inZone = Math.abs(side)<=0.833 && height>=zBot && height<=zTop;
-var inShadow = !inZone && Math.abs(side)<=(0.833+SHADOW) && height>=(zBot-SHADOW) && height<=(zTop+SHADOW);
-var pBucket = inZone ? 'heart' : inShadow ? 'shadow' : 'outside';
-var prof = profile[pBucket];
-
-// RE24 run values for strike/ball outcomes at this count
-var rv = swingTakeRV(balls, strikes, outs, baseState);
-
-// Expected value of TAKING this pitch
-// = prob(called strike) * RE_after_strike + prob(called ball) * RE_after_ball
-var evTake = sp * rv.strikeVal + (1 - sp) * rv.ballVal;
-
-// Expected value of SWINGING at this pitch using hitter's actual contact profile
-// = contactRate * hitValue(avgEV) + (1-contactRate) * RE_after_swinging_strike
-var soVal = strikes >= 2 ? (outs >= 2 ? 0 : RE24[Math.min(outs+1,2)][baseState]) : rv.strikeVal;
-var evSwing = prof.contactRate * hitValueFromEV(prof.bestSpeed) +
-              (1 - prof.contactRate) * soVal;
-
-// Optimal decision value vs actual decision value
-var optVal = Math.max(evTake, evSwing);
-var actVal = isSwing ? evSwing : evTake;
-
-// Score = how much value the hitter captured relative to optimal
-// Summing gives total missed value; we normalize and flip sign
-totalScore += (actVal - optVal);
-pitchCount++;
-```
-
-});
-
-// Normalize per 100 pitches, flip sign: positive = good decisions
-return pitchCount > 0 ? -(totalScore / pitchCount) * 100 : 0;
-}
-
-function computeProfile(name,rows){
-var parts=name.split(’,’),lastName=(parts[0]||’’).trim();
-var displayName=parts.length>1?(parts[1]||’’).trim()+’ ’+parts[0].trim():name;
-var swings=0,whiffs=0,inZone=0,inZoneSwings=0,ozPitches=0,ozSwings=0,pa=0;
-var bip=[],maxEV=0,totalEV=0,evCount=0,allEVs=[];
-var gbCount=0,fbCount=0,bipCount=0,barrels=0;
-var pitchTypes={};
-
-rows.forEach(function(r){
-var call=(r.PitchCall||’’).trim();
-var side=parseFloat(r.PlateLocSide),height=parseFloat(r.PlateLocHeight);
-var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||‘Other’);
-if(!pitchTypes[pt])pitchTypes[pt]={total:0,swings:0,whiffs:0,chases:0,ozTotal:0,ev:[],contacts:0,bip:[],whiffPts:[],weakPts:[]};
-pitchTypes[pt].total++;
-
-```
-var isSwing=['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
-var isWhiff=call==='StrikeSwinging';
-var isContact=['FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
-var inside=!isNaN(side)&&!isNaN(height)&&Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
-var outside=!isNaN(side)&&!isNaN(height)&&!inside;
-
-if(isSwing){swings++;pitchTypes[pt].swings++;}
-if(isWhiff){
-  whiffs++;pitchTypes[pt].whiffs++;
-  // weak contact stored below
-}
-if(isContact)pitchTypes[pt].contacts++;
-if(inside){inZone++;if(isSwing)inZoneSwings++;}
-if(outside){ozPitches++;if(isSwing){ozSwings++;pitchTypes[pt].chases++;pitchTypes[pt].ozTotal++;}}
-
-var ev=parseFloat(r.ExitSpeed);
-var la=parseFloat(r.Angle||r.LaunchAngle||r.VertAngle||'NaN');
-if(!isNaN(ev)&&ev>0){
-  if(ev>maxEV)maxEV=ev;totalEV+=ev;evCount++;allEVs.push(ev);
-  pitchTypes[pt].ev.push(ev);
-  if(!isNaN(side)&&!isNaN(height)){
-    bip.push({side:side,height:height,ev:ev,pt:pt,result:(r.PlayResult||'')});
-  // Store weak contact — any batted ball under 90 mph
-if(!isNaN(ev)&&ev>0&&ev<90&&!isNaN(side)&&!isNaN(height)&&['InPlay','FoulBall','FoulBallNotFieldable'].includes(call)){
-  pitchTypes[pt].weakPts.push({side:side,height:height,ev:ev});
-}
-    pitchTypes[pt].bip.push({side:side,height:height,ev:ev,result:(r.PlayResult||'')});
-  }
-  if(!isNaN(la)&&ev>=98&&la>=26&&la<=30)barrels++;
-  if(call==='InPlay'){
-    bipCount++;
-    var ht=(r.TaggedHitType||r.HitType||'').toLowerCase();
-    if(ht.includes('ground')){gbCount++;}
-    else if(ht.includes('fly')||ht.includes('popup')){fbCount++;}
-    else if(!isNaN(la)){if(la<10)gbCount++;else if(la>=25)fbCount++;}
-  }
-}
-if(parseInt(r.PitchofPA)===1)pa++;
-```
-
-});
-
-allEVs.sort(function(a,b){return b-a;});
-var topHalf=allEVs.slice(0,Math.ceil(allEVs.length/2));
-var bestSpeed=topHalf.length>0?topHalf.reduce(function(a,b){return a+b;},0)/topHalf.length:0;
-
-var bs=null;
-if(seasonStats.batting){
-bs=seasonStats.batting.find(function(b){return b.name&&b.name.split(’ ’).pop().toLowerCase()===lastName.toLowerCase();});
-}
-var bsAB=bs?parseInt(bs.ab)||0:0;
-var bsBB=bs?parseInt(bs.bb)||0:0;
-var bsHBP=bs?parseInt(bs.hbp)||0:0;
-var bsSF=bs?parseInt(bs.sf)||0:0;
-var bsSH=bs?parseInt(bs.sh)||0:0;
-var bsPA=bsAB+bsBB+bsHBP+bsSF+bsSH;
-var bs1B=Math.max(0,(bs?parseInt(bs.h)||0:0)-(bs?parseInt(bs.doubles)||0:0)-(bs?parseInt(bs.triples)||0:0)-(bs?parseInt(bs.hr)||0:0));
-var woba=bsPA>0?(bsBB*.69+bsHBP*.72+bs1B*.88+(bs?parseInt(bs.doubles)||0:0)*1.24+(bs?parseInt(bs.triples)||0:0)*1.56+(bs?parseInt(bs.hr)||0:0)*2.08)/bsPA:0;
-var tp=rows.length;
-
-return{
-name:name,displayName:displayName,lastName:lastName,
-gp:bs?parseInt(bs.gp)||0:0,pa:bsPA,
-avg:bs?parseFloat(bs.avg)||0:0,obp:bs?parseFloat(bs.obp)||0:0,
-slg:bs?parseFloat(bs.slg)||0:0,woba:woba,
-hr:bs?parseInt(bs.hr)||0:0,rbi:bs?parseInt(bs.rbi)||0:0,
-sb:bs?parseInt(bs.sb)||0:0,h:bs?parseInt(bs.h)||0:0,
-swingPct:tp>0?swings/tp:0,whiffPct:swings>0?whiffs/swings:0,
-chasePct:ozPitches>0?ozSwings/ozPitches:0,
-zSwingPct:inZone>0?inZoneSwings/inZone:0,
-sgr:(inZone>0&&ozPitches>0)?(inZoneSwings/inZone)-(ozSwings/ozPitches):0,
-hardHit:evCount>0?bip.filter(function(b){return b.ev>=95;}).length/evCount:0,
-barrelPct:evCount>0?barrels/evCount:0,
-gbPct:bipCount>0?gbCount/bipCount:0,fbPct:bipCount>0?fbCount/bipCount:0,
-bestSpeed:bestSpeed,maxEV:maxEV,totalPitches:tp,
-pitchTypes:pitchTypes,bip:bip,rows:rows
-};
-}
-
-function computeMetrics(name,rows){
-var swings=0,whiffs=0,inZone=0,inZoneSwings=0,ozPitches=0,ozSwings=0,pa=0;
-var bip=[],maxEV=0,totalEV=0,evCount=0;
-var pitchTypes={};
-var parts=name.split(’,’),lastName=(parts[0]||’’).trim();
-var displayName=parts.length>1?(parts[1]||’’).trim()+’ ’+parts[0].trim():name;
-
-var gbCount=0,fbCount=0,ldCount=0,bipCount=0,barrels=0;
-var allEVs=[];
-
-rows.forEach(function(r){
-var call=(r.PitchCall||’’).trim();
-var side=parseFloat(r.PlateLocSide),height=parseFloat(r.PlateLocHeight);
-var pt=(r.TaggedPitchType||r.AutoPitchType||‘Unknown’).trim();
-if(!pitchTypes[pt])pitchTypes[pt]={total:0,swings:0,whiffs:0,chases:0,ozTotal:0,ev:[]};
-pitchTypes[pt].total++;
-var isSwing=[‘StrikeSwinging’,‘FoulBall’,‘FoulBallNotFieldable’,‘InPlay’].includes(call);
-var isWhiff=call===‘StrikeSwinging’;
-var inside=!isNaN(side)&&!isNaN(height)&&Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
-var outside=!isNaN(side)&&!isNaN(height)&&!inside;
-if(isSwing){swings++;pitchTypes[pt].swings++;}
-if(isWhiff){whiffs++;pitchTypes[pt].whiffs++;}
-if(inside){inZone++;if(isSwing)inZoneSwings++;}
-if(outside){ozPitches++;if(isSwing){ozSwings++;pitchTypes[pt].chases++;pitchTypes[pt].ozTotal++;}}
-var ev=parseFloat(r.ExitSpeed);
-var la=parseFloat(r.Angle||r.LaunchAngle||r.VertAngle||‘NaN’);
-if(!isNaN(ev)&&ev>0){
-if(ev>maxEV)maxEV=ev;
-totalEV+=ev;evCount++;
-allEVs.push(ev);
-pitchTypes[pt].ev.push(ev);
-bip.push({side:side,height:height,ev:ev});
-// Barrel: EV >= 98 and LA 26-30
-if(!isNaN(la)&&ev>=98&&la>=26&&la<=30)barrels++;
-// Batted ball type
-if(call===‘InPlay’){
-bipCount++;
-var ht=(r.TaggedHitType||r.HitType||’’).toLowerCase();
-if(ht.includes(‘ground’))gbCount++;
-else if(ht.includes(‘fly’)||ht.includes(‘popup’))fbCount++;
-else if(ht.includes(‘line’))ldCount++;
-else if(!isNaN(la)){
-if(la<10)gbCount++;
-else if(la>=10&&la<25)ldCount++;
-else fbCount++;
-}
-}
-}
-if(parseInt(r.PitchofPA)===1)pa++;
-});
-
-// Best Speed: avg of top 50% EVs
-var bestSpeed=0;
-if(allEVs.length>0){
-allEVs.sort(function(a,b){return b-a;});
-var topHalf=allEVs.slice(0,Math.ceil(allEVs.length/2));
-bestSpeed=topHalf.reduce(function(a,b){return a+b;},0)/topHalf.length;
-}
-
-var tp=rows.length;
-var bs=null;
-if(seasonStats.batting){
-bs=seasonStats.batting.find(function(b){return b.name&&b.name.split(’ ’).pop().toLowerCase()===lastName.toLowerCase();});
-}
-// PA = AB + BB + HBP + SF + SH from box score
-var bsAB=bs?parseInt(bs.ab)||0:0;
-var bsBB=bs?parseInt(bs.bb)||0:0;
-var bsHBP=bs?parseInt(bs.hbp)||0:0;
-var bsSF=bs?parseInt(bs.sf)||0:0;
-var bsSH=bs?parseInt(bs.sh)||0:0;
-var bsPA=bsAB+bsBB+bsHBP+bsSF+bsSH;
-// wOBA from box score
-var bs1B=Math.max(0,(bs?parseInt(bs.h)||0:0)-(bs?parseInt(bs.doubles)||0:0)-(bs?parseInt(bs.triples)||0:0)-(bs?parseInt(bs.hr)||0:0));
-var woba=bsPA>0?(bsBB*.69+bsHBP*.72+bs1B*.88+(bs?parseInt(bs.doubles)||0:0)*1.24+(bs?parseInt(bs.triples)||0:0)*1.56+(bs?parseInt(bs.hr)||0:0)*2.08)/bsPA:0;
-var hardHitPct=evCount>0?bip.filter(function(b){return b.ev>=95;}).length/evCount:0;
-var barrelPct=evCount>0?barrels/evCount:0;
-var gbPct=bipCount>0?gbCount/bipCount:0;
-var fbPct=bipCount>0?fbCount/bipCount:0;
-var sgr=(inZone>0&&ozPitches>0)?(inZoneSwings/inZone)-(ozSwings/ozPitches):0;
-var seagerScore=computeSEAGER(rows);
-
-return{
-name:name,displayName:displayName,lastName:lastName,
-gp:bs?parseInt(bs.gp)||0:0,pa:bsPA,ab:bsAB,
-h:bs?parseInt(bs.h)||0:0,doubles:bs?parseInt(bs.doubles)||0:0,
-triples:bs?parseInt(bs.triples)||0:0,
-hr:bs?parseInt(bs.hr)||0:0,rbi:bs?parseInt(bs.rbi)||0:0,
-bb:bsBB,so:bs?parseInt(bs.so)||0:0,hbp:bsHBP,sf:bsSF,sh:bsSH,
-avg:bs?parseFloat(bs.avg)||0:0,obp:bs?parseFloat(bs.obp)||0:0,
-slg:bs?parseFloat(bs.slg)||0:0,
-ops:(bs&&bs.obp&&bs.slg)?(parseFloat(bs.obp)+parseFloat(bs.slg)):0,
-woba:woba,
-swingPct:tp>0?swings/tp:0,whiffPct:swings>0?whiffs/swings:0,
-chasePct:ozPitches>0?ozSwings/ozPitches:0,zSwingPct:inZone>0?inZoneSwings/inZone:0,
-sgr:sgr,seagerScore:seagerScore,hardHit:hardHitPct,barrelPct:barrelPct,
-gbPct:gbPct,fbPct:fbPct,bestSpeed:bestSpeed,
-maxEV:maxEV,totalPitches:tp,pitchTypes:pitchTypes,bip:bip,rows:rows
-};
-}
-
-function onFilterChange(){
-updateDDLabels();
-var selGames=getSelectedGames();
-var filtered=allPitches.filter(function(r){
-return r.BatterTeam&&r.BatterTeam.toLowerCase().includes(‘wal’)&&
-(!selGames.length||selGames.includes(r.GameID));
-});
-var players={};
-filtered.forEach(function(r){var n=(r.Batter||’’).trim();if(!n)return;if(!players[n])players[n]=[];players[n].push(r);});
-tableData=Object.values(players).map(function(rows){return computeProfile(rows[0].Batter,rows);});
-renderTable();
-}
-
-function getSelectedGames(){
-return Array.from(document.querySelectorAll(’#gameDDMenu input[type=checkbox]:checked’)).map(function(cb){return cb.value;});
-}
-function getSelectedPlayers(){
-return Array.from(document.querySelectorAll(’#playerDDMenu input[type=checkbox]:checked’)).map(function(cb){return cb.value;});
-}
-function toggleDD(id){
-var el=document.getElementById(id);
-var isOpen=el.classList.contains(‘open’);
-document.querySelectorAll(’.dd-wrap.open’).forEach(function(d){d.classList.remove(‘open’);});
-if(!isOpen)el.classList.add(‘open’);
-}
-document.addEventListener(‘click’,function(e){
-if(!e.target.closest(’.dd-wrap’))document.querySelectorAll(’.dd-wrap.open’).forEach(function(d){d.classList.remove(‘open’);});
-});
-function updateDDLabels(){
-var g=getSelectedGames();
-document.getElementById(‘gameDDLabel’).textContent=g.length===0?‘All Games (full season)’:g.length+’ game’+(g.length>1?‘s’:’’)+’ selected’;
-var pl=getSelectedPlayers();
-document.getElementById(‘playerDDLabel’).textContent=pl.length===0?‘All Players’:pl.length+’ player’+(pl.length>1?‘s’:’’)+’ selected’;
-}
-
-function renderTable(){
-var selectedPlayers=getSelectedPlayers();
-var data=tableData.filter(function(p){return p.pa>0&&(!selectedPlayers.length||selectedPlayers.includes(p.name));});
-data.sort(function(a,b){
-var av=a[sortCol]||0,bv=b[sortCol]||0;
-if(typeof av===‘string’)return sortAsc?av.localeCompare(bv):bv.localeCompare(av);
-return sortAsc?av-bv:bv-av;
-});
-document.getElementById(‘filterCount’).textContent=data.length+’ players’;
-var tbody=document.getElementById(‘tableBody’);
-tbody.innerHTML=’’;
-if(!data.length){tbody.innerHTML=’<tr><td colspan="15" class="no-data">No players match current filters</td></tr>’;return;}
-data.forEach(function(p){
-var tr=document.createElement(‘tr’);
-if(selectedPlayer===p.name)tr.className=‘selected’;
-tr.onclick=function(){
-selectedPlayer=p.name;
-document.querySelectorAll(’#tableBody tr’).forEach(function(r){r.classList.remove(‘selected’);});
-tr.classList.add(‘selected’);
-document.getElementById(‘genCardBtn’).disabled=false;
-document.getElementById(‘selHint’).textContent=p.displayName+’ selected’;
-};
-tr.innerHTML=
-‘<td>’+escH(p.displayName)+’</td>’+
-‘<td>’+p.pa+’</td>’+
-‘<td class="val-hi">’+fmt3(p.woba)+’</td>’+
-‘<td class="'+(p.barrelPct>=.06?'val-good':'')+'">’+pct(p.barrelPct)+’</td>’+
-‘<td class="'+(p.hardHit>=.35?'val-good':'')+'">’+pct(p.hardHit)+’</td>’+
-‘<td>’+pct(p.swingPct)+’</td>’+
-‘<td class="'+(p.chasePct>=.30?'val-warn':'')+'">’+pct(p.chasePct)+’</td>’+
-‘<td>’+pct(p.zSwingPct)+’</td>’+
-‘<td class="'+(p.seagerScore>=5?'val-good':p.seagerScore<0?'val-warn':'')+'">’+p.seagerScore.toFixed(2)+’</td>’+
-‘<td>’+pct(p.gbPct)+’</td>’+
-‘<td>’+pct(p.fbPct)+’</td>’+
-‘<td class="val-hi">’+(p.bestSpeed>0?p.bestSpeed.toFixed(1):’—’)+’</td>’+
-‘<td>’+(p.maxEV>0?p.maxEV.toFixed(1):’—’)+’</td>’;
-tbody.appendChild(tr);
-});
-}
-
-function sortTable(col){
-if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=false;}
-renderTable();
-}
-
-function buildCard(){
-var p=tableData.find(function(d){return d.name===selectedPlayer;});
-if(!p)return;
-document.getElementById(‘cardName’).textContent=p.displayName;
-document.getElementById(‘cardGameLine’).textContent=‘2026 Season · ‘+p.gp+’ GP · ‘+p.pa+’ PA seen’;
-document.getElementById(‘cGP’).textContent=p.gp||’—’;
-document.getElementById(‘cPA’).textContent=p.pa;
-document.getElementById(‘cAVG’).textContent=fmt3(p.avg);
-document.getElementById(‘cOBP’).textContent=fmt3(p.obp);
-document.getElementById(‘cSLG’).textContent=fmt3(p.slg);
-document.getElementById(‘cOPS’).textContent=fmt3(p.ops);
-document.getElementById(‘cH’).textContent=p.h;
-document.getElementById(‘c2B’).textContent=p.doubles;
-document.getElementById(‘cHR’).textContent=p.hr;
-document.getElementById(‘cRBI’).textContent=p.rbi;
-document.getElementById(‘cBB’).textContent=p.bb;
-document.getElementById(‘cSO’).textContent=p.so;
-document.getElementById(‘dSwing’).textContent=pct(p.swingPct);
-document.getElementById(‘dZSwing’).textContent=pct(p.zSwingPct);
-document.getElementById(‘dChase’).textContent=pct(p.chasePct);
-document.getElementById(‘dWhiff’).textContent=pct(p.whiffPct);
-document.getElementById(‘dHardHit’).textContent=pct(p.hardHit);
-document.getElementById(‘dMaxEV’).textContent=p.maxEV>0?p.maxEV.toFixed(1):’—’;
-document.getElementById(‘footR’).textContent=p.pa+’ PA · ‘+p.totalPitches+’ pitches’;
-setTimeout(function(){
-drawHeatmap(‘hmapSlg’,p.bip.filter(function(b){return b.ev>=95;}),‘ev’);
-drawHeatmap(‘hmapWhiff’,p.rows.filter(function(r){return r.PitchCall===‘StrikeSwinging’;}),‘whiff’);
-buildPitchTable(p);
-},30);
-document.getElementById(‘main-screen’).style.display=‘none’;
-document.getElementById(‘bottomBar’).style.display=‘none’;
-document.getElementById(‘card-screen’).style.display=‘block’;
-window.scrollTo(0,0);
-}
-
-function buildPitchTable(p){
-var tbody=document.getElementById(‘pitchTableBody’);tbody.innerHTML=’’;
-Object.entries(p.pitchTypes).sort(function(a,b){return b[1].total-a[1].total;}).forEach(function(e){
-var pt=e[0],d=e[1];
-var sw=d.total>0?d.swings/d.total:0;
-var wh=d.swings>0?d.whiffs/d.swings:0;
-var ch=d.ozTotal>0?d.chases/d.ozTotal:0;
-var avg=d.ev.length>0?(d.ev.reduce(function(a,b){return a+b;},0)/d.ev.length).toFixed(1):’—’;
-tbody.innerHTML+=’<tr><td style="text-align:left;font-size:.8rem">’+escH(pt)+’</td><td>’+d.total+’</td><td>’+pct(sw)+’</td><td>’+pct(wh)+’</td><td>’+pct(ch)+’</td><td>’+avg+’</td></tr>’;
-});
-}
-
-function drawHeatmap(id,points,mode){
-var cv=document.getElementById(id);if(!cv)return;
-var ctx=cv.getContext(‘2d’),W=cv.width,H=cv.height,PAD=8;
-var xMin=-1.4,xMax=1.4,yMin=0.9,yMax=4.1;
-function mx(v){return PAD+(v-xMin)/(xMax-xMin)*(W-PAD*2);}
-function my(v){return H-PAD-(v-yMin)/(yMax-yMin)*(H-PAD*2);}
-ctx.clearRect(0,0,W,H);ctx.fillStyle=’#f8fafd’;ctx.fillRect(0,0,W,H);
-ctx.strokeStyle=’#1a3a5c’;ctx.lineWidth=1.5;
-ctx.strokeRect(mx(-0.833),my(3.5),mx(0.833)-mx(-0.833),my(1.5)-my(3.5));
-ctx.strokeStyle=’#c5d0dc’;ctx.lineWidth=.7;
-var zw=(mx(0.833)-mx(-0.833))/3,zh=(my(1.5)-my(3.5))/3;
-for(var i=1;i<3;i++){
-ctx.beginPath();ctx.moveTo(mx(-0.833)+zw*i,my(3.5));ctx.lineTo(mx(-0.833)+zw*i,my(1.5));ctx.stroke();
-ctx.beginPath();ctx.moveTo(mx(-0.833),my(3.5)+zh*i);ctx.lineTo(mx(0.833),my(3.5)+zh*i);ctx.stroke();
-}
-points.forEach(function(pt){
-var s=parseFloat(pt.PlateLocSide!==undefined?pt.PlateLocSide:pt.side);
-var h=parseFloat(pt.PlateLocHeight!==undefined?pt.PlateLocHeight:pt.height);
-if(isNaN(s)||isNaN(h))return;
-ctx.beginPath();ctx.arc(mx(s),my(h),3.2,0,Math.PI*2);
-ctx.fillStyle=mode===‘ev’?evColor(pt.ev||0):‘rgba(255,50,50,0.65)’;ctx.fill();
-ctx.strokeStyle=‘rgba(0,0,0,.18)’;ctx.lineWidth=.5;ctx.stroke();
-});
-ctx.fillStyle=’#9b8c74’;ctx.font=‘7px Barlow Condensed,sans-serif’;ctx.textAlign=‘center’;
-ctx.fillText(mode===‘ev’?‘Hard Hit (95+ EV)’:‘Whiffs’,W/2,H-1);
-}
-
-function evColor(ev){if(ev>=105)return’rgba(220,50,50,.85)’;if(ev>=100)return’rgba(240,150,50,.85)’;return’rgba(60,160,90,.85)’;}
-function showMain(){document.getElementById(‘card-screen’).style.display=‘none’;document.getElementById(‘main-screen’).style.display=‘block’;document.getElementById(‘bottomBar’).style.display=‘flex’;selectedPlayer=null;document.getElementById(‘genCardBtn’).disabled=true;document.getElementById(‘selHint’).textContent=‘Tap a player to select’;}
-async function saveCardImage(){
-var card=document.getElementById(‘card’),btn=card.querySelector(’.save-btn’),orig=btn.textContent;
-btn.textContent=‘Rendering…’;btn.disabled=true;
-try{var canvas=await html2canvas(card,{scale:2,useCORS:true,allowTaint:true,backgroundColor:’#ffffff’,scrollX:0,scrollY:-window.scrollY,ignoreElements:function(el){return el===btn;}});document.getElementById(‘overlayImg’).src=canvas.toDataURL(‘image/png’);document.getElementById(‘imgOverlay’).classList.add(‘active’);}
-catch(e){alert(‘Render failed.’);}
-btn.textContent=orig;btn.disabled=false;
-}
-function closeOverlay(){document.getElementById(‘imgOverlay’).classList.remove(‘active’);}
-function fmt3(v){if(!v&&v!==0)return’—’;var s=parseFloat(v).toFixed(3);return s.startsWith(‘0.’)?s.slice(1):s;}
-function pct(v){if(isNaN(v)||v===null||v===undefined)return’—’;return(v*100).toFixed(1)+’%’;}
-function escH(s){return String(s).replace(/&/g,’&’).replace(/</g,’<’).replace(/>/g,’>’);}
-
-boot();
-</script>
-
-</body>
-</html><!-- Card -->
-<div id="card-screen">
-  <div class="back-row">
-    <div class="back-row-title">Season Card</div>
-    <button class="back-btn" onclick="showSelect()">← Back</button>
-  </div>
-
-  <div class="card" id="card">
-    <div class="card-header">
-      <div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div>
-      <div class="hdr-center">
-        <div class="player-name" id="cardName">—</div>
-        <div class="player-pos" id="cardPos">Walters State CC</div>
-        <div class="card-type">Season Hitting Summary</div>
-        <div class="season-tag">2026 NJCAA Season</div>
-      </div>
-      <div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div>
-    </div>
-
-```
-<div class="game-line" id="cardGameLine">—</div>
-
-<!-- Traditional stats -->
-<div class="stat-section">
-  <span class="stat-section-label">Season Stats</span>
-  <div class="stat-row">
-    <div class="stat-box"><span class="stat-val hi" id="sAVG">—</span><span class="stat-lbl">AVG</span></div>
-    <div class="stat-box"><span class="stat-val" id="sOBP">—</span><span class="stat-lbl">OBP</span></div>
-    <div class="stat-box"><span class="stat-val" id="sSLG">—</span><span class="stat-lbl">SLG</span></div>
-    <div class="stat-box"><span class="stat-val hi" id="sWOBA">—</span><span class="stat-lbl">wOBA</span></div>
-    <div class="stat-box"><span class="stat-val" id="sHR">—</span><span class="stat-lbl">HR</span></div>
-    <div class="stat-box"><span class="stat-val" id="sRBI">—</span><span class="stat-lbl">RBI</span></div>
-    <div class="stat-box"><span class="stat-val" id="sSB">—</span><span class="stat-lbl">SB</span></div>
-  </div>
-</div>
-
-<!-- Contact quality -->
-<div class="stat-section">
-  <span class="stat-section-label">Contact Quality · TrackMan</span>
-  <div class="stat-row">
-    <div class="stat-box"><span class="stat-val" id="tHard">—</span><span class="stat-lbl">Hard%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tBarrel">—</span><span class="stat-lbl">Barrel%</span></div>
-    <div class="stat-box"><span class="stat-val hi" id="tBestSpeed">—</span><span class="stat-lbl">Best Speed</span></div>
-    <div class="stat-box"><span class="stat-val" id="tMaxEV">—</span><span class="stat-lbl">Max EV</span></div>
-    <div class="stat-box"><span class="stat-val" id="tGB">—</span><span class="stat-lbl">GB%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tFB">—</span><span class="stat-lbl">FB%</span></div>
-  </div>
-</div>
-
-<!-- Plate discipline -->
-<div class="stat-section">
-  <span class="stat-section-label">Plate Discipline · TrackMan</span>
-  <div class="stat-row">
-    <div class="stat-box"><span class="stat-val" id="tSwing">—</span><span class="stat-lbl">Swing%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tChase">—</span><span class="stat-lbl">Chase%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tZSwing">—</span><span class="stat-lbl">Z-Swing%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tWhiff">—</span><span class="stat-lbl">Whiff%</span></div>
-    <div class="stat-box"><span class="stat-val hi" id="tSGR">—</span><span class="stat-lbl">SGR</span></div>
-  </div>
-</div>
-
-<!-- Damage heat map -->
-<div class="hmap-section">
-  <div class="hmap-title-row">
-    <div class="hmap-title">Damage Zones by Pitch Type</div>
-    <div class="hmap-legend" id="dmgLegend"></div>
-  </div>
-  <canvas id="hmapDmg" width="468" height="240" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:2px">Catcher's View · KDE weighted by EV · dot = wOBA damage zone per pitch type</div>
-</div>
-
-<!-- Whiff heat map -->
-<div class="hmap-section">
-  <div class="hmap-title-row">
-    <div class="hmap-title">Weak Contact Zones</div>
-    <div class="hmap-legend" id="weakLegend"></div>
-  </div>
-  <canvas id="hmapWeak" width="468" height="240" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:2px">Catcher's View · KDE of contact under 90 mph · dot = avg weak contact zone per pitch type</div>
-</div>
-
-<!-- Pitch type table -->
-<div class="pitch-section">
-  <span class="stat-section-label" style="display:block;margin-bottom:4px">Pitch Mix Seen · TrackMan</span>
-  <table class="pitch-table">
-    <thead><tr>
-      <th style="text-align:left">Pitch</th>
-      <th>Seen</th><th>Swing%</th><th>Whiff%</th><th>Chase%</th>
-      <th>Hard%</th><th>Avg EV</th>
-    </tr></thead>
-    <tbody id="pitchTableBody"></tbody>
-  </table>
-</div>
-
-<div class="card-footer">
-  <div>⚾ Walters State CC · 2026</div>
-  <div>Data: TrackMan</div>
-  <div id="footR">wsccbaseball.github.io</div>
-</div>
-
-<button class="save-btn" onclick="saveCard()">📥 SAVE CARD IMAGE</button>
-```
-
-  </div>
-</div>
-
-<div class="img-overlay" id="imgOverlay" onclick="closeOverlay()">
-  <img id="overlayImg" src="" alt="Season Card">
-  <div class="overlay-hint">Hold the image to save to your photos</div>
-  <button class="overlay-close" onclick="closeOverlay()">✕ Close</button>
+  <button class="overlay-close" onclick="closeOverlay()">&#x2715; Close</button>
 </div>
 
 <script>
 var SUPABASE_URL='https://mghrapwhvihpwgqryail.supabase.co';
 var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
+var RE24=[[0.544,0.941,1.170,1.556,1.321,1.743,1.978,2.395],[0.291,0.587,0.700,1.068,0.890,1.088,1.399,1.756],[0.112,0.242,0.325,0.552,0.375,0.529,0.661,0.978]];
+var COUNT_RE={'0-0':0.444,'1-0':0.562,'2-0':0.628,'3-0':0.765,'0-1':0.306,'1-1':0.380,'2-1':0.437,'3-1':0.622,'0-2':0.191,'1-2':0.250,'2-2':0.305,'3-2':0.456};
+var allPitches=[], seasonStats={batting:[]}, gamesMeta=[], tableData=[];
+var sortCol='woba', sortAsc=false, selectedPlayer=null;
 
 var PITCH_COLORS={
   'Fastball':'#e63946','Four-Seam':'#e63946','FourSeamFastBall':'#e63946',
@@ -1663,34 +359,7 @@ function setProgress(pct,msg){
   document.getElementById('loadMsg').textContent=msg;
 }
 
-async function boot(){
-  try{
-    setProgress(5,'Loading season stats...');
-    var edgeRes=await fetch(SUPABASE_URL+'/functions/v1/fetch-boxscore?url=season-stats',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
-    var edgeData=await edgeRes.json();
-    if(edgeData.batting)seasonStats=edgeData;
 
-    setProgress(20,'Loading games...');
-    var games=await supaFetch('games?select=game_id,display_name,date&order=date.asc');
-
-    setProgress(30,'Loading pitch data...');
-    allPitches=[];
-    for(var i=0;i<games.length;i++){
-      var rows=await supaFetch('pitches?GameID=eq.'+encodeURIComponent(games[i].game_id));
-      allPitches=allPitches.concat(rows);
-      setProgress(30+Math.round(((i+1)/games.length)*60),'Loading game '+(i+1)+' of '+games.length+'...');
-    }
-
-    setProgress(95,'Building player profiles...');
-    buildPlayerProfiles();
-    populatePlayerSelect();
-
-    document.getElementById('loading-screen').style.display='none';
-    document.getElementById('select-screen').style.display='block';
-  }catch(e){
-    document.getElementById('loadMsg').textContent='Error: '+e.message;
-  }
-}
 
 function buildPlayerProfiles(){
   var wsPitches=allPitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal');});
@@ -1798,12 +467,7 @@ function computeProfile(name,rows){
   };
 }
 
-function populatePlayerSelect(){
-  var sel=document.getElementById('playerSelect');
-  sel.innerHTML='<option value="">— select player —</option>';
-  Object.values(playerData).sort(function(a,b){return b.pa-a.pa;}).forEach(function(p){
-    sel.innerHTML+='<option value="'+p.name+'">'+escH(p.displayName)+(p.pa?' ('+p.pa+' PA)':'')+'</option>';
-  });
+);
   sel.addEventListener('change',function(){document.getElementById('genBtn').disabled=!this.value;});
 }
 
@@ -2042,9 +706,8 @@ function buildPitchTable(p){
 }
 
 function buildCard(){
-  var name=document.getElementById('playerSelect').value;
-  if(!name)return;
-  var p=playerData[name];
+  var p=tableData.find(function(d){return d.name===selectedPlayer;});
+  if(!p)return;
   if(!p){document.getElementById('statusMsg').textContent='No data for this player.';return;}
 
   document.getElementById('cardName').textContent=p.displayName;
@@ -2118,1415 +781,85 @@ function fmt3(v){if(!v&&v!==0)return'—';var s=parseFloat(v).toFixed(3);return 
 function pct(v){if(isNaN(v)||v===null||v===undefined)return'—';return(v*100).toFixed(1)+'%';}
 function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-boot();
-</script>
-
-</body>
-</html>
-
-// ── Card ──
-function buildCard(){
-var name=document.getElementById(‘playerSelect’).value;
-if(!name)return;
-var p=playerData[name];
-if(!p){document.getElementById(‘statusMsg’).textContent=‘No data for this player.’;return;}
-
-document.getElementById(‘cardName’).textContent=p.displayName;
-document.getElementById(‘cardGameLine’).textContent=
-‘2026 Season · ‘+p.gp+’ GP · ‘+p.pa+’ PA · ‘+p.totalPitches+’ pitches seen (TrackMan)’;
-
-// Traditional stats
-document.getElementById(‘sAVG’).textContent=fmt3(p.avg);
-document.getElementById(‘sOBP’).textContent=fmt3(p.obp);
-document.getElementById(‘sSLG’).textContent=fmt3(p.slg);
-document.getElementById(‘sWOBA’).textContent=fmt3(p.woba);
-document.getElementById(‘sHR’).textContent=p.hr;
-document.getElementById(‘sRBI’).textContent=p.rbi;
-document.getElementById(‘sSB’).textContent=p.sb;
-
-// Contact quality
-var hardEl=document.getElementById(‘tHard’);
-hardEl.textContent=pct(p.hardHit);
-hardEl.className=‘stat-val’+(p.hardHit>=.35?’ good’:’’);
-document.getElementById(‘tBarrel’).textContent=pct(p.barrelPct);
-document.getElementById(‘tBestSpeed’).textContent=p.bestSpeed>0?p.bestSpeed.toFixed(1):’—’;
-document.getElementById(‘tMaxEV’).textContent=p.maxEV>0?p.maxEV.toFixed(1):’—’;
-document.getElementById(‘tGB’).textContent=pct(p.gbPct);
-document.getElementById(‘tFB’).textContent=pct(p.fbPct);
-
-// Discipline
-var chaseEl=document.getElementById(‘tChase’);
-chaseEl.textContent=pct(p.chasePct);
-chaseEl.className=‘stat-val’+(p.chasePct>=.30?’ warn’:’’);
-document.getElementById(‘tSwing’).textContent=pct(p.swingPct);
-document.getElementById(‘tZSwing’).textContent=pct(p.zSwingPct);
-document.getElementById(‘tWhiff’).textContent=pct(p.whiffPct);
-document.getElementById(‘tSGR’).textContent=p.sgr.toFixed(2);
-
-setTimeout(function(){
-var dmgItems=drawDamageHeatmap(‘hmapDmg’,p.pitchTypes);
-buildLegend(‘dmgLegend’,dmgItems);
-var whiffItems=drawWhiffHeatmap(‘hmapWhiff’,p.pitchTypes);
-buildLegend(‘whiffLegend’,whiffItems);
-buildPitchTable(p);
-},30);
-
-document.getElementById(‘select-screen’).style.display=‘none’;
-document.getElementById(‘card-screen’).style.display=‘block’;
-window.scrollTo(0,0);
-}
-
-function showSelect(){
-document.getElementById(‘card-screen’).style.display=‘none’;
-document.getElementById(‘select-screen’).style.display=‘block’;
-}
-
-async function saveCard(){
-var card=document.getElementById(‘card’),btn=card.querySelector(’.save-btn’),orig=btn.textContent;
-btn.textContent=‘Rendering…’;btn.disabled=true;
-try{
-var canvas=await html2canvas(card,{scale:2,useCORS:true,allowTaint:true,backgroundColor:’#ffffff’,scrollX:0,scrollY:-window.scrollY,ignoreElements:function(el){return el===btn;}});
-document.getElementById(‘overlayImg’).src=canvas.toDataURL(‘image/png’);
-document.getElementById(‘imgOverlay’).classList.add(‘active’);
-}catch(e){alert(‘Render failed.’);}
-btn.textContent=orig;btn.disabled=false;
-}
-function closeOverlay(){document.getElementById(‘imgOverlay’).classList.remove(‘active’);}
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-function hexToRGBA(hex,alpha){
-var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-return’rgba(’+r+’,’+g+’,’+b+’,’+alpha+’)’;
-}
-function fmt3(v){if(!v&&v!==0)return’—’;var s=parseFloat(v).toFixed(3);return s.startsWith(‘0.’)?s.slice(1):s;}
-function pct(v){if(isNaN(v)||v===null||v===undefined)return’—’;return(v*100).toFixed(1)+’%’;}
-function escH(s){return String(s).replace(/&/g,’&’).replace(/</g,’<’).replace(/>/g,’>’);}
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-function hexToRGBA(hex,alpha){
-var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-return’rgba(’+r+’,’+g+’,’+b+’,’+alpha+’)’;
-}
-function fmt3(v){if(!v&&v!==0)return’—’;var s=parseFloat(v).toFixed(3);return s.startsWith(‘0.’)?s.slice(1):s;}
-function pct(v){if(isNaN(v)||v===null||v===undefined)return’—’;return(v*100).toFixed(1)+’%’;}
-function escH(s){return String(s).replace(/&/g,’&’).replace(/</g,’<’).replace(/>/g,’>’);}
-
-boot();
-</script>
-
-</body>
-</html>
-
-var SUPABASE_URL=‘https://mghrapwhvihpwgqryail.supabase.co’;
-var SUPABASE_KEY=‘eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc’;
-
-var RE24=[[0.544,0.941,1.170,1.556,1.321,1.743,1.978,2.395],[0.291,0.587,0.700,1.068,0.890,1.088,1.399,1.756],[0.112,0.242,0.325,0.552,0.375,0.529,0.661,0.978]];
-var COUNT_RE={‘0-0’:0.444,‘1-0’:0.562,‘2-0’:0.628,‘3-0’:0.765,‘0-1’:0.306,‘1-1’:0.380,‘2-1’:0.437,‘3-1’:0.622,‘0-2’:0.191,‘1-2’:0.250,‘2-2’:0.305,‘3-2’:0.456};
-
-var allPitches=[], seasonStats={batting:[]}, gamesMeta=[], tableData=[];
-var sortCol=‘woba’, sortAsc=false, selectedPlayer=null;
-
 async function supaFetch(path){
-var rows=[],from=0;
-while(true){
-var sep=path.indexOf(’?’)>-1?’&’:’?’;
-var r=await fetch(SUPABASE_URL+’/rest/v1/’+path+sep+‘limit=1000&offset=’+from,{headers:{‘apikey’:SUPABASE_KEY,‘Authorization’:’Bearer ’+SUPABASE_KEY}});
-var d=await r.json();
-if(!Array.isArray(d)||!d.length)break;
-rows=rows.concat(d);if(d.length<1000)break;from+=1000;
+  var rows=[],from=0;
+  while(true){var sep=path.indexOf('?')>-1?'&':'?';var r=await fetch(SUPABASE_URL+'/rest/v1/'+path+sep+'limit=1000&offset='+from,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});var d=await r.json();if(!Array.isArray(d)||!d.length)break;rows=rows.concat(d);if(d.length<1000)break;from+=1000;}
+  return rows;
 }
-return rows;
-}
-
-function setProgress(pct,msg){
-document.getElementById(‘progressFill’).style.width=pct+’%’;
-document.getElementById(‘loadMsg’).textContent=msg;
-}
-
-// ── Calculate team-level contact defaults from all WS pitches ───────────────
-function calcTeamContactDefaults(pitches) {
-var wsPitches = pitches.filter(function(r){
-return r.BatterTeam && r.BatterTeam.toLowerCase().includes(‘wal’);
-});
-var buckets = {
-heart:   { swings:0, contacts:0, evs:[] },
-shadow:  { swings:0, contacts:0, evs:[] },
-outside: { swings:0, contacts:0, evs:[] }
-};
-var SHADOW = 0.0833;
-wsPitches.forEach(function(r) {
-var call = (r.PitchCall||’’).trim();
-var isSwing = [‘StrikeSwinging’,‘FoulBall’,‘FoulBallNotFieldable’,‘InPlay’].includes(call);
-if (!isSwing) return;
-var side = parseFloat(r.PlateLocSide);
-var height = parseFloat(r.PlateLocHeight);
-if (isNaN(side) || isNaN(height)) return;
-var zTop = parseFloat(r.ZoneTop)||3.5;
-var zBot = parseFloat(r.ZoneBottom)||1.5;
-var inZone = Math.abs(side)<=0.833 && height>=zBot && height<=zTop;
-var inShadow = !inZone && Math.abs(side)<=(0.833+SHADOW) && height>=(zBot-SHADOW) && height<=(zTop+SHADOW);
-var bkt = inZone ? ‘heart’ : inShadow ? ‘shadow’ : ‘outside’;
-var isContact = call===‘InPlay’||call===‘FoulBall’||call===‘FoulBallNotFieldable’;
-buckets[bkt].swings++;
-if (isContact) {
-buckets[bkt].contacts++;
-var ev = parseFloat(r.ExitSpeed);
-if (!isNaN(ev) && ev > 0 && call === ‘InPlay’) {
-buckets[bkt].evs.push(ev);
-}
-}
-});
-function bestSpeedFromList(evs) {
-if (!evs.length) return 0;
-evs.sort(function(a,b){return b-a;});
-var top=evs.slice(0,Math.ceil(evs.length/2));
-return top.reduce(function(a,b){return a+b;},0)/top.length;
-}
-function def(b) {
-return {
-cr: b.swings > 0 ? b.contacts / b.swings : 0,
-ev: bestSpeedFromList(b.evs.slice())
-};
-}
-var defaults = {
-heart:   def(buckets.heart),
-shadow:  def(buckets.shadow),
-outside: def(buckets.outside)
-};
-
-window._teamContactDefaults = defaults;
-}
+function setProgress(pct,msg){document.getElementById('progressFill').style.width=pct+'%';document.getElementById('loadMsg').textContent=msg;}
 
 async function boot(){
-try{
-setProgress(5,‘Loading season stats…’);
-var edgeRes=await fetch(SUPABASE_URL+’/functions/v1/fetch-boxscore?url=season-stats’,{headers:{‘apikey’:SUPABASE_KEY,‘Authorization’:’Bearer ’+SUPABASE_KEY}});
-var edgeData=await edgeRes.json();
-if(edgeData.batting)seasonStats=edgeData;
-
-```
-setProgress(20,'Loading games...');
-gamesMeta=await supaFetch('games?select=game_id,display_name,date&order=date.asc,display_name.asc');
-populateGameFilter();
-
-setProgress(30,'Loading pitch data...');
-allPitches=[];
-for(var i=0;i<gamesMeta.length;i++){
-  var rows=await supaFetch('pitches?GameID=eq.'+encodeURIComponent(gamesMeta[i].game_id));
-  allPitches=allPitches.concat(rows);
-  setProgress(30+Math.round(((i+1)/gamesMeta.length)*65),'Loading game '+(i+1)+' of '+gamesMeta.length+'...');
-}
-
-setProgress(98,'Building stats...');
-calcTeamContactDefaults(allPitches);
-rebuildTableData(allPitches);
-populatePlayerFilter();
-renderTable();
-
-document.getElementById('loading-screen').style.display='none';
-document.getElementById('main-screen').style.display='block';
-document.getElementById('bottomBar').style.display='flex';
-
-// filter changes handled inline by checkbox events
-```
-
-}catch(e){
-document.getElementById(‘loadMsg’).textContent=’Error: ’+e.message;
-}
+  try{
+    setProgress(5,'Loading season stats...');
+    var edgeRes=await fetch(SUPABASE_URL+'/functions/v1/fetch-boxscore?url=season-stats',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
+    var edgeData=await edgeRes.json();if(edgeData.batting)seasonStats=edgeData;
+    setProgress(20,'Loading games...');
+    gamesMeta=await supaFetch('games?select=game_id,display_name,date&order=date.asc,display_name.asc');
+    populateGameFilter();
+    setProgress(30,'Loading pitch data...');
+    allPitches=[];
+    for(var i=0;i<gamesMeta.length;i++){var rows=await supaFetch('pitches?GameID=eq.'+encodeURIComponent(gamesMeta[i].game_id));allPitches=allPitches.concat(rows);setProgress(30+Math.round(((i+1)/gamesMeta.length)*60),'Loading game '+(i+1)+' of '+gamesMeta.length+'...');}
+    setProgress(96,'Building stats...');
+    rebuildTableData(allPitches);populatePlayerFilter();renderTable();
+    document.getElementById('loading-screen').style.display='none';
+    document.getElementById('main-screen').style.display='block';
+    document.getElementById('bottomBar').style.display='flex';
+  }catch(e){document.getElementById('loadMsg').textContent='Error: '+e.message;}
 }
 
 function populateGameFilter(){
-var menu=document.getElementById(‘gameDDMenu’);
-menu.innerHTML=’’;
-gamesMeta.forEach(function(g){
-var item=document.createElement(‘div’);
-item.className=‘dd-item’;
-var cb=document.createElement(‘input’);
-cb.type=‘checkbox’;cb.value=g.game_id;
-cb.addEventListener(‘change’,function(){item.classList.toggle(‘checked’,cb.checked);onFilterChange();});
-item.appendChild(cb);
-var lbl=document.createElement(‘span’);
-lbl.textContent=g.display_name||g.game_id;
-item.appendChild(lbl);
-item.addEventListener(‘click’,function(e){if(e.target!==cb){cb.checked=!cb.checked;item.classList.toggle(‘checked’,cb.checked);onFilterChange();}});
-menu.appendChild(item);
-});
+  var menu=document.getElementById('gameDDMenu');menu.innerHTML='';
+  gamesMeta.forEach(function(g){
+    var item=document.createElement('div');item.className='dd-item';
+    var cb=document.createElement('input');cb.type='checkbox';cb.value=g.game_id;
+    cb.addEventListener('change',function(){item.classList.toggle('checked',cb.checked);onFilterChange();});
+    item.appendChild(cb);var lbl=document.createElement('span');lbl.textContent=g.display_name||g.game_id;item.appendChild(lbl);
+    item.addEventListener('click',function(e){if(e.target!==cb){cb.checked=!cb.checked;item.classList.toggle('checked',cb.checked);onFilterChange();}});
+    menu.appendChild(item);
+  });
 }
-
 function populatePlayerFilter(){
-var names=Array.from(new Set(
-allPitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes(‘wal’);})
-.map(function(r){return r.Batter||’’;}).filter(Boolean)
-)).sort();
-var menu=document.getElementById(‘playerDDMenu’);
-menu.innerHTML=’’;
-names.forEach(function(n){
-var p=n.split(’,’),d=p.length>1?(p[1]||’’).trim()+’ ’+p[0].trim():n;
-var item=document.createElement(‘div’);
-item.className=‘dd-item’;
-var cb=document.createElement(‘input’);
-cb.type=‘checkbox’;cb.value=n;
-cb.addEventListener(‘change’,function(){item.classList.toggle(‘checked’,cb.checked);onFilterChange();});
-item.appendChild(cb);
-var lbl=document.createElement(‘span’);lbl.textContent=d;
-item.appendChild(lbl);
-item.addEventListener(‘click’,function(e){if(e.target!==cb){cb.checked=!cb.checked;item.classList.toggle(‘checked’,cb.checked);onFilterChange();}});
-menu.appendChild(item);
-});
+  var names=Array.from(new Set(allPitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal');}).map(function(r){return r.Batter||'';}).filter(Boolean))).sort();
+  var menu=document.getElementById('playerDDMenu');menu.innerHTML='';
+  names.forEach(function(n){
+    var p=n.split(','),d=p.length>1?(p[1]||'').trim()+' '+p[0].trim():n;
+    var item=document.createElement('div');item.className='dd-item';
+    var cb=document.createElement('input');cb.type='checkbox';cb.value=n;
+    cb.addEventListener('change',function(){item.classList.toggle('checked',cb.checked);onFilterChange();});
+    item.appendChild(cb);var lbl=document.createElement('span');lbl.textContent=d;item.appendChild(lbl);
+    item.addEventListener('click',function(e){if(e.target!==cb){cb.checked=!cb.checked;item.classList.toggle('checked',cb.checked);onFilterChange();}});
+    menu.appendChild(item);
+  });
 }
-
-function rebuildTableData(pitches){
-var wsPitches=pitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes(‘wal’);});
-var players={};
-wsPitches.forEach(function(r){var n=(r.Batter||’’).trim();if(!n)return;if(!players[n])players[n]=[];players[n].push(r);});
-tableData=Object.values(players).map(function(rows){return computeProfile(rows[0].Batter,rows);});
-}
-
-// ── SEAGER metric helpers ────────────────────────────────────────────────────
-// Sigmoid strike probability based on distance from zone edge
-function strikeProbability(side, height, zTop, zBot, halfW) {
-zTop = zTop || 3.5; zBot = zBot || 1.5; halfW = halfW || 0.833;
-// Distance from zone edge (negative = inside zone)
-var dx = Math.max(0, Math.abs(side) - halfW);
-var dy = Math.max(0, Math.max(zBot - height, height - zTop));
-var dist = Math.sqrt(dx*dx + dy*dy);
-var inside = Math.abs(side) <= halfW && height >= zBot && height <= zTop;
-// Sigmoid: k controls steepness, center at 0 (zone edge)
-// Inside zone: dist is 0, prob approaches 1
-// Outside zone: dist grows, prob approaches 0
-if (inside) {
-return 1 / (1 + Math.exp(15 * (dist - 0.15)));
-} else {
-return 1 / (1 + Math.exp(15 * (dist + 0.05)));
-}
-}
-
-// Run value of a called strike vs called ball at this count/state
-function swingTakeRV(balls, strikes, outs, baseState) {
-var so = Math.min(Math.max(isNaN(outs)?0:outs, 0), 2);
-var bst = isNaN(baseState)||baseState<0||baseState>7 ? 0 : baseState;
-function walkRes(bs) {
-var on1=!!(bs&1),on2=!!(bs&2),on3=!!(bs&4),runs=0,n1=true,n2=on2,n3=on3;
-if(on1){n2=true;if(on2){n3=true;if(on3)runs=1;}}
-return {newState:(n1?1:0)|(n2?2:0)|(n3?4:0),runs:runs};
-}
-function reVal(b,s) {
-if(b>=4){var w=walkRes(bst);return w.runs+RE24[so][w.newState];}
-if(s>=3){return so===2?0:RE24[so+1][bst];}
-return COUNT_RE[b+’-’+s]||COUNT_RE[‘0-0’];
-}
-// Value of strike outcome minus ball outcome
-var strikeVal = reVal(balls, strikes+1);
-var ballVal   = reVal(balls+1, strikes);
-return { strikeVal: strikeVal, ballVal: ballVal, delta: strikeVal - ballVal };
-}
-
-// SEAGER: sum of (optimal decision value - actual decision value) across all pitches
-// Positive = making good decisions, capturing value
-// Uses sigmoid strike probability to weight borderline pitches
-// Hit value from exit velocity — expected run contribution of batted ball
-function hitValueFromEV(ev) {
-if (isNaN(ev) || ev <= 0) return 0.08; // weak contact default
-if (ev >= 105) return 1.55;  // near-certain extra base hit
-if (ev >= 100) return 1.10;  // hard hit, high XBH rate
-if (ev >= 95)  return 0.80;  // solid contact, good hit rate
-if (ev >= 90)  return 0.55;  // medium-hard, decent hit rate
-if (ev >= 85)  return 0.35;  // medium, coin flip
-if (ev >= 78)  return 0.18;  // weak-medium, mostly outs
-return 0.07;                  // weak contact, almost always out
-}
-
-// Build contact profile from this hitter’s actual swing data
-// Returns contact rate and Best Speed (top 50% EV avg) for 3 zone buckets
-function buildContactProfile(rows) {
-var buckets = {
-heart:   { swings:0, contacts:0, evs:[] },
-shadow:  { swings:0, contacts:0, evs:[] },
-outside: { swings:0, contacts:0, evs:[] }
-};
-rows.forEach(function(r) {
-var call = (r.PitchCall||’’).trim();
-var isSwing = [‘StrikeSwinging’,‘FoulBall’,‘FoulBallNotFieldable’,‘InPlay’].includes(call);
-if (!isSwing) return;
-var side = parseFloat(r.PlateLocSide);
-var height = parseFloat(r.PlateLocHeight);
-if (isNaN(side) || isNaN(height)) return;
-var zTop = parseFloat(r.ZoneTop)||3.5;
-var zBot = parseFloat(r.ZoneBottom)||1.5;
-var SHADOW = 0.0833;
-var inZone = Math.abs(side)<=0.833 && height>=zBot && height<=zTop;
-var inShadow = !inZone && Math.abs(side)<=(0.833+SHADOW) && height>=(zBot-SHADOW) && height<=(zTop+SHADOW);
-var bucket = inZone ? ‘heart’ : inShadow ? ‘shadow’ : ‘outside’;
-var isContact = call===‘InPlay’||call===‘FoulBall’||call===‘FoulBallNotFieldable’;
-buckets[bucket].swings++;
-if (isContact) {
-buckets[bucket].contacts++;
-var ev = parseFloat(r.ExitSpeed);
-if (!isNaN(ev) && ev > 0 && call === ‘InPlay’) {
-buckets[bucket].evs.push(ev);
-}
-}
-});
-// Best Speed = avg of top 50% of InPlay EVs per bucket
-function bestSpeedFromEVs(evs) {
-if (!evs.length) return 0;
-evs.sort(function(a,b){return b-a;});
-var top = evs.slice(0, Math.ceil(evs.length/2));
-return top.reduce(function(a,b){return a+b;},0) / top.length;
-}
-function bucketStats(b, defaultContact, defaultBS) {
-var cr = b.swings >= 5 ? b.contacts / b.swings : defaultContact;
-var bs = b.evs.length >= 3 ? bestSpeedFromEVs(b.evs) : defaultBS;
-return { contactRate: cr, bestSpeed: bs };
-}
-var td = window._teamContactDefaults || { heart:{cr:0.904,ev:90.3}, shadow:{cr:0.783,ev:81.9}, outside:{cr:0.614,ev:74.4} };
-return {
-heart:   bucketStats(buckets.heart,   td.heart.cr,   td.heart.ev),
-shadow:  bucketStats(buckets.shadow,  td.shadow.cr,  td.shadow.ev),
-outside: bucketStats(buckets.outside, td.outside.cr, td.outside.ev)
-};
-}
-
-function computeSEAGER(rows) {
-var profile = buildContactProfile(rows);
-var totalScore = 0, pitchCount = 0;
-
-rows.forEach(function(r) {
-var call = (r.PitchCall||’’).trim();
-var isSwing = [‘StrikeSwinging’,‘FoulBall’,‘FoulBallNotFieldable’,‘InPlay’].includes(call);
-var isTake  = call === ‘StrikeCalled’ || call === ‘BallCalled’;
-if (!isSwing && !isTake) return;
-var side   = parseFloat(r.PlateLocSide);
-var height = parseFloat(r.PlateLocHeight);
-if (isNaN(side) || isNaN(height)) return;
-var balls   = parseInt(r.Balls||r.BallCount||0)||0;
-var strikes = parseInt(r.Strikes||r.StrikeCount||0)||0;
-var outs    = parseInt(r.Outs||r.OutsBeforePitch||0)||0;
-var on1b = !!(r.Runner1B||’’).trim();
-var on2b = !!(r.Runner2B||’’).trim();
-var on3b = !!(r.Runner3B||’’).trim();
-var baseState = (on1b?1:0)|(on2b?2:0)|(on3b?4:0);
-var zTop = parseFloat(r.ZoneTop)||3.5;
-var zBot = parseFloat(r.ZoneBottom)||1.5;
-
-```
-// Strike probability at this location (sigmoid)
-var sp = strikeProbability(side, height, zTop, zBot, 0.833);
-
-// Determine zone bucket for this pitch
-var SHADOW = 0.0833;
-var inZone = Math.abs(side)<=0.833 && height>=zBot && height<=zTop;
-var inShadow = !inZone && Math.abs(side)<=(0.833+SHADOW) && height>=(zBot-SHADOW) && height<=(zTop+SHADOW);
-var pBucket = inZone ? 'heart' : inShadow ? 'shadow' : 'outside';
-var prof = profile[pBucket];
-
-// RE24 run values for strike/ball outcomes at this count
-var rv = swingTakeRV(balls, strikes, outs, baseState);
-
-// Expected value of TAKING this pitch
-// = prob(called strike) * RE_after_strike + prob(called ball) * RE_after_ball
-var evTake = sp * rv.strikeVal + (1 - sp) * rv.ballVal;
-
-// Expected value of SWINGING at this pitch using hitter's actual contact profile
-// = contactRate * hitValue(avgEV) + (1-contactRate) * RE_after_swinging_strike
-var soVal = strikes >= 2 ? (outs >= 2 ? 0 : RE24[Math.min(outs+1,2)][baseState]) : rv.strikeVal;
-var evSwing = prof.contactRate * hitValueFromEV(prof.bestSpeed) +
-              (1 - prof.contactRate) * soVal;
-
-// Optimal decision value vs actual decision value
-var optVal = Math.max(evTake, evSwing);
-var actVal = isSwing ? evSwing : evTake;
-
-// Score = how much value the hitter captured relative to optimal
-// Summing gives total missed value; we normalize and flip sign
-totalScore += (actVal - optVal);
-pitchCount++;
-```
-
-});
-
-// Normalize per 100 pitches, flip sign: positive = good decisions
-return pitchCount > 0 ? -(totalScore / pitchCount) * 100 : 0;
-}
-
-function computeProfile(name,rows){
-var parts=name.split(’,’),lastName=(parts[0]||’’).trim();
-var displayName=parts.length>1?(parts[1]||’’).trim()+’ ’+parts[0].trim():name;
-var swings=0,whiffs=0,inZone=0,inZoneSwings=0,ozPitches=0,ozSwings=0,pa=0;
-var bip=[],maxEV=0,totalEV=0,evCount=0,allEVs=[];
-var gbCount=0,fbCount=0,bipCount=0,barrels=0;
-var pitchTypes={};
-
-rows.forEach(function(r){
-var call=(r.PitchCall||’’).trim();
-var side=parseFloat(r.PlateLocSide),height=parseFloat(r.PlateLocHeight);
-var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||‘Other’);
-if(!pitchTypes[pt])pitchTypes[pt]={total:0,swings:0,whiffs:0,chases:0,ozTotal:0,ev:[],contacts:0,bip:[],whiffPts:[],weakPts:[]};
-pitchTypes[pt].total++;
-
-```
-var isSwing=['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
-var isWhiff=call==='StrikeSwinging';
-var isContact=['FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
-var inside=!isNaN(side)&&!isNaN(height)&&Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
-var outside=!isNaN(side)&&!isNaN(height)&&!inside;
-
-if(isSwing){swings++;pitchTypes[pt].swings++;}
-if(isWhiff){
-  whiffs++;pitchTypes[pt].whiffs++;
-  // weak contact stored below
-}
-if(isContact)pitchTypes[pt].contacts++;
-if(inside){inZone++;if(isSwing)inZoneSwings++;}
-if(outside){ozPitches++;if(isSwing){ozSwings++;pitchTypes[pt].chases++;pitchTypes[pt].ozTotal++;}}
-
-var ev=parseFloat(r.ExitSpeed);
-var la=parseFloat(r.Angle||r.LaunchAngle||r.VertAngle||'NaN');
-if(!isNaN(ev)&&ev>0){
-  if(ev>maxEV)maxEV=ev;totalEV+=ev;evCount++;allEVs.push(ev);
-  pitchTypes[pt].ev.push(ev);
-  if(!isNaN(side)&&!isNaN(height)){
-    bip.push({side:side,height:height,ev:ev,pt:pt,result:(r.PlayResult||'')});
-  // Store weak contact — any batted ball under 90 mph
-if(!isNaN(ev)&&ev>0&&ev<90&&!isNaN(side)&&!isNaN(height)&&['InPlay','FoulBall','FoulBallNotFieldable'].includes(call)){
-  pitchTypes[pt].weakPts.push({side:side,height:height,ev:ev});
-}
-    pitchTypes[pt].bip.push({side:side,height:height,ev:ev,result:(r.PlayResult||'')});
-  }
-  if(!isNaN(la)&&ev>=98&&la>=26&&la<=30)barrels++;
-  if(call==='InPlay'){
-    bipCount++;
-    var ht=(r.TaggedHitType||r.HitType||'').toLowerCase();
-    if(ht.includes('ground')){gbCount++;}
-    else if(ht.includes('fly')||ht.includes('popup')){fbCount++;}
-    else if(!isNaN(la)){if(la<10)gbCount++;else if(la>=25)fbCount++;}
-  }
-}
-if(parseInt(r.PitchofPA)===1)pa++;
-```
-
-});
-
-allEVs.sort(function(a,b){return b-a;});
-var topHalf=allEVs.slice(0,Math.ceil(allEVs.length/2));
-var bestSpeed=topHalf.length>0?topHalf.reduce(function(a,b){return a+b;},0)/topHalf.length:0;
-
-var bs=null;
-if(seasonStats.batting){
-bs=seasonStats.batting.find(function(b){return b.name&&b.name.split(’ ’).pop().toLowerCase()===lastName.toLowerCase();});
-}
-var bsAB=bs?parseInt(bs.ab)||0:0;
-var bsBB=bs?parseInt(bs.bb)||0:0;
-var bsHBP=bs?parseInt(bs.hbp)||0:0;
-var bsSF=bs?parseInt(bs.sf)||0:0;
-var bsSH=bs?parseInt(bs.sh)||0:0;
-var bsPA=bsAB+bsBB+bsHBP+bsSF+bsSH;
-var bs1B=Math.max(0,(bs?parseInt(bs.h)||0:0)-(bs?parseInt(bs.doubles)||0:0)-(bs?parseInt(bs.triples)||0:0)-(bs?parseInt(bs.hr)||0:0));
-var woba=bsPA>0?(bsBB*.69+bsHBP*.72+bs1B*.88+(bs?parseInt(bs.doubles)||0:0)*1.24+(bs?parseInt(bs.triples)||0:0)*1.56+(bs?parseInt(bs.hr)||0:0)*2.08)/bsPA:0;
-var tp=rows.length;
-
-return{
-name:name,displayName:displayName,lastName:lastName,
-gp:bs?parseInt(bs.gp)||0:0,pa:bsPA,
-avg:bs?parseFloat(bs.avg)||0:0,obp:bs?parseFloat(bs.obp)||0:0,
-slg:bs?parseFloat(bs.slg)||0:0,woba:woba,
-hr:bs?parseInt(bs.hr)||0:0,rbi:bs?parseInt(bs.rbi)||0:0,
-sb:bs?parseInt(bs.sb)||0:0,h:bs?parseInt(bs.h)||0:0,
-swingPct:tp>0?swings/tp:0,whiffPct:swings>0?whiffs/swings:0,
-chasePct:ozPitches>0?ozSwings/ozPitches:0,
-zSwingPct:inZone>0?inZoneSwings/inZone:0,
-sgr:(inZone>0&&ozPitches>0)?(inZoneSwings/inZone)-(ozSwings/ozPitches):0,
-hardHit:evCount>0?bip.filter(function(b){return b.ev>=95;}).length/evCount:0,
-barrelPct:evCount>0?barrels/evCount:0,
-gbPct:bipCount>0?gbCount/bipCount:0,fbPct:bipCount>0?fbCount/bipCount:0,
-bestSpeed:bestSpeed,maxEV:maxEV,totalPitches:tp,
-pitchTypes:pitchTypes,bip:bip,rows:rows
-};
-}
-
-function computeMetrics(name,rows){
-var swings=0,whiffs=0,inZone=0,inZoneSwings=0,ozPitches=0,ozSwings=0,pa=0;
-var bip=[],maxEV=0,totalEV=0,evCount=0;
-var pitchTypes={};
-var parts=name.split(’,’),lastName=(parts[0]||’’).trim();
-var displayName=parts.length>1?(parts[1]||’’).trim()+’ ’+parts[0].trim():name;
-
-var gbCount=0,fbCount=0,ldCount=0,bipCount=0,barrels=0;
-var allEVs=[];
-
-rows.forEach(function(r){
-var call=(r.PitchCall||’’).trim();
-var side=parseFloat(r.PlateLocSide),height=parseFloat(r.PlateLocHeight);
-var pt=(r.TaggedPitchType||r.AutoPitchType||‘Unknown’).trim();
-if(!pitchTypes[pt])pitchTypes[pt]={total:0,swings:0,whiffs:0,chases:0,ozTotal:0,ev:[]};
-pitchTypes[pt].total++;
-var isSwing=[‘StrikeSwinging’,‘FoulBall’,‘FoulBallNotFieldable’,‘InPlay’].includes(call);
-var isWhiff=call===‘StrikeSwinging’;
-var inside=!isNaN(side)&&!isNaN(height)&&Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
-var outside=!isNaN(side)&&!isNaN(height)&&!inside;
-if(isSwing){swings++;pitchTypes[pt].swings++;}
-if(isWhiff){whiffs++;pitchTypes[pt].whiffs++;}
-if(inside){inZone++;if(isSwing)inZoneSwings++;}
-if(outside){ozPitches++;if(isSwing){ozSwings++;pitchTypes[pt].chases++;pitchTypes[pt].ozTotal++;}}
-var ev=parseFloat(r.ExitSpeed);
-var la=parseFloat(r.Angle||r.LaunchAngle||r.VertAngle||‘NaN’);
-if(!isNaN(ev)&&ev>0){
-if(ev>maxEV)maxEV=ev;
-totalEV+=ev;evCount++;
-allEVs.push(ev);
-pitchTypes[pt].ev.push(ev);
-bip.push({side:side,height:height,ev:ev});
-// Barrel: EV >= 98 and LA 26-30
-if(!isNaN(la)&&ev>=98&&la>=26&&la<=30)barrels++;
-// Batted ball type
-if(call===‘InPlay’){
-bipCount++;
-var ht=(r.TaggedHitType||r.HitType||’’).toLowerCase();
-if(ht.includes(‘ground’))gbCount++;
-else if(ht.includes(‘fly’)||ht.includes(‘popup’))fbCount++;
-else if(ht.includes(‘line’))ldCount++;
-else if(!isNaN(la)){
-if(la<10)gbCount++;
-else if(la>=10&&la<25)ldCount++;
-else fbCount++;
-}
-}
-}
-if(parseInt(r.PitchofPA)===1)pa++;
-});
-
-// Best Speed: avg of top 50% EVs
-var bestSpeed=0;
-if(allEVs.length>0){
-allEVs.sort(function(a,b){return b-a;});
-var topHalf=allEVs.slice(0,Math.ceil(allEVs.length/2));
-bestSpeed=topHalf.reduce(function(a,b){return a+b;},0)/topHalf.length;
-}
-
-var tp=rows.length;
-var bs=null;
-if(seasonStats.batting){
-bs=seasonStats.batting.find(function(b){return b.name&&b.name.split(’ ’).pop().toLowerCase()===lastName.toLowerCase();});
-}
-// PA = AB + BB + HBP + SF + SH from box score
-var bsAB=bs?parseInt(bs.ab)||0:0;
-var bsBB=bs?parseInt(bs.bb)||0:0;
-var bsHBP=bs?parseInt(bs.hbp)||0:0;
-var bsSF=bs?parseInt(bs.sf)||0:0;
-var bsSH=bs?parseInt(bs.sh)||0:0;
-var bsPA=bsAB+bsBB+bsHBP+bsSF+bsSH;
-// wOBA from box score
-var bs1B=Math.max(0,(bs?parseInt(bs.h)||0:0)-(bs?parseInt(bs.doubles)||0:0)-(bs?parseInt(bs.triples)||0:0)-(bs?parseInt(bs.hr)||0:0));
-var woba=bsPA>0?(bsBB*.69+bsHBP*.72+bs1B*.88+(bs?parseInt(bs.doubles)||0:0)*1.24+(bs?parseInt(bs.triples)||0:0)*1.56+(bs?parseInt(bs.hr)||0:0)*2.08)/bsPA:0;
-var hardHitPct=evCount>0?bip.filter(function(b){return b.ev>=95;}).length/evCount:0;
-var barrelPct=evCount>0?barrels/evCount:0;
-var gbPct=bipCount>0?gbCount/bipCount:0;
-var fbPct=bipCount>0?fbCount/bipCount:0;
-var sgr=(inZone>0&&ozPitches>0)?(inZoneSwings/inZone)-(ozSwings/ozPitches):0;
-var seagerScore=computeSEAGER(rows);
-
-return{
-name:name,displayName:displayName,lastName:lastName,
-gp:bs?parseInt(bs.gp)||0:0,pa:bsPA,ab:bsAB,
-h:bs?parseInt(bs.h)||0:0,doubles:bs?parseInt(bs.doubles)||0:0,
-triples:bs?parseInt(bs.triples)||0:0,
-hr:bs?parseInt(bs.hr)||0:0,rbi:bs?parseInt(bs.rbi)||0:0,
-bb:bsBB,so:bs?parseInt(bs.so)||0:0,hbp:bsHBP,sf:bsSF,sh:bsSH,
-avg:bs?parseFloat(bs.avg)||0:0,obp:bs?parseFloat(bs.obp)||0:0,
-slg:bs?parseFloat(bs.slg)||0:0,
-ops:(bs&&bs.obp&&bs.slg)?(parseFloat(bs.obp)+parseFloat(bs.slg)):0,
-woba:woba,
-swingPct:tp>0?swings/tp:0,whiffPct:swings>0?whiffs/swings:0,
-chasePct:ozPitches>0?ozSwings/ozPitches:0,zSwingPct:inZone>0?inZoneSwings/inZone:0,
-sgr:sgr,seagerScore:seagerScore,hardHit:hardHitPct,barrelPct:barrelPct,
-gbPct:gbPct,fbPct:fbPct,bestSpeed:bestSpeed,
-maxEV:maxEV,totalPitches:tp,pitchTypes:pitchTypes,bip:bip,rows:rows
-};
-}
-
-function onFilterChange(){
-updateDDLabels();
-var selGames=getSelectedGames();
-var filtered=allPitches.filter(function(r){
-return r.BatterTeam&&r.BatterTeam.toLowerCase().includes(‘wal’)&&
-(!selGames.length||selGames.includes(r.GameID));
-});
-var players={};
-filtered.forEach(function(r){var n=(r.Batter||’’).trim();if(!n)return;if(!players[n])players[n]=[];players[n].push(r);});
-tableData=Object.values(players).map(function(rows){return computeProfile(rows[0].Batter,rows);});
-renderTable();
-}
-
-function getSelectedGames(){
-return Array.from(document.querySelectorAll(’#gameDDMenu input[type=checkbox]:checked’)).map(function(cb){return cb.value;});
-}
-function getSelectedPlayers(){
-return Array.from(document.querySelectorAll(’#playerDDMenu input[type=checkbox]:checked’)).map(function(cb){return cb.value;});
-}
-function toggleDD(id){
-var el=document.getElementById(id);
-var isOpen=el.classList.contains(‘open’);
-document.querySelectorAll(’.dd-wrap.open’).forEach(function(d){d.classList.remove(‘open’);});
-if(!isOpen)el.classList.add(‘open’);
-}
-document.addEventListener(‘click’,function(e){
-if(!e.target.closest(’.dd-wrap’))document.querySelectorAll(’.dd-wrap.open’).forEach(function(d){d.classList.remove(‘open’);});
-});
-function updateDDLabels(){
-var g=getSelectedGames();
-document.getElementById(‘gameDDLabel’).textContent=g.length===0?‘All Games (full season)’:g.length+’ game’+(g.length>1?‘s’:’’)+’ selected’;
-var pl=getSelectedPlayers();
-document.getElementById(‘playerDDLabel’).textContent=pl.length===0?‘All Players’:pl.length+’ player’+(pl.length>1?‘s’:’’)+’ selected’;
-}
-
+function getSelectedGames(){return Array.from(document.querySelectorAll('#gameDDMenu input[type=checkbox]:checked')).map(function(cb){return cb.value;});}
+function getSelectedPlayers(){return Array.from(document.querySelectorAll('#playerDDMenu input[type=checkbox]:checked')).map(function(cb){return cb.value;});}
+function toggleDD(id){var el=document.getElementById(id);var isOpen=el.classList.contains('open');document.querySelectorAll('.dd-wrap.open').forEach(function(d){d.classList.remove('open');});if(!isOpen)el.classList.add('open');}
+document.addEventListener('click',function(e){if(!e.target.closest('.dd-wrap'))document.querySelectorAll('.dd-wrap.open').forEach(function(d){d.classList.remove('open');});});
+function updateDDLabels(){var g=getSelectedGames();document.getElementById('gameDDLabel').textContent=g.length===0?'All Games (full season)':g.length+' game'+(g.length>1?'s':'')+' selected';var pl=getSelectedPlayers();document.getElementById('playerDDLabel').textContent=pl.length===0?'All Players':pl.length+' player'+(pl.length>1?'s':'')+' selected';}
+function rebuildTableData(pitches){var wsPitches=pitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal');});var players={};wsPitches.forEach(function(r){var n=(r.Batter||'').trim();if(!n)return;if(!players[n])players[n]=[];players[n].push(r);});tableData=Object.values(players).map(function(rows){return computeProfile(rows[0].Batter,rows);});}
+function onFilterChange(){updateDDLabels();var selGames=getSelectedGames();var filtered=allPitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal')&&(!selGames.length||selGames.includes(r.GameID));});var players={};filtered.forEach(function(r){var n=(r.Batter||'').trim();if(!n)return;if(!players[n])players[n]=[];players[n].push(r);});tableData=Object.values(players).map(function(rows){return computeProfile(rows[0].Batter,rows);});renderTable();}
 function renderTable(){
-var selectedPlayers=getSelectedPlayers();
-var data=tableData.filter(function(p){return p.pa>0&&(!selectedPlayers.length||selectedPlayers.includes(p.name));});
-data.sort(function(a,b){
-var av=a[sortCol]||0,bv=b[sortCol]||0;
-if(typeof av===‘string’)return sortAsc?av.localeCompare(bv):bv.localeCompare(av);
-return sortAsc?av-bv:bv-av;
-});
-document.getElementById(‘filterCount’).textContent=data.length+’ players’;
-var tbody=document.getElementById(‘tableBody’);
-tbody.innerHTML=’’;
-if(!data.length){tbody.innerHTML=’<tr><td colspan="15" class="no-data">No players match current filters</td></tr>’;return;}
-data.forEach(function(p){
-var tr=document.createElement(‘tr’);
-if(selectedPlayer===p.name)tr.className=‘selected’;
-tr.onclick=function(){
-selectedPlayer=p.name;
-document.querySelectorAll(’#tableBody tr’).forEach(function(r){r.classList.remove(‘selected’);});
-tr.classList.add(‘selected’);
-document.getElementById(‘genCardBtn’).disabled=false;
-document.getElementById(‘selHint’).textContent=p.displayName+’ selected’;
-};
-tr.innerHTML=
-‘<td>’+escH(p.displayName)+’</td>’+
-‘<td>’+p.pa+’</td>’+
-‘<td class="val-hi">’+fmt3(p.woba)+’</td>’+
-‘<td class="'+(p.barrelPct>=.06?'val-good':'')+'">’+pct(p.barrelPct)+’</td>’+
-‘<td class="'+(p.hardHit>=.35?'val-good':'')+'">’+pct(p.hardHit)+’</td>’+
-‘<td>’+pct(p.swingPct)+’</td>’+
-‘<td class="'+(p.chasePct>=.30?'val-warn':'')+'">’+pct(p.chasePct)+’</td>’+
-‘<td>’+pct(p.zSwingPct)+’</td>’+
-‘<td class="'+(p.seagerScore>=5?'val-good':p.seagerScore<0?'val-warn':'')+'">’+p.seagerScore.toFixed(2)+’</td>’+
-‘<td>’+pct(p.gbPct)+’</td>’+
-‘<td>’+pct(p.fbPct)+’</td>’+
-‘<td class="val-hi">’+(p.bestSpeed>0?p.bestSpeed.toFixed(1):’—’)+’</td>’+
-‘<td>’+(p.maxEV>0?p.maxEV.toFixed(1):’—’)+’</td>’;
-tbody.appendChild(tr);
-});
-}
-
-function sortTable(col){
-if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=false;}
-renderTable();
-}
-
-function buildCard(){
-var p=tableData.find(function(d){return d.name===selectedPlayer;});
-if(!p)return;
-document.getElementById(‘cardName’).textContent=p.displayName;
-document.getElementById(‘cardGameLine’).textContent=‘2026 Season · ‘+p.gp+’ GP · ‘+p.pa+’ PA seen’;
-document.getElementById(‘cGP’).textContent=p.gp||’—’;
-document.getElementById(‘cPA’).textContent=p.pa;
-document.getElementById(‘cAVG’).textContent=fmt3(p.avg);
-document.getElementById(‘cOBP’).textContent=fmt3(p.obp);
-document.getElementById(‘cSLG’).textContent=fmt3(p.slg);
-document.getElementById(‘cOPS’).textContent=fmt3(p.ops);
-document.getElementById(‘cH’).textContent=p.h;
-document.getElementById(‘c2B’).textContent=p.doubles;
-document.getElementById(‘cHR’).textContent=p.hr;
-document.getElementById(‘cRBI’).textContent=p.rbi;
-document.getElementById(‘cBB’).textContent=p.bb;
-document.getElementById(‘cSO’).textContent=p.so;
-document.getElementById(‘dSwing’).textContent=pct(p.swingPct);
-document.getElementById(‘dZSwing’).textContent=pct(p.zSwingPct);
-document.getElementById(‘dChase’).textContent=pct(p.chasePct);
-document.getElementById(‘dWhiff’).textContent=pct(p.whiffPct);
-document.getElementById(‘dHardHit’).textContent=pct(p.hardHit);
-document.getElementById(‘dMaxEV’).textContent=p.maxEV>0?p.maxEV.toFixed(1):’—’;
-document.getElementById(‘footR’).textContent=p.pa+’ PA · ‘+p.totalPitches+’ pitches’;
-setTimeout(function(){
-drawHeatmap(‘hmapSlg’,p.bip.filter(function(b){return b.ev>=95;}),‘ev’);
-drawHeatmap(‘hmapWhiff’,p.rows.filter(function(r){return r.PitchCall===‘StrikeSwinging’;}),‘whiff’);
-buildPitchTable(p);
-},30);
-document.getElementById(‘main-screen’).style.display=‘none’;
-document.getElementById(‘bottomBar’).style.display=‘none’;
-document.getElementById(‘card-screen’).style.display=‘block’;
-window.scrollTo(0,0);
-}
-
-function buildPitchTable(p){
-var tbody=document.getElementById(‘pitchTableBody’);tbody.innerHTML=’’;
-Object.entries(p.pitchTypes).sort(function(a,b){return b[1].total-a[1].total;}).forEach(function(e){
-var pt=e[0],d=e[1];
-var sw=d.total>0?d.swings/d.total:0;
-var wh=d.swings>0?d.whiffs/d.swings:0;
-var ch=d.ozTotal>0?d.chases/d.ozTotal:0;
-var avg=d.ev.length>0?(d.ev.reduce(function(a,b){return a+b;},0)/d.ev.length).toFixed(1):’—’;
-tbody.innerHTML+=’<tr><td style="text-align:left;font-size:.8rem">’+escH(pt)+’</td><td>’+d.total+’</td><td>’+pct(sw)+’</td><td>’+pct(wh)+’</td><td>’+pct(ch)+’</td><td>’+avg+’</td></tr>’;
-});
-}
-
-function drawHeatmap(id,points,mode){
-var cv=document.getElementById(id);if(!cv)return;
-var ctx=cv.getContext(‘2d’),W=cv.width,H=cv.height,PAD=8;
-var xMin=-1.4,xMax=1.4,yMin=0.9,yMax=4.1;
-function mx(v){return PAD+(v-xMin)/(xMax-xMin)*(W-PAD*2);}
-function my(v){return H-PAD-(v-yMin)/(yMax-yMin)*(H-PAD*2);}
-ctx.clearRect(0,0,W,H);ctx.fillStyle=’#f8fafd’;ctx.fillRect(0,0,W,H);
-ctx.strokeStyle=’#1a3a5c’;ctx.lineWidth=1.5;
-ctx.strokeRect(mx(-0.833),my(3.5),mx(0.833)-mx(-0.833),my(1.5)-my(3.5));
-ctx.strokeStyle=’#c5d0dc’;ctx.lineWidth=.7;
-var zw=(mx(0.833)-mx(-0.833))/3,zh=(my(1.5)-my(3.5))/3;
-for(var i=1;i<3;i++){
-ctx.beginPath();ctx.moveTo(mx(-0.833)+zw*i,my(3.5));ctx.lineTo(mx(-0.833)+zw*i,my(1.5));ctx.stroke();
-ctx.beginPath();ctx.moveTo(mx(-0.833),my(3.5)+zh*i);ctx.lineTo(mx(0.833),my(3.5)+zh*i);ctx.stroke();
-}
-points.forEach(function(pt){
-var s=parseFloat(pt.PlateLocSide!==undefined?pt.PlateLocSide:pt.side);
-var h=parseFloat(pt.PlateLocHeight!==undefined?pt.PlateLocHeight:pt.height);
-if(isNaN(s)||isNaN(h))return;
-ctx.beginPath();ctx.arc(mx(s),my(h),3.2,0,Math.PI*2);
-ctx.fillStyle=mode===‘ev’?evColor(pt.ev||0):‘rgba(255,50,50,0.65)’;ctx.fill();
-ctx.strokeStyle=‘rgba(0,0,0,.18)’;ctx.lineWidth=.5;ctx.stroke();
-});
-ctx.fillStyle=’#9b8c74’;ctx.font=‘7px Barlow Condensed,sans-serif’;ctx.textAlign=‘center’;
-ctx.fillText(mode===‘ev’?‘Hard Hit (95+ EV)’:‘Whiffs’,W/2,H-1);
-}
-
-function evColor(ev){if(ev>=105)return’rgba(220,50,50,.85)’;if(ev>=100)return’rgba(240,150,50,.85)’;return’rgba(60,160,90,.85)’;}
-function showMain(){document.getElementById(‘card-screen’).style.display=‘none’;document.getElementById(‘main-screen’).style.display=‘block’;document.getElementById(‘bottomBar’).style.display=‘flex’;selectedPlayer=null;document.getElementById(‘genCardBtn’).disabled=true;document.getElementById(‘selHint’).textContent=‘Tap a player to select’;}
-async function saveCardImage(){
-var card=document.getElementById(‘card’),btn=card.querySelector(’.save-btn’),orig=btn.textContent;
-btn.textContent=‘Rendering…’;btn.disabled=true;
-try{var canvas=await html2canvas(card,{scale:2,useCORS:true,allowTaint:true,backgroundColor:’#ffffff’,scrollX:0,scrollY:-window.scrollY,ignoreElements:function(el){return el===btn;}});document.getElementById(‘overlayImg’).src=canvas.toDataURL(‘image/png’);document.getElementById(‘imgOverlay’).classList.add(‘active’);}
-catch(e){alert(‘Render failed.’);}
-btn.textContent=orig;btn.disabled=false;
-}
-function closeOverlay(){document.getElementById(‘imgOverlay’).classList.remove(‘active’);}
-function fmt3(v){if(!v&&v!==0)return’—’;var s=parseFloat(v).toFixed(3);return s.startsWith(‘0.’)?s.slice(1):s;}
-function pct(v){if(isNaN(v)||v===null||v===undefined)return’—’;return(v*100).toFixed(1)+’%’;}
-function escH(s){return String(s).replace(/&/g,’&’).replace(/</g,’<’).replace(/>/g,’>’);}
-
-boot();
-</script>
-
-</body>
-</html><!-- Card -->
-<div id="card-screen">
-  <div class="back-row">
-    <div class="back-row-title">Season Card</div>
-    <button class="back-btn" onclick="showSelect()">← Back</button>
-  </div>
-
-  <div class="card" id="card">
-    <div class="card-header">
-      <div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div>
-      <div class="hdr-center">
-        <div class="player-name" id="cardName">—</div>
-        <div class="player-pos" id="cardPos">Walters State CC</div>
-        <div class="card-type">Season Hitting Summary</div>
-        <div class="season-tag">2026 NJCAA Season</div>
-      </div>
-      <div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div>
-    </div>
-
-```
-<div class="game-line" id="cardGameLine">—</div>
-
-<!-- Traditional stats -->
-<div class="stat-section">
-  <span class="stat-section-label">Season Stats</span>
-  <div class="stat-row">
-    <div class="stat-box"><span class="stat-val hi" id="sAVG">—</span><span class="stat-lbl">AVG</span></div>
-    <div class="stat-box"><span class="stat-val" id="sOBP">—</span><span class="stat-lbl">OBP</span></div>
-    <div class="stat-box"><span class="stat-val" id="sSLG">—</span><span class="stat-lbl">SLG</span></div>
-    <div class="stat-box"><span class="stat-val hi" id="sWOBA">—</span><span class="stat-lbl">wOBA</span></div>
-    <div class="stat-box"><span class="stat-val" id="sHR">—</span><span class="stat-lbl">HR</span></div>
-    <div class="stat-box"><span class="stat-val" id="sRBI">—</span><span class="stat-lbl">RBI</span></div>
-    <div class="stat-box"><span class="stat-val" id="sSB">—</span><span class="stat-lbl">SB</span></div>
-  </div>
-</div>
-
-<!-- Contact quality -->
-<div class="stat-section">
-  <span class="stat-section-label">Contact Quality · TrackMan</span>
-  <div class="stat-row">
-    <div class="stat-box"><span class="stat-val" id="tHard">—</span><span class="stat-lbl">Hard%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tBarrel">—</span><span class="stat-lbl">Barrel%</span></div>
-    <div class="stat-box"><span class="stat-val hi" id="tBestSpeed">—</span><span class="stat-lbl">Best Speed</span></div>
-    <div class="stat-box"><span class="stat-val" id="tMaxEV">—</span><span class="stat-lbl">Max EV</span></div>
-    <div class="stat-box"><span class="stat-val" id="tGB">—</span><span class="stat-lbl">GB%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tFB">—</span><span class="stat-lbl">FB%</span></div>
-  </div>
-</div>
-
-<!-- Plate discipline -->
-<div class="stat-section">
-  <span class="stat-section-label">Plate Discipline · TrackMan</span>
-  <div class="stat-row">
-    <div class="stat-box"><span class="stat-val" id="tSwing">—</span><span class="stat-lbl">Swing%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tChase">—</span><span class="stat-lbl">Chase%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tZSwing">—</span><span class="stat-lbl">Z-Swing%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tWhiff">—</span><span class="stat-lbl">Whiff%</span></div>
-    <div class="stat-box"><span class="stat-val hi" id="tSGR">—</span><span class="stat-lbl">SGR</span></div>
-  </div>
-</div>
-
-<!-- Damage heat map -->
-<div class="hmap-section">
-  <div class="hmap-title-row">
-    <div class="hmap-title">Damage Zones by Pitch Type</div>
-    <div class="hmap-legend" id="dmgLegend"></div>
-  </div>
-  <canvas id="hmapDmg" width="468" height="240" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:2px">Catcher's View · KDE weighted by EV · dot = wOBA damage zone per pitch type</div>
-</div>
-
-<!-- Whiff heat map -->
-<div class="hmap-section">
-  <div class="hmap-title-row">
-    <div class="hmap-title">Weak Contact Zones</div>
-    <div class="hmap-legend" id="weakLegend"></div>
-  </div>
-  <canvas id="hmapWeak" width="468" height="240" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:2px">Catcher's View · KDE of contact under 90 mph · dot = avg weak contact zone per pitch type</div>
-</div>
-
-<!-- Pitch type table -->
-<div class="pitch-section">
-  <span class="stat-section-label" style="display:block;margin-bottom:4px">Pitch Mix Seen · TrackMan</span>
-  <table class="pitch-table">
-    <thead><tr>
-      <th style="text-align:left">Pitch</th>
-      <th>Seen</th><th>Swing%</th><th>Whiff%</th><th>Chase%</th>
-      <th>Hard%</th><th>Avg EV</th>
-    </tr></thead>
-    <tbody id="pitchTableBody"></tbody>
-  </table>
-</div>
-
-<div class="card-footer">
-  <div>⚾ Walters State CC · 2026</div>
-  <div>Data: TrackMan</div>
-  <div id="footR">wsccbaseball.github.io</div>
-</div>
-
-<button class="save-btn" onclick="saveCard()">📥 SAVE CARD IMAGE</button>
-```
-
-  </div>
-</div>
-
-<div class="img-overlay" id="imgOverlay" onclick="closeOverlay()">
-  <img id="overlayImg" src="" alt="Season Card">
-  <div class="overlay-hint">Hold the image to save to your photos</div>
-  <button class="overlay-close" onclick="closeOverlay()">✕ Close</button>
-</div>
-
-<script>
-var SUPABASE_URL='https://mghrapwhvihpwgqryail.supabase.co';
-var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
-
-var PITCH_COLORS={
-  'Fastball':'#e63946','Four-Seam':'#e63946','FourSeamFastBall':'#e63946',
-  'Sinker':'#ff6a00','TwoSeamFastBall':'#ff6a00',
-  'Curveball':'#a020f0','CurveBall':'#a020f0',
-  'Slider':'#00c2a8',
-  'Cutter':'#00e0b0',
-  'ChangeUp':'#ff9900','Changeup':'#ff9900','Change-up':'#ff9900',
-  'Splitter':'#f0d000',
-  'Knuckleball':'#888888','Other':'#666666'
-};
-var PITCH_NORM={
-  'Four-Seam':'Fastball','FourSeamFastBall':'Fastball','Fastball':'Fastball',
-  'Sinker':'Sinker','TwoSeamFastBall':'Sinker',
-  'Curveball':'Curveball','CurveBall':'Curveball',
-  'Slider':'Slider','Cutter':'Cutter',
-  'Changeup':'ChangeUp','ChangeUp':'ChangeUp','Change-up':'ChangeUp',
-  'Splitter':'Splitter','Knuckleball':'Knuckleball'
-};
-function normPitch(t){return PITCH_NORM[t]||t||'Other';}
-function pitchColor(t){return PITCH_COLORS[normPitch(t)]||PITCH_COLORS[t]||'#888888';}
-
-var allPitches=[], seasonStats={batting:[]}, playerData={};
-
-async function supaFetch(path){
-  var rows=[],from=0;
-  while(true){
-    var sep=path.indexOf('?')>-1?'&':'?';
-    var r=await fetch(SUPABASE_URL+'/rest/v1/'+path+sep+'limit=1000&offset='+from,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
-    var d=await r.json();
-    if(!Array.isArray(d)||!d.length)break;
-    rows=rows.concat(d);if(d.length<1000)break;from+=1000;
-  }
-  return rows;
-}
-
-function setProgress(pct,msg){
-  document.getElementById('progressFill').style.width=pct+'%';
-  document.getElementById('loadMsg').textContent=msg;
-}
-
-async function boot(){
-  try{
-    setProgress(5,'Loading season stats...');
-    var edgeRes=await fetch(SUPABASE_URL+'/functions/v1/fetch-boxscore?url=season-stats',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
-    var edgeData=await edgeRes.json();
-    if(edgeData.batting)seasonStats=edgeData;
-
-    setProgress(20,'Loading games...');
-    var games=await supaFetch('games?select=game_id,display_name,date&order=date.asc');
-
-    setProgress(30,'Loading pitch data...');
-    allPitches=[];
-    for(var i=0;i<games.length;i++){
-      var rows=await supaFetch('pitches?GameID=eq.'+encodeURIComponent(games[i].game_id));
-      allPitches=allPitches.concat(rows);
-      setProgress(30+Math.round(((i+1)/games.length)*60),'Loading game '+(i+1)+' of '+games.length+'...');
-    }
-
-    setProgress(95,'Building player profiles...');
-    buildPlayerProfiles();
-    populatePlayerSelect();
-
-    document.getElementById('loading-screen').style.display='none';
-    document.getElementById('select-screen').style.display='block';
-  }catch(e){
-    document.getElementById('loadMsg').textContent='Error: '+e.message;
-  }
-}
-
-function buildPlayerProfiles(){
-  var wsPitches=allPitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal');});
-  var players={};
-  wsPitches.forEach(function(r){
-    var n=(r.Batter||'').trim();if(!n)return;
-    if(!players[n])players[n]=[];
-    players[n].push(r);
-  });
-  playerData={};
-  Object.keys(players).forEach(function(name){
-    playerData[name]=computeProfile(name,players[name]);
+  var selectedPlayers=getSelectedPlayers();
+  var data=tableData.filter(function(p){return p.pa>0&&(!selectedPlayers.length||selectedPlayers.includes(p.name));});
+  data.sort(function(a,b){var av=a[sortCol]||0,bv=b[sortCol]||0;if(typeof av==='string')return sortAsc?av.localeCompare(bv):bv.localeCompare(av);return sortAsc?av-bv:bv-av;});
+  document.getElementById('filterCount').textContent=data.length+' players';
+  var tbody=document.getElementById('tableBody');tbody.innerHTML='';
+  if(!data.length){tbody.innerHTML='<tr><td colspan="13" class="no-data">No players match current filters</td></tr>';return;}
+  data.forEach(function(p){
+    var tr=document.createElement('tr');
+    if(selectedPlayer===p.name)tr.className='selected';
+    tr.onclick=function(){selectedPlayer=p.name;document.querySelectorAll('#tableBody tr').forEach(function(r){r.classList.remove('selected');});tr.classList.add('selected');document.getElementById('genCardBtn').disabled=false;document.getElementById('selHint').textContent=p.displayName+' selected';};
+    tr.innerHTML='<td>'+escH(p.displayName)+'</td><td>'+p.pa+'</td><td class="val-hi">'+fmt3(p.woba)+'</td><td class="'+(p.barrelPct>=.06?'val-good':'')+'">'+pct(p.barrelPct)+'</td><td class="'+(p.hardHit>=.35?'val-good':'')+'">'+pct(p.hardHit)+'</td><td>'+pct(p.swingPct)+'</td><td class="'+(p.chasePct>=.30?'val-warn':'')+'">'+pct(p.chasePct)+'</td><td>'+pct(p.zSwingPct)+'</td><td class="'+(p.seagerScore>=5?'val-good':p.seagerScore<0?'val-warn':'')+'">'+p.seagerScore.toFixed(2)+'</td><td>'+pct(p.gbPct)+'</td><td>'+pct(p.fbPct)+'</td><td class="val-hi">'+(p.bestSpeed>0?p.bestSpeed.toFixed(1):'—')+'</td><td>'+(p.maxEV>0?p.maxEV.toFixed(1):'—')+'</td>';
+    tbody.appendChild(tr);
   });
 }
-
-function computeProfile(name,rows){
-  var parts=name.split(','),lastName=(parts[0]||'').trim();
-  var displayName=parts.length>1?(parts[1]||'').trim()+' '+parts[0].trim():name;
-  var swings=0,whiffs=0,inZone=0,inZoneSwings=0,ozPitches=0,ozSwings=0,pa=0;
-  var bip=[],maxEV=0,totalEV=0,evCount=0,allEVs=[];
-  var gbCount=0,fbCount=0,bipCount=0,barrels=0;
-  var pitchTypes={};
-
-  rows.forEach(function(r){
-    var call=(r.PitchCall||'').trim();
-    var side=parseFloat(r.PlateLocSide),height=parseFloat(r.PlateLocHeight);
-    var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||'Other');
-    if(!pitchTypes[pt])pitchTypes[pt]={total:0,swings:0,whiffs:0,chases:0,ozTotal:0,ev:[],contacts:0,bip:[],whiffPts:[],weakPts:[]};
-    pitchTypes[pt].total++;
-
-    var isSwing=['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
-    var isWhiff=call==='StrikeSwinging';
-    var isContact=['FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
-    var inside=!isNaN(side)&&!isNaN(height)&&Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
-    var outside=!isNaN(side)&&!isNaN(height)&&!inside;
-
-    if(isSwing){swings++;pitchTypes[pt].swings++;}
-    if(isWhiff){
-      whiffs++;pitchTypes[pt].whiffs++;
-      // weak contact stored below
-    }
-    if(isContact)pitchTypes[pt].contacts++;
-    if(inside){inZone++;if(isSwing)inZoneSwings++;}
-    if(outside){ozPitches++;if(isSwing){ozSwings++;pitchTypes[pt].chases++;pitchTypes[pt].ozTotal++;}}
-
-    var ev=parseFloat(r.ExitSpeed);
-    var la=parseFloat(r.Angle||r.LaunchAngle||r.VertAngle||'NaN');
-    if(!isNaN(ev)&&ev>0){
-      if(ev>maxEV)maxEV=ev;totalEV+=ev;evCount++;allEVs.push(ev);
-      pitchTypes[pt].ev.push(ev);
-      if(!isNaN(side)&&!isNaN(height)){
-        bip.push({side:side,height:height,ev:ev,pt:pt,result:(r.PlayResult||'')});
-      // Store weak contact — any batted ball under 90 mph
-    if(!isNaN(ev)&&ev>0&&ev<90&&!isNaN(side)&&!isNaN(height)&&['InPlay','FoulBall','FoulBallNotFieldable'].includes(call)){
-      pitchTypes[pt].weakPts.push({side:side,height:height,ev:ev});
-    }
-        pitchTypes[pt].bip.push({side:side,height:height,ev:ev,result:(r.PlayResult||'')});
-      }
-      if(!isNaN(la)&&ev>=98&&la>=26&&la<=30)barrels++;
-      if(call==='InPlay'){
-        bipCount++;
-        var ht=(r.TaggedHitType||r.HitType||'').toLowerCase();
-        if(ht.includes('ground')){gbCount++;}
-        else if(ht.includes('fly')||ht.includes('popup')){fbCount++;}
-        else if(!isNaN(la)){if(la<10)gbCount++;else if(la>=25)fbCount++;}
-      }
-    }
-    if(parseInt(r.PitchofPA)===1)pa++;
-  });
-
-  allEVs.sort(function(a,b){return b-a;});
-  var topHalf=allEVs.slice(0,Math.ceil(allEVs.length/2));
-  var bestSpeed=topHalf.length>0?topHalf.reduce(function(a,b){return a+b;},0)/topHalf.length:0;
-
-  var bs=null;
-  if(seasonStats.batting){
-    bs=seasonStats.batting.find(function(b){return b.name&&b.name.split(' ').pop().toLowerCase()===lastName.toLowerCase();});
-  }
-  var bsAB=bs?parseInt(bs.ab)||0:0;
-  var bsBB=bs?parseInt(bs.bb)||0:0;
-  var bsHBP=bs?parseInt(bs.hbp)||0:0;
-  var bsSF=bs?parseInt(bs.sf)||0:0;
-  var bsSH=bs?parseInt(bs.sh)||0:0;
-  var bsPA=bsAB+bsBB+bsHBP+bsSF+bsSH;
-  var bs1B=Math.max(0,(bs?parseInt(bs.h)||0:0)-(bs?parseInt(bs.doubles)||0:0)-(bs?parseInt(bs.triples)||0:0)-(bs?parseInt(bs.hr)||0:0));
-  var woba=bsPA>0?(bsBB*.69+bsHBP*.72+bs1B*.88+(bs?parseInt(bs.doubles)||0:0)*1.24+(bs?parseInt(bs.triples)||0:0)*1.56+(bs?parseInt(bs.hr)||0:0)*2.08)/bsPA:0;
-  var tp=rows.length;
-
-  return{
-    name:name,displayName:displayName,lastName:lastName,
-    gp:bs?parseInt(bs.gp)||0:0,pa:bsPA,
-    avg:bs?parseFloat(bs.avg)||0:0,obp:bs?parseFloat(bs.obp)||0:0,
-    slg:bs?parseFloat(bs.slg)||0:0,woba:woba,
-    hr:bs?parseInt(bs.hr)||0:0,rbi:bs?parseInt(bs.rbi)||0:0,
-    sb:bs?parseInt(bs.sb)||0:0,h:bs?parseInt(bs.h)||0:0,
-    swingPct:tp>0?swings/tp:0,whiffPct:swings>0?whiffs/swings:0,
-    chasePct:ozPitches>0?ozSwings/ozPitches:0,
-    zSwingPct:inZone>0?inZoneSwings/inZone:0,
-    sgr:(inZone>0&&ozPitches>0)?(inZoneSwings/inZone)-(ozSwings/ozPitches):0,
-    hardHit:evCount>0?bip.filter(function(b){return b.ev>=95;}).length/evCount:0,
-    barrelPct:evCount>0?barrels/evCount:0,
-    gbPct:bipCount>0?gbCount/bipCount:0,fbPct:bipCount>0?fbCount/bipCount:0,
-    bestSpeed:bestSpeed,maxEV:maxEV,totalPitches:tp,
-    pitchTypes:pitchTypes,bip:bip,rows:rows
-  };
-}
-
-function populatePlayerSelect(){
-  var sel=document.getElementById('playerSelect');
-  sel.innerHTML='<option value="">— select player —</option>';
-  Object.values(playerData).sort(function(a,b){return b.pa-a.pa;}).forEach(function(p){
-    sel.innerHTML+='<option value="'+p.name+'">'+escH(p.displayName)+(p.pa?' ('+p.pa+' PA)':'')+'</option>';
-  });
-  sel.addEventListener('change',function(){document.getElementById('genBtn').disabled=!this.value;});
-}
-
-// ── Heat map drawing ─────────────────────────────────────────────────────────
-// ── KDE Heat Map Engine ──────────────────────────────────────────────────────
-var GRID=60; // resolution of KDE grid
-
-function computeKDE(points, W, H, PAD, xMin, xMax, yMin, yMax, sigma, weightFn) {
-  var grid=new Float32Array(GRID*GRID);
-  var scaleX=(W-PAD*2)/(xMax-xMin);
-  var scaleY=(H-PAD*2)/(yMax-yMin);
-  var sigX=sigma*scaleX, sigY=sigma*scaleY;
-  points.forEach(function(p){
-    if(isNaN(p.side)||isNaN(p.height))return;
-    var px=(p.side-xMin)*scaleX;
-    var py=(yMax-p.height)*scaleY; // flip Y
-    var w=weightFn?weightFn(p):1;
-    // Only fill cells within 3 sigma
-    var cellX=Math.round(px/((W-PAD*2)/GRID));
-    var cellY=Math.round(py/((H-PAD*2)/GRID));
-    var radius=Math.ceil(3*sigX/((W-PAD*2)/GRID));
-    for(var gy=Math.max(0,cellY-radius);gy<Math.min(GRID,cellY+radius+1);gy++){
-      for(var gx=Math.max(0,cellX-radius);gx<Math.min(GRID,cellX+radius+1);gx++){
-        var cx=gx*((W-PAD*2)/GRID);
-        var cy=gy*((H-PAD*2)/GRID);
-        var dx=px-cx, dy=py-cy;
-        var kernel=Math.exp(-(dx*dx)/(2*sigX*sigX)-(dy*dy)/(2*sigY*sigY));
-        grid[gy*GRID+gx]+=kernel*w;
-      }
-    }
-  });
-  return grid;
-}
-
-function renderKDE(ctx, grid, W, H, PAD, color, maxVal, alpha) {
-  if(maxVal<=0)return;
-  var cellW=(W-PAD*2)/GRID, cellH=(H-PAD*2)/GRID;
-  var r=parseInt(color.slice(1,3),16);
-  var g=parseInt(color.slice(3,5),16);
-  var b=parseInt(color.slice(5,7),16);
-  for(var gy=0;gy<GRID;gy++){
-    for(var gx=0;gx<GRID;gx++){
-      var val=grid[gy*GRID+gx];
-      if(val<0.001)continue;
-      var intensity=Math.pow(val/maxVal,0.6); // power <1 spreads the color more
-      var a=intensity*alpha;
-      ctx.fillStyle='rgba('+r+','+g+','+b+','+a+')';
-      ctx.fillRect(PAD+gx*cellW-0.5, PAD+gy*cellH-0.5, cellW+1, cellH+1);
-    }
-  }
-}
-
-function drawAvgDot(ctx, pts, mx, my, color) {
-  if(!pts.length)return;
-  var avgS=pts.reduce(function(s,p){return s+p.side;},0)/pts.length;
-  var avgH=pts.reduce(function(s,p){return s+p.height;},0)/pts.length;
-  var cx=mx(avgS), cy=my(avgH);
-  // Outer ring
-  ctx.beginPath();ctx.arc(cx,cy,7,0,Math.PI*2);
-  ctx.fillStyle='rgba(255,255,255,0.9)';ctx.fill();
-  ctx.strokeStyle=color;ctx.lineWidth=2;ctx.stroke();
-  // Inner dot
-  ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);
-  ctx.fillStyle=color;ctx.fill();
-}
-
-function drawZoneBase(ctx, W, H, PAD, xMin, xMax, yMin, yMax) {
-  function mx(v){return PAD+(v-xMin)/(xMax-xMin)*(W-PAD*2);}
-  function my(v){return H-PAD-(v-yMin)/(yMax-yMin)*(H-PAD*2);}
-  // Dark background
-  ctx.fillStyle='#f8fafd';ctx.fillRect(0,0,W,H);
-  // Subtle zone grid
-  ctx.strokeStyle='#d0d8e8';ctx.lineWidth=1;
-  var zw=(mx(0.833)-mx(-0.833))/3,zh=(my(1.5)-my(3.5))/3;
-  for(var i=1;i<3;i++){
-    ctx.beginPath();ctx.moveTo(mx(-0.833)+zw*i,my(3.5));ctx.lineTo(mx(-0.833)+zw*i,my(1.5));ctx.stroke();
-    ctx.beginPath();ctx.moveTo(mx(-0.833),my(3.5)+zh*i);ctx.lineTo(mx(0.833),my(3.5)+zh*i);ctx.stroke();
-  }
-  // Shadow zone dashed outline for context
-  ctx.strokeStyle='#c0c8d8';ctx.lineWidth=1;ctx.setLineDash([3,3]);
-  var SHADOW=0.0833;
-  ctx.strokeRect(mx(-0.833-SHADOW),my(3.5+SHADOW),mx(0.833+SHADOW)-mx(-0.833-SHADOW),my(1.5-SHADOW)-my(3.5+SHADOW));
-  ctx.setLineDash([]);
-  // Zone border
-  ctx.strokeStyle='#1a3a5c';ctx.lineWidth=2;
-  ctx.strokeRect(mx(-0.833),my(3.5),mx(0.833)-mx(-0.833),my(1.5)-my(3.5));
-  return {mx:mx,my:my};
-}
-
-function drawDamageHeatmap(canvasId, pitchTypes){
-  var cv=document.getElementById(canvasId);if(!cv)return;
-  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height,PAD=12;
-  var xMin=-1.55,xMax=1.55,yMin=0.8,yMax=4.2;
-  var fns=drawZoneBase(ctx,W,H,PAD,xMin,xMax,yMin,yMax);
-  var mx=fns.mx,my=fns.my;
-
-  // Get global max EV for weight normalization
-  var allEVs=[];
-  Object.values(pitchTypes).forEach(function(d){d.bip.forEach(function(p){if(p.ev>0)allEVs.push(p.ev);});});
-  var minEV=allEVs.length?Math.min.apply(null,allEVs):60;
-  var maxEV=allEVs.length?Math.max.apply(null,allEVs):110;
-  var evRange=Math.max(maxEV-minEV,1);
-
-  var legendItems=[];
-  var entries=Object.entries(pitchTypes).sort(function(a,b){return b[1].total-a[1].total;});
-
-  // Combine ALL bip points into one grid — single color KDE weighted by EV
-  var allBip=[];
-  entries.forEach(function(entry){allBip=allBip.concat(entry[1].bip);});
-  var combinedGrid=computeKDE(allBip,W,H,PAD,xMin,xMax,yMin,yMax,0.28,function(p){
-    return 0.3+(p.ev-minEV)/evRange*0.7;
-  });
-  var globalMax=0;
-  for(var i=0;i<combinedGrid.length;i++)if(combinedGrid[i]>globalMax)globalMax=combinedGrid[i];
-  renderKDE(ctx,combinedGrid,W,H,PAD,'#cc2222',globalMax*0.65,0.9);
-  legendItems=null;
-
-
-  // wOBA dot overlay per pitch type — bigger/brighter = more production
-  var wobaWeights={'Single':0.88,'Double':1.24,'Triple':1.56,'HomeRun':2.08,'Home Run':2.08,'Walk':0.69,'HitByPitch':0.72};
-  entries.forEach(function(entry){
-    var pt=entry[0],d=entry[1];
-    if(!d.bip.length)return;
-    var color=pitchColor(pt);
-    // Calculate wOBA weighted centroid
-    var totalW=0,sumX=0,sumY=0,sumWoba=0,wobaCount=0;
-    d.bip.forEach(function(p){
-      if(isNaN(p.side)||isNaN(p.height))return;
-      var result=p.result||'';
-      var w=wobaWeights[result]||0;
-      if(w>0){
-        sumX+=p.side*w;sumY+=p.height*w;totalW+=w;sumWoba+=w;wobaCount++;
-      }
-    });
-    if(wobaCount<2||totalW<=0)return;
-    var avgWoba=sumWoba/d.bip.length;
-    // Clamp centroid to visible range
-    var centX=Math.max(-1.4,Math.min(1.4,sumX/totalW));
-    var centY=Math.max(0.9,Math.min(4.1,sumY/totalW));
-    var cx=mx(centX),cy=my(centY);
-    // Scale dot size by wOBA — range roughly 0.05 to 0.4 per pitch
-    var minR=6,maxR=18;
-    var norm=Math.min(avgWoba/0.35,1);
-    var r=minR+norm*(maxR-minR);
-    // Outer glow
-    var grad=ctx.createRadialGradient(cx,cy,0,cx,cy,r*2.5);
-    grad.addColorStop(0,hexToRGBA(color,0.25));
-    grad.addColorStop(1,hexToRGBA(color,0));
-    ctx.beginPath();ctx.arc(cx,cy,r*2.5,0,Math.PI*2);
-    ctx.fillStyle=grad;ctx.fill();
-    // Dot
-    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
-    ctx.fillStyle=color;ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,0.9)';ctx.lineWidth=1.5;ctx.stroke();
-    legendItems=legendItems||[];
-    legendItems.push({pt:pt,color:color,count:d.bip.length,woba:avgWoba});
-  });
-  ctx.fillStyle='#8a9ab0';ctx.font='8px Barlow Condensed,sans-serif';ctx.textAlign='center';
-  ctx.fillText("CATCHER'S VIEW",W/2,H-4);
-  return legendItems;
-}
-
-function drawWeakHeatmap(canvasId, pitchTypes){
-  var cv=document.getElementById(canvasId);if(!cv)return;
-  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height,PAD=12;
-  var xMin=-1.55,xMax=1.55,yMin=0.8,yMax=4.2;
-  var fns=drawZoneBase(ctx,W,H,PAD,xMin,xMax,yMin,yMax);
-  var mx=fns.mx,my=fns.my;
-
-  var entries=Object.entries(pitchTypes).sort(function(a,b){return b[1].total-a[1].total;});
-  var legendItems=[];
-
-  // Combine all weak contact into one blue KDE
-  var allWeak=[];
-  entries.forEach(function(e){allWeak=allWeak.concat(e[1].weakPts);});
-  if(allWeak.length>=2){
-    var minEV=allWeak.reduce(function(m,p){return Math.min(m,p.ev);},85);
-    var maxEV=84; // all are <85
-    var evRange=Math.max(maxEV-minEV,1);
-    var combinedGrid=computeKDE(allWeak,W,H,PAD,xMin,xMax,yMin,yMax,0.28,function(p){
-      // Weight inversely by EV — weaker contact = hotter
-      return 0.3+(90-p.ev)/25*0.7;
-    });
-    var globalMax=0;
-    for(var i=0;i<combinedGrid.length;i++)if(combinedGrid[i]>globalMax)globalMax=combinedGrid[i];
-    renderKDE(ctx,combinedGrid,W,H,PAD,'#1a6fb5',globalMax*0.65,0.9);
-  }
-
-  // Avg dot per pitch type
-  entries.forEach(function(entry){
-    var pt=entry[0],d=entry[1];
-    if(!d.weakPts.length)return;
-    var color=pitchColor(pt);
-    drawAvgDot(ctx,d.weakPts,mx,my,color);
-    legendItems.push({pt:pt,color:color,count:d.weakPts.length});
-  });
-
-  ctx.fillStyle='#8a9ab0';ctx.font='8px Barlow Condensed,sans-serif';ctx.textAlign='center';
-  ctx.fillText("CATCHER'S VIEW",W/2,H-4);
-  return legendItems;
-}
-
-function buildLegend(containerId, items){
-  var el=document.getElementById(containerId);
-  if(!items||!items.length){el.innerHTML='';return;}
-  el.innerHTML=items.slice(0,6).map(function(item){
-    return'<div class="hmap-legend-item"><div class="hmap-dot" style="background:'+item.color+'"></div>'+escH(item.pt)+' ('+item.count+')</div>';
-  }).join('');
-}
-
-function buildPitchTable(p){
-  var tbody=document.getElementById('pitchTableBody');
-  if(!tbody)return;
-  tbody.innerHTML='';
-  Object.entries(p.pitchTypes)
-    .filter(function(e){return e[1].total>=3;})
-    .sort(function(a,b){return b[1].total-a[1].total;})
-    .forEach(function(e){
-      var pt=e[0],d=e[1];
-      var sw=d.total>0?d.swings/d.total:0;
-      var wh=d.swings>0?d.whiffs/d.swings:0;
-      var ch=d.ozTotal>0?d.chases/d.ozTotal:0;
-      var hard=d.ev.length>0?d.ev.filter(function(v){return v>=95;}).length/d.ev.length:0;
-      var avgEV=d.ev.length>0?(d.ev.reduce(function(a,b){return a+b;},0)/d.ev.length).toFixed(1):'—';
-      var color=pitchColor(pt);
-      tbody.innerHTML+='<tr>'+
-        '<td style="display:flex;align-items:center;gap:4px"><div class="pitch-dot" style="background:'+color+'"></div>'+escH(pt)+'</td>'+
-        '<td>'+d.total+'</td>'+
-        '<td>'+pct(sw)+'</td>'+
-        '<td>'+pct(wh)+'</td>'+
-        '<td>'+ch>0?pct(ch):'—'+'</td>'+
-        '<td>'+pct(hard)+'</td>'+
-        '<td>'+avgEV+'</td>'+
-        '</tr>';
-    });
-}
-
-function buildCard(){
-  var name=document.getElementById('playerSelect').value;
-  if(!name)return;
-  var p=playerData[name];
-  if(!p){document.getElementById('statusMsg').textContent='No data for this player.';return;}
-
-  document.getElementById('cardName').textContent=p.displayName;
-  document.getElementById('cardGameLine').textContent=
-    '2026 Season · '+p.gp+' GP · '+p.pa+' PA · '+p.totalPitches+' pitches seen (TrackMan)';
-
-  // Traditional stats
-  document.getElementById('sAVG').textContent=fmt3(p.avg);
-  document.getElementById('sOBP').textContent=fmt3(p.obp);
-  document.getElementById('sSLG').textContent=fmt3(p.slg);
-  document.getElementById('sWOBA').textContent=fmt3(p.woba);
-  document.getElementById('sHR').textContent=p.hr;
-  document.getElementById('sRBI').textContent=p.rbi;
-  document.getElementById('sSB').textContent=p.sb;
-
-  // Contact quality
-  var hardEl=document.getElementById('tHard');
-  hardEl.textContent=pct(p.hardHit);
-  hardEl.className='stat-val'+(p.hardHit>=.35?' good':'');
-  document.getElementById('tBarrel').textContent=pct(p.barrelPct);
-  document.getElementById('tBestSpeed').textContent=p.bestSpeed>0?p.bestSpeed.toFixed(1):'—';
-  document.getElementById('tMaxEV').textContent=p.maxEV>0?p.maxEV.toFixed(1):'—';
-  document.getElementById('tGB').textContent=pct(p.gbPct);
-  document.getElementById('tFB').textContent=pct(p.fbPct);
-
-  // Discipline
-  var chaseEl=document.getElementById('tChase');
-  chaseEl.textContent=pct(p.chasePct);
-  chaseEl.className='stat-val'+(p.chasePct>=.30?' warn':'');
-  document.getElementById('tSwing').textContent=pct(p.swingPct);
-  document.getElementById('tZSwing').textContent=pct(p.zSwingPct);
-  document.getElementById('tWhiff').textContent=pct(p.whiffPct);
-  document.getElementById('tSGR').textContent=p.sgr.toFixed(2);
-
-  setTimeout(function(){
-    var dmgItems=drawDamageHeatmap('hmapDmg',p.pitchTypes);
-    buildLegend('dmgLegend',dmgItems);
-    var whiffItems=drawWhiffHeatmap('hmapWhiff',p.pitchTypes);
-    buildLegend('whiffLegend',whiffItems);
-    buildPitchTable(p);
-  },30);
-
-  document.getElementById('select-screen').style.display='none';
-  document.getElementById('card-screen').style.display='block';
-  window.scrollTo(0,0);
-}
-
-function showSelect(){
-  document.getElementById('card-screen').style.display='none';
-  document.getElementById('select-screen').style.display='block';
-}
-
-async function saveCard(){
-  var card=document.getElementById('card'),btn=card.querySelector('.save-btn'),orig=btn.textContent;
-  btn.textContent='Rendering…';btn.disabled=true;
-  try{
-    var canvas=await html2canvas(card,{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',scrollX:0,scrollY:-window.scrollY,ignoreElements:function(el){return el===btn;}});
-    document.getElementById('overlayImg').src=canvas.toDataURL('image/png');
-    document.getElementById('imgOverlay').classList.add('active');
-  }catch(e){alert('Render failed.');}
-  btn.textContent=orig;btn.disabled=false;
-}
-function closeOverlay(){document.getElementById('imgOverlay').classList.remove('active');}
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-function hexToRGBA(hex,alpha){
-  var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-  return'rgba('+r+','+g+','+b+','+alpha+')';
-}
+function sortTable(col){if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=false;}renderTable();}
+function showMain(){document.getElementById('card-screen').style.display='none';document.getElementById('main-screen').style.display='block';document.getElementById('bottomBar').style.display='flex';selectedPlayer=null;document.getElementById('genCardBtn').disabled=true;document.getElementById('selHint').textContent='Tap a player to select';}
 function fmt3(v){if(!v&&v!==0)return'—';var s=parseFloat(v).toFixed(3);return s.startsWith('0.')?s.slice(1):s;}
 function pct(v){if(isNaN(v)||v===null||v===undefined)return'—';return(v*100).toFixed(1)+'%';}
 function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
+function hexToRGBA(hex,alpha){var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return'rgba('+r+','+g+','+b+','+alpha+')';}
+function closeOverlay(){document.getElementById('imgOverlay').classList.remove('active');}
 boot();
 </script>
 
