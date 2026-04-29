@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>WS Season Hitting Summary</title>
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Anton&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{max-width:100vw;overflow-x:hidden}
+body{font-family:'Barlow Condensed',sans-serif;background:#f2ead8;min-height:100vh}
+
+/* ── Upload / Filter screen ── */
+#filter-screen{padding:16px 10px 48px;max-width:560px;margin:0 auto}
+.page-title{font-family:'Abril Fatface',serif;font-size:2rem;color:#1a1a2e;line-height:1;margin-bottom:2px}
+.page-sub{font-size:.9rem;color:#6b5f47;font-family:'Barlow',sans-serif;margin-bottom:16px}
+.pb-banner{background:#1a3a5c;color:#f2ead8;font-family:'Anton',sans-serif;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;padding:.3rem .75rem;display:block}
+.surface-card{background:#fffdf7;border:1px solid #ddd5bc;border-top:none;padding:12px 14px;margin-bottom:10px}
+.field-group label{font-family:'Anton',sans-serif;font-size:.62rem;color:#6b5f47;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px}
+.field-group select,
+.field-group input{width:100%;padding:9px 10px;border:1px solid #ddd5bc;font-family:'Barlow Condensed',sans-serif;font-size:1rem;color:#1a1a2e;background:#fffdf7;-webkit-appearance:none}
+.field-group select[multiple]{height:120px}
+.filter-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.run-btn{display:block;width:100%;padding:13px;background:#1a3a5c;border:none;font-family:'Anton',sans-serif;font-size:1.1rem;letter-spacing:.1em;text-transform:uppercase;color:#fff;cursor:pointer;margin-bottom:6px}
+.run-btn:disabled{opacity:.4;cursor:not-allowed}
+.status-msg{font-size:.82rem;color:#2a8a4a;font-weight:600;text-align:center;min-height:16px;font-family:'Barlow Condensed',sans-serif}
+.status-msg.warn{color:#c0630a}
+
+/* ── Stats table screen ── */
+#table-screen{display:none;padding:14px 8px 48px;max-width:700px;margin:0 auto}
+.screen-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px}
+.screen-title{font-family:'Abril Fatface',serif;font-size:1.4rem;color:#1a1a2e}
+.back-btn{background:transparent;border:1px solid #ddd5bc;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:.8rem;color:#6b5f47;cursor:pointer}
+.gen-card-btn{background:#1a3a5c;border:none;padding:7px 14px;font-family:'Anton',sans-serif;font-size:.75rem;letter-spacing:.08em;color:#fff;cursor:pointer}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:16px;border:1px solid #ddd5bc}
+table{width:100%;border-collapse:collapse;font-family:'Barlow Condensed',sans-serif;min-width:600px}
+thead tr{background:#1a3a5c}
+th{color:#fff;font-size:.72rem;font-weight:700;padding:7px 6px;text-align:center;white-space:nowrap;cursor:pointer;user-select:none}
+th:first-child{text-align:left}
+th.sorted{color:#a8c8f0}
+td{padding:7px 6px;text-align:center;font-size:.88rem;border-bottom:1px solid #e8e0d0;color:#1a1a2e}
+td:first-child{text-align:left;font-weight:700}
+tr:hover td{background:#f4efe4}
+tr.selected td{background:#e8f0fb}
+.highlight{color:#1a3a5c;font-weight:800}
+.section-lbl{font-family:'Anton',sans-serif;font-size:.65rem;letter-spacing:.1em;color:#6b5f47;padding:5px 6px;background:#f4efe4;border-bottom:1px solid #ddd5bc}
+
+/* ── Card screen ── */
+#card-screen{display:none;padding:12px 8px 48px;max-width:520px;margin:0 auto}
+
+/* ── Card itself ── */
+.card{background:#fff;width:100%;max-width:500px;border-radius:10px;box-shadow:0 4px 24px rgba(0,0,0,.13);overflow:hidden;margin:12px auto 16px}
+.card-header{background:linear-gradient(135deg,#1a3a5c 0%,#2d5a8e 100%);padding:8px 12px 7px;display:flex;align-items:center;justify-content:space-between}
+.hdr-center{text-align:center;flex:1}
+.player-name{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:#fff;letter-spacing:1px;line-height:1}
+.player-sub{font-family:'Barlow Condensed',sans-serif;font-size:11px;color:#a8c8f0;margin-top:1px}
+.card-type{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:#fff;margin-top:2px}
+.season-tag{font-size:10px;font-style:italic;color:#7bb3e0}
+.logo-box{width:42px;text-align:center}
+.game-line{background:#e8f0fb;text-align:center;padding:5px 8px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:#1a3a5c;border-bottom:2px solid #c5d8f0}
+
+/* stat table row */
+.stat-table-wrap{padding:4px 6px 3px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.stat-table{width:100%;border-collapse:collapse;font-family:'Barlow Condensed',sans-serif;min-width:380px}
+.stat-table th{background:#1a3a5c;color:#fff;font-size:10px;font-weight:700;padding:4px 4px;text-align:center;white-space:nowrap}
+.stat-table td{text-align:center;padding:5px 4px;font-size:14px;font-weight:700;color:#1a1a1a;border:1px solid #dde4ef;background:#f8fafd}
+
+/* discipline boxes */
+.mid-section{display:flex;border-top:1px solid #e4eaf4;align-items:stretch}
+.left-panel{width:154px;flex-shrink:0;border-right:1px solid #e4eaf4;padding:6px 5px;display:flex;flex-direction:column;gap:5px}
+.panel-title{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;color:#1a3a5c;text-align:center;text-transform:uppercase;letter-spacing:.5px;margin-bottom:1px}
+.rate-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;flex:1;align-content:start}
+.rate-box{background:#f4f8fd;border:1px solid #dde4ef;border-radius:4px;padding:3px 2px;text-align:center}
+.rate-box .rb-val{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;color:#1a3a5c;line-height:1}
+.rate-box .rb-lbl{font-family:'Barlow Condensed',sans-serif;font-size:8px;font-weight:600;color:#7a8faa;margin-top:2px}
+.right-panel{flex:1;padding:5px 4px;min-width:0;display:flex;flex-direction:column;gap:4px}
+.hmap-title{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;color:#1a3a5c;text-align:center;text-transform:uppercase;letter-spacing:.5px}
+.hmap-row{display:flex;gap:4px;justify-content:center}
+canvas{display:block;border-radius:4px;max-width:100%}
+
+.card-footer{background:#f0f4fa;border-top:1px solid #dde4ef;padding:5px 10px;display:flex;justify-content:space-between;font-family:'Barlow Condensed',sans-serif;font-size:9px;color:#6a7f9a}
+.save-btn{display:block;width:calc(100% - 16px);margin:8px auto;padding:11px;background:#1a3a5c;border:none;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:#fff;cursor:pointer;letter-spacing:1px}
+.save-btn:active{background:#2d5a8e}
+
+/* overlay */
+.img-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.88);align-items:center;justify-content:center;flex-direction:column;padding:16px}
+.img-overlay.active{display:flex}
+.img-overlay img{max-width:100%;max-height:80vh;border-radius:6px;box-shadow:0 8px 40px rgba(0,0,0,.6)}
+.overlay-hint{margin-top:14px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:600;color:rgba(255,255,255,.75);text-align:center}
+.overlay-close{margin-top:16px;padding:10px 32px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:8px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+
+<!-- ── Filter Screen ── -->
+<div id="filter-screen">
+  <div style="margin-bottom:12px">
+    <div class="page-title">⚾ Season Hitting</div>
+    <div class="page-sub">Walters State CC · TrackMan Analytics</div>
+  </div>
+
+  <div class="pb-banner">Step 1 — Select Games (hold Ctrl/Cmd for multiple)</div>
+  <div class="surface-card">
+    <div class="field-group">
+      <select id="gameSelect" multiple></select>
+    </div>
+  </div>
+
+  <div class="pb-banner">Step 2 — Filters</div>
+  <div class="surface-card">
+    <div class="filter-row" style="margin-bottom:10px">
+      <div class="field-group">
+        <label>Min PA</label>
+        <input type="number" id="minPA" value="10" min="1">
+      </div>
+      <div class="field-group">
+        <label>Batter Hand</label>
+        <select id="handFilter">
+          <option value="">Both</option>
+          <option value="Right">Right</option>
+          <option value="Left">Left</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Player (leave blank for all)</label>
+      <select id="playerFilter"><option value="">All Players</option></select>
+    </div>
+  </div>
+
+  <button class="run-btn" id="runBtn" disabled>Load Season Stats</button>
+  <div class="status-msg" id="statusMsg"></div>
+</div>
+
+<!-- ── Table Screen ── -->
+<div id="table-screen">
+  <div class="screen-hdr">
+    <div class="screen-title">Season Hitting</div>
+    <button class="back-btn" onclick="showFilter()">← Filters</button>
+  </div>
+  <div class="table-wrap">
+    <table id="statsTable">
+      <thead>
+        <tr>
+          <th onclick="sortTable('name')">Player</th>
+          <th onclick="sortTable('pa')">PA</th>
+          <th onclick="sortTable('avg')" class="sorted">AVG</th>
+          <th onclick="sortTable('obp')">OBP</th>
+          <th onclick="sortTable('slg')">SLG</th>
+          <th onclick="sortTable('ops')">OPS</th>
+          <th onclick="sortTable('hr')">HR</th>
+          <th onclick="sortTable('rbi')">RBI</th>
+          <th onclick="sortTable('bb')">BB</th>
+          <th onclick="sortTable('so')">SO</th>
+          <th onclick="sortTable('swingPct')">Swing%</th>
+          <th onclick="sortTable('whiffPct')">Whiff%</th>
+          <th onclick="sortTable('chasePct')">Chase%</th>
+          <th onclick="sortTable('hardHit')">Hard%</th>
+          <th onclick="sortTable('maxEV')">MaxEV</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+  <button class="gen-card-btn" id="genCardBtn" style="width:100%;padding:12px;font-size:.9rem;margin-bottom:8px" disabled onclick="showCardScreen()">
+    Generate Season Card for Selected Player →
+  </button>
+  <div class="status-msg" id="tableStatus"></div>
+</div>
+
+<!-- ── Card Screen ── -->
+<div id="card-screen">
+  <div class="screen-hdr">
+    <div class="screen-title">Season Card</div>
+    <button class="back-btn" onclick="showTable()">← Back</button>
+  </div>
+
+  <div class="card" id="card">
+    <div class="card-header">
+      <div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div>
+      <div class="hdr-center">
+        <div class="player-name" id="cardName">—</div>
+        <div class="player-sub" id="cardSub">Walters State CC</div>
+        <div class="card-type">Season Hitting Summary</div>
+        <div class="season-tag">2026 NJCAA Season</div>
+      </div>
+      <div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div>
+    </div>
+    <div class="game-line" id="cardGameLine">—</div>
+
+    <!-- Season stat line -->
+    <div class="stat-table-wrap">
+      <table class="stat-table">
+        <thead><tr><th>GP</th><th>PA</th><th>AVG</th><th>OBP</th><th>SLG</th><th>OPS</th><th>H</th><th>2B</th><th>HR</th><th>RBI</th><th>BB</th><th>SO</th></tr></thead>
+        <tbody><tr>
+          <td id="cGP">—</td><td id="cPA">—</td><td id="cAVG">—</td><td id="cOBP">—</td>
+          <td id="cSLG">—</td><td id="cOPS">—</td><td id="cH">—</td><td id="c2B">—</td>
+          <td id="cHR">—</td><td id="cRBI">—</td><td id="cBB">—</td><td id="cSO">—</td>
+        </tr></tbody>
+      </table>
+    </div>
+
+    <!-- Discipline + Heat maps -->
+    <div class="mid-section">
+      <div class="left-panel">
+        <div>
+          <div class="panel-title">Plate Discipline</div>
+          <div class="rate-grid">
+            <div class="rate-box"><div class="rb-val" id="dSwing">—</div><div class="rb-lbl">Swing%</div></div>
+            <div class="rate-box"><div class="rb-val" id="dZSwing">—</div><div class="rb-lbl">Z-Swing%</div></div>
+            <div class="rate-box"><div class="rb-val" id="dChase">—</div><div class="rb-lbl">Chase%</div></div>
+            <div class="rate-box"><div class="rb-val" id="dWhiff">—</div><div class="rb-lbl">Whiff%</div></div>
+            <div class="rate-box"><div class="rb-val" id="dHardHit">—</div><div class="rb-lbl">Hard%</div></div>
+            <div class="rate-box"><div class="rb-val" id="dMaxEV">—</div><div class="rb-lbl">MaxEV</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="right-panel">
+        <div class="hmap-title">Slugging Zones</div>
+        <canvas id="hmapSlg" width="160" height="140"></canvas>
+        <div class="hmap-title" style="margin-top:4px">Whiff Zones</div>
+        <canvas id="hmapWhiff" width="160" height="140"></canvas>
+      </div>
+    </div>
+
+    <!-- Pitch type breakdown -->
+    <div style="padding:4px 6px 6px;border-top:1px solid #e4eaf4">
+      <div class="panel-title" style="margin-bottom:4px;text-align:left">Pitch Mix Seen (TrackMan)</div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+        <table class="stat-table" id="pitchTable" style="min-width:340px">
+          <thead><tr><th style="text-align:left">Pitch</th><th>Seen</th><th>Swing%</th><th>Whiff%</th><th>Chase%</th><th>AvgEV</th></tr></thead>
+          <tbody id="pitchTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card-footer">
+      <div id="footL">⚾ Walters State CC</div>
+      <div>Data: TrackMan · wsccbaseball</div>
+      <div id="footR">2026 Season</div>
+    </div>
+    <button class="save-btn" onclick="saveCardImage()">📥 SAVE IMAGE</button>
+  </div>
+</div>
+
+<div class="img-overlay" id="imgOverlay" onclick="closeOverlay()">
+  <img id="overlayImg" src="" alt="Season Card">
+  <div class="overlay-hint">Hold the image to save to your photos</div>
+  <button class="overlay-close" onclick="closeOverlay()">✕ Close</button>
+</div>
+
+<script>
+var SUPABASE_URL='https://mghrapwhvihpwgqryail.supabase.co';
+var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
+
+var allPitches=[], seasonStats={batting:[],pitching:[]}, tableData=[], sortCol='avg', sortAsc=false, selectedPlayer=null;
+
+// ── Supabase fetch ──────────────────────────────────────────────────────────
+async function supaFetch(path){
+  var rows=[],from=0;
+  while(true){
+    var sep=path.indexOf('?')>-1?'&':'?';
+    var r=await fetch(SUPABASE_URL+'/rest/v1/'+path+sep+'limit=1000&offset='+from,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
+    var d=await r.json();
+    if(!Array.isArray(d)||!d.length)break;
+    rows=rows.concat(d);if(d.length<1000)break;from+=1000;
+  }
+  return rows;
+}
+
+// ── Load games ──────────────────────────────────────────────────────────────
+async function loadGames(){
+  try{
+    var rows=await supaFetch('games?select=game_id,display_name,date&order=date.desc,display_name.desc');
+    var sel=document.getElementById('gameSelect');
+    sel.innerHTML='';
+    rows.forEach(function(g){sel.innerHTML+='<option value="'+g.game_id+'">'+(g.display_name||g.game_id)+'</option>';});
+    document.getElementById('runBtn').disabled=false;
+  }catch(e){document.getElementById('statusMsg').textContent='Error loading games: '+e.message;document.getElementById('statusMsg').className='status-msg warn';}
+}
+
+// ── Run ─────────────────────────────────────────────────────────────────────
+document.getElementById('runBtn').addEventListener('click',async function(){
+  var sel=document.getElementById('gameSelect');
+  var gameIds=Array.from(sel.selectedOptions).map(function(o){return o.value;});
+  if(!gameIds.length){setStatus('Select at least one game.','warn');return;}
+  setStatus('Loading pitches...');
+  document.getElementById('runBtn').disabled=true;
+  try{
+    // Fetch season stats
+    var edgeUrl=SUPABASE_URL+'/functions/v1/fetch-boxscore?url=season-stats';
+    var edgeRes=await fetch(edgeUrl,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
+    var edgeData=await edgeRes.json();
+    seasonStats=edgeData;
+
+    // Fetch pitches for selected games
+    var allRows=[];
+    for(var i=0;i<gameIds.length;i++){
+      var rows=await supaFetch('pitches?GameID=eq.'+encodeURIComponent(gameIds[i]));
+      allRows=allRows.concat(rows);
+      setStatus('Loaded game '+(i+1)+' of '+gameIds.length+'...');
+    }
+    allPitches=allRows;
+
+    // Filter to WS batters only
+    var wsPitches=allPitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal');});
+    var hand=document.getElementById('handFilter').value;
+    if(hand) wsPitches=wsPitches.filter(function(r){return r.BatterSide===hand;});
+
+    buildTableData(wsPitches);
+    populatePlayerFilter(wsPitches);
+    renderTable();
+    showTable();
+    setStatus('');
+  }catch(e){setStatus('Error: '+e.message,'warn');}
+  document.getElementById('runBtn').disabled=false;
+});
+
+// ── Build table data ─────────────────────────────────────────────────────────
+function buildTableData(pitches){
+  var players={};
+  pitches.forEach(function(r){
+    var name=(r.Batter||'').trim();
+    if(!name)return;
+    if(!players[name])players[name]={name:name,pitches:[],pa:0};
+    players[name].pitches.push(r);
+  });
+
+  tableData=Object.values(players).map(function(p){
+    return computeHitterMetrics(p.name,p.pitches);
+  });
+}
+
+function computeHitterMetrics(name,rows){
+  var pa=0,ab=0,hits=0,dbl=0,hr=0,bb=0,so=0,hbp=0,sf=0;
+  var swings=0,whiffs=0,inZone=0,ozPitches=0,ozSwings=0;
+  var bip=[], maxEV=0, totalEV=0, evCount=0;
+  var lastPitchOfPA={};
+  var pitchTypes={};
+
+  // Get box score stats by last name match
+  var parts=name.split(','),lastName=(parts[0]||'').trim();
+  var bs=null;
+  if(seasonStats.batting){
+    bs=seasonStats.batting.find(function(b){
+      return b.name&&b.name.split(' ').pop().toLowerCase()===lastName.toLowerCase();
+    });
+  }
+
+  rows.forEach(function(r){
+    var call=(r.PitchCall||'').trim();
+    var side=parseFloat(r.PlateLocSide),height=parseFloat(r.PlateLocHeight);
+    var pt=(r.TaggedPitchType||r.AutoPitchType||'Unknown').trim();
+    if(!pitchTypes[pt])pitchTypes[pt]={total:0,swings:0,whiffs:0,chases:0,ozTotal:0,ev:[],side:[],height:[]};
+    pitchTypes[pt].total++;
+
+    var isSwing=['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
+    var isWhiff=call==='StrikeSwinging';
+    var ev=parseFloat(r.ExitSpeed);
+    var inside=!isNaN(side)&&!isNaN(height)&&Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
+    var outside=!isNaN(side)&&!isNaN(height)&&!inside;
+
+    if(!isNaN(side)&&!isNaN(height)){
+      pitchTypes[pt].side.push(side);
+      pitchTypes[pt].height.push(height);
+    }
+
+    if(isSwing){swings++;pitchTypes[pt].swings++;}
+    if(isWhiff){whiffs++;pitchTypes[pt].whiffs++;}
+    if(inside)inZone++;
+    if(outside){ozPitches++;if(isSwing){ozSwings++;pitchTypes[pt].chases++;pitchTypes[pt].ozTotal++;}}
+    else if(!isNaN(side)){pitchTypes[pt].ozTotal=pitchTypes[pt].ozTotal||0;}
+
+    if(!isNaN(ev)&&ev>0){
+      if(ev>maxEV)maxEV=ev;
+      totalEV+=ev;evCount++;
+      pitchTypes[pt].ev.push(ev);
+      bip.push({side:side,height:height,ev:ev,result:r.PlayResult||''});
+    }
+
+    // Count PA by PitchofPA===1
+    var pop=parseInt(r.PitchofPA)||0;
+    if(pop===1)pa++;
+  });
+
+  // TrackMan derived
+  var totalPitches=rows.length;
+  var swingPct=totalPitches>0?swings/totalPitches:0;
+  var whiffPct=swings>0?whiffs/swings:0;
+  var chasePct=ozPitches>0?ozSwings/ozPitches:0;
+  var hardHit=evCount>0?bip.filter(function(b){return b.ev>=95;}).length/evCount:0;
+  var avgEV=evCount>0?totalEV/evCount:0;
+
+  // From box score
+  var gp=bs?parseInt(bs.gp)||0:0;
+  var bsAB=bs?parseInt(bs.ab)||0:0;
+  var bsH=bs?parseInt(bs.h)||0:0;
+  var bs2B=bs?parseInt(bs.doubles)||0:0;
+  var bsHR=bs?parseInt(bs.hr)||0:0;
+  var bsRBI=bs?parseInt(bs.rbi)||0:0;
+  var bsBB=bs?parseInt(bs.bb)||0:0;
+  var bsSO=bs?parseInt(bs.so)||0:0;
+  var bsAVG=bs?parseFloat(bs.avg)||0:0;
+  var bsOBP=bs?parseFloat(bs.obp)||0:0;
+  var bsSLG=bs?parseFloat(bs.slg)||0:0;
+  var bsOPS=bsOBP&&bsSLG?(bsOBP+bsSLG):0;
+  var bsTB=bs?parseInt(bs.tb)||0:0;
+
+  var displayName=parts.length>1?(parts[1]||'').trim()+' '+parts[0].trim():name;
+
+  return{
+    name:name,displayName:displayName,lastName:lastName,
+    gp:gp,pa:pa,ab:bsAB,h:bsH,doubles:bs2B,hr:bsHR,rbi:bsRBI,bb:bsBB,so:bsSO,
+    avg:bsAVG,obp:bsOBP,slg:bsSLG,ops:bsOPS,tb:bsTB,
+    swingPct:swingPct,whiffPct:whiffPct,chasePct:chasePct,
+    hardHit:hardHit,maxEV:maxEV,avgEV:avgEV,
+    totalPitches:totalPitches,pitchTypes:pitchTypes,bip:bip,rows:rows
+  };
+}
+
+// ── Table rendering ──────────────────────────────────────────────────────────
+function renderTable(){
+  var minPA=parseInt(document.getElementById('minPA').value)||0;
+  var playerF=document.getElementById('playerFilter').value;
+  var data=tableData.filter(function(p){return p.pa>=minPA&&(!playerF||p.name===playerF);});
+
+  data.sort(function(a,b){
+    var av=a[sortCol]||0,bv=b[sortCol]||0;
+    if(typeof av==='string')return sortAsc?av.localeCompare(bv):bv.localeCompare(av);
+    return sortAsc?av-bv:bv-av;
+  });
+
+  var tbody=document.getElementById('tableBody');
+  tbody.innerHTML='';
+  data.forEach(function(p){
+    var tr=document.createElement('tr');
+    tr.style.cursor='pointer';
+    if(selectedPlayer===p.name)tr.className='selected';
+    tr.onclick=function(){selectedPlayer=p.name;renderTable();document.getElementById('genCardBtn').disabled=false;};
+    tr.innerHTML=
+      '<td>'+escH(p.displayName)+'</td>'+
+      '<td>'+p.pa+'</td>'+
+      '<td class="highlight">'+fmt3(p.avg)+'</td>'+
+      '<td>'+fmt3(p.obp)+'</td>'+
+      '<td>'+fmt3(p.slg)+'</td>'+
+      '<td class="highlight">'+fmt3(p.ops)+'</td>'+
+      '<td>'+p.hr+'</td>'+
+      '<td>'+p.rbi+'</td>'+
+      '<td>'+p.bb+'</td>'+
+      '<td>'+p.so+'</td>'+
+      '<td>'+pct(p.swingPct)+'</td>'+
+      '<td>'+pct(p.whiffPct)+'</td>'+
+      '<td>'+pct(p.chasePct)+'</td>'+
+      '<td>'+pct(p.hardHit)+'</td>'+
+      '<td>'+(p.maxEV>0?p.maxEV.toFixed(1):'—')+'</td>';
+    tbody.appendChild(tr);
+  });
+  document.getElementById('tableStatus').textContent=data.length+' players shown';
+}
+
+function sortTable(col){
+  if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=false;}
+  document.querySelectorAll('th').forEach(function(th){th.classList.remove('sorted');});
+  renderTable();
+}
+
+function populatePlayerFilter(pitches){
+  var names=Array.from(new Set(pitches.map(function(r){return r.Batter||''}).filter(Boolean))).sort();
+  var sel=document.getElementById('playerFilter');
+  sel.innerHTML='<option value="">All Players</option>';
+  names.forEach(function(n){
+    var parts=n.split(',');
+    var display=parts.length>1?(parts[1]||'').trim()+' '+parts[0].trim():n;
+    sel.innerHTML+='<option value="'+n+'">'+escH(display)+'</option>';
+  });
+}
+
+// ── Card generation ──────────────────────────────────────────────────────────
+function showCardScreen(){
+  var p=tableData.find(function(d){return d.name===selectedPlayer;});
+  if(!p)return;
+  document.getElementById('cardName').textContent=p.displayName;
+  document.getElementById('cardSub').textContent='Walters State CC · #'+(p.rows[0]&&p.rows[0].BatterNumber||'');
+  document.getElementById('cardGameLine').textContent='2026 Season · '+p.gp+' GP · '+p.pa+' PA';
+  document.getElementById('cGP').textContent=p.gp||p.pa;
+  document.getElementById('cPA').textContent=p.pa;
+  document.getElementById('cAVG').textContent=fmt3(p.avg);
+  document.getElementById('cOBP').textContent=fmt3(p.obp);
+  document.getElementById('cSLG').textContent=fmt3(p.slg);
+  document.getElementById('cOPS').textContent=fmt3(p.ops);
+  document.getElementById('cH').textContent=p.h;
+  document.getElementById('c2B').textContent=p.doubles;
+  document.getElementById('cHR').textContent=p.hr;
+  document.getElementById('cRBI').textContent=p.rbi;
+  document.getElementById('cBB').textContent=p.bb;
+  document.getElementById('cSO').textContent=p.so;
+  document.getElementById('dSwing').textContent=pct(p.swingPct);
+  document.getElementById('dZSwing').textContent=pct(p.swingPct); // approx
+  document.getElementById('dChase').textContent=pct(p.chasePct);
+  document.getElementById('dWhiff').textContent=pct(p.whiffPct);
+  document.getElementById('dHardHit').textContent=pct(p.hardHit);
+  document.getElementById('dMaxEV').textContent=p.maxEV>0?p.maxEV.toFixed(1)+'mph':'—';
+  document.getElementById('footR').textContent=p.pa+' PA · '+p.totalPitches+' pitches seen';
+
+  setTimeout(function(){
+    drawHeatmap('hmapSlg',p.bip.filter(function(b){return b.ev>=95;}),p,'ev');
+    drawHeatmap('hmapWhiff',p.rows.filter(function(r){return r.PitchCall==='StrikeSwinging';}),p,'whiff');
+    buildPitchTable(p);
+  },30);
+
+  document.getElementById('table-screen').style.display='none';
+  document.getElementById('card-screen').style.display='block';
+  window.scrollTo(0,0);
+}
+
+function buildPitchTable(p){
+  var tbody=document.getElementById('pitchTableBody');
+  tbody.innerHTML='';
+  var types=Object.entries(p.pitchTypes).sort(function(a,b){return b[1].total-a[1].total;});
+  types.forEach(function(entry){
+    var pt=entry[0],d=entry[1];
+    var swPct=d.total>0?d.swings/d.total:0;
+    var whPct=d.swings>0?d.whiffs/d.swings:0;
+    var chPct=d.ozTotal>0?d.chases/d.ozTotal:0;
+    var avgEV=d.ev.length>0?(d.ev.reduce(function(a,b){return a+b;},0)/d.ev.length).toFixed(1):'—';
+    tbody.innerHTML+='<tr>'+
+      '<td style="text-align:left;font-size:.8rem">'+escH(pt)+'</td>'+
+      '<td>'+d.total+'</td>'+
+      '<td>'+pct(swPct)+'</td>'+
+      '<td>'+pct(whPct)+'</td>'+
+      '<td>'+pct(chPct)+'</td>'+
+      '<td>'+avgEV+'</td>'+
+      '</tr>';
+  });
+}
+
+// ── Heat map drawing ─────────────────────────────────────────────────────────
+function drawHeatmap(canvasId, points, player, mode){
+  var cv=document.getElementById(canvasId);
+  if(!cv)return;
+  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  var xMin=-1.4,xMax=1.4,yMin=0.9,yMax=4.1,PAD=8;
+  function mx(v){return PAD+(v-xMin)/(xMax-xMin)*(W-PAD*2);}
+  function my(v){return H-PAD-(v-yMin)/(yMax-yMin)*(H-PAD*2);}
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#f8fafd';ctx.fillRect(0,0,W,H);
+
+  // Zone
+  ctx.strokeStyle='#1a3a5c';ctx.lineWidth=1.5;
+  ctx.strokeRect(mx(-0.833),my(3.5),mx(0.833)-mx(-0.833),my(1.5)-my(3.5));
+  // Grid
+  ctx.strokeStyle='#c5d0dc';ctx.lineWidth=0.8;
+  var zw=(mx(0.833)-mx(-0.833))/3,zh=(my(1.5)-my(3.5))/3;
+  for(var i=1;i<3;i++){
+    ctx.beginPath();ctx.moveTo(mx(-0.833)+zw*i,my(3.5));ctx.lineTo(mx(-0.833)+zw*i,my(1.5));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(mx(-0.833),my(3.5)+zh*i);ctx.lineTo(mx(0.833),my(3.5)+zh*i);ctx.stroke();
+  }
+
+  // Points
+  points.forEach(function(pt){
+    var s=parseFloat(pt.PlateLocSide!==undefined?pt.PlateLocSide:pt.side);
+    var h=parseFloat(pt.PlateLocHeight!==undefined?pt.PlateLocHeight:pt.height);
+    if(isNaN(s)||isNaN(h))return;
+    var cx=mx(s),cy=my(h);
+    var color=mode==='ev'?evColor(pt.ev||0):'rgba(255,50,50,0.7)';
+    ctx.beginPath();ctx.arc(cx,cy,3.5,0,Math.PI*2);
+    ctx.fillStyle=color;ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,.2)';ctx.lineWidth=.6;ctx.stroke();
+  });
+
+  ctx.fillStyle='#7a8faa';ctx.font='7px Barlow Condensed,sans-serif';ctx.textAlign='center';
+  ctx.fillText(mode==='ev'?'Hard Hit (95+ EV)':'Whiff Locations',W/2,H-1);
+}
+
+function evColor(ev){
+  if(ev>=105)return'rgba(230,57,70,.85)';
+  if(ev>=100)return'rgba(244,162,97,.85)';
+  if(ev>=95)return'rgba(76,175,100,.85)';
+  return'rgba(100,150,200,.7)';
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function fmt3(v){if(!v&&v!==0)return'—';var s=parseFloat(v).toFixed(3);return s.startsWith('0.')?s.slice(1):s;}
+function pct(v){if(isNaN(v)||v===null)return'—';return(v*100).toFixed(1)+'%';}
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function setStatus(msg,cls){var el=document.getElementById('statusMsg');el.textContent=msg;el.className='status-msg'+(cls?' '+cls:'');}
+
+function showFilter(){
+  document.getElementById('table-screen').style.display='none';
+  document.getElementById('card-screen').style.display='none';
+  document.getElementById('filter-screen').style.display='block';
+}
+function showTable(){
+  document.getElementById('filter-screen').style.display='none';
+  document.getElementById('card-screen').style.display='none';
+  document.getElementById('table-screen').style.display='block';
+}
+
+async function saveCardImage(){
+  var card=document.getElementById('card'),btn=card.querySelector('.save-btn');
+  var orig=btn.textContent;btn.textContent='Rendering…';btn.disabled=true;
+  try{
+    var canvas=await html2canvas(card,{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',scrollX:0,scrollY:-window.scrollY,ignoreElements:function(el){return el===btn;}});
+    document.getElementById('overlayImg').src=canvas.toDataURL('image/png');
+    document.getElementById('imgOverlay').classList.add('active');
+  }catch(e){alert('Render failed — try a screenshot instead.');}
+  btn.textContent=orig;btn.disabled=false;
+}
+function closeOverlay(){document.getElementById('imgOverlay').classList.remove('active');}
+
+loadGames();
+</script>
+</body>
+</html>
