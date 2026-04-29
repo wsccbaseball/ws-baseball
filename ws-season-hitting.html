@@ -338,12 +338,19 @@ function computeMetrics(name,rows){
   if(seasonStats.batting){
     bs=seasonStats.batting.find(function(b){return b.name&&b.name.split(' ').pop().toLowerCase()===lastName.toLowerCase();});
   }
+  // PA = AB + BB + HBP + SF + SH from box score
+  var bsAB=bs?parseInt(bs.ab)||0:0;
+  var bsBB=bs?parseInt(bs.bb)||0:0;
+  var bsHBP=bs?parseInt(bs.hbp)||0:0;
+  var bsSF=bs?parseInt(bs.sf)||0:0;
+  var bsSH=bs?parseInt(bs.sh)||0:0;
+  var bsPA=bsAB+bsBB+bsHBP+bsSF+bsSH;
   return{
     name:name,displayName:displayName,lastName:lastName,
-    gp:bs?parseInt(bs.gp)||0:0,pa:pa,ab:bs?parseInt(bs.ab)||0:0,
+    gp:bs?parseInt(bs.gp)||0:0,pa:bsPA,ab:bsAB,
     h:bs?parseInt(bs.h)||0:0,doubles:bs?parseInt(bs.doubles)||0:0,
     hr:bs?parseInt(bs.hr)||0:0,rbi:bs?parseInt(bs.rbi)||0:0,
-    bb:bs?parseInt(bs.bb)||0:0,so:bs?parseInt(bs.so)||0:0,
+    bb:bsBB,so:bs?parseInt(bs.so)||0:0,hbp:bsHBP,sf:bsSF,sh:bsSH,
     avg:bs?parseFloat(bs.avg)||0:0,obp:bs?parseFloat(bs.obp)||0:0,
     slg:bs?parseFloat(bs.slg)||0:0,
     ops:(bs&&bs.obp&&bs.slg)?(parseFloat(bs.obp)+parseFloat(bs.slg)):0,
