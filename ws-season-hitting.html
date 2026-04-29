@@ -127,18 +127,16 @@ canvas{display:block;border-radius:4px;max-width:100%}
           <tr>
             <th onclick="sortTable('displayName')">Player</th>
             <th onclick="sortTable('pa')">PA</th>
-            <th onclick="sortTable('avg')">AVG</th>
-            <th onclick="sortTable('obp')">OBP</th>
-            <th onclick="sortTable('slg')">SLG</th>
-            <th onclick="sortTable('ops')">OPS</th>
-            <th onclick="sortTable('hr')">HR</th>
-            <th onclick="sortTable('rbi')">RBI</th>
-            <th onclick="sortTable('bb')">BB</th>
-            <th onclick="sortTable('so')">SO</th>
-            <th onclick="sortTable('swingPct')">Swing%</th>
-            <th onclick="sortTable('whiffPct')">Whiff%</th>
-            <th onclick="sortTable('chasePct')">Chase%</th>
+            <th onclick="sortTable('woba')">wOBA</th>
+            <th onclick="sortTable('barrelPct')">Barrel%</th>
             <th onclick="sortTable('hardHit')">Hard%</th>
+            <th onclick="sortTable('swingPct')">Swing%</th>
+            <th onclick="sortTable('chasePct')">Chase%</th>
+            <th onclick="sortTable('zSwingPct')">Z-Swing%</th>
+            <th onclick="sortTable('sgr')">SGR</th>
+            <th onclick="sortTable('gbPct')">GB%</th>
+            <th onclick="sortTable('fbPct')">FB%</th>
+            <th onclick="sortTable('bestSpeed')">Best Speed</th>
             <th onclick="sortTable('maxEV')">MaxEV</th>
           </tr>
         </thead>
@@ -228,7 +226,7 @@ var SUPABASE_URL='https://mghrapwhvihpwgqryail.supabase.co';
 var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
 
 var allPitches=[], seasonStats={batting:[]}, gamesMeta=[], tableData=[];
-var sortCol='avg', sortAsc=false, selectedPlayer=null;
+var sortCol='woba', sortAsc=false, selectedPlayer=null;
 
 async function supaFetch(path){
   var rows=[],from=0;
@@ -316,6 +314,9 @@ function computeMetrics(name,rows){
   var parts=name.split(','),lastName=(parts[0]||'').trim();
   var displayName=parts.length>1?(parts[1]||'').trim()+' '+parts[0].trim():name;
 
+  var gbCount=0,fbCount=0,ldCount=0,bipCount=0,barrels=0;
+  var allEVs=[];
+
   rows.forEach(function(r){
     var call=(r.PitchCall||'').trim();
     var side=parseFloat(r.PlateLocSide),height=parseFloat(r.PlateLocHeight);
@@ -331,9 +332,39 @@ function computeMetrics(name,rows){
     if(inside){inZone++;if(isSwing)inZoneSwings++;}
     if(outside){ozPitches++;if(isSwing){ozSwings++;pitchTypes[pt].chases++;pitchTypes[pt].ozTotal++;}}
     var ev=parseFloat(r.ExitSpeed);
-    if(!isNaN(ev)&&ev>0){if(ev>maxEV)maxEV=ev;totalEV+=ev;evCount++;pitchTypes[pt].ev.push(ev);bip.push({side:side,height:height,ev:ev});}
+    var la=parseFloat(r.Angle||r.LaunchAngle||r.VertAngle||'NaN');
+    if(!isNaN(ev)&&ev>0){
+      if(ev>maxEV)maxEV=ev;
+      totalEV+=ev;evCount++;
+      allEVs.push(ev);
+      pitchTypes[pt].ev.push(ev);
+      bip.push({side:side,height:height,ev:ev});
+      // Barrel: EV >= 98 and LA 26-30
+      if(!isNaN(la)&&ev>=98&&la>=26&&la<=30)barrels++;
+      // Batted ball type
+      if(call==='InPlay'){
+        bipCount++;
+        var ht=(r.TaggedHitType||r.HitType||'').toLowerCase();
+        if(ht.includes('ground'))gbCount++;
+        else if(ht.includes('fly')||ht.includes('popup'))fbCount++;
+        else if(ht.includes('line'))ldCount++;
+        else if(!isNaN(la)){
+          if(la<10)gbCount++;
+          else if(la>=10&&la<25)ldCount++;
+          else fbCount++;
+        }
+      }
+    }
     if(parseInt(r.PitchofPA)===1)pa++;
   });
+
+  // Best Speed: avg of top 50% EVs
+  var bestSpeed=0;
+  if(allEVs.length>0){
+    allEVs.sort(function(a,b){return b-a;});
+    var topHalf=allEVs.slice(0,Math.ceil(allEVs.length/2));
+    bestSpeed=topHalf.reduce(function(a,b){return a+b;},0)/topHalf.length;
+  }
 
   var tp=rows.length;
   var bs=null;
@@ -347,18 +378,30 @@ function computeMetrics(name,rows){
   var bsSF=bs?parseInt(bs.sf)||0:0;
   var bsSH=bs?parseInt(bs.sh)||0:0;
   var bsPA=bsAB+bsBB+bsHBP+bsSF+bsSH;
+  // wOBA from box score
+  var bs1B=Math.max(0,(bs?parseInt(bs.h)||0:0)-(bs?parseInt(bs.doubles)||0:0)-(bs?parseInt(bs.triples)||0:0)-(bs?parseInt(bs.hr)||0:0));
+  var woba=bsPA>0?(bsBB*.69+bsHBP*.72+bs1B*.88+(bs?parseInt(bs.doubles)||0:0)*1.24+(bs?parseInt(bs.triples)||0:0)*1.56+(bs?parseInt(bs.hr)||0:0)*2.08)/bsPA:0;
+  var hardHitPct=evCount>0?bip.filter(function(b){return b.ev>=95;}).length/evCount:0;
+  var barrelPct=evCount>0?barrels/evCount:0;
+  var gbPct=bipCount>0?gbCount/bipCount:0;
+  var fbPct=bipCount>0?fbCount/bipCount:0;
+  var sgr=(inZone>0&&ozPitches>0)?(inZoneSwings/inZone)-(ozSwings/ozPitches):0;
+
   return{
     name:name,displayName:displayName,lastName:lastName,
     gp:bs?parseInt(bs.gp)||0:0,pa:bsPA,ab:bsAB,
     h:bs?parseInt(bs.h)||0:0,doubles:bs?parseInt(bs.doubles)||0:0,
+    triples:bs?parseInt(bs.triples)||0:0,
     hr:bs?parseInt(bs.hr)||0:0,rbi:bs?parseInt(bs.rbi)||0:0,
     bb:bsBB,so:bs?parseInt(bs.so)||0:0,hbp:bsHBP,sf:bsSF,sh:bsSH,
     avg:bs?parseFloat(bs.avg)||0:0,obp:bs?parseFloat(bs.obp)||0:0,
     slg:bs?parseFloat(bs.slg)||0:0,
     ops:(bs&&bs.obp&&bs.slg)?(parseFloat(bs.obp)+parseFloat(bs.slg)):0,
+    woba:woba,
     swingPct:tp>0?swings/tp:0,whiffPct:swings>0?whiffs/swings:0,
     chasePct:ozPitches>0?ozSwings/ozPitches:0,zSwingPct:inZone>0?inZoneSwings/inZone:0,
-    hardHit:evCount>0?bip.filter(function(b){return b.ev>=95;}).length/evCount:0,
+    sgr:sgr,hardHit:hardHitPct,barrelPct:barrelPct,
+    gbPct:gbPct,fbPct:fbPct,bestSpeed:bestSpeed,
     maxEV:maxEV,totalPitches:tp,pitchTypes:pitchTypes,bip:bip,rows:rows
   };
 }
