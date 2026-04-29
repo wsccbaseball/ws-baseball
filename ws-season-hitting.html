@@ -715,66 +715,7 @@ function hotColdColor(val, minVal, maxVal) {
   return'rgb('+r+','+g+','+b+')';
 }
 
-function drawZoneGrid(canvasId, rows, valueFn, minVal, maxVal, label) {
-  var cv=document.getElementById(canvasId);if(!cv)return;
-  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
-  var PAD_L=8,PAD_R=8,PAD_T=8,PAD_B=18;
-  var gridW=W-PAD_L-PAD_R, gridH=H-PAD_T-PAD_B;
-  var cellW=gridW/ZONE_COLS, cellH=gridH/ZONE_ROWS;
 
-  ctx.clearRect(0,0,W,H);
-  ctx.fillStyle='#f8fafd';ctx.fillRect(0,0,W,H);
-
-  var cells=buildZoneGrid(rows,valueFn);
-
-  // Draw cells
-  for(var row=0;row<ZONE_ROWS;row++){
-    for(var col=0;col<ZONE_COLS;col++){
-      var idx=row*ZONE_COLS+col;
-      var cell=cells[idx];
-      var x=PAD_L+col*cellW, y=PAD_T+row*cellH;
-      if(cell.count>=3){
-        var avg=cell.sum/cell.count;
-        var color=hotColdColor(avg,minVal,maxVal);
-        ctx.fillStyle=color;
-        ctx.fillRect(x,y,cellW,cellH);
-        // Value label
-        ctx.fillStyle='rgba(0,0,0,0.7)';
-        ctx.font='bold '+(cellW>35?9:7)+'px Barlow Condensed,sans-serif';
-        ctx.textAlign='center';
-        ctx.textBaseline='middle';
-        var dispVal=avg>=1?avg.toFixed(2):avg<0.1?(avg*100).toFixed(0)+'%':avg.toFixed(2);
-        // For percentages show as pct, for wOBA/ISO/AVG show 3 decimal
-        ctx.fillText(dispVal,x+cellW/2,y+cellH/2);
-      } else {
-        ctx.fillStyle='#e8edf4';
-        ctx.fillRect(x,y,cellW,cellH);
-      }
-      // Cell border
-      ctx.strokeStyle='rgba(255,255,255,0.8)';ctx.lineWidth=1;
-      ctx.strokeRect(x,y,cellW,cellH);
-    }
-  }
-
-  // Strike zone border
-  ctx.strokeStyle='#1a3a5c';ctx.lineWidth=2;
-  ctx.strokeRect(PAD_L,PAD_T,gridW,gridH);
-
-  // Color scale bar at bottom
-  var barX=PAD_L, barY=H-14, barW=gridW, barH=6;
-  var grad=ctx.createLinearGradient(barX,0,barX+barW,0);
-  grad.addColorStop(0,'rgb(100,149,237)');
-  grad.addColorStop(0.5,'rgb(255,255,255)');
-  grad.addColorStop(1,'rgb(255,0,0)');
-  ctx.fillStyle=grad;ctx.fillRect(barX,barY,barW,barH);
-  ctx.strokeStyle='#ccc';ctx.lineWidth=0.5;ctx.strokeRect(barX,barY,barW,barH);
-
-  // Min/max labels
-  ctx.fillStyle='#6b5f47';ctx.font='6px Barlow Condensed,sans-serif';ctx.textAlign='left';
-  ctx.fillText(minVal%1===0?minVal:minVal.toFixed(2),barX,H-2);
-  ctx.textAlign='right';
-  ctx.fillText(maxVal%1===0?maxVal:maxVal.toFixed(2),barX+barW,H-2);
-}
 
 // wOBA value function
 var WOBA_WEIGHTS={'Single':0.88,'Double':1.24,'Triple':1.56,'HomeRun':2.08,'Home Run':2.08};
