@@ -1005,4 +1005,385 @@ boot();
 </script>
 
 </body>
+</html// -- Zone Grid Heat Map Engine -----------------------------------------------
+var ZONE_COLS=5, ZONE_ROWS=5;
+var ZONE_X_MIN=-0.833, ZONE_X_MAX=0.833;
+var ZONE_Y_MIN=1.5, ZONE_Y_MAX=3.5;
+
+function buildZoneGrid(rows, valueFn) {
+var cells=[];
+for(var i=0;i<ZONE_COLS*ZONE_ROWS;i++)cells.push({sum:0,count:0});
+var cellW=(ZONE_X_MAX-ZONE_X_MIN)/ZONE_COLS;
+var cellH=(ZONE_Y_MAX-ZONE_Y_MIN)/ZONE_ROWS;
+rows.forEach(function(r){
+var side=parseFloat(r.PlateLocSide);
+var height=parseFloat(r.PlateLocHeight);
+var displaySide=-side; // pitcher’s view
+if(isNaN(displaySide)||isNaN(height))return;
+if(displaySide<ZONE_X_MIN||displaySide>ZONE_X_MAX||height<ZONE_Y_MIN||height>ZONE_Y_MAX)return;
+var col=Math.min(ZONE_COLS-1,Math.floor((displaySide-ZONE_X_MIN)/cellW));
+var row=Math.min(ZONE_ROWS-1,Math.floor((ZONE_Y_MAX-height)/cellH));
+var idx=row*ZONE_COLS+col;
+var val=valueFn(r);
+if(val!==null&&val!==undefined&&!isNaN(val)){cells[idx].sum+=val;cells[idx].count++;}
+});
+return cells;
+}
+
+// Bilinear interpolation between 4 corner values
+function bilinearInterp(v00,v10,v01,v11,tx,ty){
+return v00*(1-tx)*(1-ty)+v10*tx*(1-ty)+v01*(1-tx)*ty+v11*tx*ty;
+}
+
+function hotColdColor(t){
+// t = 0..1, blue->white->red
+t=Math.max(0,Math.min(1,t));
+var r,g,b;
+if(t<0.5){
+var s=t*2;
+r=Math.round(59+s*(255-59));
+g=Math.round(113+s*(255-113));
+b=Math.round(204+s*(255-204));
+} else {
+var s=(t-0.5)*2;
+r=255;
+g=Math.round(255-s*255);
+b=Math.round(255-s*255);
+}
+return’rgb(’+r+’,’+g+’,’+b+’)’;
+}
+
+function drawZoneGrid(canvasId, rows, valueFn, minVal, maxVal, label){
+var cv=document.getElementById(canvasId);if(!cv)return;
+var ctx=cv.getContext(‘2d’),W=cv.width,H=cv.height;
+var PAD_L=6,PAD_R=6,PAD_T=6,PAD_B=16;
+var gridW=W-PAD_L-PAD_R, gridH=H-PAD_T-PAD_B;
+
+ctx.clearRect(0,0,W,H);
+ctx.fillStyle=’#f0f4fa’;ctx.fillRect(0,0,W,H);
+
+var cells=buildZoneGrid(rows,valueFn);
+var range=Math.max(maxVal-minVal,0.001);
+
+// Build a value grid - use cell avg where we have data, interpolate where we don’t
+// First pass: get raw values
+var vals=[];
+for(var i=0;i<ZONE_COLS*ZONE_ROWS;i++){
+vals.push(cells[i].count>=2?cells[i].sum/cells[i].count:null);
+}
+
+// Second pass: fill nulls by averaging neighbors
+function fillNulls(v){
+var filled=v.slice();
+var changed=true;
+var iters=0;
+while(changed&&iters<10){
+changed=false;iters++;
+for(var row=0;row<ZONE_ROWS;row++){
+for(var col=0;col<ZONE_COLS;col++){
+var idx=row*ZONE_COLS+col;
+if(filled[idx]!==null)continue;
+var neighbors=[],n;
+if(row>0&&filled[(row-1)*ZONE_COLS+col]!==null)neighbors.push(filled[(row-1)*ZONE_COLS+col]);
+if(row<ZONE_ROWS-1&&filled[(row+1)*ZONE_COLS+col]!==null)neighbors.push(filled[(row+1)*ZONE_COLS+col]);
+if(col>0&&filled[row*ZONE_COLS+col-1]!==null)neighbors.push(filled[row*ZONE_COLS+col-1]);
+if(col<ZONE_COLS-1&&filled[row*ZONE_COLS+col+1]!==null)neighbors.push(filled[row*ZONE_COLS+col+1]);
+if(neighbors.length>0){
+filled[idx]=neighbors.reduce(function(a,b){return a+b;},0)/neighbors.length;
+changed=true;
+}
+}
+}
+}
+// Any remaining nulls get global mean
+var known=filled.filter(function(v){return v!==null;});
+var mean=known.length>0?known.reduce(function(a,b){return a+b;},0)/known.length:(minVal+maxVal)/2;
+return filled.map(function(v){return v===null?mean:v;});
+}
+
+var filledVals=fillNulls(vals);
+
+// Render smooth gradient pixel by pixel using bilinear interpolation
+// Sample at higher resolution for smooth look
+var RENDER_COLS=ZONE_COLS*4, RENDER_ROWS=ZONE_ROWS*4;
+var rCellW=gridW/RENDER_COLS, rCellH=gridH/RENDER_ROWS;
+
+for(var ry=0;ry<RENDER_ROWS;ry++){
+for(var rx=0;rx<RENDER_COLS;rx++){
+// Map render cell to fractional grid position
+var fx=(rx+0.5)/RENDER_COLS*ZONE_COLS-0.5;
+var fy=(ry+0.5)/RENDER_ROWS*ZONE_ROWS-0.5;
+var c0=Math.max(0,Math.floor(fx)), c1=Math.min(ZONE_COLS-1,c0+1);
+var r0=Math.max(0,Math.floor(fy)), r1=Math.min(ZONE_ROWS-1,r0+1);
+var tx=fx-Math.floor(fx), ty=fy-Math.floor(fy);
+tx=Math.max(0,Math.min(1,tx));ty=Math.max(0,Math.min(1,ty));
+var v00=filledVals[r0*ZONE_COLS+c0];
+var v10=filledVals[r0*ZONE_COLS+c1];
+var v01=filledVals[r1*ZONE_COLS+c0];
+var v11=filledVals[r1*ZONE_COLS+c1];
+var interp=bilinearInterp(v00,v10,v01,v11,tx,ty);
+var t=(interp-minVal)/range;
+ctx.fillStyle=hotColdColor(t);
+ctx.fillRect(PAD_L+rx*rCellW-0.5,PAD_T+ry*rCellH-0.5,rCellW+1,rCellH+1);
+}
+}
+
+// Strike zone border
+ctx.strokeStyle=‘rgba(0,0,0,0.7)’;ctx.lineWidth=2;
+ctx.strokeRect(PAD_L,PAD_T,gridW,gridH);
+
+// Cell grid lines (subtle)
+ctx.strokeStyle=‘rgba(0,0,0,0.15)’;ctx.lineWidth=0.5;
+for(var c=1;c<ZONE_COLS;c++){
+ctx.beginPath();ctx.moveTo(PAD_L+c*gridW/ZONE_COLS,PAD_T);
+ctx.lineTo(PAD_L+c*gridW/ZONE_COLS,PAD_T+gridH);ctx.stroke();
+}
+for(var r=1;r<ZONE_ROWS;r++){
+ctx.beginPath();ctx.moveTo(PAD_L,PAD_T+r*gridH/ZONE_ROWS);
+ctx.lineTo(PAD_L+gridW,PAD_T+r*gridH/ZONE_ROWS);ctx.stroke();
+}
+
+// Color scale bar
+var barX=PAD_L,barY=H-12,barW=gridW,barH=5;
+var grad=ctx.createLinearGradient(barX,0,barX+barW,0);
+grad.addColorStop(0,‘rgb(59,113,204)’);
+grad.addColorStop(0.5,‘rgb(255,255,255)’);
+grad.addColorStop(1,‘rgb(255,0,0)’);
+ctx.fillStyle=grad;ctx.fillRect(barX,barY,barW,barH);
+ctx.strokeStyle=‘rgba(0,0,0,0.2)’;ctx.lineWidth=0.5;ctx.strokeRect(barX,barY,barW,barH);
+
+// Min/max labels
+ctx.fillStyle=‘rgba(0,0,0,0.5)’;ctx.font=‘6px Barlow Condensed,sans-serif’;
+ctx.textAlign=‘left’;ctx.fillText(minVal.toFixed(minVal<1?2:0),barX,H-1);
+ctx.textAlign=‘right’;ctx.fillText(maxVal.toFixed(maxVal<1?2:0),barX+barW,H-1);
+}
+// wOBA value function
+var WOBA_WEIGHTS={‘Single’:0.88,‘Double’:1.24,‘Triple’:1.56,‘HomeRun’:2.08,‘Home Run’:2.08};
+function wobaVal(r){
+if(r.PitchCall!==‘InPlay’)return null;
+var result=r.PlayResult||’’;
+return WOBA_WEIGHTS[result]||0;
+}
+
+// ISO value function (TB-H)/AB proxy using EV+LA
+function isoVal(r){
+if(r.PitchCall!==‘InPlay’)return null;
+var result=r.PlayResult||’’;
+var tbMap={‘Single’:1,‘Double’:2,‘Triple’:3,‘HomeRun’:4,‘Home Run’:4};
+var tb=tbMap[result]||0;
+var isHit=tb>0;
+return tb-(isHit?1:0); // TB-H for ISO, 0 for outs/singles after -1
+}
+
+// Hard% value function
+function hardVal(r){
+var ev=parseFloat(r.ExitSpeed);
+if(isNaN(ev)||ev<=0||r.PitchCall!==‘InPlay’)return null;
+return ev>=95?1:0;
+}
+
+// Whiff% value function (per swing)
+function whiffVal(r){
+var call=(r.PitchCall||’’).trim();
+var isSwing=[‘StrikeSwinging’,‘FoulBall’,‘FoulBallNotFieldable’,‘InPlay’].includes(call);
+if(!isSwing)return null;
+return call===‘StrikeSwinging’?1:0;
+}
+
+function buildLegend(containerId, items){
+var el=document.getElementById(containerId);
+if(!el)return;
+if(!items||!items.length){el.innerHTML=’’;return;}
+el.innerHTML=items.slice(0,6).map(function(item){
+return’<div class="hmap-legend-item"><div class="hmap-dot" style="background:'+item.color+'"></div>’+escH(item.pt)+’ (’+item.count+’)</div>’;
+}).join(’’);
+}
+
+function buildPitchTable(p){
+var tbody=document.getElementById(‘pitchTableBody’);
+if(!tbody)return;
+tbody.innerHTML=’’;
+Object.entries(p.pitchTypes)
+.filter(function(e){return e[1].total>=3;})
+.sort(function(a,b){return b[1].total-a[1].total;})
+.forEach(function(e){
+var pt=e[0],d=e[1];
+var sw=d.total>0?d.swings/d.total:0;
+var wh=d.swings>0?d.whiffs/d.swings:0;
+var ch=d.ozTotal>0?d.chases/d.ozTotal:0;
+var hard=d.ev.length>0?d.ev.filter(function(v){return v>=95;}).length/d.ev.length:0;
+var avgEV=d.ev.length>0?(d.ev.reduce(function(a,b){return a+b;},0)/d.ev.length).toFixed(1):’–’;
+var color=pitchColor(pt);
+tbody.innerHTML+=’<tr>’+
+‘<td style="display:flex;align-items:center;gap:4px"><div class="pitch-dot" style="background:'+color+'"></div>’+escH(pt)+’</td>’+
+‘<td>’+d.total+’</td>’+
+‘<td>’+pct(sw)+’</td>’+
+‘<td>’+pct(wh)+’</td>’+
+‘<td>’+ch>0?pct(ch):’–’+’</td>’+
+‘<td>’+pct(hard)+’</td>’+
+‘<td>’+avgEV+’</td>’+
+‘</tr>’;
+});
+}
+
+function buildCard(){
+var p=tableData.find(function(d){return d.name===selectedPlayer;});
+if(!p)return;
+if(!p){document.getElementById(‘statusMsg’).textContent=‘No data for this player.’;return;}
+
+document.getElementById(‘cardName’).textContent=p.displayName;
+document.getElementById(‘cardGameLine’).textContent=
+‘2026 Season . ‘+p.gp+’ GP . ‘+p.pa+’ PA . ‘+p.totalPitches+’ pitches seen (TrackMan)’;
+
+// Traditional stats
+document.getElementById(‘sAVG’).textContent=fmt3(p.avg);
+document.getElementById(‘sOBP’).textContent=fmt3(p.obp);
+document.getElementById(‘sSLG’).textContent=fmt3(p.slg);
+document.getElementById(‘sWOBA’).textContent=fmt3(p.woba);
+document.getElementById(‘sHR’).textContent=p.hr;
+document.getElementById(‘sRBI’).textContent=p.rbi;
+document.getElementById(‘sSB’).textContent=p.sb;
+
+// Contact quality
+var hardEl=document.getElementById(‘tHard’);
+hardEl.textContent=pct(p.hardHit);
+hardEl.className=‘stat-val’+(p.hardHit>=.35?’ good’:’’);
+document.getElementById(‘tBarrel’).textContent=pct(p.barrelPct);
+document.getElementById(‘tBestSpeed’).textContent=p.bestSpeed>0?p.bestSpeed.toFixed(1):’–’;
+document.getElementById(‘tMaxEV’).textContent=p.maxEV>0?p.maxEV.toFixed(1):’–’;
+document.getElementById(‘tGB’).textContent=pct(p.gbPct);
+document.getElementById(‘tFB’).textContent=pct(p.fbPct);
+
+// Discipline
+var chaseEl=document.getElementById(‘tChase’);
+chaseEl.textContent=pct(p.chasePct);
+chaseEl.className=‘stat-val’+(p.chasePct>=.30?’ warn’:’’);
+document.getElementById(‘tSwing’).textContent=pct(p.swingPct);
+document.getElementById(‘tZSwing’).textContent=pct(p.zSwingPct);
+document.getElementById(‘tWhiff’).textContent=pct(p.whiffPct);
+document.getElementById(‘tSGR’).textContent=(p.seagerScore||0).toFixed(2);
+
+setTimeout(function(){
+var allRows=p.rows;
+drawZoneGrid(‘zmapWoba’, allRows, wobaVal, 0, 0.8, ‘wOBA’);
+drawZoneGrid(‘zmapHard’, allRows, hardVal, 0, 1, ‘Hard%’);
+drawZoneGrid(‘zmapIso’,  allRows, isoVal,  0, 1.5, ‘ISO’);
+drawZoneGrid(‘zmapWhiff’,allRows, whiffVal,0, 1, ‘Whiff%’);
+buildPitchTable(p);
+},30);
+
+document.getElementById(‘main-screen’).style.display=‘none’;
+document.getElementById(‘card-screen’).style.display=‘block’;
+window.scrollTo(0,0);
+}
+
+function showSelect(){
+document.getElementById(‘card-screen’).style.display=‘none’;
+document.getElementById(‘main-screen’).style.display=‘block’;
+}
+
+async function saveCard(){
+var card=document.getElementById(‘card’),btn=card.querySelector(’.save-btn’),orig=btn.textContent;
+btn.textContent=‘Rendering ‘;btn.disabled=true;
+try{
+var canvas=await html2canvas(card,{scale:2,useCORS:true,allowTaint:true,backgroundColor:’#ffffff’,scrollX:0,scrollY:-window.scrollY,ignoreElements:function(el){return el===btn;}});
+document.getElementById(‘overlayImg’).src=canvas.toDataURL(‘image/png’);
+document.getElementById(‘imgOverlay’).classList.add(‘active’);
+}catch(e){alert(‘Render failed.’);}
+btn.textContent=orig;btn.disabled=false;
+}
+function closeOverlay(){document.getElementById(‘imgOverlay’).classList.remove(‘active’);}
+
+// – Helpers ——————————————————————
+function hexToRGBA(hex,alpha){
+var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+return’rgba(’+r+’,’+g+’,’+b+’,’+alpha+’)’;
+}
+function fmt3(v){if(!v&&v!==0)return’–’;var s=parseFloat(v).toFixed(3);return s.startsWith(‘0.’)?s.slice(1):s;}
+function pct(v){if(isNaN(v)||v===null||v===undefined)return’–’;return(v*100).toFixed(1)+’%’;}
+function escH(s){return String(s).replace(/&/g,’&’).replace(/</g,’<’).replace(/>/g,’>’);}
+
+async function supaFetch(path){
+var rows=[],from=0;
+while(true){var sep=path.indexOf(’?’)>-1?’&’:’?’;var r=await fetch(SUPABASE_URL+’/rest/v1/’+path+sep+‘limit=1000&offset=’+from,{headers:{‘apikey’:SUPABASE_KEY,‘Authorization’:‘Bearer ‘+SUPABASE_KEY}});var d=await r.json();if(!Array.isArray(d)||!d.length)break;rows=rows.concat(d);if(d.length<1000)break;from+=1000;}
+return rows;
+}
+function setProgress(pct,msg){document.getElementById(‘progressFill’).style.width=pct+’%’;document.getElementById(‘loadMsg’).textContent=msg;}
+
+async function boot(){
+try{
+setProgress(5,‘Loading season stats…’);
+var edgeRes=await fetch(SUPABASE_URL+’/functions/v1/fetch-boxscore?url=season-stats’,{headers:{‘apikey’:SUPABASE_KEY,‘Authorization’:’Bearer ’+SUPABASE_KEY}});
+var edgeData=await edgeRes.json();if(edgeData.batting)seasonStats=edgeData;
+setProgress(20,‘Loading games…’);
+gamesMeta=await supaFetch(‘games?select=game_id,display_name,date&order=date.asc,display_name.asc’);
+populateGameFilter();
+setProgress(30,‘Loading pitch data…’);
+allPitches=[];
+for(var i=0;i<gamesMeta.length;i++){var rows=await supaFetch(‘pitches?GameID=eq.’+encodeURIComponent(gamesMeta[i].game_id));allPitches=allPitches.concat(rows);setProgress(30+Math.round(((i+1)/gamesMeta.length)*60),‘Loading game ‘+(i+1)+’ of ‘+gamesMeta.length+’…’);}
+setProgress(96,‘Building stats…’);
+rebuildTableData(allPitches);populatePlayerFilter();renderTable();
+document.getElementById(‘loading-screen’).style.display=‘none’;
+document.getElementById(‘main-screen’).style.display=‘block’;
+document.getElementById(‘bottomBar’).style.display=‘flex’;
+}catch(e){document.getElementById(‘loadMsg’).textContent=’Error: ’+e.message;console.error(e);}
+}
+
+function populateGameFilter(){
+var menu=document.getElementById(‘gameDDMenu’);menu.innerHTML=’’;
+gamesMeta.forEach(function(g){
+var item=document.createElement(‘div’);item.className=‘dd-item’;
+var cb=document.createElement(‘input’);cb.type=‘checkbox’;cb.value=g.game_id;
+cb.addEventListener(‘change’,function(){item.classList.toggle(‘checked’,cb.checked);onFilterChange();});
+item.appendChild(cb);var lbl=document.createElement(‘span’);lbl.textContent=g.display_name||g.game_id;item.appendChild(lbl);
+item.addEventListener(‘click’,function(e){if(e.target!==cb){cb.checked=!cb.checked;item.classList.toggle(‘checked’,cb.checked);onFilterChange();}});
+menu.appendChild(item);
+});
+}
+function populatePlayerFilter(){
+var names=Array.from(new Set(allPitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes(‘wal’);}).map(function(r){return r.Batter||’’;}).filter(Boolean))).sort();
+var menu=document.getElementById(‘playerDDMenu’);menu.innerHTML=’’;
+names.forEach(function(n){
+var p=n.split(’,’),d=p.length>1?(p[1]||’’).trim()+’ ‘+p[0].trim():n;
+var item=document.createElement(‘div’);item.className=‘dd-item’;
+var cb=document.createElement(‘input’);cb.type=‘checkbox’;cb.value=n;
+cb.addEventListener(‘change’,function(){item.classList.toggle(‘checked’,cb.checked);onFilterChange();});
+item.appendChild(cb);var lbl=document.createElement(‘span’);lbl.textContent=d;item.appendChild(lbl);
+item.addEventListener(‘click’,function(e){if(e.target!==cb){cb.checked=!cb.checked;item.classList.toggle(‘checked’,cb.checked);onFilterChange();}});
+menu.appendChild(item);
+});
+}
+function getSelectedGames(){return Array.from(document.querySelectorAll(’#gameDDMenu input[type=checkbox]:checked’)).map(function(cb){return cb.value;});}
+function getSelectedPlayers(){return Array.from(document.querySelectorAll(’#playerDDMenu input[type=checkbox]:checked’)).map(function(cb){return cb.value;});}
+function toggleDD(id){var el=document.getElementById(id);var isOpen=el.classList.contains(‘open’);document.querySelectorAll(’.dd-wrap.open’).forEach(function(d){d.classList.remove(‘open’);});if(!isOpen)el.classList.add(‘open’);}
+document.addEventListener(‘click’,function(e){if(!e.target.closest(’.dd-wrap’))document.querySelectorAll(’.dd-wrap.open’).forEach(function(d){d.classList.remove(‘open’);});});
+function updateDDLabels(){var g=getSelectedGames();document.getElementById(‘gameDDLabel’).textContent=g.length===0?‘All Games (full season)’:g.length+’ game’+(g.length>1?‘s’:’’)+’ selected’;var pl=getSelectedPlayers();document.getElementById(‘playerDDLabel’).textContent=pl.length===0?‘All Players’:pl.length+’ player’+(pl.length>1?‘s’:’’)+’ selected’;}
+function rebuildTableData(pitches){var wsPitches=pitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes(‘wal’);});var players={};wsPitches.forEach(function(r){var n=(r.Batter||’’).trim();if(!n)return;if(!players[n])players[n]=[];players[n].push(r);});tableData=Object.values(players).map(function(rows){return computeProfile(rows[0].Batter,rows);});}
+function onFilterChange(){updateDDLabels();var selGames=getSelectedGames();var filtered=allPitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes(‘wal’)&&(!selGames.length||selGames.includes(r.GameID));});var players={};filtered.forEach(function(r){var n=(r.Batter||’’).trim();if(!n)return;if(!players[n])players[n]=[];players[n].push(r);});tableData=Object.values(players).map(function(rows){return computeProfile(rows[0].Batter,rows);});renderTable();}
+function renderTable(){
+var selectedPlayers=getSelectedPlayers();
+var data=tableData.filter(function(p){return p.pa>0&&(!selectedPlayers.length||selectedPlayers.includes(p.name));});
+data.sort(function(a,b){var av=a[sortCol]||0,bv=b[sortCol]||0;if(typeof av===‘string’)return sortAsc?av.localeCompare(bv):bv.localeCompare(av);return sortAsc?av-bv:bv-av;});
+document.getElementById(‘filterCount’).textContent=data.length+’ players’;
+var tbody=document.getElementById(‘tableBody’);tbody.innerHTML=’’;
+if(!data.length){tbody.innerHTML=’<tr><td colspan="13" class="no-data">No players match current filters</td></tr>’;return;}
+data.forEach(function(p){
+var tr=document.createElement(‘tr’);
+if(selectedPlayer===p.name)tr.className=‘selected’;
+tr.onclick=function(){selectedPlayer=p.name;document.querySelectorAll(’#tableBody tr’).forEach(function(r){r.classList.remove(‘selected’);});tr.classList.add(‘selected’);document.getElementById(‘genCardBtn’).disabled=false;document.getElementById(‘selHint’).textContent=p.displayName+’ selected’;};
+tr.innerHTML=’<td>’+escH(p.displayName)+’</td><td>’+p.pa+’</td><td class="val-hi">’+fmt3(p.woba)+’</td><td class="'+(p.barrelPct>=.06?'val-good':'')+'">’+pct(p.barrelPct)+’</td><td class="'+(p.hardHit>=.35?'val-good':'')+'">’+pct(p.hardHit)+’</td><td>’+pct(p.swingPct)+’</td><td class="'+(p.chasePct>=.30?'val-warn':'')+'">’+pct(p.chasePct)+’</td><td>’+pct(p.zSwingPct)+’</td><td class="'+((p.seagerScore||0)>=5?'val-good':(p.seagerScore||0)<0?'val-warn':'')+'">’+(p.seagerScore||0).toFixed(2)+’</td><td>’+pct(p.gbPct)+’</td><td>’+pct(p.fbPct)+’</td><td class="val-hi">’+(p.bestSpeed>0?p.bestSpeed.toFixed(1):’–’)+’</td><td>’+(p.maxEV>0?p.maxEV.toFixed(1):’–’)+’</td>’;
+tbody.appendChild(tr);
+});
+}
+function sortTable(col){if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=false;}renderTable();}
+function showMain(){document.getElementById(‘card-screen’).style.display=‘none’;document.getElementById(‘main-screen’).style.display=‘block’;document.getElementById(‘bottomBar’).style.display=‘flex’;selectedPlayer=null;document.getElementById(‘genCardBtn’).disabled=true;document.getElementById(‘selHint’).textContent=‘Tap a player to select’;}
+function fmt3(v){if(!v&&v!==0)return’–’;var s=parseFloat(v).toFixed(3);return s.startsWith(‘0.’)?s.slice(1):s;}
+function pct(v){if(isNaN(v)||v===null||v===undefined)return’–’;return(v*100).toFixed(1)+’%’;}
+function escH(s){return String(s).replace(/&/g,’&’).replace(/</g,’<’).replace(/>/g,’>’);}
+function hexToRGBA(hex,alpha){var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return’rgba(’+r+’,’+g+’,’+b+’,’+alpha+’)’;}
+function closeOverlay(){document.getElementById(‘imgOverlay’).classList.remove(‘active’);}
+boot();
+</script>
+
+</body>
 </html>
