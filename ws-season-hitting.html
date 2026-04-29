@@ -372,8 +372,8 @@ function computeProfile(name,rows){
       if(ev>maxEV)maxEV=ev;totalEV+=ev;evCount++;allEVs.push(ev);
       pitchTypes[pt].ev.push(ev);
       if(!isNaN(side)&&!isNaN(height)){
-        bip.push({side:side,height:height,ev:ev,pt:pt});
-        pitchTypes[pt].bip.push({side:side,height:height,ev:ev});
+        bip.push({side:side,height:height,ev:ev,pt:pt,result:(r.PlayResult||'')});
+        pitchTypes[pt].bip.push({side:side,height:height,ev:ev,result:(r.PlayResult||'')});
       }
       if(!isNaN(la)&&ev>=98&&la>=26&&la<=30)barrels++;
       if(call==='InPlay'){
@@ -539,9 +539,46 @@ function drawDamageHeatmap(canvasId, pitchTypes){
   });
   var globalMax=0;
   for(var i=0;i<combinedGrid.length;i++)if(combinedGrid[i]>globalMax)globalMax=combinedGrid[i];
-  renderKDE(ctx,combinedGrid,W,H,PAD,'#1a3a5c',globalMax*0.65,0.9);
+  renderKDE(ctx,combinedGrid,W,H,PAD,'#cc2222',globalMax*0.65,0.9);
   legendItems=null;
 
+
+  // wOBA dot overlay per pitch type — bigger/brighter = more production
+  var wobaWeights={'Single':0.88,'Double':1.24,'Triple':1.56,'HomeRun':2.08,'Home Run':2.08,'Walk':0.69,'HitByPitch':0.72};
+  entries.forEach(function(entry){
+    var pt=entry[0],d=entry[1];
+    if(!d.bip.length)return;
+    var color=pitchColor(pt);
+    // Calculate wOBA weighted centroid
+    var totalW=0,sumX=0,sumY=0,sumWoba=0,wobaCount=0;
+    d.bip.forEach(function(p){
+      if(isNaN(p.side)||isNaN(p.height))return;
+      var result=p.result||'';
+      var w=wobaWeights[result]||0;
+      if(w>0){
+        sumX+=p.side*w;sumY+=p.height*w;totalW+=w;sumWoba+=w;wobaCount++;
+      }
+    });
+    if(wobaCount<2||totalW<=0)return;
+    var avgWoba=sumWoba/d.bip.length; // per PA wOBA contribution
+    var cx=mx(sumX/totalW),cy=my(sumY/totalW);
+    // Scale dot size by wOBA — range roughly 0.05 to 0.4 per pitch
+    var minR=5,maxR=14;
+    var norm=Math.min(avgWoba/0.35,1);
+    var r=minR+norm*(maxR-minR);
+    // Outer glow
+    var grad=ctx.createRadialGradient(cx,cy,0,cx,cy,r*2.5);
+    grad.addColorStop(0,hexToRGBA(color,0.25));
+    grad.addColorStop(1,hexToRGBA(color,0));
+    ctx.beginPath();ctx.arc(cx,cy,r*2.5,0,Math.PI*2);
+    ctx.fillStyle=grad;ctx.fill();
+    // Dot
+    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.fillStyle=color;ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.9)';ctx.lineWidth=1.5;ctx.stroke();
+    legendItems=legendItems||[];
+    legendItems.push({pt:pt,color:color,count:d.bip.length,woba:avgWoba});
+  });
   ctx.fillStyle='#8a9ab0';ctx.font='8px Barlow Condensed,sans-serif';ctx.textAlign='center';
   ctx.fillText("CATCHER'S VIEW",W/2,H-4);
   return legendItems;
