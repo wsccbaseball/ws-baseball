@@ -426,6 +426,21 @@ function hitValueFromEV(ev){
 
 // -- Full SEAGER score (uniform contact rate) --
 function computeSEAGER(rows){
+  // Pre-compute contact quality for this hitter
+  var evSum=0,evCount=0,hardCount=0;
+  rows.forEach(function(r){
+    var ev=parseFloat(r.ExitSpeed);
+    if(!isNaN(ev)&&ev>0&&r.PitchCall==='InPlay'){evSum+=ev;evCount++;if(ev>=95)hardCount++;}
+  });
+  var avgEV=evCount>0?evSum/evCount:85;
+  var hardPct=evCount>0?hardCount/evCount:0.25;
+  // Contact quality multiplier: scales how valuable a swing is
+  // League avg at NJCAA ~85 mph, 25% hard hit
+  // Elite: 95+ avg, 40%+ hard = multiplier ~0.65
+  // Poor: 80 avg, 15% hard = multiplier ~0.30
+  var contactMult=0.25+(Math.min(avgEV,100)-75)/80+(hardPct*0.5);
+  contactMult=Math.max(0.20,Math.min(contactMult,0.75));
+
   var totalScore=0,pitchCount=0;
   rows.forEach(function(r){
     var call=(r.PitchCall||'').trim();
@@ -444,7 +459,8 @@ function computeSEAGER(rows){
     var rv=swingTakeRV(balls,strikes,outs,baseState);
     var evTake=sp*rv.strikeVal+(1-sp)*rv.ballVal;
     var soVal=strikes>=2?(outs>=2?0:RE24[Math.min(outs+1,2)][baseState]):rv.strikeVal;
-    var evSwing=-sp*rv.delta*0.35;
+    // Swing value weighted by this hitter's contact quality
+    var evSwing=-sp*rv.delta*contactMult;
     var optVal=Math.max(evTake,evSwing);
     var actVal=isSwing?evSwing:evTake;
     totalScore+=(actVal-optVal);
