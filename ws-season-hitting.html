@@ -372,6 +372,93 @@ function buildPlayerProfiles(){
 
 }
 
+
+// -- Strike probability sigmoid --
+function strikeProbability(side, height, zTop, zBot, halfW) {
+  zTop = zTop || 3.5; zBot = zBot || 1.5; halfW = halfW || 0.833;
+  var dx = Math.max(0, Math.abs(side) - halfW);
+  var dy = Math.max(0, Math.max(zBot - height, height - zTop));
+  var dist = Math.sqrt(dx*dx + dy*dy);
+  var inside = Math.abs(side) <= halfW && height >= zBot && height <= zTop;
+  if (inside) return 1 / (1 + Math.exp(15 * (dist - 0.15)));
+  return 1 / (1 + Math.exp(15 * (dist + 0.05)));
+}
+
+// -- Run value of strike vs ball at this count/state --
+function swingTakeRV(balls, strikes, outs, baseState) {
+  var so = Math.min(Math.max(isNaN(outs)?0:outs,0),2);
+  var bst = (isNaN(baseState)||baseState<0||baseState>7)?0:baseState;
+  function walkRes(bs){var on1=!!(bs&1),on2=!!(bs&2),on3=!!(bs&4),runs=0,n1=true,n2=on2,n3=on3;if(on1){n2=true;if(on2){n3=true;if(on3)runs=1;}}return{newState:(n1?1:0)|(n2?2:0)|(n3?4:0),runs:runs};}
+  function reVal(b,s){if(b>=4){var w=walkRes(bst);return w.runs+RE24[so][w.newState];}if(s>=3){return so===2?0:RE24[so+1][bst];}return COUNT_RE[b+'-'+s]||COUNT_RE['0-0'];}
+  return{strikeVal:reVal(balls,strikes+1),ballVal:reVal(balls+1,strikes),delta:reVal(balls,strikes+1)-reVal(balls+1,strikes)};
+}
+
+// -- Build contact profile by zone bucket --
+function buildContactProfile(rows) {
+  var buckets={heart:{swings:0,contacts:0,evSum:0,evCount:0},shadow:{swings:0,contacts:0,evSum:0,evCount:0},outside:{swings:0,contacts:0,evSum:0,evCount:0}};
+  var SHADOW=0.0833;
+  rows.forEach(function(r){
+    var call=(r.PitchCall||'').trim();
+    var isSwing=['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
+    if(!isSwing)return;
+    var side=parseFloat(r.PlateLocSide),height=parseFloat(r.PlateLocHeight);
+    if(isNaN(side)||isNaN(height))return;
+    var zTop=parseFloat(r.ZoneTop)||3.5,zBot=parseFloat(r.ZoneBottom)||1.5;
+    var inZone=Math.abs(side)<=0.833&&height>=zBot&&height<=zTop;
+    var inShadow=!inZone&&Math.abs(side)<=(0.833+SHADOW)&&height>=(zBot-SHADOW)&&height<=(zTop+SHADOW);
+    var bkt=inZone?'heart':inShadow?'shadow':'outside';
+    var isContact=['InPlay','FoulBall','FoulBallNotFieldable'].includes(call);
+    buckets[bkt].swings++;
+    if(isContact){buckets[bkt].contacts++;var ev=parseFloat(r.ExitSpeed);if(!isNaN(ev)&&ev>0&&call==='InPlay'){buckets[bkt].evSum+=ev;buckets[bkt].evCount++;}}
+  });
+  function def(b,dcr,dev){return{contactRate:b.swings>=5?b.contacts/b.swings:dcr,avgEV:b.evCount>=3?b.evSum/b.evCount:dev};}
+  var td=window._teamDefaults||{heart:{cr:0.84,ev:87},shadow:{cr:0.76,ev:82},outside:{cr:0.58,ev:77}};
+  return{heart:def(buckets.heart,td.heart.cr,td.heart.ev),shadow:def(buckets.shadow,td.shadow.cr,td.shadow.ev),outside:def(buckets.outside,td.outside.cr,td.outside.ev)};
+}
+
+// -- EV to hit value --
+function hitValueFromEV(ev){
+  if(isNaN(ev)||ev<=0)return 0.08;
+  if(ev>=105)return 1.55;if(ev>=100)return 1.10;if(ev>=95)return 0.80;
+  if(ev>=90)return 0.55;if(ev>=85)return 0.35;if(ev>=78)return 0.18;
+  return 0.07;
+}
+
+// -- Full SEAGER score --
+function computeSEAGER(rows){
+  var profile=buildContactProfile(rows);
+  var totalScore=0,pitchCount=0;
+  var SHADOW=0.0833;
+  rows.forEach(function(r){
+    var call=(r.PitchCall||'').trim();
+    var isSwing=['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
+    var isTake=call==='StrikeCalled'||call==='BallCalled';
+    if(!isSwing&&!isTake)return;
+    var side=parseFloat(r.PlateLocSide),height=parseFloat(r.PlateLocHeight);
+    if(isNaN(side)||isNaN(height))return;
+    var balls=parseInt(r.Balls||r.BallCount||0)||0;
+    var strikes=parseInt(r.Strikes||r.StrikeCount||0)||0;
+    var outs=parseInt(r.Outs||r.OutsBeforePitch||0)||0;
+    var on1b=!!(r.Runner1B||'').trim(),on2b=!!(r.Runner2B||'').trim(),on3b=!!(r.Runner3B||'').trim();
+    var baseState=(on1b?1:0)|(on2b?2:0)|(on3b?4:0);
+    var zTop=parseFloat(r.ZoneTop)||3.5,zBot=parseFloat(r.ZoneBottom)||1.5;
+    var sp=strikeProbability(side,height,zTop,zBot,0.833);
+    var inZone=Math.abs(side)<=0.833&&height>=zBot&&height<=zTop;
+    var inShadow=!inZone&&Math.abs(side)<=(0.833+SHADOW)&&height>=(zBot-SHADOW)&&height<=(zTop+SHADOW);
+    var pBucket=inZone?'heart':inShadow?'shadow':'outside';
+    var prof=profile[pBucket];
+    var rv=swingTakeRV(balls,strikes,outs,baseState);
+    var evTake=sp*rv.strikeVal+(1-sp)*rv.ballVal;
+    var soVal=strikes>=2?(outs>=2?0:RE24[Math.min(outs+1,2)][baseState]):rv.strikeVal;
+    var evSwing=prof.contactRate*hitValueFromEV(prof.avgEV)+(1-prof.contactRate)*soVal;
+    var optVal=Math.max(evTake,evSwing);
+    var actVal=isSwing?evSwing:evTake;
+    totalScore+=(actVal-optVal);
+    pitchCount++;
+  });
+  return pitchCount>0?-(totalScore/pitchCount)*100:0;
+}
+
 function computeProfile(name,rows){
   var parts=name.split(','),lastName=(parts[0]||'').trim();
   var displayName=parts.length>1?(parts[1]||'').trim()+' '+parts[0].trim():name;
@@ -456,7 +543,7 @@ function computeProfile(name,rows){
     chasePct:ozPitches>0?ozSwings/ozPitches:0,
     zSwingPct:inZone>0?inZoneSwings/inZone:0,
     sgr:(inZone>0&&ozPitches>0)?(inZoneSwings/inZone)-(ozSwings/ozPitches):0,
-    seagerScore:(inZone>0&&ozPitches>0)?(inZoneSwings/inZone)-(ozSwings/ozPitches):0,
+    seagerScore:computeSEAGER(rows),
     hardHit:evCount>0?bip.filter(function(b){return b.ev>=95;}).length/evCount:0,
     barrelPct:evCount>0?barrels/evCount:0,
     gbPct:bipCount>0?gbCount/bipCount:0,fbPct:bipCount>0?fbCount/bipCount:0,
