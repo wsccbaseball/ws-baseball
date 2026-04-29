@@ -456,6 +456,7 @@ function computeProfile(name,rows){
     chasePct:ozPitches>0?ozSwings/ozPitches:0,
     zSwingPct:inZone>0?inZoneSwings/inZone:0,
     sgr:(inZone>0&&ozPitches>0)?(inZoneSwings/inZone)-(ozSwings/ozPitches):0,
+    seagerScore:(inZone>0&&ozPitches>0)?(inZoneSwings/inZone)-(ozSwings/ozPitches):0,
     hardHit:evCount>0?bip.filter(function(b){return b.ev>=95;}).length/evCount:0,
     barrelPct:evCount>0?barrels/evCount:0,
     gbPct:bipCount>0?gbCount/bipCount:0,fbPct:bipCount>0?fbCount/bipCount:0,
@@ -794,13 +795,11 @@ async function boot(){
     allPitches=[];
     for(var i=0;i<gamesMeta.length;i++){var rows=await supaFetch('pitches?GameID=eq.'+encodeURIComponent(gamesMeta[i].game_id));allPitches=allPitches.concat(rows);setProgress(30+Math.round(((i+1)/gamesMeta.length)*60),'Loading game '+(i+1)+' of '+gamesMeta.length+'...');}
     setProgress(96,'Building stats...');
-    try{rebuildTableData(allPitches);}catch(e2){document.getElementById('loadMsg').textContent='rebuildTableData error: '+e2.message;console.error('rebuildTableData',e2);throw e2;}
-    try{populatePlayerFilter();}catch(e3){document.getElementById('loadMsg').textContent='populatePlayerFilter error: '+e3.message;throw e3;}
-    try{renderTable();}catch(e4){document.getElementById('loadMsg').textContent='renderTable error: '+e4.message;throw e4;}
+    rebuildTableData(allPitches);populatePlayerFilter();renderTable();
     document.getElementById('loading-screen').style.display='none';
     document.getElementById('main-screen').style.display='block';
     document.getElementById('bottomBar').style.display='flex';
-  }catch(e){document.getElementById('loadMsg').textContent='Error: '+e.message+' | '+e.stack;console.error(e);}
+  }catch(e){document.getElementById('loadMsg').textContent='Error: '+e.message;console.error(e);}
 }
 
 function populateGameFilter(){
@@ -845,7 +844,7 @@ function renderTable(){
     var tr=document.createElement('tr');
     if(selectedPlayer===p.name)tr.className='selected';
     tr.onclick=function(){selectedPlayer=p.name;document.querySelectorAll('#tableBody tr').forEach(function(r){r.classList.remove('selected');});tr.classList.add('selected');document.getElementById('genCardBtn').disabled=false;document.getElementById('selHint').textContent=p.displayName+' selected';};
-    tr.innerHTML='<td>'+escH(p.displayName)+'</td><td>'+p.pa+'</td><td class="val-hi">'+fmt3(p.woba)+'</td><td class="'+(p.barrelPct>=.06?'val-good':'')+'">'+pct(p.barrelPct)+'</td><td class="'+(p.hardHit>=.35?'val-good':'')+'">'+pct(p.hardHit)+'</td><td>'+pct(p.swingPct)+'</td><td class="'+(p.chasePct>=.30?'val-warn':'')+'">'+pct(p.chasePct)+'</td><td>'+pct(p.zSwingPct)+'</td><td class="'+(p.seagerScore>=5?'val-good':p.seagerScore<0?'val-warn':'')+'">'+p.seagerScore.toFixed(2)+'</td><td>'+pct(p.gbPct)+'</td><td>'+pct(p.fbPct)+'</td><td class="val-hi">'+(p.bestSpeed>0?p.bestSpeed.toFixed(1):'—')+'</td><td>'+(p.maxEV>0?p.maxEV.toFixed(1):'—')+'</td>';
+    tr.innerHTML='<td>'+escH(p.displayName)+'</td><td>'+p.pa+'</td><td class="val-hi">'+fmt3(p.woba)+'</td><td class="'+(p.barrelPct>=.06?'val-good':'')+'">'+pct(p.barrelPct)+'</td><td class="'+(p.hardHit>=.35?'val-good':'')+'">'+pct(p.hardHit)+'</td><td>'+pct(p.swingPct)+'</td><td class="'+(p.chasePct>=.30?'val-warn':'')+'">'+pct(p.chasePct)+'</td><td>'+pct(p.zSwingPct)+'</td><td class="'+((p.seagerScore||0)>=5?'val-good':(p.seagerScore||0)<0?'val-warn':'')+'">'+(p.seagerScore||0).toFixed(2)+'</td><td>'+pct(p.gbPct)+'</td><td>'+pct(p.fbPct)+'</td><td class="val-hi">'+(p.bestSpeed>0?p.bestSpeed.toFixed(1):'—')+'</td><td>'+(p.maxEV>0?p.maxEV.toFixed(1):'—')+'</td>';
     tbody.appendChild(tr);
   });
 }
