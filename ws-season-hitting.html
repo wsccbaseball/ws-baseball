@@ -272,7 +272,7 @@ canvas{display:block;border-radius:4px}
       <canvas id="zmapWhiff" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
     </div>
   </div>
-  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View · looking toward home plate</div>
+  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View · looking toward the pitcher</div>
 </div>
 
 <!-- Pitch type table -->
@@ -901,7 +901,7 @@ function drawZoneGrid(canvasId, rows, valueFn, minVal, maxVal, label, xMin, xMax
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);
 
-  var kdeResult=buildKDEGrid(rows,valueFn,0.07,xMin,xMax,yMin,yMax,densityMode);
+  var kdeResult=buildKDEGrid(rows,valueFn,0.10,xMin,xMax,yMin,yMax,densityMode);
   var grid=kdeResult.grid;
   var GW=kdeResult.gw, GH=kdeResult.gh;
 
