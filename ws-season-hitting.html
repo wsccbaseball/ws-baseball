@@ -146,7 +146,7 @@ canvas{display:block;border-radius:4px}
           <th onclick="sortTable('displayName')">Player</th>
           <th onclick="sortTable('pa')">PA</th>
           <th onclick="sortTable('woba')">wOBA</th>
-          <th onclick="sortTable('barrelPct')">Barrel%</th>
+          <th onclick="sortTable('solidPct')">Solid%</th>
           <th onclick="sortTable('hardHit')">Hard%</th>
           <th onclick="sortTable('swingPct')">Swing%</th>
           <th onclick="sortTable('chasePct')">Chase%</th>
@@ -171,7 +171,7 @@ canvas{display:block;border-radius:4px}
   <div class="card" id="card">
     <div class="card-header"><div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div><div class="hdr-center"><div class="player-name" id="cardName">&#8212;</div><div class="player-pos" id="cardPos">Walters State CC</div><div class="card-type">Season Hitting Summary</div><div class="season-tag">2026 NJCAA Season</div></div><div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div></div>
     <div class="stat-section"><span class="stat-section-label">Season Stats</span><div class="stat-row"><div class="stat-box"><span class="stat-val hi" id="sAVG">&#8212;</span><span class="stat-lbl">PA</span></div><div class="stat-box"><span class="stat-val" id="sOBP">&#8212;</span><span class="stat-lbl">wOBA</span></div><div class="stat-box"><span class="stat-val" id="sSLG">&#8212;</span><span class="stat-lbl">ISO</span></div><div class="stat-box"><span class="stat-val hi" id="sWOBA">&#8212;</span><span class="stat-lbl">AVG</span></div><div class="stat-box"><span class="stat-val" id="sHR">&#8212;</span><span class="stat-lbl">HR</span></div><div class="stat-box"><span class="stat-val" id="sRBI">&#8212;</span><span class="stat-lbl">XBH</span></div><div class="stat-box"><span class="stat-val" id="sSB">&#8212;</span><span class="stat-lbl">K-BB%</span></div></div></div>
-    <div class="stat-section"><span class="stat-section-label">Contact Quality &middot; TrackMan</span><div class="stat-row"><div class="stat-box"><span class="stat-val" id="tHard">&#8212;</span><span class="stat-lbl">Hard%</span></div><div class="stat-box"><span class="stat-val" id="tBarrel">&#8212;</span><span class="stat-lbl">Barrel%</span></div><div class="stat-box"><span class="stat-val hi" id="tBestSpeed">&#8212;</span><span class="stat-lbl">Best Speed</span></div><div class="stat-box"><span class="stat-val" id="tMaxEV">&#8212;</span><span class="stat-lbl">Max EV</span></div><div class="stat-box"><span class="stat-val" id="tGB">&#8212;</span><span class="stat-lbl">GB%</span></div><div class="stat-box"><span class="stat-val" id="tFB">&#8212;</span><span class="stat-lbl">FB%</span></div></div></div>
+    <div class="stat-section"><span class="stat-section-label">Contact Quality &middot; TrackMan</span><div class="stat-row"><div class="stat-box"><span class="stat-val" id="tHard">&#8212;</span><span class="stat-lbl">Hard%</span></div><div class="stat-box"><span class="stat-val" id="tBarrel">&#8212;</span><span class="stat-lbl">Solid%</span></div><div class="stat-box"><span class="stat-val hi" id="tBestSpeed">&#8212;</span><span class="stat-lbl">Best Speed</span></div><div class="stat-box"><span class="stat-val" id="tMaxEV">&#8212;</span><span class="stat-lbl">Max EV</span></div><div class="stat-box"><span class="stat-val" id="tGB">&#8212;</span><span class="stat-lbl">GB%</span></div><div class="stat-box"><span class="stat-val" id="tFB">&#8212;</span><span class="stat-lbl">FB%</span></div></div></div>
     <div class="stat-section"><span class="stat-section-label">Plate Discipline &middot; TrackMan</span><div class="stat-row"><div class="stat-box"><span class="stat-val" id="tSwing">&#8212;</span><span class="stat-lbl">Swing%</span></div><div class="stat-box"><span class="stat-val" id="tChase">&#8212;</span><span class="stat-lbl">Chase%</span></div><div class="stat-box"><span class="stat-val" id="tZSwing">&#8212;</span><span class="stat-lbl">Z-Swing%</span></div><div class="stat-box"><span class="stat-val" id="tWhiff">&#8212;</span><span class="stat-lbl">Whiff%</span></div><div class="stat-box"><span class="stat-val hi" id="tSGR">&#8212;</span><span class="stat-lbl">SGR</span></div></div></div>
     <div class="hmap-section"><div class="hmap-title-row" style="margin-bottom:6px"><div class="hmap-title">Zone Heat Maps &middot; Pitcher's View</div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">wOBA</div><canvas id="zmapWoba" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Hard%</div><canvas id="zmapHard" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">ISO</div><canvas id="zmapIso" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Whiff Zones</div><canvas id="zmapWhiff" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div></div><div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View &middot; looking toward the pitcher</div></div>
     <div class="pitch-section"><span class="stat-section-label" style="display:block;margin-bottom:4px">Pitch Mix Seen &middot; TrackMan</span><table class="pitch-table"><thead><tr><th style="text-align:left">Pitch</th><th>Seen</th><th>Swing%</th><th>Whiff%</th><th>Chase%</th><th>Hard%</th><th>Avg EV</th></tr></thead><tbody id="pitchTableBody"></tbody></table></div>
@@ -286,7 +286,7 @@ function computeProfile(name,rows){
   var displayName=parts.length>1?(parts[1]||'').trim()+' '+parts[0].trim():name;
   var swings=0,whiffs=0,inZone=0,inZoneSwings=0,ozPitches=0,ozSwings=0;
   var bip=[],maxEV=0,evCount=0,allEVs=[];
-  var gbCount=0,fbCount=0,bipCount=0,barrels=0;
+  var gbCount=0,fbCount=0,bipCount=0,solidContact=0;
   var pitchTypes={};
 
   rows.forEach(function(r){
@@ -315,7 +315,7 @@ function computeProfile(name,rows){
         if(ev<90&&['InPlay','FoulBall','FoulBallNotFieldable'].includes(call))pitchTypes[pt].weakPts.push({side:side,height:height,ev:ev});
         pitchTypes[pt].bip.push({side:side,height:height,ev:ev,result:(r.PlayResult||'')});
       }
-      if(!isNaN(la)&&ev>=98&&la>=26&&la<=30)barrels++;
+      if(!isNaN(la)&&ev>=95&&la>=8&&la<=32)solidContact++;
       if(call==='InPlay'){
         bipCount++;
         var ht=(r.TaggedHitType||r.HitType||'').toLowerCase();
@@ -357,7 +357,7 @@ function computeProfile(name,rows){
     sgr:(inZone>0&&ozPitches>0)?(inZoneSwings/inZone)-(ozSwings/ozPitches):0,
     seagerScore:computeSEAGER(rows),
     hardHit:evCount>0?bip.filter(function(b){return b.ev>=95;}).length/evCount:0,
-    barrelPct:evCount>0?barrels/evCount:0,
+    solidPct:bipCount>0?solidContact/bipCount:0,
     gbPct:bipCount>0?gbCount/bipCount:0,fbPct:bipCount>0?fbCount/bipCount:0,
     bestSpeed:bestSpeed,maxEV:maxEV,totalPitches:rows.length,
     pitchTypes:pitchTypes,bip:bip,rows:rows
@@ -545,7 +545,7 @@ function buildCard(){
   document.getElementById('sSB').textContent=kbb;
   var hardEl=document.getElementById('tHard');
   hardEl.textContent=pct(p.hardHit);hardEl.className='stat-val'+(p.hardHit>=.35?' good':'');
-  document.getElementById('tBarrel').textContent=pct(p.barrelPct);
+  document.getElementById('tBarrel').textContent=pct(p.solidPct);
   document.getElementById('tBestSpeed').textContent=p.bestSpeed>0?p.bestSpeed.toFixed(1):'--';
   document.getElementById('tMaxEV').textContent=p.maxEV>0?p.maxEV.toFixed(1):'--';
   document.getElementById('tGB').textContent=pct(p.gbPct);
@@ -670,7 +670,7 @@ function renderTable(){
     var tr=document.createElement('tr');
     if(selectedPlayer===p.name)tr.className='selected';
     tr.onclick=function(){selectedPlayer=p.name;document.querySelectorAll('#tableBody tr').forEach(function(r){r.classList.remove('selected');});tr.classList.add('selected');document.getElementById('genCardBtn').disabled=false;document.getElementById('selHint').textContent=p.displayName+' selected';};
-    tr.innerHTML='<td>'+escH(p.displayName)+'</td><td>'+p.pa+'</td><td class="val-hi">'+fmt3(p.woba)+'</td><td class="'+(p.barrelPct>=.06?'val-good':'')+'">'+pct(p.barrelPct)+'</td><td class="'+(p.hardHit>=.35?'val-good':'')+'">'+pct(p.hardHit)+'</td><td>'+pct(p.swingPct)+'</td><td class="'+(p.chasePct>=.30?'val-warn':'')+'">'+pct(p.chasePct)+'</td><td>'+pct(p.zSwingPct)+'</td><td class="'+((p.seagerScore||0)>=5?'val-good':(p.seagerScore||0)<0?'val-warn':'')+'">'+(p.seagerScore||0).toFixed(2)+'</td><td>'+pct(p.gbPct)+'</td><td>'+pct(p.fbPct)+'</td><td class="val-hi">'+(p.bestSpeed>0?p.bestSpeed.toFixed(1):'--')+'</td><td>'+(p.maxEV>0?p.maxEV.toFixed(1):'--')+'</td>';
+    tr.innerHTML='<td>'+escH(p.displayName)+'</td><td>'+p.pa+'</td><td class="val-hi">'+fmt3(p.woba)+'</td><td class="'+(p.solidPct>=.25?'val-good':'')+'">'+pct(p.solidPct)+'</td><td class="'+(p.hardHit>=.35?'val-good':'')+'">'+pct(p.hardHit)+'</td><td>'+pct(p.swingPct)+'</td><td class="'+(p.chasePct>=.30?'val-warn':'')+'">'+pct(p.chasePct)+'</td><td>'+pct(p.zSwingPct)+'</td><td class="'+((p.seagerScore||0)>=5?'val-good':(p.seagerScore||0)<0?'val-warn':'')+'">'+(p.seagerScore||0).toFixed(2)+'</td><td>'+pct(p.gbPct)+'</td><td>'+pct(p.fbPct)+'</td><td class="val-hi">'+(p.bestSpeed>0?p.bestSpeed.toFixed(1):'--')+'</td><td>'+(p.maxEV>0?p.maxEV.toFixed(1):'--')+'</td>';
     tbody.appendChild(tr);
   });
 }
