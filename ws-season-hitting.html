@@ -905,7 +905,7 @@ var HMAP_GRID=40; // internal grid resolution
 
 function buildKDEGrid(rows, valueFn, sigma) {
   // Grid covers the strike zone area with padding
-  var X_MIN=-1.0, X_MAX=1.0, Y_MIN=1.2, Y_MAX=3.8;
+  var X_MIN=-1.05, X_MAX=1.05, Y_MIN=1.25, Y_MAX=3.75;
   var GW=HMAP_GRID, GH=HMAP_GRID;
   var weightGrid=new Float32Array(GW*GH);
   var valueGrid=new Float32Array(GW*GH);
@@ -944,7 +944,7 @@ function buildKDEGrid(rows, valueFn, sigma) {
   var result=new Float32Array(GW*GH);
   var validVals=[];
   for(var i=0;i<GW*GH;i++){
-    if(weightGrid[i]>0.001){
+    if(weightGrid[i]>0.01){
       result[i]=valueGrid[i]/weightGrid[i];
       validVals.push(result[i]);
     } else {
