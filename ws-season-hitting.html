@@ -905,7 +905,7 @@ var HMAP_GRID=40; // internal grid resolution
 
 function buildKDEGrid(rows, valueFn, sigma) {
   // Grid covers the strike zone area with padding
-  var X_MIN=-0.95, X_MAX=0.95, Y_MIN=1.35, Y_MAX=3.65;
+  var X_MIN=-1.0, X_MAX=1.0, Y_MIN=1.2, Y_MAX=3.8;
   var GW=HMAP_GRID, GH=HMAP_GRID;
   var weightGrid=new Float32Array(GW*GH);
   var valueGrid=new Float32Array(GW*GH);
@@ -1003,21 +1003,36 @@ function drawZoneGrid(canvasId, rows, valueFn, minVal, maxVal, label){
   // Render using ImageData for speed
   var imgData=ctx.createImageData(gridW,gridH);
   var cellW=gridW/GW, cellH=gridH/GH;
+  // Shadow zone boundaries for clipping
+  var SHADOW=0.15;
+  var clipXmin=(-0.833-SHADOW), clipXmax=(0.833+SHADOW);
+  var clipYmin=(1.5-SHADOW), clipYmax=(3.5+SHADOW);
 
   for(var py=0;py<gridH;py++){
     for(var px=0;px<gridW;px++){
+      // Convert pixel to field coordinates
+      var fieldX=X_MIN+(px/gridW)*(X_MAX-X_MIN);
+      var fieldY=Y_MAX-(py/gridH)*(Y_MAX-Y_MIN);
+      // Fade out beyond shadow zone
+      var outsideX=Math.max(0,Math.abs(fieldX)-clipXmax+0.05);
+      var outsideY=Math.max(0,Math.max(clipYmin-fieldY,fieldY-clipYmax)+0.05);
+      var outside=Math.max(outsideX,outsideY);
+      var alpha=outside>0?Math.max(0,1-outside/0.15):1;
+
       var gxi=Math.min(GW-1,Math.floor(px/cellW));
       var gyi=Math.min(GH-1,Math.floor(py/cellH));
       var val=filled[gyi*GW+gxi];
       var t=isNaN(val)?0.5:(val-mn)/range;
       var col=hotColdColor(t);
-      var idx=(py*gridW+px)*4;
-      imgData.data[idx]=col[0];
-      imgData.data[idx+1]=col[1];
-      imgData.data[idx+2]=col[2];
-      imgData.data[idx+3]=255;
+      var pidx=(py*gridW+px)*4;
+      imgData.data[pidx]=col[0];
+      imgData.data[pidx+1]=col[1];
+      imgData.data[pidx+2]=col[2];
+      imgData.data[pidx+3]=Math.round(alpha*255);
     }
   }
+  // Fill background first
+  ctx.fillStyle='#dce8f5';ctx.fillRect(PAD_L,PAD_T,gridW,gridH);
   ctx.putImageData(imgData,PAD_L,PAD_T);
 
   // Strike zone border
