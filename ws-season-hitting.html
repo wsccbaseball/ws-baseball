@@ -722,54 +722,9 @@ function buildPitchTable(p){
     });
 }
 
-function buildCard(){
-  var p=tableData.find(function(d){return d.name===selectedPlayer;});
-  if(!p)return;
-  if(!p){document.getElementById('statusMsg').textContent='No data for this player.';return;}
 
-  document.getElementById('cardName').textContent=p.displayName;
-  document.getElementById('cardGameLine').textContent=
-    '2026 Season . '+p.gp+' GP . '+p.pa+' PA . '+p.totalPitches+' pitches seen (TrackMan)';
 
-  // Traditional stats
-  document.getElementById('sAVG').textContent=fmt3(p.avg);
-  document.getElementById('sOBP').textContent=fmt3(p.obp);
-  document.getElementById('sSLG').textContent=fmt3(p.slg);
-  document.getElementById('sWOBA').textContent=fmt3(p.woba);
-  document.getElementById('sHR').textContent=p.hr;
-  document.getElementById('sRBI').textContent=p.rbi;
-  document.getElementById('sSB').textContent=p.sb;
 
-  // Contact quality
-  var hardEl=document.getElementById('tHard');
-  hardEl.textContent=pct(p.hardHit);
-  hardEl.className='stat-val'+(p.hardHit>=.35?' good':'');
-  document.getElementById('tBarrel').textContent=pct(p.barrelPct);
-  document.getElementById('tBestSpeed').textContent=p.bestSpeed>0?p.bestSpeed.toFixed(1):'--';
-  document.getElementById('tMaxEV').textContent=p.maxEV>0?p.maxEV.toFixed(1):'--';
-  document.getElementById('tGB').textContent=pct(p.gbPct);
-  document.getElementById('tFB').textContent=pct(p.fbPct);
-
-  // Discipline
-  var chaseEl=document.getElementById('tChase');
-  chaseEl.textContent=pct(p.chasePct);
-  chaseEl.className='stat-val'+(p.chasePct>=.30?' warn':'');
-  document.getElementById('tSwing').textContent=pct(p.swingPct);
-  document.getElementById('tZSwing').textContent=pct(p.zSwingPct);
-  document.getElementById('tWhiff').textContent=pct(p.whiffPct);
-  document.getElementById('tSGR').textContent=(p.seagerScore||0).toFixed(2);
-
-  30);
-
-  document.getElementById('main-screen').style.display='none';
-  document.getElementById('card-screen').style.display='block';
-  window.scrollTo(0,0);
-}
-
-function showSelect(){
-  document.getElementById('card-screen').style.display='none';
-  document.getElementById('main-screen').style.display='block';
-}
 
 async function saveCard(){
   var card=document.getElementById('card'),btn=card.querySelector('.save-btn'),orig=btn.textContent;
@@ -865,7 +820,7 @@ function renderTable(){
   });
 }
 function sortTable(col){if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=false;}renderTable();}
-function showMain(){document.getElementById('card-screen').style.display='none';document.getElementById('main-screen').style.display='block';document.getElementById('bottomBar').style.display='flex';selectedPlayer=null;document.getElementById('genCardBtn').disabled=true;document.getElementById('selHint').textContent='Tap a player to select';}
+
 function fmt3(v){if(!v&&v!==0)return'--';var s=parseFloat(v).toFixed(3);return s.startsWith('0.')?s.slice(1):s;}
 function pct(v){if(isNaN(v)||v===null||v===undefined)return'--';return(v*100).toFixed(1)+'%';}
 function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -1070,54 +1025,9 @@ function buildPitchTable(p){
     });
 }
 
-function buildCard(){
-  var p=tableData.find(function(d){return d.name===selectedPlayer;});
-  if(!p)return;
-  if(!p){document.getElementById('statusMsg').textContent='No data for this player.';return;}
 
-  document.getElementById('cardName').textContent=p.displayName;
-  document.getElementById('cardGameLine').textContent=
-    '2026 Season . '+p.gp+' GP . '+p.pa+' PA . '+p.totalPitches+' pitches seen (TrackMan)';
 
-  // Traditional stats
-  document.getElementById('sAVG').textContent=fmt3(p.avg);
-  document.getElementById('sOBP').textContent=fmt3(p.obp);
-  document.getElementById('sSLG').textContent=fmt3(p.slg);
-  document.getElementById('sWOBA').textContent=fmt3(p.woba);
-  document.getElementById('sHR').textContent=p.hr;
-  document.getElementById('sRBI').textContent=p.rbi;
-  document.getElementById('sSB').textContent=p.sb;
 
-  // Contact quality
-  var hardEl=document.getElementById('tHard');
-  hardEl.textContent=pct(p.hardHit);
-  hardEl.className='stat-val'+(p.hardHit>=.35?' good':'');
-  document.getElementById('tBarrel').textContent=pct(p.barrelPct);
-  document.getElementById('tBestSpeed').textContent=p.bestSpeed>0?p.bestSpeed.toFixed(1):'--';
-  document.getElementById('tMaxEV').textContent=p.maxEV>0?p.maxEV.toFixed(1):'--';
-  document.getElementById('tGB').textContent=pct(p.gbPct);
-  document.getElementById('tFB').textContent=pct(p.fbPct);
-
-  // Discipline
-  var chaseEl=document.getElementById('tChase');
-  chaseEl.textContent=pct(p.chasePct);
-  chaseEl.className='stat-val'+(p.chasePct>=.30?' warn':'');
-  document.getElementById('tSwing').textContent=pct(p.swingPct);
-  document.getElementById('tZSwing').textContent=pct(p.zSwingPct);
-  document.getElementById('tWhiff').textContent=pct(p.whiffPct);
-  document.getElementById('tSGR').textContent=(p.seagerScore||0).toFixed(2);
-
-  30);
-
-  document.getElementById('main-screen').style.display='none';
-  document.getElementById('card-screen').style.display='block';
-  window.scrollTo(0,0);
-}
-
-function showSelect(){
-  document.getElementById('card-screen').style.display='none';
-  document.getElementById('main-screen').style.display='block';
-}
 
 async function saveCard(){
   var card=document.getElementById('card'),btn=card.querySelector('.save-btn'),orig=btn.textContent;
@@ -1213,7 +1123,7 @@ function renderTable(){
   });
 }
 function sortTable(col){if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=false;}renderTable();}
-function showMain(){document.getElementById('card-screen').style.display='none';document.getElementById('main-screen').style.display='block';document.getElementById('bottomBar').style.display='flex';selectedPlayer=null;document.getElementById('genCardBtn').disabled=true;document.getElementById('selHint').textContent='Tap a player to select';}
+
 function fmt3(v){if(!v&&v!==0)return'--';var s=parseFloat(v).toFixed(3);return s.startsWith('0.')?s.slice(1):s;}
 function pct(v){if(isNaN(v)||v===null||v===undefined)return'--';return(v*100).toFixed(1)+'%';}
 function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
