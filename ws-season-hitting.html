@@ -675,36 +675,16 @@ var ZONE_Y_MIN=1.5, ZONE_Y_MAX=3.5;
 
 // wOBA value function
 var WOBA_WEIGHTS={'Single':0.88,'Double':1.24,'Triple':1.56,'HomeRun':2.08,'Home Run':2.08};
-function wobaVal(r){
-  if(r.PitchCall!=='InPlay')return null;
-  var result=r.PlayResult||'';
-  return WOBA_WEIGHTS[result]||0;
-}
+
 
 // ISO value function (TB-H)/AB proxy using EV+LA
-function isoVal(r){
-  if(r.PitchCall!=='InPlay')return null;
-  var result=r.PlayResult||'';
-  var tbMap={'Single':1,'Double':2,'Triple':3,'HomeRun':4,'Home Run':4};
-  var tb=tbMap[result]||0;
-  var isHit=tb>0;
-  return tb-(isHit?1:0); // TB-H for ISO, 0 for outs/singles after -1
-}
+
 
 // Hard% value function
-function hardVal(r){
-  var ev=parseFloat(r.ExitSpeed);
-  if(isNaN(ev)||ev<=0||r.PitchCall!=='InPlay')return null;
-  return ev>=95?1:0;
-}
+
 
 // Whiff% value function (per swing)
-function whiffVal(r){
-  var call=(r.PitchCall||'').trim();
-  var isSwing=['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
-  if(!isSwing)return null;
-  return call==='StrikeSwinging'?1:0;
-}
+
 
 function buildLegend(containerId, items){
   var el=document.getElementById(containerId);
@@ -779,15 +759,7 @@ function buildCard(){
   document.getElementById('tWhiff').textContent=pct(p.whiffPct);
   document.getElementById('tSGR').textContent=(p.seagerScore||0).toFixed(2);
 
-  setTimeout(function(){
-    var allRows=p.rows;
-
-    drawZoneGrid('zmapWoba', allRows, wobaVal,  0, 1, 'wOBA');
-    drawZoneGrid('zmapHard', allRows, hardVal,  0, 1, 'Hard%');
-    drawZoneGrid('zmapIso',  allRows, isoVal,   0, 1, 'ISO');
-    drawZoneGrid('zmapWhiff',allRows, whiffVal, 0, 1, 'Whiff%', -1.5, 1.5, 0.8, 4.2);
-    buildPitchTable(p);
-  },30);
+  30);
 
   document.getElementById('main-screen').style.display='none';
   document.getElementById('card-screen').style.display='block';
@@ -913,7 +885,7 @@ function buildKDEGrid(rows, valueFn, sigma, xMin, xMax, yMin, yMax) {
   rows.forEach(function(r){
     var side=parseFloat(r.PlateLocSide);
     var height=parseFloat(r.PlateLocHeight);
-    var displaySide=side; // catcher's view
+    var displaySide=-side; // catcher's view (negate TrackMan pitcher's view coords)
     if(isNaN(displaySide)||isNaN(height))return;
     if(displaySide<X_MIN||displaySide>X_MAX||height<Y_MIN||height>Y_MAX)return;
     // Only use pitches within the expanded strike zone (zone + 0.25ft shadow)
@@ -1051,36 +1023,16 @@ function drawZoneGrid(canvasId, rows, valueFn, minVal, maxVal, label, xMin, xMax
 }
 // wOBA value function
 var WOBA_WEIGHTS={'Single':0.88,'Double':1.24,'Triple':1.56,'HomeRun':2.08,'Home Run':2.08};
-function wobaVal(r){
-  if(r.PitchCall!=='InPlay')return null;
-  var result=r.PlayResult||'';
-  return WOBA_WEIGHTS[result]||0;
-}
+
 
 // ISO value function (TB-H)/AB proxy using EV+LA
-function isoVal(r){
-  if(r.PitchCall!=='InPlay')return null;
-  var result=r.PlayResult||'';
-  var tbMap={'Single':1,'Double':2,'Triple':3,'HomeRun':4,'Home Run':4};
-  var tb=tbMap[result]||0;
-  var isHit=tb>0;
-  return tb-(isHit?1:0); // TB-H for ISO, 0 for outs/singles after -1
-}
+
 
 // Hard% value function
-function hardVal(r){
-  var ev=parseFloat(r.ExitSpeed);
-  if(isNaN(ev)||ev<=0||r.PitchCall!=='InPlay')return null;
-  return ev>=95?1:0;
-}
+
 
 // Whiff% value function (per swing)
-function whiffVal(r){
-  var call=(r.PitchCall||'').trim();
-  var isSwing=['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
-  if(!isSwing)return null;
-  return call==='StrikeSwinging'?1:0;
-}
+
 
 function buildLegend(containerId, items){
   var el=document.getElementById(containerId);
@@ -1155,15 +1107,7 @@ function buildCard(){
   document.getElementById('tWhiff').textContent=pct(p.whiffPct);
   document.getElementById('tSGR').textContent=(p.seagerScore||0).toFixed(2);
 
-  setTimeout(function(){
-    var allRows=p.rows;
-
-    drawZoneGrid('zmapWoba', allRows, wobaVal,  0, 1, 'wOBA');
-    drawZoneGrid('zmapHard', allRows, hardVal,  0, 1, 'Hard%');
-    drawZoneGrid('zmapIso',  allRows, isoVal,   0, 1, 'ISO');
-    drawZoneGrid('zmapWhiff',allRows, whiffVal, 0, 1, 'Whiff%', -1.5, 1.5, 0.8, 4.2);
-    buildPitchTable(p);
-  },30);
+  30);
 
   document.getElementById('main-screen').style.display='none';
   document.getElementById('card-screen').style.display='block';
