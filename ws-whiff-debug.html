@@ -4,35 +4,65 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Graham Whiff Debug</title>
+<title>Graham Heat Map Debug</title>
 <style>
-body{font-family:sans-serif;background:#f5f5f5;padding:20px;max-width:500px;margin:0 auto}
-h2{color:#1a3a5c;margin-bottom:10px}
-canvas{display:block;background:#fff;border:1px solid #ccc;margin:10px 0}
-#status{font-size:.85rem;color:#666;margin-bottom:4px}
-#count{font-weight:bold;color:#1a3a5c;margin-bottom:8px}
-table{border-collapse:collapse;width:100%;font-size:.8rem;margin-top:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:sans-serif;background:#f0f4f8;padding:12px}
+h2{color:#1a3a5c;margin-bottom:8px;font-size:1.1rem}
+.section{background:#fff;border-radius:8px;padding:12px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.section h3{font-size:.85rem;color:#1a3a5c;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+canvas{display:block;width:100%;height:auto;border:1px solid #ddd;border-radius:4px;margin-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:.72rem}
 th{background:#1a3a5c;color:#fff;padding:4px 6px;text-align:left}
-td{padding:4px 6px;border-bottom:1px solid #ddd}
+td{padding:3px 6px;border-bottom:1px solid #eee}
+td.hi{color:#c00;font-weight:bold}
+.legend{font-size:.7rem;color:#666;margin-bottom:4px}
+#status{font-size:.8rem;color:#666;margin-bottom:8px}
 </style>
 </head>
 <body>
-<h2>Luke Graham — Raw Whiff Locations</h2>
+<h2>Luke Graham — Raw Data vs Heat Map Debug</h2>
 <div id="status">Loading...</div>
-<div id="count"></div>
-<canvas id="cv" width="360" height="300"></canvas>
-<div style="font-size:.75rem;color:#888;margin-bottom:12px">Each dot = one StrikeSwinging. Red = inside zone, Blue = outside zone. PlateLocSide as-is from TrackMan (catcher looking toward plate).</div>
-<div id="table"></div>
+
+<div class="section">
+  <h3>wOBA — InPlay results by location</h3>
+  <div class="legend">Dot color: blue=out(0) · pink=single(.88) · orange=double(1.24) · red=HR(2.08)</div>
+  <canvas id="cvWoba" width="360" height="280"></canvas>
+  <div id="tblWoba"></div>
+</div>
+
+<div class="section">
+  <h3>Hard% — Exit Velo by location</h3>
+  <div class="legend">Dot color: blue=soft(&lt;95) · red=hard(95+)</div>
+  <canvas id="cvHard" width="360" height="280"></canvas>
+  <div id="tblHard"></div>
+</div>
+
+<div class="section">
+  <h3>ISO — Extra base power by location</h3>
+  <div class="legend">Dot color: blue=single/out · pink=double · red=HR</div>
+  <canvas id="cvIso" width="360" height="280"></canvas>
+  <div id="tblIso"></div>
+</div>
+
+<div class="section">
+  <h3>Whiff Zones — StrikeSwinging locations</h3>
+  <div class="legend">All dots = whiffs. Red=in zone · Blue=out of zone</div>
+  <canvas id="cvWhiff" width="360" height="280"></canvas>
+  <div id="tblWhiff"></div>
+</div>
 
 <script>
 var SUPABASE_URL='https://mghrapwhvihpwgqryail.supabase.co';
 var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
 
+var WOBA_WEIGHTS={'Single':0.88,'Double':1.24,'Triple':1.56,'HomeRun':2.08,'Home Run':2.08};
+
 async function load(){
-  document.getElementById('status').textContent='Fetching pitches...';
+  document.getElementById('status').textContent='Fetching all Graham pitches...';
   var rows=[],from=0;
   while(true){
-    var r=await fetch(SUPABASE_URL+'/rest/v1/pitches?PitchCall=eq.StrikeSwinging&limit=1000&offset='+from,{
+    var r=await fetch(SUPABASE_URL+'/rest/v1/pitches?limit=1000&offset='+from,{
       headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
     });
     var d=await r.json();
@@ -45,94 +75,136 @@ async function load(){
     return r.Batter&&r.Batter.toLowerCase().includes('graham')&&
            r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal');
   });
-  document.getElementById('status').textContent='Total StrikeSwinging in DB: '+rows.length;
-  document.getElementById('count').textContent='Graham whiffs: '+graham.length;
-  draw(graham);
-  buildTable(graham);
+  document.getElementById('status').textContent='Total pitches: '+rows.length+' | Graham pitches: '+graham.length;
+
+  var inplay=graham.filter(function(r){return r.PitchCall==='InPlay';});
+  var whiffs=graham.filter(function(r){return r.PitchCall==='StrikeSwinging';});
+
+  drawWoba(inplay);
+  drawHard(inplay);
+  drawIso(inplay);
+  drawWhiff(whiffs);
 }
 
-function draw(pts){
-  var cv=document.getElementById('cv');
+function makeCanvas(id){
+  var cv=document.getElementById(id);
   var ctx=cv.getContext('2d');
   var W=cv.width,H=cv.height,PAD=32;
-  var xMin=-2,xMax=2,yMin=0,yMax=5;
-  function mx(v){return PAD+(v-xMin)/(xMax-xMin)*(W-PAD*2);}
-  function my(v){return H-PAD-(v-yMin)/(yMax-yMin)*(H-PAD*2);}
-
-  ctx.fillStyle='#f8fafd';ctx.fillRect(0,0,W,H);
-
-  // Grid lines
-  ctx.strokeStyle='#e0e8f0';ctx.lineWidth=0.5;
-  [-1,0,1].forEach(function(x){
-    ctx.beginPath();ctx.moveTo(mx(x),PAD);ctx.lineTo(mx(x),H-PAD);ctx.stroke();
-  });
-
-  // Strike zone
+  var xMin=-1.5,xMax=1.5,yMin=0.8,yMax=4.2;
+  // pitcher's view = negate side
+  function mx(side){return PAD+(-side-xMin)/(xMax-xMin)*(W-PAD*2);}
+  function my(h){return H-PAD-(h-yMin)/(yMax-yMin)*(H-PAD*2);}
+  ctx.fillStyle='#f0f4fa';ctx.fillRect(0,0,W,H);
+  // Zone
   ctx.strokeStyle='#1a3a5c';ctx.lineWidth=2;
-  ctx.strokeRect(mx(-0.833),my(3.5),mx(0.833)-mx(-0.833),my(1.5)-my(3.5));
-
-  // Zone grid lines
+  ctx.strokeRect(mx(0.833),my(3.5),mx(-0.833)-mx(0.833),my(1.5)-my(3.5));
+  // Grid
   ctx.strokeStyle='#aac';ctx.lineWidth=0.5;
-  var zw=(mx(0.833)-mx(-0.833))/3;
-  var zh=(my(1.5)-my(3.5))/3;
+  var zw=(mx(-0.833)-mx(0.833))/3, zh=(my(1.5)-my(3.5))/3;
   for(var i=1;i<3;i++){
-    ctx.beginPath();ctx.moveTo(mx(-0.833)+zw*i,my(3.5));ctx.lineTo(mx(-0.833)+zw*i,my(1.5));ctx.stroke();
-    ctx.beginPath();ctx.moveTo(mx(-0.833),my(3.5)+zh*i);ctx.lineTo(mx(0.833),my(3.5)+zh*i);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(mx(0.833)+zw*i,my(3.5));ctx.lineTo(mx(0.833)+zw*i,my(1.5));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(mx(0.833),my(3.5)+zh*i);ctx.lineTo(mx(-0.833),my(3.5)+zh*i);ctx.stroke();
   }
-
-  // Axis labels
-  ctx.fillStyle='#888';ctx.font='9px sans-serif';ctx.textAlign='center';
-  [-1,0,1].forEach(function(x){ctx.fillText(x,mx(x),H-4);});
-  ctx.textAlign='right';
+  // Labels
+  ctx.fillStyle='#888';ctx.font='8px sans-serif';ctx.textAlign='right';
   ctx.fillText('3.5',PAD-4,my(3.5)+3);
   ctx.fillText('1.5',PAD-4,my(1.5)+3);
+  ctx.textAlign='center';
+  ctx.fillText("Pitcher's View (side negated)",W/2,H-4);
+  return{ctx,mx,my,W,H,PAD};
+}
 
-  // Plate
-  ctx.fillStyle='#bbb';
-  ctx.fillRect(mx(-0.708),my(0.15),mx(0.708)-mx(-0.708),4);
+function drawDot(ctx,mx,my,side,height,color){
+  var x=mx(side),y=my(height);
+  ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);
+  ctx.fillStyle=color;ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,0.25)';ctx.lineWidth=0.8;ctx.stroke();
+}
 
-  // Dots
-  var inZone=0,outZone=0;
+function makeTable(containerId, rows, cols, title){
+  var html='<table><tr>'+cols.map(function(c){return'<th>'+c+'</th>';}).join('')+'</tr>';
+  rows.forEach(function(r){
+    html+='<tr>'+r.map(function(v,i){
+      return'<td'+(i===cols.length-1&&v&&v!='--'?' class="hi"':'')+'>'+(v===null||v===undefined?'--':v)+'</td>';
+    }).join('')+'</tr>';
+  });
+  html+='</table>';
+  document.getElementById(containerId).innerHTML=html;
+}
+
+function drawWoba(pts){
+  var c=makeCanvas('cvWoba');
+  var rows=[];
   pts.forEach(function(p){
     var side=parseFloat(p.PlateLocSide);
     var height=parseFloat(p.PlateLocHeight);
     if(isNaN(side)||isNaN(height))return;
-    var inside=Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
-    if(inside)inZone++;else outZone++;
-    ctx.beginPath();ctx.arc(mx(side),my(height),5,0,Math.PI*2);
-    ctx.fillStyle=inside?'rgba(200,40,40,0.75)':'rgba(40,90,200,0.75)';
-    ctx.fill();
-    ctx.strokeStyle='rgba(0,0,0,0.3)';ctx.lineWidth=0.8;ctx.stroke();
+    var result=p.PlayResult||'';
+    var w=WOBA_WEIGHTS[result]||0;
+    var color=w>=2.0?'rgba(200,0,0,.8)':w>=1.2?'rgba(255,120,0,.8)':w>=0.8?'rgba(220,100,180,.8)':'rgba(60,100,220,.5)';
+    drawDot(c.ctx,c.mx,c.my,side,height,color);
+    var inzone=Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
+    rows.push([side.toFixed(2),height.toFixed(2),result||'Out',w.toFixed(2),inzone?'YES':'no']);
   });
-
-  // Labels
-  ctx.fillStyle='#333';ctx.font='10px sans-serif';ctx.textAlign='left';
-  ctx.fillText('In zone (red): '+inZone,8,14);
-  ctx.fillText('Out zone (blue): '+outZone,8,26);
-  ctx.fillStyle='#1a3a5c';ctx.textAlign='center';
-  ctx.fillText("Catcher's View · PlateLocSide as-is",W/2,H-18);
-  ctx.fillStyle='#888';ctx.font='8px sans-serif';
-  ctx.fillText("Left = negative side | Right = positive side",W/2,H-8);
+  c.ctx.fillStyle='#333';c.ctx.font='9px sans-serif';c.ctx.textAlign='left';
+  c.ctx.fillText('InPlay: '+pts.length,6,14);
+  makeTable('tblWoba',rows,['Side','Height','Result','wOBA','InZone']);
 }
 
-function buildTable(pts){
-  if(!pts.length)return;
-  var html='<table><tr><th>Side</th><th>Height</th><th>Pitch</th><th>Balls</th><th>Strikes</th><th>In Zone</th></tr>';
+function drawHard(pts){
+  var c=makeCanvas('cvHard');
+  var rows=[];
   pts.forEach(function(p){
     var side=parseFloat(p.PlateLocSide);
     var height=parseFloat(p.PlateLocHeight);
-    var inside=Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
-    html+='<tr>'+
-      '<td>'+(isNaN(side)?'--':side.toFixed(2))+'</td>'+
-      '<td>'+(isNaN(height)?'--':height.toFixed(2))+'</td>'+
-      '<td>'+(p.TaggedPitchType||p.AutoPitchType||'--')+'</td>'+
-      '<td>'+(p.Balls||p.BallCount||'--')+'</td>'+
-      '<td>'+(p.Strikes||p.StrikeCount||'--')+'</td>'+
-      '<td>'+(inside?'YES':'no')+'</td>'+
-      '</tr>';
+    var ev=parseFloat(p.ExitSpeed);
+    if(isNaN(side)||isNaN(height)||isNaN(ev)||ev<=0)return;
+    var hard=ev>=95;
+    var color=hard?'rgba(200,0,0,.8)':'rgba(60,100,220,.5)';
+    drawDot(c.ctx,c.mx,c.my,side,height,color);
+    var inzone=Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
+    rows.push([side.toFixed(2),height.toFixed(2),ev.toFixed(1),hard?'YES':'no',inzone?'YES':'no']);
   });
-  html+='</table>';
-  document.getElementById('table').innerHTML=html;
+  c.ctx.fillStyle='#333';c.ctx.font='9px sans-serif';c.ctx.textAlign='left';
+  c.ctx.fillText('InPlay w/EV: '+rows.length,6,14);
+  makeTable('tblHard',rows,['Side','Height','EV','Hard95+','InZone']);
+}
+
+function drawIso(pts){
+  var c=makeCanvas('cvIso');
+  var tbMap={'Double':1,'Triple':2,'HomeRun':3,'Home Run':3};
+  var rows=[];
+  pts.forEach(function(p){
+    var side=parseFloat(p.PlateLocSide);
+    var height=parseFloat(p.PlateLocHeight);
+    if(isNaN(side)||isNaN(height))return;
+    var result=p.PlayResult||'';
+    var tb=tbMap[result]||0;
+    var color=tb>=3?'rgba(200,0,0,.8)':tb>=1?'rgba(220,100,180,.8)':'rgba(60,100,220,.5)';
+    drawDot(c.ctx,c.mx,c.my,side,height,color);
+    var inzone=Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
+    rows.push([side.toFixed(2),height.toFixed(2),result||'Out/Single',tb,inzone?'YES':'no']);
+  });
+  c.ctx.fillStyle='#333';c.ctx.font='9px sans-serif';c.ctx.textAlign='left';
+  c.ctx.fillText('InPlay: '+pts.length,6,14);
+  makeTable('tblIso',rows,['Side','Height','Result','ISO val','InZone']);
+}
+
+function drawWhiff(pts){
+  var c=makeCanvas('cvWhiff');
+  var rows=[];
+  pts.forEach(function(p){
+    var side=parseFloat(p.PlateLocSide);
+    var height=parseFloat(p.PlateLocHeight);
+    if(isNaN(side)||isNaN(height))return;
+    var inzone=Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
+    var color=inzone?'rgba(200,0,0,.8)':'rgba(60,100,220,.8)';
+    drawDot(c.ctx,c.mx,c.my,side,height,color);
+    rows.push([side.toFixed(2),height.toFixed(2),p.TaggedPitchType||p.AutoPitchType||'--',p.Balls||'--',p.Strikes||'--',inzone?'YES':'no']);
+  });
+  c.ctx.fillStyle='#333';c.ctx.font='9px sans-serif';c.ctx.textAlign='left';
+  c.ctx.fillText('Whiffs: '+pts.length,6,14);
+  makeTable('tblWhiff',rows,['Side','Height','Pitch','Balls','Strikes','InZone']);
 }
 
 load();
