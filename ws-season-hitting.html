@@ -669,20 +669,7 @@ var ZONE_Y_MIN=1.5, ZONE_Y_MAX=3.5;
 
 
 
-function hotColdColor(val, minVal, maxVal) {
-  if(val===null||val===undefined||isNaN(val))return null;
-  var t=Math.max(0,Math.min(1,(val-minVal)/(maxVal-minVal||1)));
-  // blue(cold) -> white(mid) -> red(hot)
-  var r,g,b;
-  if(t<0.5){
-    var s=t*2;
-    r=Math.round(100+s*155); g=Math.round(149+s*(255-149)); b=Math.round(237+s*(255-237));
-  } else {
-    var s=(t-0.5)*2;
-    r=Math.round(255); g=Math.round(255-s*255); b=Math.round(255-s*255);
-  }
-  return'rgb('+r+','+g+','+b+')';
-}
+
 
 
 
@@ -966,20 +953,13 @@ function buildKDEGrid(rows, valueFn, sigma) {
   return{grid:result,gw:GW,gh:GH,xMin:X_MIN,xMax:X_MAX,yMin:Y_MIN,yMax:Y_MAX,validVals:validVals};
 }
 
+
+
 function hotColdColor(t){
   t=Math.max(0,Math.min(1,t));
   var r,g,b;
-  if(t<0.5){
-    var s=t*2;
-    r=Math.round(59+s*(255-59));
-    g=Math.round(113+s*(255-113));
-    b=Math.round(204+s*(255-204));
-  } else {
-    var s=(t-0.5)*2;
-    r=255;
-    g=Math.round(255-s*255);
-    b=Math.round(255-s*255);
-  }
+  if(t<0.5){var s=t*2;r=Math.round(59+s*(255-59));g=Math.round(113+s*(255-113));b=Math.round(204+s*(255-204));}
+  else{var s=(t-0.5)*2;r=255;g=Math.round(255-s*255);b=Math.round(255-s*255);}
   return[r,g,b];
 }
 
@@ -1303,23 +1283,7 @@ var ZONE_Y_MIN=1.5, ZONE_Y_MAX=3.5;
 // Bilinear interpolation between 4 corner values
 
 
-function hotColdColor(t){
-  // t = 0..1, blue->white->red
-  t=Math.max(0,Math.min(1,t));
-  var r,g,b;
-  if(t<0.5){
-    var s=t*2;
-    r=Math.round(59+s*(255-59));
-    g=Math.round(113+s*(255-113));
-    b=Math.round(204+s*(255-204));
-  } else {
-    var s=(t-0.5)*2;
-    r=255;
-    g=Math.round(255-s*255);
-    b=Math.round(255-s*255);
-  }
-  return'rgb('+r+','+g+','+b+')';
-}
+
 
 
 // wOBA value function
