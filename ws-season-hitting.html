@@ -840,7 +840,7 @@ function buildKDEGrid(rows, valueFn, sigma, xMin, xMax, yMin, yMax) {
   rows.forEach(function(r){
     var side=parseFloat(r.PlateLocSide);
     var height=parseFloat(r.PlateLocHeight);
-    var displaySide=-side; // catcher's view (negate TrackMan pitcher's view coords)
+    var displaySide=side; // catcher's view
     if(isNaN(displaySide)||isNaN(height))return;
     if(displaySide<X_MIN||displaySide>X_MAX||height<Y_MIN||height>Y_MAX)return;
     // Only use pitches within the expanded strike zone (zone + 0.25ft shadow)
