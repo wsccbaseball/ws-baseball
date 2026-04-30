@@ -835,13 +835,17 @@ function drawZoneGrid(canvasId, rows, valueFn, minVal, maxVal, label, xMin, xMax
       var gxi=Math.min(GW-1,Math.floor(px/cellW));
       var gyi=Math.min(GH-1,Math.floor(py/cellH));
       var val=filled[gyi*GW+gxi];
-      var t=isNaN(val)?0.5:(val-mn)/range;
-      var col=hotColdColor(t);
       var pidx=(py*gridW+px)*4;
-      imgData.data[pidx]=col[0];
-      imgData.data[pidx+1]=col[1];
-      imgData.data[pidx+2]=col[2];
-      imgData.data[pidx+3]=Math.round(alpha*255);
+      if(isNaN(val)){
+        imgData.data[pidx]=imgData.data[pidx+1]=imgData.data[pidx+2]=imgData.data[pidx+3]=0;
+      } else {
+        var t=(val-mn)/range;
+        var col=hotColdColor(t);
+        imgData.data[pidx]=col[0];
+        imgData.data[pidx+1]=col[1];
+        imgData.data[pidx+2]=col[2];
+        imgData.data[pidx+3]=255;
+      }
     }
   }
   // Fill background first
