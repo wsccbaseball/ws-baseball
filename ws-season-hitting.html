@@ -836,7 +836,16 @@ function drawZoneGrid(canvasId, rows, valueFn, minVal, maxVal, label, xMin, xMax
       var gyi=Math.min(GH-1,Math.floor(py/cellH));
       var val=filled[gyi*GW+gxi];
       var pidx=(py*gridW+px)*4;
-      if(isNaN(val)){
+      // Field coords for this pixel
+      var pfx=X_MIN+(px/gridW)*(X_MAX-X_MIN);
+      var pfy=Y_MAX-(py/gridH)*(Y_MAX-Y_MIN);
+      // Fade near shadow zone edges
+      var EDGE=0.833+0.15, ETOP=3.5+0.15, EBOT=1.5-0.15;
+      var dX=Math.max(0,Math.abs(pfx)-EDGE);
+      var dY=Math.max(0,Math.max(EBOT-pfy,pfy-ETOP));
+      var edgeDist=Math.max(dX,dY);
+      var edgeAlpha=edgeDist<=0?1:Math.max(0,1-edgeDist/0.12);
+      if(isNaN(val)||edgeAlpha<=0){
         imgData.data[pidx]=imgData.data[pidx+1]=imgData.data[pidx+2]=imgData.data[pidx+3]=0;
       } else {
         var t=(val-mn)/range;
@@ -844,7 +853,7 @@ function drawZoneGrid(canvasId, rows, valueFn, minVal, maxVal, label, xMin, xMax
         imgData.data[pidx]=col[0];
         imgData.data[pidx+1]=col[1];
         imgData.data[pidx+2]=col[2];
-        imgData.data[pidx+3]=255;
+        imgData.data[pidx+3]=Math.round(edgeAlpha*255);
       }
     }
   }
