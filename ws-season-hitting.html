@@ -1003,21 +1003,18 @@ function drawZoneGrid(canvasId, rows, valueFn, minVal, maxVal, label){
   // Render using ImageData for speed
   var imgData=ctx.createImageData(gridW,gridH);
   var cellW=gridW/GW, cellH=gridH/GH;
-  // Shadow zone boundaries for clipping
-  var SHADOW=0.15;
-  var clipXmin=(-0.833-SHADOW), clipXmax=(0.833+SHADOW);
-  var clipYmin=(1.5-SHADOW), clipYmax=(3.5+SHADOW);
-
   for(var py=0;py<gridH;py++){
     for(var px=0;px<gridW;px++){
       // Convert pixel to field coordinates
       var fieldX=X_MIN+(px/gridW)*(X_MAX-X_MIN);
       var fieldY=Y_MAX-(py/gridH)*(Y_MAX-Y_MIN);
-      // Fade out beyond shadow zone
-      var outsideX=Math.max(0,Math.abs(fieldX)-clipXmax+0.05);
-      var outsideY=Math.max(0,Math.max(clipYmin-fieldY,fieldY-clipYmax)+0.05);
-      var outside=Math.max(outsideX,outsideY);
-      var alpha=outside>0?Math.max(0,1-outside/0.15):1;
+      // Fade to transparent outside the shadow zone (zone +/- 0.15)
+      var FADE=0.833+0.12;
+      var FADE_Y_TOP=3.5+0.12, FADE_Y_BOT=1.5-0.12;
+      var dX=Math.max(0,Math.abs(fieldX)-FADE);
+      var dY=Math.max(0,Math.max(FADE_Y_BOT-fieldY, fieldY-FADE_Y_TOP));
+      var outside=Math.max(dX,dY);
+      var alpha=outside<=0?1:Math.max(0,1-outside/0.12);
 
       var gxi=Math.min(GW-1,Math.floor(px/cellW));
       var gyi=Math.min(GH-1,Math.floor(py/cellH));
