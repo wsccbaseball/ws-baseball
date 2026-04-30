@@ -138,7 +138,6 @@ canvas{display:block;border-radius:4px}
   <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
   <div class="load-msg" id="loadMsg">Loading season data...</div>
 </div>
-
 <div id="main-screen">
   <div class="page-header">
     <div><div class="page-header-title">Season Hitting</div><div class="page-header-sub">Walters State CC &middot; 2026</div></div>
@@ -192,8 +191,7 @@ canvas{display:block;border-radius:4px}
     <div class="back-row-title">Season Card</div>
     <button class="back-btn" onclick="showSelect()">← Back</button>
   </div>
-
-  <div class="card" id="card">
+<div class="card" id="card">
     <div class="card-header">
       <div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div>
       <div class="hdr-center">
@@ -204,10 +202,9 @@ canvas{display:block;border-radius:4px}
       </div>
       <div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div>
     </div>
-
-```
 <div class="game-line" id="cardGameLine">—</div>
 
+```
 <!-- Traditional stats -->
 <div class="stat-section">
   <span class="stat-section-label">Season Stats</span>
@@ -245,9 +242,7 @@ canvas{display:block;border-radius:4px}
     <div class="stat-box"><span class="stat-val" id="tWhiff">—</span><span class="stat-lbl">Whiff%</span></div>
     <div class="stat-box"><span class="stat-val hi" id="tSGR">—</span><span class="stat-lbl">SGR</span></div>
   </div>
-</div>
-
-<!-- Zone grid heat maps 2x2 -->
+</div><!-- Zone grid heat maps 2x2 -->
 ```
 
 <div class="hmap-section">
@@ -289,19 +284,20 @@ canvas{display:block;border-radius:4px}
     <tbody id="pitchTableBody"></tbody>
   </table>
 </div>
+```
 
 <div class="card-footer">
-  <div>⚾ Walters State CC · 2026</div>
-  <div>Data: TrackMan</div>
-  <div id="footR">wsccbaseball.github.io</div>
-</div>
+      <div>⚾ Walters State CC · 2026</div>
+      <div>Data: TrackMan</div>
+      <div id="footR">wsccbaseball.github.io</div>
+    </div>
 
+```
 <button class="save-btn" onclick="saveCard()">📥 SAVE CARD IMAGE</button>
 ```
 
   </div>
 </div>
-
 <div class="img-overlay" id="imgOverlay" onclick="closeOverlay()">
   <img id="overlayImg" src="" alt="Season Card">
   <div class="overlay-hint">Hold the image to save to your photos</div>
