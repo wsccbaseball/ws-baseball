@@ -901,7 +901,7 @@ function drawZoneGrid(canvasId, rows, valueFn, minVal, maxVal, label, xMin, xMax
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);
 
-  var kdeResult=buildKDEGrid(rows,valueFn,0.10,xMin,xMax,yMin,yMax,densityMode);
+  var kdeResult=buildKDEGrid(rows,valueFn,0.07,xMin,xMax,yMin,yMax,densityMode);
   var grid=kdeResult.grid;
   var GW=kdeResult.gw, GH=kdeResult.gh;
 
