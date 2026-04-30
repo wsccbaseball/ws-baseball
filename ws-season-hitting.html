@@ -170,8 +170,7 @@ canvas{display:block;border-radius:4px}
   </div>
   <div class="card" id="card">
     <div class="card-header"><div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div><div class="hdr-center"><div class="player-name" id="cardName">&#8212;</div><div class="player-pos" id="cardPos">Walters State CC</div><div class="card-type">Season Hitting Summary</div><div class="season-tag">2026 NJCAA Season</div></div><div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div></div>
-    <div class="game-line" id="cardGameLine">&#8212;</div>
-    <div class="stat-section"><span class="stat-section-label">Season Stats</span><div class="stat-row"><div class="stat-box"><span class="stat-val hi" id="sAVG">&#8212;</span><span class="stat-lbl">AVG</span></div><div class="stat-box"><span class="stat-val" id="sOBP">&#8212;</span><span class="stat-lbl">OBP</span></div><div class="stat-box"><span class="stat-val" id="sSLG">&#8212;</span><span class="stat-lbl">SLG</span></div><div class="stat-box"><span class="stat-val hi" id="sWOBA">&#8212;</span><span class="stat-lbl">wOBA</span></div><div class="stat-box"><span class="stat-val" id="sHR">&#8212;</span><span class="stat-lbl">HR</span></div><div class="stat-box"><span class="stat-val" id="sRBI">&#8212;</span><span class="stat-lbl">RBI</span></div><div class="stat-box"><span class="stat-val" id="sSB">&#8212;</span><span class="stat-lbl">SB</span></div></div></div>
+    <div class="stat-section"><span class="stat-section-label">Season Stats</span><div class="stat-row"><div class="stat-box"><span class="stat-val hi" id="sAVG">&#8212;</span><span class="stat-lbl">PA</span></div><div class="stat-box"><span class="stat-val" id="sOBP">&#8212;</span><span class="stat-lbl">wOBA</span></div><div class="stat-box"><span class="stat-val" id="sSLG">&#8212;</span><span class="stat-lbl">ISO</span></div><div class="stat-box"><span class="stat-val hi" id="sWOBA">&#8212;</span><span class="stat-lbl">AVG</span></div><div class="stat-box"><span class="stat-val" id="sHR">&#8212;</span><span class="stat-lbl">HR</span></div><div class="stat-box"><span class="stat-val" id="sRBI">&#8212;</span><span class="stat-lbl">XBH</span></div><div class="stat-box"><span class="stat-val" id="sSB">&#8212;</span><span class="stat-lbl">K-BB%</span></div></div></div>
     <div class="stat-section"><span class="stat-section-label">Contact Quality &middot; TrackMan</span><div class="stat-row"><div class="stat-box"><span class="stat-val" id="tHard">&#8212;</span><span class="stat-lbl">Hard%</span></div><div class="stat-box"><span class="stat-val" id="tBarrel">&#8212;</span><span class="stat-lbl">Barrel%</span></div><div class="stat-box"><span class="stat-val hi" id="tBestSpeed">&#8212;</span><span class="stat-lbl">Best Speed</span></div><div class="stat-box"><span class="stat-val" id="tMaxEV">&#8212;</span><span class="stat-lbl">Max EV</span></div><div class="stat-box"><span class="stat-val" id="tGB">&#8212;</span><span class="stat-lbl">GB%</span></div><div class="stat-box"><span class="stat-val" id="tFB">&#8212;</span><span class="stat-lbl">FB%</span></div></div></div>
     <div class="stat-section"><span class="stat-section-label">Plate Discipline &middot; TrackMan</span><div class="stat-row"><div class="stat-box"><span class="stat-val" id="tSwing">&#8212;</span><span class="stat-lbl">Swing%</span></div><div class="stat-box"><span class="stat-val" id="tChase">&#8212;</span><span class="stat-lbl">Chase%</span></div><div class="stat-box"><span class="stat-val" id="tZSwing">&#8212;</span><span class="stat-lbl">Z-Swing%</span></div><div class="stat-box"><span class="stat-val" id="tWhiff">&#8212;</span><span class="stat-lbl">Whiff%</span></div><div class="stat-box"><span class="stat-val hi" id="tSGR">&#8212;</span><span class="stat-lbl">SGR</span></div></div></div>
     <div class="hmap-section"><div class="hmap-title-row" style="margin-bottom:6px"><div class="hmap-title">Zone Heat Maps &middot; Pitcher's View</div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">wOBA</div><canvas id="zmapWoba" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Hard%</div><canvas id="zmapHard" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">ISO</div><canvas id="zmapIso" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Whiff Zones</div><canvas id="zmapWhiff" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div></div><div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View &middot; looking toward the pitcher</div></div>
@@ -349,6 +348,8 @@ function computeProfile(name,rows){
     slg:bs?parseFloat(bs.slg)||0:0,woba:woba,
     hr:bs?parseInt(bs.hr)||0:0,rbi:bs?parseInt(bs.rbi)||0:0,
     sb:bs?parseInt(bs.sb)||0:0,h:bs?parseInt(bs.h)||0:0,
+    xbh:(bs?parseInt(bs.doubles)||0:0)+(bs?parseInt(bs.triples)||0:0)+(bs?parseInt(bs.hr)||0:0),
+    bsK:bs?parseInt(bs.k||bs.so)||0:0,bsBBval:bsBB,
     swingPct:rows.length>0?swings/rows.length:0,
     whiffPct:swings>0?whiffs/swings:0,
     chasePct:ozPitches>0?ozSwings/ozPitches:0,
@@ -533,14 +534,15 @@ function buildCard(){
   if(!p)return;
   document.getElementById('cardName').textContent=p.displayName;
   document.getElementById('cardPos').textContent='Walters State CC';
-  document.getElementById('cardGameLine').textContent='2026 Season . '+p.gp+' GP . '+p.pa+' PA . '+p.totalPitches+' pitches seen (TrackMan)';
-  document.getElementById('sAVG').textContent=fmt3(p.avg);
-  document.getElementById('sOBP').textContent=fmt3(p.obp);
-  document.getElementById('sSLG').textContent=fmt3(p.slg);
-  document.getElementById('sWOBA').textContent=fmt3(p.woba);
+  document.getElementById('sAVG').textContent=p.pa;
+  document.getElementById('sOBP').textContent=fmt3(p.woba);
+  var iso=p.slg>0&&p.avg>0?fmt3(p.slg-p.avg):'--';
+  document.getElementById('sSLG').textContent=iso;
+  document.getElementById('sWOBA').textContent=fmt3(p.avg);
   document.getElementById('sHR').textContent=p.hr;
-  document.getElementById('sRBI').textContent=p.rbi;
-  document.getElementById('sSB').textContent=p.sb;
+  document.getElementById('sRBI').textContent=p.xbh;
+  var kbb=p.pa>0?((p.bsK-p.bsBBval)/p.pa*100).toFixed(1)+'%':'--';
+  document.getElementById('sSB').textContent=kbb;
   var hardEl=document.getElementById('tHard');
   hardEl.textContent=pct(p.hardHit);hardEl.className='stat-val'+(p.hardHit>=.35?' good':'');
   document.getElementById('tBarrel').textContent=pct(p.barrelPct);
