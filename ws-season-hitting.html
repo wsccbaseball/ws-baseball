@@ -252,7 +252,7 @@ canvas{display:block;border-radius:4px}
 
 <div class="hmap-section">
   <div class="hmap-title-row" style="margin-bottom:6px">
-    <div class="hmap-title">Zone Heat Maps - Pitcher's View</div>
+    <div class="hmap-title">Zone Heat Maps - Catcher's View</div>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
     <div>
@@ -272,7 +272,7 @@ canvas{display:block;border-radius:4px}
       <canvas id="zmapWhiff" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
     </div>
   </div>
-  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View - min 3 BIP per cell - blue=low red=high</div>
+  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Catcher's View - min 3 BIP per cell - blue=low red=high</div>
 </div>
 
 <!-- Pitch type table -->
@@ -913,7 +913,7 @@ function buildKDEGrid(rows, valueFn, sigma) {
   rows.forEach(function(r){
     var side=parseFloat(r.PlateLocSide);
     var height=parseFloat(r.PlateLocHeight);
-    var displaySide=-side; // pitcher's view
+    var displaySide=side; // catcher's view
     if(isNaN(displaySide)||isNaN(height))return;
     // Only include pitches in or near the strike zone
     if(displaySide<X_MIN||displaySide>X_MAX||height<Y_MIN||height>Y_MAX)return;
