@@ -524,8 +524,10 @@ function buildPitchTable(p){
       var ch=d.ozPitches>0?d.chases/d.ozPitches:0;
       var hard=d.ev.length>0?d.ev.filter(function(v){return v>=95;}).length/d.ev.length:0;
       var avgEV=d.ev.length>0?(d.ev.reduce(function(a,b){return a+b;},0)/d.ev.length).toFixed(1):'--';
+      var totalPitches=Object.values(p.pitchTypes).reduce(function(s,v){return s+v.total;},0);
+      var usagePct=totalPitches>0?(d.total/totalPitches*100).toFixed(1)+'%':'--';
       var color=pitchColor(pt);
-      tbody.innerHTML+='<tr><td style="display:flex;align-items:center;gap:4px"><div class="pitch-dot" style="background:'+color+'"></div>'+escH(pt)+'</td><td>'+d.total+'</td><td>'+pct(sw)+'</td><td>'+pct(wh)+'</td><td>'+(ch>0?pct(ch):'--')+'</td><td>'+pct(hard)+'</td><td>'+avgEV+'</td></tr>';
+      tbody.innerHTML+='<tr><td style="display:flex;align-items:center;gap:4px"><div class="pitch-dot" style="background:'+color+'"></div>'+escH(pt)+'</td><td>'+usagePct+'</td><td>'+pct(sw)+'</td><td>'+pct(wh)+'</td><td>'+(ch>0?pct(ch):'--')+'</td><td>'+pct(hard)+'</td><td>'+avgEV+'</td></tr>';
     });
 }
 
