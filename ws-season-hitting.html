@@ -905,7 +905,7 @@ var HMAP_GRID=40; // internal grid resolution
 
 function buildKDEGrid(rows, valueFn, sigma) {
   // Grid covers the strike zone area with padding
-  var X_MIN=-1.05, X_MAX=1.05, Y_MIN=1.25, Y_MAX=3.75;
+  var X_MIN=-1.05, X_MAX=1.05, Y_MIN=1.3, Y_MAX=3.7;
   var GW=HMAP_GRID, GH=HMAP_GRID;
   var weightGrid=new Float32Array(GW*GH);
   var valueGrid=new Float32Array(GW*GH);
@@ -915,9 +915,9 @@ function buildKDEGrid(rows, valueFn, sigma) {
     var height=parseFloat(r.PlateLocHeight);
     var displaySide=side; // catcher's view
     if(isNaN(displaySide)||isNaN(height))return;
-    // Only include pitches in or near the strike zone
     if(displaySide<X_MIN||displaySide>X_MAX||height<Y_MIN||height>Y_MAX)return;
-    if(Math.abs(displaySide)>1.1||height<1.0||height>4.0)return;
+    // Only use pitches within the expanded strike zone (zone + 0.25ft shadow)
+    if(Math.abs(displaySide)>1.083||height<1.25||height>3.75)return;
     var val=valueFn(r);
     if(val===null||val===undefined||isNaN(val))return;
 
