@@ -252,7 +252,7 @@ canvas{display:block;border-radius:4px}
 
 <div class="hmap-section">
   <div class="hmap-title-row" style="margin-bottom:6px">
-    <div class="hmap-title">Zone Heat Maps · Catcher's View</div>
+    <div class="hmap-title">Zone Heat Maps · Pitcher's View</div>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
     <div>
@@ -272,7 +272,7 @@ canvas{display:block;border-radius:4px}
       <canvas id="zmapWhiff" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
     </div>
   </div>
-  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Catcher's View (looking toward plate) · RHH inside = right · LHH inside = left</div>
+  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View · looking toward home plate</div>
 </div>
 
 <!-- Pitch type table -->
@@ -840,7 +840,7 @@ function buildKDEGrid(rows, valueFn, sigma, xMin, xMax, yMin, yMax, densityMode)
   rows.forEach(function(r){
     var side=parseFloat(r.PlateLocSide);
     var height=parseFloat(r.PlateLocHeight);
-    var displaySide=side; // catcher's view
+    var displaySide=-side; // pitcher's view
     if(isNaN(displaySide)||isNaN(height))return;
     if(displaySide<X_MIN||displaySide>X_MAX||height<Y_MIN||height>Y_MAX)return;
     // Only use pitches within the expanded strike zone (zone + 0.25ft shadow)
@@ -1218,15 +1218,7 @@ function buildCard(){
   if(!p){document.getElementById('statusMsg').textContent='No data for this player.';return;}
 
   document.getElementById('cardName').textContent=p.displayName;
-  // Detect handedness from TrackMan rows
-  var sides=p.rows.map(function(r){return(r.BatterSide||r.Batter_Side||'').trim();}).filter(Boolean);
-  var handedness='';
-  if(sides.length){
-    var rCount=sides.filter(function(s){return s.toLowerCase().includes('right');}).length;
-    var lCount=sides.filter(function(s){return s.toLowerCase().includes('left');}).length;
-    handedness=rCount>=lCount?'RHH':'LHH';
-  }
-  document.getElementById('cardPos').textContent='Walters State CC'+(handedness?'   '+handedness:'');
+  document.getElementById('cardPos').textContent='Walters State CC';
   document.getElementById('cardGameLine').textContent=
     '2026 Season . '+p.gp+' GP . '+p.pa+' PA . '+p.totalPitches+' pitches seen (TrackMan)';
 
