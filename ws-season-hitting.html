@@ -63,72 +63,50 @@ table.stats-tbl tr.selected td:first-child{background:#e8f0fb!important}
 .back-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .back-row-title{font-family:'Abril Fatface',serif;font-size:1.3rem;color:#1a1a2e}
 .back-btn{background:transparent;border:1px solid #ddd5bc;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:.8rem;color:#6b5f47;cursor:pointer}
-/* ── THE CARD ── */
 .card{background:#fff;width:100%;max-width:500px;border-radius:10px;-webkit-border-radius:10px;box-shadow:0 4px 24px rgba(0,0,0,.13);overflow:hidden;margin:0 auto 16px}
-
-/* Header */
 .card-header{background:linear-gradient(135deg,#1a3a5c 0%,#2d5a8e 100%);padding:8px 12px 7px;display:flex;align-items:center;justify-content:space-between}
 .hdr-center{text-align:center;flex:1}
-.player-name{font-family:‘Barlow Condensed’,sans-serif;font-size:28px;font-weight:800;color:#fff;letter-spacing:1px;line-height:1}
-.player-pos{font-family:‘Barlow Condensed’,sans-serif;font-size:11px;color:#a8c8f0;margin-top:1px}
-.card-type{font-family:‘Barlow Condensed’,sans-serif;font-size:13px;font-weight:700;color:#fff;margin-top:2px}
+.player-name{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:#fff;letter-spacing:1px;line-height:1}
+.player-pos{font-family:'Barlow Condensed',sans-serif;font-size:11px;color:#a8c8f0;margin-top:1px}
+.card-type{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:#fff;margin-top:2px}
 .season-tag{font-size:10px;font-style:italic;color:#7bb3e0}
 .logo-box{width:42px;text-align:center}
-
-/* Game line */
-.game-line{background:#e8f0fb;text-align:center;padding:5px 8px;font-family:‘Barlow Condensed’,sans-serif;font-size:12px;font-weight:700;color:#1a3a5c;border-bottom:2px solid #c5d8f0}
-
-/* Stat rows */
+.game-line{background:#e8f0fb;text-align:center;padding:5px 8px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:#1a3a5c;border-bottom:2px solid #c5d8f0}
 .stat-section{padding:4px 6px 2px;border-bottom:1px solid #e4eaf4;overflow:hidden}
-.stat-section-label{font-family:‘Anton’,sans-serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#7a8faa;padding:3px 0 2px;display:block}
+.stat-section-label{font-family:'Anton',sans-serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#7a8faa;padding:3px 0 2px;display:block}
 .stat-row{display:flex;width:100%}
 .stat-box{flex:1;text-align:center;padding:3px 2px;border-right:1px solid #eef2f8}
 .stat-box:last-child{border-right:none}
-.stat-val{font-family:‘Barlow Condensed’,sans-serif;font-size:16px;font-weight:800;color:#1a3a5c;line-height:1;display:block}
+.stat-val{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#1a3a5c;line-height:1;display:block}
 .stat-val.hi{color:#1a3a5c}
 .stat-val.good{color:#2a7a3a}
 .stat-val.warn{color:#b05000}
-.stat-lbl{font-family:‘Barlow Condensed’,sans-serif;font-size:7.5px;font-weight:600;color:#9b8c9a;text-transform:uppercase;letter-spacing:.4px;display:block;margin-top:1px}
-
-/* Heat maps */
+.stat-lbl{font-family:'Barlow Condensed',sans-serif;font-size:7.5px;font-weight:600;color:#9b8c9a;text-transform:uppercase;letter-spacing:.4px;display:block;margin-top:1px}
 .hmap-section{padding:5px 6px 4px;border-bottom:1px solid #e4eaf4}
 .hmap-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
-.hmap-title{font-family:‘Anton’,sans-serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#1a3a5c}
+.hmap-title{font-family:'Anton',sans-serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#1a3a5c}
 .hmap-legend{display:flex;flex-wrap:wrap;gap:3px 8px;justify-content:flex-end}
-.hmap-legend-item{display:flex;align-items:center;gap:2px;font-family:‘Barlow Condensed’,sans-serif;font-size:7px;color:#6b5f47}
+.hmap-legend-item{display:flex;align-items:center;gap:2px;font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#6b5f47}
 .hmap-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 .hmap-canvas-wrap{display:flex;gap:4px;align-items:flex-start}
-.hmap-canvas-label{font-family:‘Barlow Condensed’,sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:2px}
+.hmap-canvas-label{font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:2px}
 canvas{display:block;border-radius:4px}
-
-/* Pitch table */
 .pitch-section{padding:4px 6px 5px}
-.pitch-table{width:100%;border-collapse:collapse;font-family:‘Barlow Condensed’,sans-serif}
+.pitch-table{width:100%;border-collapse:collapse;font-family:'Barlow Condensed',sans-serif}
 .pitch-table th{background:#1a3a5c;color:#fff;font-size:8.5px;font-weight:700;padding:3px 4px;text-align:center;white-space:nowrap}
 .pitch-table th:first-child{text-align:left}
 .pitch-table td{text-align:center;padding:4px 4px;font-size:11px;font-weight:700;color:#1a1a1a;border:1px solid #dde4ef;background:#f8fafd}
 .pitch-table td:first-child{text-align:left;display:flex;align-items:center;gap:4px;background:#f8fafd}
 .pitch-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-
-/* Footer */
-.card-footer{background:#f0f4fa;border-top:1px solid #dde4ef;padding:5px 10px;display:flex;justify-content:space-between;font-family:‘Barlow Condensed’,sans-serif;font-size:8px;color:#6a7f9a}
-
-.save-btn{display:block;width:calc(100% - 16px);margin:8px auto;padding:11px;background:#1a3a5c;border:none;border-radius:8px;font-family:‘Barlow Condensed’,sans-serif;font-size:15px;font-weight:800;color:#fff;cursor:pointer;letter-spacing:1px}
+.card-footer{background:#f0f4fa;border-top:1px solid #dde4ef;padding:5px 10px;display:flex;justify-content:space-between;font-family:'Barlow Condensed',sans-serif;font-size:8px;color:#6a7f9a}
+.save-btn{display:block;width:calc(100% - 16px);margin:8px auto;padding:11px;background:#1a3a5c;border:none;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:#fff;cursor:pointer;letter-spacing:1px}
 .save-btn:active{background:#2d5a8e}
-
 .img-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.88);align-items:center;justify-content:center;flex-direction:column;padding:16px}
 .img-overlay.active{display:flex}
 .img-overlay img{max-width:100%;max-height:80vh;border-radius:6px}
-.overlay-hint{margin-top:14px;font-family:‘Barlow Condensed’,sans-serif;font-size:15px;font-weight:600;color:rgba(255,255,255,.75);text-align:center}
-.overlay-close{margin-top:16px;padding:10px 32px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:8px;color:#fff;font-family:‘Barlow Condensed’,sans-serif;font-size:15px;font-weight:700;cursor:pointer}
-
-.img-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.88);align-items:center;justify-content:center;flex-direction:column;padding:16px}
-.img-overlay.active{display:flex}
-.img-overlay img{max-width:100%;max-height:80vh;border-radius:6px}
-.overlay-hint{margin-top:14px;font-family:‘Barlow Condensed’,sans-serif;font-size:15px;font-weight:600;color:rgba(255,255,255,.75);text-align:center}
-.overlay-close{margin-top:16px;padding:10px 32px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:8px;color:#fff;font-family:‘Barlow Condensed’,sans-serif;font-size:15px;font-weight:700;cursor:pointer}
+.overlay-hint{margin-top:14px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:600;color:rgba(255,255,255,.75);text-align:center}
+.overlay-close{margin-top:16px;padding:10px 32px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:8px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;cursor:pointer}
 </style>
-
 </head>
 <body>
 
@@ -138,6 +116,7 @@ canvas{display:block;border-radius:4px}
   <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
   <div class="load-msg" id="loadMsg">Loading season data...</div>
 </div>
+
 <div id="main-screen">
   <div class="page-header">
     <div><div class="page-header-title">Season Hitting</div><div class="page-header-sub">Walters State CC &middot; 2026</div></div>
@@ -184,27 +163,29 @@ canvas{display:block;border-radius:4px}
   </div>
 </div>
 
-<!-- Card -->
-
 <div id="card-screen">
   <div class="back-row">
     <div class="back-row-title">Season Card</div>
-    <button class="back-btn" onclick="showSelect()">← Back</button>
+    <button class="back-btn" onclick="showSelect()">&#8592; Back</button>
   </div>
-<div class="card" id="card"><div class="card-header"><div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div><div class="hdr-center"><div class="player-name" id="cardName">—</div><div class="player-pos" id="cardPos">Walters State CC</div><div class="card-type">Season Hitting Summary</div><div class="season-tag">2026 NJCAA Season</div></div><div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div></div><div class="game-line" id="cardGameLine">—</div><!-- Traditional stats --><div class="stat-section"><span class="stat-section-label">Season Stats</span><div class="stat-row"><div class="stat-box"><span class="stat-val hi" id="sAVG">—</span><span class="stat-lbl">AVG</span></div><div class="stat-box"><span class="stat-val" id="sOBP">—</span><span class="stat-lbl">OBP</span></div><div class="stat-box"><span class="stat-val" id="sSLG">—</span><span class="stat-lbl">SLG</span></div><div class="stat-box"><span class="stat-val hi" id="sWOBA">—</span><span class="stat-lbl">wOBA</span></div><div class="stat-box"><span class="stat-val" id="sHR">—</span><span class="stat-lbl">HR</span></div><div class="stat-box"><span class="stat-val" id="sRBI">—</span><span class="stat-lbl">RBI</span></div><div class="stat-box"><span class="stat-val" id="sSB">—</span><span class="stat-lbl">SB</span></div></div></div><!-- Contact quality --><div class="stat-section"><span class="stat-section-label">Contact Quality · TrackMan</span><div class="stat-row"><div class="stat-box"><span class="stat-val" id="tHard">—</span><span class="stat-lbl">Hard%</span></div><div class="stat-box"><span class="stat-val" id="tBarrel">—</span><span class="stat-lbl">Barrel%</span></div><div class="stat-box"><span class="stat-val hi" id="tBestSpeed">—</span><span class="stat-lbl">Best Speed</span></div><div class="stat-box"><span class="stat-val" id="tMaxEV">—</span><span class="stat-lbl">Max EV</span></div><div class="stat-box"><span class="stat-val" id="tGB">—</span><span class="stat-lbl">GB%</span></div><div class="stat-box"><span class="stat-val" id="tFB">—</span><span class="stat-lbl">FB%</span></div></div></div><!-- Plate discipline --><div class="stat-section"><span class="stat-section-label">Plate Discipline · TrackMan</span><div class="stat-row"><div class="stat-box"><span class="stat-val" id="tSwing">—</span><span class="stat-lbl">Swing%</span></div><div class="stat-box"><span class="stat-val" id="tChase">—</span><span class="stat-lbl">Chase%</span></div><div class="stat-box"><span class="stat-val" id="tZSwing">—</span><span class="stat-lbl">Z-Swing%</span></div><div class="stat-box"><span class="stat-val" id="tWhiff">—</span><span class="stat-lbl">Whiff%</span></div><div class="stat-box"><span class="stat-val hi" id="tSGR">—</span><span class="stat-lbl">SGR</span></div></div></div><!-- Zone grid heat maps 2x2 --><div class="hmap-section"><div class="hmap-title-row" style="margin-bottom:6px"><div class="hmap-title">Zone Heat Maps · Pitcher's View</div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">wOBA</div><canvas id="zmapWoba" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Hard%</div><canvas id="zmapHard" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">ISO</div><canvas id="zmapIso" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Whiff Zones</div><canvas id="zmapWhiff" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div></div><div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View · looking toward the pitcher</div></div><!-- Pitch type table --><div class="pitch-section"><span class="stat-section-label" style="display:block;margin-bottom:4px">Pitch Mix Seen · TrackMan</span><table class="pitch-table"><thead><tr><th style="text-align:left">Pitch</th><th>Seen</th><th>Swing%</th><th>Whiff%</th><th>Chase%</th><th>Hard%</th><th>Avg EV</th></tr></thead><tbody id="pitchTableBody"></tbody></table></div><div class="card-footer"><div>⚾ Walters State CC · 2026</div><div>Data: TrackMan</div><div id="footR">wsccbaseball.github.io</div></div><button class="save-btn" onclick="saveCard()">📥 SAVE CARD IMAGE</button></div></div>
-<div class="img-overlay" id="imgOverlay" onclick="closeOverlay()">
-  <img id="overlayImg" src="" alt="Season Card">
-  <div class="overlay-hint">Hold the image to save to your photos</div>
-  <button class="overlay-close" onclick="closeOverlay()">✕ Close</button>
+  <div class="card" id="card">
+    <div class="card-header"><div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div><div class="hdr-center"><div class="player-name" id="cardName">&#8212;</div><div class="player-pos" id="cardPos">Walters State CC</div><div class="card-type">Season Hitting Summary</div><div class="season-tag">2026 NJCAA Season</div></div><div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div></div>
+    <div class="game-line" id="cardGameLine">&#8212;</div>
+    <div class="stat-section"><span class="stat-section-label">Season Stats</span><div class="stat-row"><div class="stat-box"><span class="stat-val hi" id="sAVG">&#8212;</span><span class="stat-lbl">AVG</span></div><div class="stat-box"><span class="stat-val" id="sOBP">&#8212;</span><span class="stat-lbl">OBP</span></div><div class="stat-box"><span class="stat-val" id="sSLG">&#8212;</span><span class="stat-lbl">SLG</span></div><div class="stat-box"><span class="stat-val hi" id="sWOBA">&#8212;</span><span class="stat-lbl">wOBA</span></div><div class="stat-box"><span class="stat-val" id="sHR">&#8212;</span><span class="stat-lbl">HR</span></div><div class="stat-box"><span class="stat-val" id="sRBI">&#8212;</span><span class="stat-lbl">RBI</span></div><div class="stat-box"><span class="stat-val" id="sSB">&#8212;</span><span class="stat-lbl">SB</span></div></div></div>
+    <div class="stat-section"><span class="stat-section-label">Contact Quality &middot; TrackMan</span><div class="stat-row"><div class="stat-box"><span class="stat-val" id="tHard">&#8212;</span><span class="stat-lbl">Hard%</span></div><div class="stat-box"><span class="stat-val" id="tBarrel">&#8212;</span><span class="stat-lbl">Barrel%</span></div><div class="stat-box"><span class="stat-val hi" id="tBestSpeed">&#8212;</span><span class="stat-lbl">Best Speed</span></div><div class="stat-box"><span class="stat-val" id="tMaxEV">&#8212;</span><span class="stat-lbl">Max EV</span></div><div class="stat-box"><span class="stat-val" id="tGB">&#8212;</span><span class="stat-lbl">GB%</span></div><div class="stat-box"><span class="stat-val" id="tFB">&#8212;</span><span class="stat-lbl">FB%</span></div></div></div>
+    <div class="stat-section"><span class="stat-section-label">Plate Discipline &middot; TrackMan</span><div class="stat-row"><div class="stat-box"><span class="stat-val" id="tSwing">&#8212;</span><span class="stat-lbl">Swing%</span></div><div class="stat-box"><span class="stat-val" id="tChase">&#8212;</span><span class="stat-lbl">Chase%</span></div><div class="stat-box"><span class="stat-val" id="tZSwing">&#8212;</span><span class="stat-lbl">Z-Swing%</span></div><div class="stat-box"><span class="stat-val" id="tWhiff">&#8212;</span><span class="stat-lbl">Whiff%</span></div><div class="stat-box"><span class="stat-val hi" id="tSGR">&#8212;</span><span class="stat-lbl">SGR</span></div></div></div>
+    <div class="hmap-section"><div class="hmap-title-row" style="margin-bottom:6px"><div class="hmap-title">Zone Heat Maps &middot; Pitcher's View</div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">wOBA</div><canvas id="zmapWoba" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Hard%</div><canvas id="zmapHard" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">ISO</div><canvas id="zmapIso" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Whiff Zones</div><canvas id="zmapWhiff" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div></div><div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View &middot; looking toward the pitcher</div></div>
+    <div class="pitch-section"><span class="stat-section-label" style="display:block;margin-bottom:4px">Pitch Mix Seen &middot; TrackMan</span><table class="pitch-table"><thead><tr><th style="text-align:left">Pitch</th><th>Seen</th><th>Swing%</th><th>Whiff%</th><th>Chase%</th><th>Hard%</th><th>Avg EV</th></tr></thead><tbody id="pitchTableBody"></tbody></table></div>
+    <div class="card-footer"><div>&#9918; Walters State CC &middot; 2026</div><div>Data: TrackMan</div><div id="footR">wsccbaseball.github.io</div></div>
+    <button class="save-btn" onclick="saveCard()">&#128229; SAVE CARD IMAGE</button>
+  </div>
 </div>
-
-</body>
-</html>
 
 <div class="bottom-bar" id="bottomBar" style="display:none">
   <div class="sel-hint" id="selHint">Tap a player to select</div>
   <button class="gen-btn" id="genCardBtn" disabled onclick="buildCard()">Generate Season Card &rarr;</button>
 </div>
+
 <div class="img-overlay" id="imgOverlay" onclick="closeOverlay()">
   <img id="overlayImg" src="" alt="Season Card">
   <div class="overlay-hint">Hold the image to save to your photos</div>
@@ -223,11 +204,9 @@ var PITCH_COLORS={
   'Fastball':'#e63946','Four-Seam':'#e63946','FourSeamFastBall':'#e63946',
   'Sinker':'#ff6a00','TwoSeamFastBall':'#ff6a00',
   'Curveball':'#a020f0','CurveBall':'#a020f0',
-  'Slider':'#00c2a8',
-  'Cutter':'#00e0b0',
+  'Slider':'#00c2a8','Cutter':'#00e0b0',
   'ChangeUp':'#ff9900','Changeup':'#ff9900','Change-up':'#ff9900',
-  'Splitter':'#f0d000',
-  'Knuckleball':'#888888','Other':'#666666'
+  'Splitter':'#f0d000','Knuckleball':'#888888','Other':'#666666'
 };
 var PITCH_NORM={
   'Four-Seam':'Fastball','FourSeamFastBall':'Fastball','Fastball':'Fastball',
@@ -240,8 +219,6 @@ var PITCH_NORM={
 function normPitch(t){return PITCH_NORM[t]||t||'Other';}
 function pitchColor(t){return PITCH_COLORS[normPitch(t)]||PITCH_COLORS[t]||'#888888';}
 
-var allPitches=[], seasonStats={batting:[]};
-
 async function supaFetch(path){
   var rows=[],from=0;
   while(true){
@@ -253,94 +230,33 @@ async function supaFetch(path){
   }
   return rows;
 }
+function setProgress(pct,msg){document.getElementById('progressFill').style.width=pct+'%';document.getElementById('loadMsg').textContent=msg;}
 
-function setProgress(pct,msg){
-  document.getElementById('progressFill').style.width=pct+'%';
-  document.getElementById('loadMsg').textContent=msg;
+function strikeProbability(side,height,zTop,zBot,halfW){
+  zTop=zTop||3.5;zBot=zBot||1.5;halfW=halfW||0.833;
+  var dx=Math.max(0,Math.abs(side)-halfW);
+  var dy=Math.max(0,Math.max(zBot-height,height-zTop));
+  var dist=Math.sqrt(dx*dx+dy*dy);
+  var inside=Math.abs(side)<=halfW&&height>=zBot&&height<=zTop;
+  if(inside)return 1/(1+Math.exp(15*(dist-0.15)));
+  return 1/(1+Math.exp(15*(dist+0.05)));
 }
 
-
-
-function buildPlayerProfiles(){
-  var wsPitches=allPitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal');});
-  var players={};
-  wsPitches.forEach(function(r){
-    var n=(r.Batter||'').trim();if(!n)return;
-    if(!players[n])players[n]=[];
-    players[n].push(r);
-  });
-
-}
-
-
-// -- Strike probability sigmoid --
-function strikeProbability(side, height, zTop, zBot, halfW) {
-  zTop = zTop || 3.5; zBot = zBot || 1.5; halfW = halfW || 0.833;
-  var dx = Math.max(0, Math.abs(side) - halfW);
-  var dy = Math.max(0, Math.max(zBot - height, height - zTop));
-  var dist = Math.sqrt(dx*dx + dy*dy);
-  var inside = Math.abs(side) <= halfW && height >= zBot && height <= zTop;
-  if (inside) return 1 / (1 + Math.exp(15 * (dist - 0.15)));
-  return 1 / (1 + Math.exp(15 * (dist + 0.05)));
-}
-
-// -- Run value of strike vs ball at this count/state --
-function swingTakeRV(balls, strikes, outs, baseState) {
-  var so = Math.min(Math.max(isNaN(outs)?0:outs,0),2);
-  var bst = (isNaN(baseState)||baseState<0||baseState>7)?0:baseState;
+function swingTakeRV(balls,strikes,outs,baseState){
+  var so=Math.min(Math.max(isNaN(outs)?0:outs,0),2);
+  var bst=(isNaN(baseState)||baseState<0||baseState>7)?0:baseState;
   function walkRes(bs){var on1=!!(bs&1),on2=!!(bs&2),on3=!!(bs&4),runs=0,n1=true,n2=on2,n3=on3;if(on1){n2=true;if(on2){n3=true;if(on3)runs=1;}}return{newState:(n1?1:0)|(n2?2:0)|(n3?4:0),runs:runs};}
   function reVal(b,s){if(b>=4){var w=walkRes(bst);return w.runs+RE24[so][w.newState];}if(s>=3){return so===2?0:RE24[so+1][bst];}return COUNT_RE[b+'-'+s]||COUNT_RE['0-0'];}
   return{strikeVal:reVal(balls,strikes+1),ballVal:reVal(balls+1,strikes),delta:reVal(balls,strikes+1)-reVal(balls+1,strikes)};
 }
 
-// -- Build contact profile by zone bucket --
-function buildContactProfile(rows) {
-  var buckets={heart:{swings:0,contacts:0,evSum:0,evCount:0},shadow:{swings:0,contacts:0,evSum:0,evCount:0},outside:{swings:0,contacts:0,evSum:0,evCount:0}};
-  var SHADOW=0.0833;
-  rows.forEach(function(r){
-    var call=(r.PitchCall||'').trim();
-    var isSwing=['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
-    if(!isSwing)return;
-    var side=parseFloat(r.PlateLocSide),height=parseFloat(r.PlateLocHeight);
-    if(isNaN(side)||isNaN(height))return;
-    var zTop=parseFloat(r.ZoneTop)||3.5,zBot=parseFloat(r.ZoneBottom)||1.5;
-    var inZone=Math.abs(side)<=0.833&&height>=zBot&&height<=zTop;
-    var inShadow=!inZone&&Math.abs(side)<=(0.833+SHADOW)&&height>=(zBot-SHADOW)&&height<=(zTop+SHADOW);
-    var bkt=inZone?'heart':inShadow?'shadow':'outside';
-    var isContact=['InPlay','FoulBall','FoulBallNotFieldable'].includes(call);
-    buckets[bkt].swings++;
-    if(isContact){buckets[bkt].contacts++;var ev=parseFloat(r.ExitSpeed);if(!isNaN(ev)&&ev>0&&call==='InPlay'){buckets[bkt].evSum+=ev;buckets[bkt].evCount++;}}
-  });
-  function def(b,dcr,dev){return{contactRate:b.swings>=5?b.contacts/b.swings:dcr,avgEV:b.evCount>=3?b.evSum/b.evCount:dev};}
-  var td=window._teamDefaults||{heart:{cr:0.84,ev:87},shadow:{cr:0.76,ev:82},outside:{cr:0.58,ev:77}};
-  return{heart:def(buckets.heart,td.heart.cr,td.heart.ev),shadow:def(buckets.shadow,td.shadow.cr,td.shadow.ev),outside:def(buckets.outside,td.outside.cr,td.outside.ev)};
-}
-
-// -- EV to hit value --
-function hitValueFromEV(ev){
-  if(isNaN(ev)||ev<=0)return 0.08;
-  if(ev>=105)return 1.55;if(ev>=100)return 1.10;if(ev>=95)return 0.80;
-  if(ev>=90)return 0.55;if(ev>=85)return 0.35;if(ev>=78)return 0.18;
-  return 0.07;
-}
-
-// -- Full SEAGER score (uniform contact rate) --
 function computeSEAGER(rows){
-  // Pre-compute contact quality for this hitter
   var evSum=0,evCount=0,hardCount=0;
-  rows.forEach(function(r){
-    var ev=parseFloat(r.ExitSpeed);
-    if(!isNaN(ev)&&ev>0&&r.PitchCall==='InPlay'){evSum+=ev;evCount++;if(ev>=95)hardCount++;}
-  });
+  rows.forEach(function(r){var ev=parseFloat(r.ExitSpeed);if(!isNaN(ev)&&ev>0&&r.PitchCall==='InPlay'){evSum+=ev;evCount++;if(ev>=95)hardCount++;}});
   var avgEV=evCount>0?evSum/evCount:85;
   var hardPct=evCount>0?hardCount/evCount:0.25;
-  // Contact quality multiplier: scales how valuable a swing is
-  // League avg at NJCAA ~85 mph, 25% hard hit
-  // Elite: 95+ avg, 40%+ hard = multiplier ~0.65
-  // Poor: 80 avg, 15% hard = multiplier ~0.30
   var contactMult=0.25+(Math.min(avgEV,100)-75)/80+(hardPct*0.5);
   contactMult=Math.max(0.20,Math.min(contactMult,0.75));
-
   var totalScore=0,pitchCount=0;
   rows.forEach(function(r){
     var call=(r.PitchCall||'').trim();
@@ -358,13 +274,10 @@ function computeSEAGER(rows){
     var sp=strikeProbability(side,height,zTop,zBot,0.833);
     var rv=swingTakeRV(balls,strikes,outs,baseState);
     var evTake=sp*rv.strikeVal+(1-sp)*rv.ballVal;
-    var soVal=strikes>=2?(outs>=2?0:RE24[Math.min(outs+1,2)][baseState]):rv.strikeVal;
-    // Swing value weighted by this hitter's contact quality
     var evSwing=-sp*rv.delta*contactMult;
     var optVal=Math.max(evTake,evSwing);
     var actVal=isSwing?evSwing:evTake;
-    totalScore+=(actVal-optVal);
-    pitchCount++;
+    totalScore+=(actVal-optVal);pitchCount++;
   });
   return pitchCount>0?-(totalScore/pitchCount)*100:0;
 }
@@ -372,8 +285,8 @@ function computeSEAGER(rows){
 function computeProfile(name,rows){
   var parts=name.split(','),lastName=(parts[0]||'').trim();
   var displayName=parts.length>1?(parts[1]||'').trim()+' '+parts[0].trim():name;
-  var swings=0,whiffs=0,inZone=0,inZoneSwings=0,ozPitches=0,ozSwings=0,pa=0;
-  var bip=[],maxEV=0,totalEV=0,evCount=0,allEVs=[];
+  var swings=0,whiffs=0,inZone=0,inZoneSwings=0,ozPitches=0,ozSwings=0;
+  var bip=[],maxEV=0,evCount=0,allEVs=[];
   var gbCount=0,fbCount=0,bipCount=0,barrels=0;
   var pitchTypes={};
 
@@ -383,45 +296,35 @@ function computeProfile(name,rows){
     var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||'Other');
     if(!pitchTypes[pt])pitchTypes[pt]={total:0,swings:0,whiffs:0,chases:0,ozTotal:0,ozPitches:0,ev:[],contacts:0,bip:[],whiffPts:[],weakPts:[]};
     pitchTypes[pt].total++;
-
     var isSwing=['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
     var isWhiff=call==='StrikeSwinging';
     var isContact=['FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
     var inside=!isNaN(side)&&!isNaN(height)&&Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
     var outside=!isNaN(side)&&!isNaN(height)&&!inside;
-
     if(isSwing){swings++;pitchTypes[pt].swings++;}
-    if(isWhiff){
-      whiffs++;pitchTypes[pt].whiffs++;
-      // weak contact stored below
-    }
+    if(isWhiff){whiffs++;pitchTypes[pt].whiffs++;}
     if(isContact)pitchTypes[pt].contacts++;
     if(inside){inZone++;if(isSwing)inZoneSwings++;}
     if(outside){ozPitches++;pitchTypes[pt].ozPitches++;if(isSwing){ozSwings++;pitchTypes[pt].chases++;pitchTypes[pt].ozTotal++;}}
-
     var ev=parseFloat(r.ExitSpeed);
     var la=parseFloat(r.Angle||r.LaunchAngle||r.VertAngle||'NaN');
     if(!isNaN(ev)&&ev>0){
-      if(ev>maxEV)maxEV=ev;totalEV+=ev;evCount++;allEVs.push(ev);
+      if(ev>maxEV)maxEV=ev;evCount++;allEVs.push(ev);
       pitchTypes[pt].ev.push(ev);
       if(!isNaN(side)&&!isNaN(height)){
         bip.push({side:side,height:height,ev:ev,pt:pt,result:(r.PlayResult||'')});
-      // Store weak contact -- any batted ball under 90 mph
-    if(!isNaN(ev)&&ev>0&&ev<90&&!isNaN(side)&&!isNaN(height)&&['InPlay','FoulBall','FoulBallNotFieldable'].includes(call)){
-      pitchTypes[pt].weakPts.push({side:side,height:height,ev:ev});
-    }
+        if(ev<90&&['InPlay','FoulBall','FoulBallNotFieldable'].includes(call))pitchTypes[pt].weakPts.push({side:side,height:height,ev:ev});
         pitchTypes[pt].bip.push({side:side,height:height,ev:ev,result:(r.PlayResult||'')});
       }
       if(!isNaN(la)&&ev>=98&&la>=26&&la<=30)barrels++;
       if(call==='InPlay'){
         bipCount++;
         var ht=(r.TaggedHitType||r.HitType||'').toLowerCase();
-        if(ht.includes('ground')){gbCount++;}
-        else if(ht.includes('fly')||ht.includes('popup')){fbCount++;}
+        if(ht.includes('ground'))gbCount++;
+        else if(ht.includes('fly')||ht.includes('popup'))fbCount++;
         else if(!isNaN(la)){if(la<10)gbCount++;else if(la>=25)fbCount++;}
       }
     }
-    if(parseInt(r.PitchofPA)===1)pa++;
   });
 
   allEVs.sort(function(a,b){return b-a;});
@@ -429,9 +332,7 @@ function computeProfile(name,rows){
   var bestSpeed=topHalf.length>0?topHalf.reduce(function(a,b){return a+b;},0)/topHalf.length:0;
 
   var bs=null;
-  if(seasonStats.batting){
-    bs=seasonStats.batting.find(function(b){return b.name&&b.name.split(' ').pop().toLowerCase()===lastName.toLowerCase();});
-  }
+  if(seasonStats.batting)bs=seasonStats.batting.find(function(b){return b.name&&b.name.split(' ').pop().toLowerCase()===lastName.toLowerCase();});
   var bsAB=bs?parseInt(bs.ab)||0:0;
   var bsBB=bs?parseInt(bs.bb)||0:0;
   var bsHBP=bs?parseInt(bs.hbp)||0:0;
@@ -440,7 +341,6 @@ function computeProfile(name,rows){
   var bsPA=bsAB+bsBB+bsHBP+bsSF+bsSH;
   var bs1B=Math.max(0,(bs?parseInt(bs.h)||0:0)-(bs?parseInt(bs.doubles)||0:0)-(bs?parseInt(bs.triples)||0:0)-(bs?parseInt(bs.hr)||0:0));
   var woba=bsPA>0?(bsBB*.69+bsHBP*.72+bs1B*.88+(bs?parseInt(bs.doubles)||0:0)*1.24+(bs?parseInt(bs.triples)||0:0)*1.56+(bs?parseInt(bs.hr)||0:0)*2.08)/bsPA:0;
-  var tp=rows.length;
 
   return{
     name:name,displayName:displayName,lastName:lastName,
@@ -449,7 +349,8 @@ function computeProfile(name,rows){
     slg:bs?parseFloat(bs.slg)||0:0,woba:woba,
     hr:bs?parseInt(bs.hr)||0:0,rbi:bs?parseInt(bs.rbi)||0:0,
     sb:bs?parseInt(bs.sb)||0:0,h:bs?parseInt(bs.h)||0:0,
-    swingPct:tp>0?swings/tp:0,whiffPct:swings>0?whiffs/swings:0,
+    swingPct:rows.length>0?swings/rows.length:0,
+    whiffPct:swings>0?whiffs/swings:0,
     chasePct:ozPitches>0?ozSwings/ozPitches:0,
     zSwingPct:inZone>0?inZoneSwings/inZone:0,
     sgr:(inZone>0&&ozPitches>0)?(inZoneSwings/inZone)-(ozSwings/ozPitches):0,
@@ -457,297 +358,35 @@ function computeProfile(name,rows){
     hardHit:evCount>0?bip.filter(function(b){return b.ev>=95;}).length/evCount:0,
     barrelPct:evCount>0?barrels/evCount:0,
     gbPct:bipCount>0?gbCount/bipCount:0,fbPct:bipCount>0?fbCount/bipCount:0,
-    bestSpeed:bestSpeed,maxEV:maxEV,totalPitches:tp,
+    bestSpeed:bestSpeed,maxEV:maxEV,totalPitches:rows.length,
     pitchTypes:pitchTypes,bip:bip,rows:rows
   };
 }
 
-// -- Heat map drawing ---------------------------------------------------------
-// -- KDE Heat Map Engine ------------------------------------------------------
-var GRID=60; // resolution of KDE grid
+// ── Zone Heat Map Engine (Gaussian KDE) ──────────────────────────────────────
+var HMAP_GRID=40;
 
-function computeKDE(points, W, H, PAD, xMin, xMax, yMin, yMax, sigma, weightFn) {
-  var grid=new Float32Array(GRID*GRID);
-  var scaleX=(W-PAD*2)/(xMax-xMin);
-  var scaleY=(H-PAD*2)/(yMax-yMin);
-  var sigX=sigma*scaleX, sigY=sigma*scaleY;
-  points.forEach(function(p){
-    if(isNaN(p.side)||isNaN(p.height))return;
-    var px=(p.side-xMin)*scaleX;
-    var py=(yMax-p.height)*scaleY; // flip Y
-    var w=weightFn?weightFn(p):1;
-    // Only fill cells within 3 sigma
-    var cellX=Math.round(px/((W-PAD*2)/GRID));
-    var cellY=Math.round(py/((H-PAD*2)/GRID));
-    var radius=Math.ceil(3*sigX/((W-PAD*2)/GRID));
-    for(var gy=Math.max(0,cellY-radius);gy<Math.min(GRID,cellY+radius+1);gy++){
-      for(var gx=Math.max(0,cellX-radius);gx<Math.min(GRID,cellX+radius+1);gx++){
-        var cx=gx*((W-PAD*2)/GRID);
-        var cy=gy*((H-PAD*2)/GRID);
-        var dx=px-cx, dy=py-cy;
-        var kernel=Math.exp(-(dx*dx)/(2*sigX*sigX)-(dy*dy)/(2*sigY*sigY));
-        grid[gy*GRID+gx]+=kernel*w;
-      }
-    }
-  });
-  return grid;
-}
-
-function renderKDE(ctx, grid, W, H, PAD, color, maxVal, alpha) {
-  if(maxVal<=0)return;
-  var cellW=(W-PAD*2)/GRID, cellH=(H-PAD*2)/GRID;
-  var r=parseInt(color.slice(1,3),16);
-  var g=parseInt(color.slice(3,5),16);
-  var b=parseInt(color.slice(5,7),16);
-  for(var gy=0;gy<GRID;gy++){
-    for(var gx=0;gx<GRID;gx++){
-      var val=grid[gy*GRID+gx];
-      if(val<0.001)continue;
-      var intensity=Math.pow(val/maxVal,0.6); // power <1 spreads the color more
-      var a=intensity*alpha;
-      ctx.fillStyle='rgba('+r+','+g+','+b+','+a+')';
-      ctx.fillRect(PAD+gx*cellW-0.5, PAD+gy*cellH-0.5, cellW+1, cellH+1);
-    }
-  }
-}
-
-function drawAvgDot(ctx, pts, mx, my, color) {
-  if(!pts.length)return;
-  var avgS=pts.reduce(function(s,p){return s+p.side;},0)/pts.length;
-  var avgH=pts.reduce(function(s,p){return s+p.height;},0)/pts.length;
-  var cx=mx(avgS), cy=my(avgH);
-  // Outer ring
-  ctx.beginPath();ctx.arc(cx,cy,7,0,Math.PI*2);
-  ctx.fillStyle='rgba(255,255,255,0.9)';ctx.fill();
-  ctx.strokeStyle=color;ctx.lineWidth=2;ctx.stroke();
-  // Inner dot
-  ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);
-  ctx.fillStyle=color;ctx.fill();
-}
-
-function drawZoneBase(ctx, W, H, PAD, xMin, xMax, yMin, yMax) {
-  function mx(v){return PAD+(v-xMin)/(xMax-xMin)*(W-PAD*2);}
-  function my(v){return H-PAD-(v-yMin)/(yMax-yMin)*(H-PAD*2);}
-  // Dark background
-  ctx.fillStyle='#f8fafd';ctx.fillRect(0,0,W,H);
-  // Subtle zone grid
-  ctx.strokeStyle='#d0d8e8';ctx.lineWidth=1;
-  var zw=(mx(0.833)-mx(-0.833))/3,zh=(my(1.5)-my(3.5))/3;
-  for(var i=1;i<3;i++){
-    ctx.beginPath();ctx.moveTo(mx(-0.833)+zw*i,my(3.5));ctx.lineTo(mx(-0.833)+zw*i,my(1.5));ctx.stroke();
-    ctx.beginPath();ctx.moveTo(mx(-0.833),my(3.5)+zh*i);ctx.lineTo(mx(0.833),my(3.5)+zh*i);ctx.stroke();
-  }
-  // Shadow zone dashed outline for context
-  ctx.strokeStyle='#c0c8d8';ctx.lineWidth=1;ctx.setLineDash([3,3]);
-  var SHADOW=0.0833;
-  ctx.strokeRect(mx(-0.833-SHADOW),my(3.5+SHADOW),mx(0.833+SHADOW)-mx(-0.833-SHADOW),my(1.5-SHADOW)-my(3.5+SHADOW));
-  ctx.setLineDash([]);
-  // Zone border
-  ctx.strokeStyle='#1a3a5c';ctx.lineWidth=2;
-  ctx.strokeRect(mx(-0.833),my(3.5),mx(0.833)-mx(-0.833),my(1.5)-my(3.5));
-  return {mx:mx,my:my};
-}
-
-
-
-
-
-//    Zone Grid Heat Map Engine                                                  
-var ZONE_COLS=5, ZONE_ROWS=5;
-var ZONE_X_MIN=-0.833, ZONE_X_MAX=0.833;
-var ZONE_Y_MIN=1.5, ZONE_Y_MAX=3.5;
-
-
-
-
-
-
-
-// wOBA value function
-var WOBA_WEIGHTS={'Single':0.88,'Double':1.24,'Triple':1.56,'HomeRun':2.08,'Home Run':2.08};
-
-
-// ISO value function (TB-H)/AB proxy using EV+LA
-
-
-// Hard% value function
-
-
-// Whiff% value function (per swing)
-
-
-function buildLegend(containerId, items){
-  var el=document.getElementById(containerId);
-  if(!el)return;
-  if(!items||!items.length){el.innerHTML='';return;}
-  el.innerHTML=items.slice(0,6).map(function(item){
-    return'<div class="hmap-legend-item"><div class="hmap-dot" style="background:'+item.color+'"></div>'+escH(item.pt)+' ('+item.count+')</div>';
-  }).join('');
-}
-
-function buildPitchTable(p){
-  var tbody=document.getElementById('pitchTableBody');
-  if(!tbody)return;
-  tbody.innerHTML='';
-  Object.entries(p.pitchTypes)
-    .filter(function(e){return e[1].total>=3;})
-    .sort(function(a,b){return b[1].total-a[1].total;})
-    .forEach(function(e){
-      var pt=e[0],d=e[1];
-      var sw=d.total>0?d.swings/d.total:0;
-      var wh=d.swings>0?d.whiffs/d.swings:0;
-      var ch=d.ozPitches>0?d.chases/d.ozPitches:0;
-      var hard=d.ev.length>0?d.ev.filter(function(v){return v>=95;}).length/d.ev.length:0;
-      var avgEV=d.ev.length>0?(d.ev.reduce(function(a,b){return a+b;},0)/d.ev.length).toFixed(1):'--';
-      var color=pitchColor(pt);
-      tbody.innerHTML+='<tr>'+
-        '<td style="display:flex;align-items:center;gap:4px"><div class="pitch-dot" style="background:'+color+'"></div>'+escH(pt)+'</td>'+
-        '<td>'+d.total+'</td>'+
-        '<td>'+pct(sw)+'</td>'+
-        '<td>'+pct(wh)+'</td>'+
-        '<td>'+(ch>0?pct(ch):'--')+'</td>'+
-        '<td>'+pct(hard)+'</td>'+
-        '<td>'+avgEV+'</td>'+
-        '</tr>';
-    });
-}
-
-
-
-
-
-async function saveCard(){
-  var card=document.getElementById('card'),btn=card.querySelector('.save-btn'),orig=btn.textContent;
-  btn.textContent='Rendering ';btn.disabled=true;
-  try{
-    var canvas=await html2canvas(card,{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',scrollX:0,scrollY:-window.scrollY,ignoreElements:function(el){return el===btn;}});
-    document.getElementById('overlayImg').src=canvas.toDataURL('image/png');
-    document.getElementById('imgOverlay').classList.add('active');
-  }catch(e){alert('Render failed.');}
-  btn.textContent=orig;btn.disabled=false;
-}
-function closeOverlay(){document.getElementById('imgOverlay').classList.remove('active');}
-
-// -- Helpers ------------------------------------------------------------------
-function hexToRGBA(hex,alpha){
-  var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-  return'rgba('+r+','+g+','+b+','+alpha+')';
-}
-function fmt3(v){if(!v&&v!==0)return'--';var s=parseFloat(v).toFixed(3);return s.startsWith('0.')?s.slice(1):s;}
-function pct(v){if(isNaN(v)||v===null||v===undefined)return'--';return(v*100).toFixed(1)+'%';}
-function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
-async function supaFetch(path){
-  var rows=[],from=0;
-  while(true){var sep=path.indexOf('?')>-1?'&':'?';var r=await fetch(SUPABASE_URL+'/rest/v1/'+path+sep+'limit=1000&offset='+from,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});var d=await r.json();if(!Array.isArray(d)||!d.length)break;rows=rows.concat(d);if(d.length<1000)break;from+=1000;}
-  return rows;
-}
-function setProgress(pct,msg){document.getElementById('progressFill').style.width=pct+'%';document.getElementById('loadMsg').textContent=msg;}
-
-async function boot(){
-  try{
-    setProgress(5,'Loading season stats...');
-    var edgeRes=await fetch(SUPABASE_URL+'/functions/v1/fetch-boxscore?url=season-stats',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
-    var edgeData=await edgeRes.json();if(edgeData.batting)seasonStats=edgeData;
-    setProgress(20,'Loading games...');
-    gamesMeta=await supaFetch('games?select=game_id,display_name,date&order=date.asc,display_name.asc');
-    populateGameFilter();
-    setProgress(30,'Loading pitch data...');
-    allPitches=[];
-    for(var i=0;i<gamesMeta.length;i++){var rows=await supaFetch('pitches?GameID=eq.'+encodeURIComponent(gamesMeta[i].game_id));allPitches=allPitches.concat(rows);setProgress(30+Math.round(((i+1)/gamesMeta.length)*60),'Loading game '+(i+1)+' of '+gamesMeta.length+'...');}
-    setProgress(96,'Building stats...');
-    rebuildTableData(allPitches);populatePlayerFilter();renderTable();
-    document.getElementById('loading-screen').style.display='none';
-    document.getElementById('main-screen').style.display='block';
-    document.getElementById('bottomBar').style.display='flex';
-  }catch(e){document.getElementById('loadMsg').textContent='Error: '+e.message;console.error(e);}
-}
-
-function populateGameFilter(){
-  var menu=document.getElementById('gameDDMenu');menu.innerHTML='';
-  gamesMeta.forEach(function(g){
-    var item=document.createElement('div');item.className='dd-item';
-    var cb=document.createElement('input');cb.type='checkbox';cb.value=g.game_id;
-    cb.addEventListener('change',function(){item.classList.toggle('checked',cb.checked);onFilterChange();});
-    item.appendChild(cb);var lbl=document.createElement('span');lbl.textContent=g.display_name||g.game_id;item.appendChild(lbl);
-    item.addEventListener('click',function(e){if(e.target!==cb){cb.checked=!cb.checked;item.classList.toggle('checked',cb.checked);onFilterChange();}});
-    menu.appendChild(item);
-  });
-}
-function populatePlayerFilter(){
-  var names=Array.from(new Set(allPitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal');}).map(function(r){return r.Batter||'';}).filter(Boolean))).sort();
-  var menu=document.getElementById('playerDDMenu');menu.innerHTML='';
-  names.forEach(function(n){
-    var p=n.split(','),d=p.length>1?(p[1]||'').trim()+' '+p[0].trim():n;
-    var item=document.createElement('div');item.className='dd-item';
-    var cb=document.createElement('input');cb.type='checkbox';cb.value=n;
-    cb.addEventListener('change',function(){item.classList.toggle('checked',cb.checked);onFilterChange();});
-    item.appendChild(cb);var lbl=document.createElement('span');lbl.textContent=d;item.appendChild(lbl);
-    item.addEventListener('click',function(e){if(e.target!==cb){cb.checked=!cb.checked;item.classList.toggle('checked',cb.checked);onFilterChange();}});
-    menu.appendChild(item);
-  });
-}
-function getSelectedGames(){return Array.from(document.querySelectorAll('#gameDDMenu input[type=checkbox]:checked')).map(function(cb){return cb.value;});}
-function getSelectedPlayers(){return Array.from(document.querySelectorAll('#playerDDMenu input[type=checkbox]:checked')).map(function(cb){return cb.value;});}
-function toggleDD(id){var el=document.getElementById(id);var isOpen=el.classList.contains('open');document.querySelectorAll('.dd-wrap.open').forEach(function(d){d.classList.remove('open');});if(!isOpen)el.classList.add('open');}
-document.addEventListener('click',function(e){if(!e.target.closest('.dd-wrap'))document.querySelectorAll('.dd-wrap.open').forEach(function(d){d.classList.remove('open');});});
-function updateDDLabels(){var g=getSelectedGames();document.getElementById('gameDDLabel').textContent=g.length===0?'All Games (full season)':g.length+' game'+(g.length>1?'s':'')+' selected';var pl=getSelectedPlayers();document.getElementById('playerDDLabel').textContent=pl.length===0?'All Players':pl.length+' player'+(pl.length>1?'s':'')+' selected';}
-function rebuildTableData(pitches){var wsPitches=pitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal');});var players={};wsPitches.forEach(function(r){var n=(r.Batter||'').trim();if(!n)return;if(!players[n])players[n]=[];players[n].push(r);});tableData=Object.values(players).map(function(rows){return computeProfile(rows[0].Batter,rows);});}
-function onFilterChange(){updateDDLabels();var selGames=getSelectedGames();var filtered=allPitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal')&&(!selGames.length||selGames.includes(r.GameID));});var players={};filtered.forEach(function(r){var n=(r.Batter||'').trim();if(!n)return;if(!players[n])players[n]=[];players[n].push(r);});tableData=Object.values(players).map(function(rows){return computeProfile(rows[0].Batter,rows);});renderTable();}
-function renderTable(){
-  var selectedPlayers=getSelectedPlayers();
-  var data=tableData.filter(function(p){return p.pa>0&&(!selectedPlayers.length||selectedPlayers.includes(p.name));});
-  data.sort(function(a,b){var av=a[sortCol]||0,bv=b[sortCol]||0;if(typeof av==='string')return sortAsc?av.localeCompare(bv):bv.localeCompare(av);return sortAsc?av-bv:bv-av;});
-  document.getElementById('filterCount').textContent=data.length+' players';
-  var tbody=document.getElementById('tableBody');tbody.innerHTML='';
-  if(!data.length){tbody.innerHTML='<tr><td colspan="13" class="no-data">No players match current filters</td></tr>';return;}
-  data.forEach(function(p){
-    var tr=document.createElement('tr');
-    if(selectedPlayer===p.name)tr.className='selected';
-    tr.onclick=function(){selectedPlayer=p.name;document.querySelectorAll('#tableBody tr').forEach(function(r){r.classList.remove('selected');});tr.classList.add('selected');document.getElementById('genCardBtn').disabled=false;document.getElementById('selHint').textContent=p.displayName+' selected';};
-    tr.innerHTML='<td>'+escH(p.displayName)+'</td><td>'+p.pa+'</td><td class="val-hi">'+fmt3(p.woba)+'</td><td class="'+(p.barrelPct>=.06?'val-good':'')+'">'+pct(p.barrelPct)+'</td><td class="'+(p.hardHit>=.35?'val-good':'')+'">'+pct(p.hardHit)+'</td><td>'+pct(p.swingPct)+'</td><td class="'+(p.chasePct>=.30?'val-warn':'')+'">'+pct(p.chasePct)+'</td><td>'+pct(p.zSwingPct)+'</td><td class="'+((p.seagerScore||0)>=5?'val-good':(p.seagerScore||0)<0?'val-warn':'')+'">'+(p.seagerScore||0).toFixed(2)+'</td><td>'+pct(p.gbPct)+'</td><td>'+pct(p.fbPct)+'</td><td class="val-hi">'+(p.bestSpeed>0?p.bestSpeed.toFixed(1):'--')+'</td><td>'+(p.maxEV>0?p.maxEV.toFixed(1):'--')+'</td>';
-    tbody.appendChild(tr);
-  });
-}
-function sortTable(col){if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=false;}renderTable();}
-
-function fmt3(v){if(!v&&v!==0)return'--';var s=parseFloat(v).toFixed(3);return s.startsWith('0.')?s.slice(1):s;}
-function pct(v){if(isNaN(v)||v===null||v===undefined)return'--';return(v*100).toFixed(1)+'%';}
-function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function hexToRGBA(hex,alpha){var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return'rgba('+r+','+g+','+b+','+alpha+')';}
-function closeOverlay(){document.getElementById('imgOverlay').classList.remove('active');}
-
-// -- Zone Heat Map Engine (Gaussian KDE) ------------------------------------
-var HMAP_GRID=40; // internal grid resolution
-
-function buildKDEGrid(rows, valueFn, sigma, xMin, xMax, yMin, yMax, densityMode) {
-  // Grid covers the strike zone area with padding
-  var X_MIN=xMin||-1.05, X_MAX=xMax||1.05, Y_MIN=yMin||1.2, Y_MAX=yMax||3.9;
-  var GW=HMAP_GRID, GH=HMAP_GRID;
+function buildKDEGrid(rows,valueFn,sigma,xMin,xMax,yMin,yMax,densityMode){
+  var X_MIN=xMin||-1.05,X_MAX=xMax||1.05,Y_MIN=yMin||1.2,Y_MAX=yMax||3.9;
+  var GW=HMAP_GRID,GH=HMAP_GRID;
   var weightGrid=new Float32Array(GW*GH);
   var valueGrid=new Float32Array(GW*GH);
-
   rows.forEach(function(r){
     var side=parseFloat(r.PlateLocSide);
     var height=parseFloat(r.PlateLocHeight);
-    var displaySide=-side; // pitcher's view
+    var displaySide=-side;
     if(isNaN(displaySide)||isNaN(height))return;
     if(displaySide<X_MIN||displaySide>X_MAX||height<Y_MIN||height>Y_MAX)return;
-    // Only use pitches within the expanded strike zone (zone + 0.25ft shadow)
     if(Math.abs(displaySide)>(X_MAX-0.05)||height<(Y_MIN+0.05)||height>(Y_MAX-0.05))return;
     var val=valueFn(r);
     if(val===null||val===undefined||isNaN(val))return;
-
-    // Grid position
     var gx=(displaySide-X_MIN)/(X_MAX-X_MIN)*(GW-1);
     var gy=(Y_MAX-height)/(Y_MAX-Y_MIN)*(GH-1);
-
-    // Spread with Gaussian kernel
     var sig=sigma*GW;
     var rad=Math.ceil(3*sig);
     for(var dy=-rad;dy<=rad;dy++){
       for(var dx=-rad;dx<=rad;dx++){
-        var ix=Math.round(gx+dx), iy=Math.round(gy+dy);
+        var ix=Math.round(gx+dx),iy=Math.round(gy+dy);
         if(ix<0||ix>=GW||iy<0||iy>=GH)continue;
         var dist2=(dx*dx+dy*dy)/(sig*sig);
         var k=Math.exp(-0.5*dist2);
@@ -756,23 +395,14 @@ function buildKDEGrid(rows, valueFn, sigma, xMin, xMax, yMin, yMax, densityMode)
       }
     }
   });
-
-  // Divide to get weighted average (or use density directly)
   var result=new Float32Array(GW*GH);
   var validVals=[];
   for(var i=0;i<GW*GH;i++){
-    if(weightGrid[i]>0.01){
-      result[i]=densityMode?weightGrid[i]:valueGrid[i]/weightGrid[i];
-      validVals.push(result[i]);
-    } else {
-      result[i]=NaN;
-    }
+    if(weightGrid[i]>0.01){result[i]=densityMode?weightGrid[i]:valueGrid[i]/weightGrid[i];validVals.push(result[i]);}
+    else result[i]=NaN;
   }
-
   return{grid:result,gw:GW,gh:GH,xMin:X_MIN,xMax:X_MAX,yMin:Y_MIN,yMax:Y_MAX,validVals:validVals};
 }
-
-
 
 function hotColdColor(t){
   t=Math.max(0,Math.min(1,t));
@@ -782,32 +412,30 @@ function hotColdColor(t){
   return[r,g,b];
 }
 
-function drawZoneGrid(canvasId, rows, valueFn, minVal, maxVal, label, xMin, xMax, yMin, yMax, densityMode){
+function drawZoneGrid(canvasId,rows,valueFn,minVal,maxVal,label,xMin,xMax,yMin,yMax,densityMode){
   var cv=document.getElementById(canvasId);if(!cv)return;
   var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
   var PAD_L=8,PAD_R=8,PAD_T=8,PAD_B=8;
-  var gridW=W-PAD_L-PAD_R, gridH=H-PAD_T-PAD_B;
+  var gridW=W-PAD_L-PAD_R,gridH=H-PAD_T-PAD_B;
 
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);
 
   var kdeResult=buildKDEGrid(rows,valueFn,0.10,xMin,xMax,yMin,yMax,densityMode);
   var grid=kdeResult.grid;
-  var GW=kdeResult.gw, GH=kdeResult.gh;
+  var GW=kdeResult.gw,GH=kdeResult.gh;
+  // *** FIX: declare X_MIN/X_MAX/Y_MIN/Y_MAX HERE, before any loop that uses them ***
+  var X_MIN=kdeResult.xMin,X_MAX=kdeResult.xMax,Y_MIN=kdeResult.yMin,Y_MAX=kdeResult.yMax;
 
   // Fill NaN cells by nearest neighbor - only within shadow zone
-  var FILL_X=Math.min(X_MAX-0.05, 0.833+0.25), FILL_Y_TOP=Math.min(Y_MAX-0.05, 3.5+0.25), FILL_Y_BOT=Math.max(Y_MIN+0.05, 1.5-0.25);
+  var FILL_X=Math.min(X_MAX-0.05,0.833+0.25),FILL_Y_TOP=Math.min(Y_MAX-0.05,3.5+0.25),FILL_Y_BOT=Math.max(Y_MIN+0.05,1.5-0.25);
   var filled=grid.slice();
   for(var iter=0;iter<8;iter++){
     for(var gy=0;gy<GH;gy++){
       for(var gx=0;gx<GW;gx++){
-        // Field coordinates for this cell
         var fx=X_MIN+(gx+0.5)/GW*(X_MAX-X_MIN);
         var fy=Y_MAX-(gy+0.5)/GH*(Y_MAX-Y_MIN);
-        // Only fill within shadow zone
-        if(Math.abs(fx)>FILL_X||fy<FILL_Y_BOT||fy>FILL_Y_TOP){
-          filled[gy*GW+gx]=NaN;continue;
-        }
+        if(Math.abs(fx)>FILL_X||fy<FILL_Y_BOT||fy>FILL_Y_TOP){filled[gy*GW+gx]=NaN;continue;}
         if(!isNaN(filled[gy*GW+gx]))continue;
         var sum=0,cnt=0;
         if(gx>0&&!isNaN(filled[gy*GW+gx-1])){sum+=filled[gy*GW+gx-1];cnt++;}
@@ -819,28 +447,24 @@ function drawZoneGrid(canvasId, rows, valueFn, minVal, maxVal, label, xMin, xMax
     }
   }
 
-  // Dynamic range from valid values
+  // Dynamic range
   var vv=kdeResult.validVals;
   var mn=vv.length?Math.min.apply(null,vv):minVal;
-  var mx=vv.length?Math.max.apply(null,vv):maxVal;
-  var range=Math.max(mx-mn,0.001);
+  var mxv=vv.length?Math.max.apply(null,vv):maxVal;
+  var range=Math.max(mxv-mn,0.001);
 
-  // Render using ImageData for speed
+  // Render ImageData
   var imgData=ctx.createImageData(gridW,gridH);
-  var cellW=gridW/GW, cellH=gridH/GH;
+  var cellW=gridW/GW,cellH=gridH/GH;
   for(var py=0;py<gridH;py++){
     for(var px=0;px<gridW;px++){
-      var alpha=1;
-
       var gxi=Math.min(GW-1,Math.floor(px/cellW));
       var gyi=Math.min(GH-1,Math.floor(py/cellH));
       var val=filled[gyi*GW+gxi];
       var pidx=(py*gridW+px)*4;
-      // Field coords for this pixel
       var pfx=X_MIN+(px/gridW)*(X_MAX-X_MIN);
       var pfy=Y_MAX-(py/gridH)*(Y_MAX-Y_MIN);
-      // Fade near shadow zone edges
-      var EDGE=0.833+0.15, ETOP=3.5+0.15, EBOT=1.5-0.15;
+      var EDGE=0.833+0.15,ETOP=3.5+0.15,EBOT=1.5-0.15;
       var dX=Math.max(0,Math.abs(pfx)-EDGE);
       var dY=Math.max(0,Math.max(EBOT-pfy,pfy-ETOP));
       var edgeDist=Math.max(dX,dY);
@@ -857,240 +481,37 @@ function drawZoneGrid(canvasId, rows, valueFn, minVal, maxVal, label, xMin, xMax
       }
     }
   }
-  // Fill background first
   ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);
   ctx.putImageData(imgData,PAD_L,PAD_T);
 
-  // Strike zone border
-  var zXmin=-0.833, zXmax=0.833, zYmin=1.5, zYmax=3.5;
-  var X_MIN=kdeResult.xMin,X_MAX=kdeResult.xMax,Y_MIN=kdeResult.yMin,Y_MAX=kdeResult.yMax;
+  // Zone border + grid lines
   function px2(x){return PAD_L+(x-X_MIN)/(X_MAX-X_MIN)*gridW;}
   function py2(y){return PAD_T+(Y_MAX-y)/(Y_MAX-Y_MIN)*gridH;}
+  var zXmin=-0.833,zXmax=0.833,zYmin=1.5,zYmax=3.5;
   ctx.strokeStyle='rgba(0,0,0,0.75)';ctx.lineWidth=2;
   ctx.strokeRect(px2(zXmin),py2(zYmax),px2(zXmax)-px2(zXmin),py2(zYmin)-py2(zYmax));
-
-  // Subtle grid lines
   ctx.strokeStyle='rgba(0,0,0,0.15)';ctx.lineWidth=0.5;
-  var zW=(px2(zXmax)-px2(zXmin))/3, zH=(py2(zYmin)-py2(zYmax))/3;
+  var zW=(px2(zXmax)-px2(zXmin))/3,zH=(py2(zYmin)-py2(zYmax))/3;
   for(var i=1;i<3;i++){
     ctx.beginPath();ctx.moveTo(px2(zXmin)+zW*i,py2(zYmax));ctx.lineTo(px2(zXmin)+zW*i,py2(zYmin));ctx.stroke();
     ctx.beginPath();ctx.moveTo(px2(zXmin),py2(zYmax)+zH*i);ctx.lineTo(px2(zXmax),py2(zYmax)+zH*i);ctx.stroke();
   }
-
-
 }
-// wOBA value function
+
+// Value functions
 var WOBA_WEIGHTS={'Single':0.88,'Double':1.24,'Triple':1.56,'HomeRun':2.08,'Home Run':2.08};
-
-
-// ISO value function (TB-H)/AB proxy using EV+LA
-
-
-// Hard% value function
-
-
-// Whiff% value function (per swing)
-
-
-function buildLegend(containerId, items){
-  var el=document.getElementById(containerId);
-  if(!el)return;
-  if(!items||!items.length){el.innerHTML='';return;}
-  el.innerHTML=items.slice(0,6).map(function(item){
-    return'<div class="hmap-legend-item"><div class="hmap-dot" style="background:'+item.color+'"></div>'+escH(item.pt)+' ('+item.count+')</div>';
-  }).join('');
-}
-
-function buildPitchTable(p){
-  var tbody=document.getElementById('pitchTableBody');
-  if(!tbody)return;
-  tbody.innerHTML='';
-  Object.entries(p.pitchTypes)
-    .filter(function(e){return e[1].total>=3;})
-    .sort(function(a,b){return b[1].total-a[1].total;})
-    .forEach(function(e){
-      var pt=e[0],d=e[1];
-      var sw=d.total>0?d.swings/d.total:0;
-      var wh=d.swings>0?d.whiffs/d.swings:0;
-      var ch=d.ozPitches>0?d.chases/d.ozPitches:0;
-      var hard=d.ev.length>0?d.ev.filter(function(v){return v>=95;}).length/d.ev.length:0;
-      var avgEV=d.ev.length>0?(d.ev.reduce(function(a,b){return a+b;},0)/d.ev.length).toFixed(1):'--';
-      var color=pitchColor(pt);
-      tbody.innerHTML+='<tr>'+
-        '<td style="display:flex;align-items:center;gap:4px"><div class="pitch-dot" style="background:'+color+'"></div>'+escH(pt)+'</td>'+
-        '<td>'+d.total+'</td>'+
-        '<td>'+pct(sw)+'</td>'+
-        '<td>'+pct(wh)+'</td>'+
-        '<td>'+(ch>0?pct(ch):'--')+'</td>'+
-        '<td>'+pct(hard)+'</td>'+
-        '<td>'+avgEV+'</td>'+
-        '</tr>';
-    });
-}
-
-
-
-
-
-async function saveCard(){
-  var card=document.getElementById('card'),btn=card.querySelector('.save-btn'),orig=btn.textContent;
-  btn.textContent='Rendering ';btn.disabled=true;
-  try{
-    var canvas=await html2canvas(card,{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',scrollX:0,scrollY:-window.scrollY,ignoreElements:function(el){return el===btn;}});
-    document.getElementById('overlayImg').src=canvas.toDataURL('image/png');
-    document.getElementById('imgOverlay').classList.add('active');
-  }catch(e){alert('Render failed.');}
-  btn.textContent=orig;btn.disabled=false;
-}
-function closeOverlay(){document.getElementById('imgOverlay').classList.remove('active');}
-
-// -- Helpers ------------------------------------------------------------------
-function hexToRGBA(hex,alpha){
-  var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-  return'rgba('+r+','+g+','+b+','+alpha+')';
-}
-function fmt3(v){if(!v&&v!==0)return'--';var s=parseFloat(v).toFixed(3);return s.startsWith('0.')?s.slice(1):s;}
-function pct(v){if(isNaN(v)||v===null||v===undefined)return'--';return(v*100).toFixed(1)+'%';}
-function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
-async function supaFetch(path){
-  var rows=[],from=0;
-  while(true){var sep=path.indexOf('?')>-1?'&':'?';var r=await fetch(SUPABASE_URL+'/rest/v1/'+path+sep+'limit=1000&offset='+from,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});var d=await r.json();if(!Array.isArray(d)||!d.length)break;rows=rows.concat(d);if(d.length<1000)break;from+=1000;}
-  return rows;
-}
-function setProgress(pct,msg){document.getElementById('progressFill').style.width=pct+'%';document.getElementById('loadMsg').textContent=msg;}
-
-async function boot(){
-  try{
-    setProgress(5,'Loading season stats...');
-    var edgeRes=await fetch(SUPABASE_URL+'/functions/v1/fetch-boxscore?url=season-stats',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
-    var edgeData=await edgeRes.json();if(edgeData.batting)seasonStats=edgeData;
-    setProgress(20,'Loading games...');
-    gamesMeta=await supaFetch('games?select=game_id,display_name,date&order=date.asc,display_name.asc');
-    populateGameFilter();
-    setProgress(30,'Loading pitch data...');
-    allPitches=[];
-    for(var i=0;i<gamesMeta.length;i++){var rows=await supaFetch('pitches?GameID=eq.'+encodeURIComponent(gamesMeta[i].game_id));allPitches=allPitches.concat(rows);setProgress(30+Math.round(((i+1)/gamesMeta.length)*60),'Loading game '+(i+1)+' of '+gamesMeta.length+'...');}
-    setProgress(96,'Building stats...');
-    rebuildTableData(allPitches);populatePlayerFilter();renderTable();
-    document.getElementById('loading-screen').style.display='none';
-    document.getElementById('main-screen').style.display='block';
-    document.getElementById('bottomBar').style.display='flex';
-  }catch(e){document.getElementById('loadMsg').textContent='Error: '+e.message;console.error(e);}
-}
-
-function populateGameFilter(){
-  var menu=document.getElementById('gameDDMenu');menu.innerHTML='';
-  gamesMeta.forEach(function(g){
-    var item=document.createElement('div');item.className='dd-item';
-    var cb=document.createElement('input');cb.type='checkbox';cb.value=g.game_id;
-    cb.addEventListener('change',function(){item.classList.toggle('checked',cb.checked);onFilterChange();});
-    item.appendChild(cb);var lbl=document.createElement('span');lbl.textContent=g.display_name||g.game_id;item.appendChild(lbl);
-    item.addEventListener('click',function(e){if(e.target!==cb){cb.checked=!cb.checked;item.classList.toggle('checked',cb.checked);onFilterChange();}});
-    menu.appendChild(item);
-  });
-}
-function populatePlayerFilter(){
-  var names=Array.from(new Set(allPitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal');}).map(function(r){return r.Batter||'';}).filter(Boolean))).sort();
-  var menu=document.getElementById('playerDDMenu');menu.innerHTML='';
-  names.forEach(function(n){
-    var p=n.split(','),d=p.length>1?(p[1]||'').trim()+' '+p[0].trim():n;
-    var item=document.createElement('div');item.className='dd-item';
-    var cb=document.createElement('input');cb.type='checkbox';cb.value=n;
-    cb.addEventListener('change',function(){item.classList.toggle('checked',cb.checked);onFilterChange();});
-    item.appendChild(cb);var lbl=document.createElement('span');lbl.textContent=d;item.appendChild(lbl);
-    item.addEventListener('click',function(e){if(e.target!==cb){cb.checked=!cb.checked;item.classList.toggle('checked',cb.checked);onFilterChange();}});
-    menu.appendChild(item);
-  });
-}
-function getSelectedGames(){return Array.from(document.querySelectorAll('#gameDDMenu input[type=checkbox]:checked')).map(function(cb){return cb.value;});}
-function getSelectedPlayers(){return Array.from(document.querySelectorAll('#playerDDMenu input[type=checkbox]:checked')).map(function(cb){return cb.value;});}
-function toggleDD(id){var el=document.getElementById(id);var isOpen=el.classList.contains('open');document.querySelectorAll('.dd-wrap.open').forEach(function(d){d.classList.remove('open');});if(!isOpen)el.classList.add('open');}
-document.addEventListener('click',function(e){if(!e.target.closest('.dd-wrap'))document.querySelectorAll('.dd-wrap.open').forEach(function(d){d.classList.remove('open');});});
-function updateDDLabels(){var g=getSelectedGames();document.getElementById('gameDDLabel').textContent=g.length===0?'All Games (full season)':g.length+' game'+(g.length>1?'s':'')+' selected';var pl=getSelectedPlayers();document.getElementById('playerDDLabel').textContent=pl.length===0?'All Players':pl.length+' player'+(pl.length>1?'s':'')+' selected';}
-function rebuildTableData(pitches){var wsPitches=pitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal');});var players={};wsPitches.forEach(function(r){var n=(r.Batter||'').trim();if(!n)return;if(!players[n])players[n]=[];players[n].push(r);});tableData=Object.values(players).map(function(rows){return computeProfile(rows[0].Batter,rows);});}
-function onFilterChange(){updateDDLabels();var selGames=getSelectedGames();var filtered=allPitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal')&&(!selGames.length||selGames.includes(r.GameID));});var players={};filtered.forEach(function(r){var n=(r.Batter||'').trim();if(!n)return;if(!players[n])players[n]=[];players[n].push(r);});tableData=Object.values(players).map(function(rows){return computeProfile(rows[0].Batter,rows);});renderTable();}
-function renderTable(){
-  var selectedPlayers=getSelectedPlayers();
-  var data=tableData.filter(function(p){return p.pa>0&&(!selectedPlayers.length||selectedPlayers.includes(p.name));});
-  data.sort(function(a,b){var av=a[sortCol]||0,bv=b[sortCol]||0;if(typeof av==='string')return sortAsc?av.localeCompare(bv):bv.localeCompare(av);return sortAsc?av-bv:bv-av;});
-  document.getElementById('filterCount').textContent=data.length+' players';
-  var tbody=document.getElementById('tableBody');tbody.innerHTML='';
-  if(!data.length){tbody.innerHTML='<tr><td colspan="13" class="no-data">No players match current filters</td></tr>';return;}
-  data.forEach(function(p){
-    var tr=document.createElement('tr');
-    if(selectedPlayer===p.name)tr.className='selected';
-    tr.onclick=function(){selectedPlayer=p.name;document.querySelectorAll('#tableBody tr').forEach(function(r){r.classList.remove('selected');});tr.classList.add('selected');document.getElementById('genCardBtn').disabled=false;document.getElementById('selHint').textContent=p.displayName+' selected';};
-    tr.innerHTML='<td>'+escH(p.displayName)+'</td><td>'+p.pa+'</td><td class="val-hi">'+fmt3(p.woba)+'</td><td class="'+(p.barrelPct>=.06?'val-good':'')+'">'+pct(p.barrelPct)+'</td><td class="'+(p.hardHit>=.35?'val-good':'')+'">'+pct(p.hardHit)+'</td><td>'+pct(p.swingPct)+'</td><td class="'+(p.chasePct>=.30?'val-warn':'')+'">'+pct(p.chasePct)+'</td><td>'+pct(p.zSwingPct)+'</td><td class="'+((p.seagerScore||0)>=5?'val-good':(p.seagerScore||0)<0?'val-warn':'')+'">'+(p.seagerScore||0).toFixed(2)+'</td><td>'+pct(p.gbPct)+'</td><td>'+pct(p.fbPct)+'</td><td class="val-hi">'+(p.bestSpeed>0?p.bestSpeed.toFixed(1):'--')+'</td><td>'+(p.maxEV>0?p.maxEV.toFixed(1):'--')+'</td>';
-    tbody.appendChild(tr);
-  });
-}
-function sortTable(col){if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=false;}renderTable();}
-
-function fmt3(v){if(!v&&v!==0)return'--';var s=parseFloat(v).toFixed(3);return s.startsWith('0.')?s.slice(1):s;}
-function pct(v){if(isNaN(v)||v===null||v===undefined)return'--';return(v*100).toFixed(1)+'%';}
-function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function hexToRGBA(hex,alpha){var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return'rgba('+r+','+g+','+b+','+alpha+')';}
-function closeOverlay(){document.getElementById('imgOverlay').classList.remove('active');}
-
-// -- Zone Grid Heat Map Engine -----------------------------------------------
-var ZONE_COLS=5, ZONE_ROWS=5;
-var ZONE_X_MIN=-0.833, ZONE_X_MAX=0.833;
-var ZONE_Y_MIN=1.5, ZONE_Y_MAX=3.5;
-
-
-
-// Bilinear interpolation between 4 corner values
-
-
-
-
-
-// wOBA value function
-var WOBA_WEIGHTS={'Single':0.88,'Double':1.24,'Triple':1.56,'HomeRun':2.08,'Home Run':2.08};
-function wobaVal(r){
-  if(r.PitchCall!=='InPlay')return null;
-  var result=r.PlayResult||'';
-  return WOBA_WEIGHTS[result]||0;
-}
-
-// ISO value function (TB-H)/AB proxy using EV+LA
+function wobaVal(r){if(r.PitchCall!=='InPlay')return null;return WOBA_WEIGHTS[r.PlayResult||'']||0;}
 function isoVal(r){
   if(r.PitchCall!=='InPlay')return null;
-  var result=r.PlayResult||'';
   var tbMap={'Single':1,'Double':2,'Triple':3,'HomeRun':4,'Home Run':4};
-  var tb=tbMap[result]||0;
-  var isHit=tb>0;
-  return tb-(isHit?1:0); // TB-H for ISO, 0 for outs/singles after -1
+  var tb=tbMap[r.PlayResult||'']||0;
+  return tb-(tb>0?1:0);
 }
-
-// Hard% value function
-function hardVal(r){
-  var ev=parseFloat(r.ExitSpeed);
-  if(isNaN(ev)||ev<=0||r.PitchCall!=='InPlay')return null;
-  return ev>=95?1:0;
-}
-
-// Whiff% value function (per swing)
-function whiffVal(r){
-  var call=(r.PitchCall||'').trim();
-  // Only plot actual whiff locations - pure density map
-  if(call!=='StrikeSwinging')return null;
-  return 1;
-}
-
-function buildLegend(containerId, items){
-  var el=document.getElementById(containerId);
-  if(!el)return;
-  if(!items||!items.length){el.innerHTML='';return;}
-  el.innerHTML=items.slice(0,6).map(function(item){
-    return'<div class="hmap-legend-item"><div class="hmap-dot" style="background:'+item.color+'"></div>'+escH(item.pt)+' ('+item.count+')</div>';
-  }).join('');
-}
+function hardVal(r){var ev=parseFloat(r.ExitSpeed);if(isNaN(ev)||ev<=0||r.PitchCall!=='InPlay')return null;return ev>=95?1:0;}
+function whiffVal(r){return(r.PitchCall||'').trim()==='StrikeSwinging'?1:null;}
 
 function buildPitchTable(p){
-  var tbody=document.getElementById('pitchTableBody');
-  if(!tbody)return;
+  var tbody=document.getElementById('pitchTableBody');if(!tbody)return;
   tbody.innerHTML='';
   Object.entries(p.pitchTypes)
     .filter(function(e){return e[1].total>=3;})
@@ -1103,29 +524,16 @@ function buildPitchTable(p){
       var hard=d.ev.length>0?d.ev.filter(function(v){return v>=95;}).length/d.ev.length:0;
       var avgEV=d.ev.length>0?(d.ev.reduce(function(a,b){return a+b;},0)/d.ev.length).toFixed(1):'--';
       var color=pitchColor(pt);
-      tbody.innerHTML+='<tr>'+
-        '<td style="display:flex;align-items:center;gap:4px"><div class="pitch-dot" style="background:'+color+'"></div>'+escH(pt)+'</td>'+
-        '<td>'+d.total+'</td>'+
-        '<td>'+pct(sw)+'</td>'+
-        '<td>'+pct(wh)+'</td>'+
-        '<td>'+(ch>0?pct(ch):'--')+'</td>'+
-        '<td>'+pct(hard)+'</td>'+
-        '<td>'+avgEV+'</td>'+
-        '</tr>';
+      tbody.innerHTML+='<tr><td style="display:flex;align-items:center;gap:4px"><div class="pitch-dot" style="background:'+color+'"></div>'+escH(pt)+'</td><td>'+d.total+'</td><td>'+pct(sw)+'</td><td>'+pct(wh)+'</td><td>'+(ch>0?pct(ch):'--')+'</td><td>'+pct(hard)+'</td><td>'+avgEV+'</td></tr>';
     });
 }
 
 function buildCard(){
   var p=tableData.find(function(d){return d.name===selectedPlayer;});
   if(!p)return;
-  if(!p){document.getElementById('statusMsg').textContent='No data for this player.';return;}
-
   document.getElementById('cardName').textContent=p.displayName;
   document.getElementById('cardPos').textContent='Walters State CC';
-  document.getElementById('cardGameLine').textContent=
-    '2026 Season . '+p.gp+' GP . '+p.pa+' PA . '+p.totalPitches+' pitches seen (TrackMan)';
-
-  // Traditional stats
+  document.getElementById('cardGameLine').textContent='2026 Season . '+p.gp+' GP . '+p.pa+' PA . '+p.totalPitches+' pitches seen (TrackMan)';
   document.getElementById('sAVG').textContent=fmt3(p.avg);
   document.getElementById('sOBP').textContent=fmt3(p.obp);
   document.getElementById('sSLG').textContent=fmt3(p.slg);
@@ -1133,36 +541,26 @@ function buildCard(){
   document.getElementById('sHR').textContent=p.hr;
   document.getElementById('sRBI').textContent=p.rbi;
   document.getElementById('sSB').textContent=p.sb;
-
-  // Contact quality
   var hardEl=document.getElementById('tHard');
-  hardEl.textContent=pct(p.hardHit);
-  hardEl.className='stat-val'+(p.hardHit>=.35?' good':'');
+  hardEl.textContent=pct(p.hardHit);hardEl.className='stat-val'+(p.hardHit>=.35?' good':'');
   document.getElementById('tBarrel').textContent=pct(p.barrelPct);
   document.getElementById('tBestSpeed').textContent=p.bestSpeed>0?p.bestSpeed.toFixed(1):'--';
   document.getElementById('tMaxEV').textContent=p.maxEV>0?p.maxEV.toFixed(1):'--';
   document.getElementById('tGB').textContent=pct(p.gbPct);
   document.getElementById('tFB').textContent=pct(p.fbPct);
-
-  // Discipline
   var chaseEl=document.getElementById('tChase');
-  chaseEl.textContent=pct(p.chasePct);
-  chaseEl.className='stat-val'+(p.chasePct>=.30?' warn':'');
+  chaseEl.textContent=pct(p.chasePct);chaseEl.className='stat-val'+(p.chasePct>=.30?' warn':'');
   document.getElementById('tSwing').textContent=pct(p.swingPct);
   document.getElementById('tZSwing').textContent=pct(p.zSwingPct);
   document.getElementById('tWhiff').textContent=pct(p.whiffPct);
   document.getElementById('tSGR').textContent=(p.seagerScore||0).toFixed(2);
-
   setTimeout(function(){
-    var allRows=p.rows;
-
-    drawZoneGrid('zmapWoba', allRows, wobaVal,  0, 1, 'wOBA');
-    drawZoneGrid('zmapHard', allRows, hardVal,  0, 1, 'Hard%');
-    drawZoneGrid('zmapIso',  allRows, isoVal,   0, 1, 'ISO');
-    drawZoneGrid('zmapWhiff',allRows, whiffVal, 0, 1, 'Whiff Zones', null, null, null, null, true);
+    drawZoneGrid('zmapWoba',p.rows,wobaVal,0,1,'wOBA');
+    drawZoneGrid('zmapHard',p.rows,hardVal,0,1,'Hard%');
+    drawZoneGrid('zmapIso',p.rows,isoVal,0,1,'ISO');
+    drawZoneGrid('zmapWhiff',p.rows,whiffVal,0,1,'Whiff Zones',null,null,null,null,true);
     buildPitchTable(p);
   },30);
-
   document.getElementById('main-screen').style.display='none';
   document.getElementById('card-screen').style.display='block';
   window.scrollTo(0,0);
@@ -1175,7 +573,7 @@ function showSelect(){
 
 async function saveCard(){
   var card=document.getElementById('card'),btn=card.querySelector('.save-btn'),orig=btn.textContent;
-  btn.textContent='Rendering ';btn.disabled=true;
+  btn.textContent='Rendering...';btn.disabled=true;
   try{
     var canvas=await html2canvas(card,{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',scrollX:0,scrollY:-window.scrollY,ignoreElements:function(el){return el===btn;}});
     document.getElementById('overlayImg').src=canvas.toDataURL('image/png');
@@ -1185,21 +583,9 @@ async function saveCard(){
 }
 function closeOverlay(){document.getElementById('imgOverlay').classList.remove('active');}
 
-// -- Helpers ------------------------------------------------------------------
-function hexToRGBA(hex,alpha){
-  var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-  return'rgba('+r+','+g+','+b+','+alpha+')';
-}
 function fmt3(v){if(!v&&v!==0)return'--';var s=parseFloat(v).toFixed(3);return s.startsWith('0.')?s.slice(1):s;}
 function pct(v){if(isNaN(v)||v===null||v===undefined)return'--';return(v*100).toFixed(1)+'%';}
 function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
-async function supaFetch(path){
-  var rows=[],from=0;
-  while(true){var sep=path.indexOf('?')>-1?'&':'?';var r=await fetch(SUPABASE_URL+'/rest/v1/'+path+sep+'limit=1000&offset='+from,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});var d=await r.json();if(!Array.isArray(d)||!d.length)break;rows=rows.concat(d);if(d.length<1000)break;from+=1000;}
-  return rows;
-}
-function setProgress(pct,msg){document.getElementById('progressFill').style.width=pct+'%';document.getElementById('loadMsg').textContent=msg;}
 
 async function boot(){
   try{
@@ -1211,7 +597,11 @@ async function boot(){
     populateGameFilter();
     setProgress(30,'Loading pitch data...');
     allPitches=[];
-    for(var i=0;i<gamesMeta.length;i++){var rows=await supaFetch('pitches?GameID=eq.'+encodeURIComponent(gamesMeta[i].game_id));allPitches=allPitches.concat(rows);setProgress(30+Math.round(((i+1)/gamesMeta.length)*60),'Loading game '+(i+1)+' of '+gamesMeta.length+'...');}
+    for(var i=0;i<gamesMeta.length;i++){
+      var rows=await supaFetch('pitches?GameID=eq.'+encodeURIComponent(gamesMeta[i].game_id));
+      allPitches=allPitches.concat(rows);
+      setProgress(30+Math.round(((i+1)/gamesMeta.length)*60),'Loading game '+(i+1)+' of '+gamesMeta.length+'...');
+    }
     setProgress(96,'Building stats...');
     rebuildTableData(allPitches);populatePlayerFilter();renderTable();
     document.getElementById('loading-screen').style.display='none';
@@ -1248,9 +638,25 @@ function getSelectedGames(){return Array.from(document.querySelectorAll('#gameDD
 function getSelectedPlayers(){return Array.from(document.querySelectorAll('#playerDDMenu input[type=checkbox]:checked')).map(function(cb){return cb.value;});}
 function toggleDD(id){var el=document.getElementById(id);var isOpen=el.classList.contains('open');document.querySelectorAll('.dd-wrap.open').forEach(function(d){d.classList.remove('open');});if(!isOpen)el.classList.add('open');}
 document.addEventListener('click',function(e){if(!e.target.closest('.dd-wrap'))document.querySelectorAll('.dd-wrap.open').forEach(function(d){d.classList.remove('open');});});
-function updateDDLabels(){var g=getSelectedGames();document.getElementById('gameDDLabel').textContent=g.length===0?'All Games (full season)':g.length+' game'+(g.length>1?'s':'')+' selected';var pl=getSelectedPlayers();document.getElementById('playerDDLabel').textContent=pl.length===0?'All Players':pl.length+' player'+(pl.length>1?'s':'')+' selected';}
-function rebuildTableData(pitches){var wsPitches=pitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal');});var players={};wsPitches.forEach(function(r){var n=(r.Batter||'').trim();if(!n)return;if(!players[n])players[n]=[];players[n].push(r);});tableData=Object.values(players).map(function(rows){return computeProfile(rows[0].Batter,rows);});}
-function onFilterChange(){updateDDLabels();var selGames=getSelectedGames();var filtered=allPitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal')&&(!selGames.length||selGames.includes(r.GameID));});var players={};filtered.forEach(function(r){var n=(r.Batter||'').trim();if(!n)return;if(!players[n])players[n]=[];players[n].push(r);});tableData=Object.values(players).map(function(rows){return computeProfile(rows[0].Batter,rows);});renderTable();}
+function updateDDLabels(){
+  var g=getSelectedGames();document.getElementById('gameDDLabel').textContent=g.length===0?'All Games (full season)':g.length+' game'+(g.length>1?'s':'')+' selected';
+  var pl=getSelectedPlayers();document.getElementById('playerDDLabel').textContent=pl.length===0?'All Players':pl.length+' player'+(pl.length>1?'s':'')+' selected';
+}
+function rebuildTableData(pitches){
+  var wsPitches=pitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal');});
+  var players={};
+  wsPitches.forEach(function(r){var n=(r.Batter||'').trim();if(!n)return;if(!players[n])players[n]=[];players[n].push(r);});
+  tableData=Object.values(players).map(function(rows){return computeProfile(rows[0].Batter,rows);});
+}
+function onFilterChange(){
+  updateDDLabels();
+  var selGames=getSelectedGames();
+  var filtered=allPitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal')&&(!selGames.length||selGames.includes(r.GameID));});
+  var players={};
+  filtered.forEach(function(r){var n=(r.Batter||'').trim();if(!n)return;if(!players[n])players[n]=[];players[n].push(r);});
+  tableData=Object.values(players).map(function(rows){return computeProfile(rows[0].Batter,rows);});
+  renderTable();
+}
 function renderTable(){
   var selectedPlayers=getSelectedPlayers();
   var data=tableData.filter(function(p){return p.pa>0&&(!selectedPlayers.length||selectedPlayers.includes(p.name));});
@@ -1268,13 +674,8 @@ function renderTable(){
 }
 function sortTable(col){if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=false;}renderTable();}
 function showMain(){document.getElementById('card-screen').style.display='none';document.getElementById('main-screen').style.display='block';document.getElementById('bottomBar').style.display='flex';selectedPlayer=null;document.getElementById('genCardBtn').disabled=true;document.getElementById('selHint').textContent='Tap a player to select';}
-function fmt3(v){if(!v&&v!==0)return'--';var s=parseFloat(v).toFixed(3);return s.startsWith('0.')?s.slice(1):s;}
-function pct(v){if(isNaN(v)||v===null||v===undefined)return'--';return(v*100).toFixed(1)+'%';}
-function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function hexToRGBA(hex,alpha){var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return'rgba('+r+','+g+','+b+','+alpha+')';}
-function closeOverlay(){document.getElementById('imgOverlay').classList.remove('active');}
-boot();
 
+boot();
 </script>
 
 </body>
