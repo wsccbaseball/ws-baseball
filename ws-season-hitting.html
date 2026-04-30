@@ -667,38 +667,7 @@ var ZONE_COLS=5, ZONE_ROWS=5;
 var ZONE_X_MIN=-0.833, ZONE_X_MAX=0.833;
 var ZONE_Y_MIN=1.5, ZONE_Y_MAX=3.5;
 
-function buildZoneGrid(rows, valueFn) {
-  // Each cell: {sum, count, swings, contacts}
-  var cells=[];
-  for(var i=0;i<ZONE_COLS*ZONE_ROWS;i++)cells.push({sum:0,count:0,swings:0,whiffs:0});
-  var cellW=(ZONE_X_MAX-ZONE_X_MIN)/ZONE_COLS;
-  var cellH=(ZONE_Y_MAX-ZONE_Y_MIN)/ZONE_ROWS;
 
-  rows.forEach(function(r){
-    var side=parseFloat(r.PlateLocSide);
-    var height=parseFloat(r.PlateLocHeight);
-    // Pitcher's view - negate side for display
-    var displaySide=-side;
-    if(isNaN(displaySide)||isNaN(height))return;
-    if(displaySide<ZONE_X_MIN||displaySide>ZONE_X_MAX||height<ZONE_Y_MIN||height>ZONE_Y_MAX)return;
-    var col=Math.floor((displaySide-ZONE_X_MIN)/cellW);
-    var row=Math.floor((ZONE_Y_MAX-height)/cellH); // flip Y
-    col=Math.max(0,Math.min(ZONE_COLS-1,col));
-    row=Math.max(0,Math.min(ZONE_ROWS-1,row));
-    var idx=row*ZONE_COLS+col;
-    var val=valueFn(r);
-    if(val!==null&&val!==undefined&&!isNaN(val)){
-      cells[idx].sum+=val;
-      cells[idx].count++;
-    }
-    // Track swings/whiffs for whiff%
-    var call=(r.PitchCall||'').trim();
-    var isSwing=['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
-    if(isSwing)cells[idx].swings++;
-    if(call==='StrikeSwinging')cells[idx].whiffs++;
-  });
-  return cells;
-}
 
 function hotColdColor(val, minVal, maxVal) {
   if(val===null||val===undefined||isNaN(val))return null;
@@ -1329,25 +1298,7 @@ var ZONE_COLS=5, ZONE_ROWS=5;
 var ZONE_X_MIN=-0.833, ZONE_X_MAX=0.833;
 var ZONE_Y_MIN=1.5, ZONE_Y_MAX=3.5;
 
-function buildZoneGrid(rows, valueFn) {
-  var cells=[];
-  for(var i=0;i<ZONE_COLS*ZONE_ROWS;i++)cells.push({sum:0,count:0});
-  var cellW=(ZONE_X_MAX-ZONE_X_MIN)/ZONE_COLS;
-  var cellH=(ZONE_Y_MAX-ZONE_Y_MIN)/ZONE_ROWS;
-  rows.forEach(function(r){
-    var side=parseFloat(r.PlateLocSide);
-    var height=parseFloat(r.PlateLocHeight);
-    var displaySide=-side; // pitcher's view
-    if(isNaN(displaySide)||isNaN(height))return;
-    if(displaySide<ZONE_X_MIN||displaySide>ZONE_X_MAX||height<ZONE_Y_MIN||height>ZONE_Y_MAX)return;
-    var col=Math.min(ZONE_COLS-1,Math.floor((displaySide-ZONE_X_MIN)/cellW));
-    var row=Math.min(ZONE_ROWS-1,Math.floor((ZONE_Y_MAX-height)/cellH));
-    var idx=row*ZONE_COLS+col;
-    var val=valueFn(r);
-    if(val!==null&&val!==undefined&&!isNaN(val)){cells[idx].sum+=val;cells[idx].count++;}
-  });
-  return cells;
-}
+
 
 // Bilinear interpolation between 4 corner values
 
@@ -1370,62 +1321,7 @@ function hotColdColor(t){
   return'rgb('+r+','+g+','+b+')';
 }
 
-function drawZoneGrid(canvasId, rows, valueFn, minVal, maxVal, label){
-  var cv=document.getElementById(canvasId);if(!cv)return;
-  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
-  var PAD_L=6,PAD_R=6,PAD_T=6,PAD_B=16;
-  var gridW=W-PAD_L-PAD_R, gridH=H-PAD_T-PAD_B;
 
-  ctx.clearRect(0,0,W,H);
-  ctx.fillStyle='#f0f4fa';ctx.fillRect(0,0,W,H);
-
-  var cells=buildZoneGrid(rows,valueFn);
-  var range=Math.max(maxVal-minVal,0.001);
-
-  // Build a value grid - use cell avg where we have data, interpolate missing
-  // First pass: get raw values
-  var vals=[];
-  for(var i=0;i<ZONE_COLS*ZONE_ROWS;i++){
-    vals.push(cells[i].count>=2?cells[i].sum/cells[i].count:null);
-  }
-
-  // Second pass: fill nulls by averaging neighbors
-  
-
-  var filledVals=fillNulls(vals);
-
-  // Render smooth gradient pixel by pixel using bilinear interpolation
-  // Sample at higher resolution for smooth look
-
-  // Strike zone border
-  ctx.strokeStyle='rgba(0,0,0,0.7)';ctx.lineWidth=2;
-  ctx.strokeRect(PAD_L,PAD_T,gridW,gridH);
-
-  // Cell grid lines (subtle)
-  ctx.strokeStyle='rgba(0,0,0,0.15)';ctx.lineWidth=0.5;
-  for(var c=1;c<ZONE_COLS;c++){
-    ctx.beginPath();ctx.moveTo(PAD_L+c*gridW/ZONE_COLS,PAD_T);
-    ctx.lineTo(PAD_L+c*gridW/ZONE_COLS,PAD_T+gridH);ctx.stroke();
-  }
-  for(var r=1;r<ZONE_ROWS;r++){
-    ctx.beginPath();ctx.moveTo(PAD_L,PAD_T+r*gridH/ZONE_ROWS);
-    ctx.lineTo(PAD_L+gridW,PAD_T+r*gridH/ZONE_ROWS);ctx.stroke();
-  }
-
-  // Color scale bar
-  var barX=PAD_L,barY=H-12,barW=gridW,barH=5;
-  var grad=ctx.createLinearGradient(barX,0,barX+barW,0);
-  grad.addColorStop(0,'rgb(59,113,204)');
-  grad.addColorStop(0.5,'rgb(255,255,255)');
-  grad.addColorStop(1,'rgb(255,0,0)');
-  ctx.fillStyle=grad;ctx.fillRect(barX,barY,barW,barH);
-  ctx.strokeStyle='rgba(0,0,0,0.2)';ctx.lineWidth=0.5;ctx.strokeRect(barX,barY,barW,barH);
-
-  // Min/max labels
-  ctx.fillStyle='rgba(0,0,0,0.5)';ctx.font='6px Barlow Condensed,sans-serif';
-  ctx.textAlign='left';ctx.fillText(minVal.toFixed(minVal<1?2:0),barX,H-1);
-  ctx.textAlign='right';ctx.fillText(maxVal.toFixed(maxVal<1?2:0),barX+barW,H-1);
-}
 // wOBA value function
 var WOBA_WEIGHTS={'Single':0.88,'Double':1.24,'Triple':1.56,'HomeRun':2.08,'Home Run':2.08};
 function wobaVal(r){
