@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -140,12 +139,13 @@ canvas{display:block;border-radius:4px}
           <th onclick="sortTable('kPct')">K%</th>
           <th onclick="sortTable('bbPct')">BB%</th>
           <th onclick="sortTable('kBBPct')">K-BB%</th>
-          <th onclick="sortTable('whiffPct')">Whiff%</th>
+          <th onclick="sortTable('cswPct')">CSW%</th>
           <th onclick="sortTable('swstrPct')">SwStr%</th>
           <th onclick="sortTable('chasePct')">Chase%</th>
           <th onclick="sortTable('hardPct')">Hard%</th>
           <th onclick="sortTable('solidPct')">Solid%</th>
           <th onclick="sortTable('gbPct')">GB%</th>
+          <th onclick="sortTable('fip')">FIP</th>
           <th onclick="sortTable('bestVelo')">Best Velo</th>
         </tr></thead>
         <tbody id="tableBody"></tbody>
@@ -171,96 +171,93 @@ canvas{display:block;border-radius:4px}
       <div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div>
     </div>
 
-```
-<!-- Season Stats -->
-<div class="stat-section">
-  <span class="stat-section-label">Season Stats</span>
-  <div class="stat-row">
-    <div class="stat-box"><span class="stat-val hi" id="sTBF">&#8212;</span><span class="stat-lbl">TBF</span></div>
-    <div class="stat-box"><span class="stat-val hi" id="sWOBA">&#8212;</span><span class="stat-lbl">wOBA</span></div>
-    <div class="stat-box"><span class="stat-val" id="sKPct">&#8212;</span><span class="stat-lbl">K%</span></div>
-    <div class="stat-box"><span class="stat-val" id="sBBPct">&#8212;</span><span class="stat-lbl">BB%</span></div>
-    <div class="stat-box"><span class="stat-val" id="sKBB">&#8212;</span><span class="stat-lbl">K-BB%</span></div>
-    <div class="stat-box"><span class="stat-val" id="sHR">&#8212;</span><span class="stat-lbl">HR</span></div>
-    <div class="stat-box"><span class="stat-val" id="sGB">&#8212;</span><span class="stat-lbl">GB%</span></div>
-  </div>
-</div>
-
-<!-- Stuff -->
-<div class="stat-section">
-  <span class="stat-section-label">Stuff &middot; TrackMan</span>
-  <div class="stat-row">
-    <div class="stat-box"><span class="stat-val hi" id="tBestVelo">&#8212;</span><span class="stat-lbl">Best Velo</span></div>
-    <div class="stat-box"><span class="stat-val" id="tMaxVelo">&#8212;</span><span class="stat-lbl">Max Velo</span></div>
-    <div class="stat-box"><span class="stat-val" id="tWhiff">&#8212;</span><span class="stat-lbl">Whiff%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tSwStr">&#8212;</span><span class="stat-lbl">SwStr%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tChase">&#8212;</span><span class="stat-lbl">Chase%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tZone">&#8212;</span><span class="stat-lbl">Zone%</span></div>
-  </div>
-</div>
-
-<!-- Contact Quality Against -->
-<div class="stat-section">
-  <span class="stat-section-label">Contact Quality Against &middot; TrackMan</span>
-  <div class="stat-row">
-    <div class="stat-box"><span class="stat-val" id="tHard">&#8212;</span><span class="stat-lbl">Hard%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tSolid">&#8212;</span><span class="stat-lbl">Solid%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tGB2">&#8212;</span><span class="stat-lbl">GB%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tFB">&#8212;</span><span class="stat-lbl">FB%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tMaxEV">&#8212;</span><span class="stat-lbl">Max EV</span></div>
-    <div class="stat-box"><span class="stat-val" id="tAvgEV">&#8212;</span><span class="stat-lbl">Avg EV</span></div>
-  </div>
-</div>
-
-<!-- Zone Heat Maps -->
-<div class="hmap-section">
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-    <div>
-      <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">wOBA Against</div>
-      <canvas id="zmapWoba" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+    <!-- Season Stats -->
+    <div class="stat-section">
+      <span class="stat-section-label">Season Stats</span>
+      <div class="stat-row">
+        <div class="stat-box"><span class="stat-val hi" id="sTBF">&#8212;</span><span class="stat-lbl">TBF</span></div>
+        <div class="stat-box"><span class="stat-val hi" id="sWOBA">&#8212;</span><span class="stat-lbl">wOBA</span></div>
+        <div class="stat-box"><span class="stat-val" id="sKPct">&#8212;</span><span class="stat-lbl">K%</span></div>
+        <div class="stat-box"><span class="stat-val" id="sBBPct">&#8212;</span><span class="stat-lbl">BB%</span></div>
+        <div class="stat-box"><span class="stat-val" id="sKBB">&#8212;</span><span class="stat-lbl">K-BB%</span></div>
+        <div class="stat-box"><span class="stat-val hi" id="sFIP">&#8212;</span><span class="stat-lbl">FIP</span></div>
+        <div class="stat-box"><span class="stat-val" id="sGB">&#8212;</span><span class="stat-lbl">GB%</span></div>
+      </div>
     </div>
-    <div>
-      <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Hard% Against</div>
-      <canvas id="zmapHard" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-    </div>
-    <div>
-      <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Whiff Zones</div>
-      <canvas id="zmapWhiff" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-    </div>
-    <div>
-      <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">SwStr Zones</div>
-      <canvas id="zmapSwStr" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-    </div>
-  </div>
-  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View &middot; looking toward the pitcher</div>
-</div>
 
-<!-- Pitch Arsenal -->
-<div class="pitch-section">
-  <span class="stat-section-label" style="display:block;margin-bottom:4px">Pitch Arsenal</span>
-  <table class="pitch-table">
-    <thead><tr>
-      <th style="text-align:left">Pitch</th>
-      <th>Usage</th>
-      <th>Velo</th>
-      <th>Swing%</th>
-      <th>Whiff%</th>
-      <th>SwStr%</th>
-      <th>Chase%</th>
-      <th>Hard%</th>
-    </tr></thead>
-    <tbody id="pitchTableBody"></tbody>
-  </table>
-</div>
+    <!-- Stuff -->
+    <div class="stat-section">
+      <span class="stat-section-label">Stuff &middot; TrackMan</span>
+      <div class="stat-row">
+        <div class="stat-box"><span class="stat-val hi" id="tBestVelo">&#8212;</span><span class="stat-lbl">Best Velo</span></div>
+        <div class="stat-box"><span class="stat-val" id="tMaxVelo">&#8212;</span><span class="stat-lbl">Max Velo</span></div>
+        <div class="stat-box"><span class="stat-val" id="tCSW">&#8212;</span><span class="stat-lbl">CSW%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tSwStr">&#8212;</span><span class="stat-lbl">SwStr%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tChase">&#8212;</span><span class="stat-lbl">Chase%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tZone">&#8212;</span><span class="stat-lbl">Zone%</span></div>
+      </div>
+    </div>
 
-<div class="card-footer">
-  <div>&#9918; Walters State CC &middot; 2026</div>
-  <div>Data: TrackMan</div>
-  <div id="footR">wsccbaseball.github.io</div>
-</div>
-<button class="save-btn" onclick="saveCard()">&#128229; SAVE CARD IMAGE</button>
-```
+    <!-- Contact Quality Against -->
+    <div class="stat-section">
+      <span class="stat-section-label">Contact Quality Against &middot; TrackMan</span>
+      <div class="stat-row">
+        <div class="stat-box"><span class="stat-val" id="tHard">&#8212;</span><span class="stat-lbl">Hard%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tSolid">&#8212;</span><span class="stat-lbl">Solid%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tGB2">&#8212;</span><span class="stat-lbl">GB%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tFB">&#8212;</span><span class="stat-lbl">FB%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tMaxEV">&#8212;</span><span class="stat-lbl">Max EV</span></div>
+        <div class="stat-box"><span class="stat-val" id="tAvgEV">&#8212;</span><span class="stat-lbl">Avg EV</span></div>
+      </div>
+    </div>
 
+    <!-- Zone Heat Maps -->
+    <div class="hmap-section">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div>
+          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">wOBA Against</div>
+          <canvas id="zmapWoba" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+        </div>
+        <div>
+          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Hard% Against</div>
+          <canvas id="zmapHard" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+        </div>
+        <div>
+          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Whiff Zones</div>
+          <canvas id="zmapWhiff" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+        </div>
+        <div>
+          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">SwStr Zones</div>
+          <canvas id="zmapSwStr" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+        </div>
+      </div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View &middot; looking toward the pitcher</div>
+    </div>
+
+    <!-- Pitch Arsenal -->
+    <div class="pitch-section">
+      <span class="stat-section-label" style="display:block;margin-bottom:4px">Pitch Arsenal</span>
+      <table class="pitch-table">
+        <thead><tr>
+          <th style="text-align:left">Pitch</th>
+          <th>Usage</th>
+          <th>Velo</th>
+          <th>Swing%</th>
+          <th>Whiff%</th>
+          <th>SwStr%</th>
+          <th>Chase%</th>
+          <th>Hard%</th>
+        </tr></thead>
+        <tbody id="pitchTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card-footer">
+      <div>&#9918; Walters State CC &middot; 2026</div>
+      <div>Data: TrackMan</div>
+      <div id="footR">wsccbaseball.github.io</div>
+    </div>
+    <button class="save-btn" onclick="saveCard()">&#128229; SAVE CARD IMAGE</button>
   </div>
 </div>
 
@@ -281,6 +278,8 @@ var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 
 var allPitches=[], gamesMeta=[], tableData=[];
 var sortCol='tbf', sortAsc=false, selectedPitcher=null;
+var seasonPitching={};
+var FIP_CONSTANT=5.03; // WSCC 2026 NJCAA-calibrated
 
 var PITCH_COLORS={
   'Fastball':'#e63946','Four-Seam':'#e63946','FourSeamFastBall':'#e63946',
@@ -320,8 +319,8 @@ function computePitcherProfile(name, rows){
   var parts=name.split(','),lastName=(parts[0]||'').trim();
   var displayName=parts.length>1?(parts[1]||'').trim()+' '+parts[0].trim():name;
 
-  var tbf=0,ks=0,bbs=0,hrs=0;
-  var swings=0,whiffs=0,inZone=0,inZoneSwings=0,ozPitches=0,ozSwings=0,totalStrikes=0;
+  var tbf=0,ks=0,bbs=0,hrs=0,hbps=0;
+  var swings=0,whiffs=0,calledStrikes=0,inZone=0,inZoneSwings=0,ozPitches=0,ozSwings=0,totalStrikes=0;
   var bipCount=0,gbCount=0,fbCount=0,hardCount=0,solidCount=0,evCount=0,evSum=0,maxEV=0;
   var pitchTypes={};
   var wobaNum=0,wobaDen=0;
@@ -345,6 +344,7 @@ function computePitcherProfile(name, rows){
 
     if(isSwing){swings++;pitchTypes[pt].swings++;}
     if(isWhiff){whiffs++;pitchTypes[pt].whiffs++;}
+    if(call==='StrikeCalled')calledStrikes++;
     if(isStrike)totalStrikes++;
     if(inside){inZone++;if(isSwing)inZoneSwings++;}
     if(outside){ozPitches++;pitchTypes[pt].ozPitches++;if(isSwing){ozSwings++;pitchTypes[pt].chases++;}}
@@ -353,6 +353,7 @@ function computePitcherProfile(name, rows){
     if(r.KorBB==='Strikeout')ks++;
     if(r.KorBB==='Walk')bbs++;
     if(r.PlayResult==='HomeRun'||r.PlayResult==='Home Run')hrs++;
+    if(r.PitchCall==='HitByPitch')hbps++;
 
     var ev=parseFloat(r.ExitSpeed);
     var la=parseFloat(r.Angle||r.LaunchAngle||r.VertAngle||'NaN');
@@ -381,13 +382,24 @@ function computePitcherProfile(name, rows){
     if(r.PitchCall==='HitByPitch'){wobaDen++;wobaNum+=0.72;}
   });
 
-  // Best velo: top half avg of all fastball velos (or all pitches if no FB)
+  // Best velo: top half avg
   var allVelos=[];
   Object.values(pitchTypes).forEach(function(d){d.velos.forEach(function(v){allVelos.push(v);});});
   allVelos.sort(function(a,b){return b-a;});
   var topHalf=allVelos.slice(0,Math.ceil(allVelos.length/2));
   var bestVelo=topHalf.length>0?topHalf.reduce(function(a,b){return a+b;},0)/topHalf.length:0;
   var maxVelo=allVelos.length>0?allVelos[0]:0;
+
+  // FIP from box score IP
+  var bs=seasonPitching[lastName.toLowerCase()]||seasonPitching[lastName]||null;
+  var fip=null;
+  if(bs&&bs.ip){
+    var ipRaw=String(bs.ip).trim();
+    var ipParts=ipRaw.split('.');
+    var ipDec=(parseInt(ipParts[0])||0)+(parseInt(ipParts[1]||0)/3);
+    var bsHR=parseInt(bs.hr)||0,bsBB=parseInt(bs.bb)||0,bsHBP=parseInt(bs.hbp)||0,bsK=parseInt(bs.so)||0;
+    if(ipDec>0)fip=((13*bsHR+3*(bsBB+bsHBP)-2*bsK)/ipDec)+FIP_CONSTANT;
+  }
 
   return{
     name:name,displayName:displayName,lastName:lastName,
@@ -397,7 +409,7 @@ function computePitcherProfile(name, rows){
     bbPct:tbf>0?bbs/tbf:0,
     kBBPct:tbf>0?(ks-bbs)/tbf:0,
     hr:hrs,
-    whiffPct:swings>0?whiffs/swings:0,
+    cswPct:rows.length>0?(calledStrikes+whiffs)/rows.length:0,
     swstrPct:rows.length>0?whiffs/rows.length:0,
     chasePct:ozPitches>0?ozSwings/ozPitches:0,
     zonePct:rows.length>0?inZone/rows.length:0,
@@ -407,6 +419,7 @@ function computePitcherProfile(name, rows){
     fbPct:bipCount>0?fbCount/bipCount:0,
     maxEV:maxEV,avgEV:evCount>0?evSum/evCount:0,
     bestVelo:bestVelo,maxVelo:maxVelo,
+    fip:fip,
     totalPitches:rows.length,
     pitchTypes:pitchTypes,rows:rows
   };
@@ -583,15 +596,14 @@ function buildCard(){
   document.getElementById('sWOBA').textContent=fmt3(p.wobaAgainst);
   document.getElementById('sKPct').textContent=pct(p.kPct);
   document.getElementById('sBBPct').textContent=pct(p.bbPct);
-  var kbb=(p.kBBPct*100).toFixed(1)+'%';
-  document.getElementById('sKBB').textContent=kbb;
-  document.getElementById('sHR').textContent=p.hr;
+  document.getElementById('sKBB').textContent=(p.kBBPct*100).toFixed(1)+'%';
+  document.getElementById('sFIP').textContent=p.fip!==null?p.fip.toFixed(2):'--';
   document.getElementById('sGB').textContent=pct(p.gbPct);
 
   // Stuff
   document.getElementById('tBestVelo').textContent=p.bestVelo>0?p.bestVelo.toFixed(1):'--';
   document.getElementById('tMaxVelo').textContent=p.maxVelo>0?p.maxVelo.toFixed(1):'--';
-  document.getElementById('tWhiff').textContent=pct(p.whiffPct);
+  document.getElementById('tCSW').textContent=pct(p.cswPct);
   document.getElementById('tSwStr').textContent=pct(p.swstrPct);
   document.getElementById('tChase').textContent=pct(p.chasePct);
   document.getElementById('tZone').textContent=pct(p.zonePct);
@@ -642,6 +654,20 @@ function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 
 async function boot(){
   try{
+    setProgress(5,'Loading season stats...');
+    try{
+      var edgeRes=await fetch(SUPABASE_URL+'/functions/v1/fetch-boxscore?url=season-stats',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
+      var edgeData=await edgeRes.json();
+      if(edgeData.pitching&&Array.isArray(edgeData.pitching)){
+        edgeData.pitching.forEach(function(p){
+          var n=(p.name||'').trim();
+          if(!n)return;
+          var lastName=n.split(/\s+/).pop().toLowerCase();
+          seasonPitching[lastName]=p;
+          seasonPitching[n.toLowerCase()]=p;
+        });
+      }
+    }catch(e){console.warn('Season stats unavailable',e);}
     setProgress(20,'Loading games...');
     gamesMeta=await supaFetch('games?select=game_id,display_name,date&order=date.asc,display_name.asc');
     populateGameFilter();
@@ -725,12 +751,13 @@ function renderTable(){
       '<td class="'+(p.kPct>=.25?'val-good':'')+'">'+pct(p.kPct)+'</td>'+
       '<td class="'+(p.bbPct>=.12?'val-warn':'')+'">'+pct(p.bbPct)+'</td>'+
       '<td class="'+(p.kBBPct>=.15?'val-good':p.kBBPct<0?'val-warn':'')+'">'+pct(p.kBBPct)+'</td>'+
-      '<td class="'+(p.whiffPct>=.28?'val-good':'')+'">'+pct(p.whiffPct)+'</td>'+
+      '<td class="'+(p.cswPct>=.28?'val-good':'')+'">'+pct(p.cswPct)+'</td>'+
       '<td class="'+(p.swstrPct>=.12?'val-good':'')+'">'+pct(p.swstrPct)+'</td>'+
       '<td class="'+(p.chasePct>=.30?'val-good':'')+'">'+pct(p.chasePct)+'</td>'+
       '<td class="'+(p.hardPct>=.35?'val-warn':'')+'">'+pct(p.hardPct)+'</td>'+
       '<td class="'+(p.solidPct>=.25?'val-warn':'')+'">'+pct(p.solidPct)+'</td>'+
       '<td class="'+(p.gbPct>=.50?'val-good':'')+'">'+pct(p.gbPct)+'</td>'+
+      '<td class="'+(p.fip!==null&&p.fip<=4.50?'val-good':p.fip!==null&&p.fip>=6.00?'val-warn':'val-hi')+'">'+(p.fip!==null?p.fip.toFixed(2):'--')+'</td>'+
       '<td class="val-hi">'+(p.bestVelo>0?p.bestVelo.toFixed(1):'--')+'</td>';
     tbody.appendChild(tr);
   });
@@ -740,6 +767,5 @@ function showMain(){document.getElementById('card-screen').style.display='none';
 
 boot();
 </script>
-
 </body>
 </html>
