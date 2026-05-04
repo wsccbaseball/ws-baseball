@@ -175,13 +175,13 @@ canvas{display:block;border-radius:4px}
     <div class="stat-section">
       <span class="stat-section-label">Season Stats</span>
       <div class="stat-row">
-        <div class="stat-box"><span class="stat-val hi" id="sTBF">&#8212;</span><span class="stat-lbl">TBF</span></div>
+        <div class="stat-box"><span class="stat-val hi" id="sTBF">&#8212;</span><span class="stat-lbl">IP</span></div>
         <div class="stat-box"><span class="stat-val hi" id="sWOBA">&#8212;</span><span class="stat-lbl">wOBA</span></div>
         <div class="stat-box"><span class="stat-val" id="sKPct">&#8212;</span><span class="stat-lbl">K%</span></div>
         <div class="stat-box"><span class="stat-val" id="sBBPct">&#8212;</span><span class="stat-lbl">BB%</span></div>
         <div class="stat-box"><span class="stat-val" id="sKBB">&#8212;</span><span class="stat-lbl">K-BB%</span></div>
+        <div class="stat-box"><span class="stat-val hi" id="sERA">&#8212;</span><span class="stat-lbl">ERA</span></div>
         <div class="stat-box"><span class="stat-val hi" id="sFIP">&#8212;</span><span class="stat-lbl">FIP</span></div>
-        <div class="stat-box"><span class="stat-val" id="sGB">&#8212;</span><span class="stat-lbl">GB%</span></div>
       </div>
     </div>
 
@@ -413,13 +413,17 @@ function computePitcherProfile(name, rows){
 
   // FIP from box score IP
   var bs=seasonPitching[lastName.toLowerCase()]||seasonPitching[lastName]||null;
-  var fip=null;
+  var fip=null,era=null,ipDisplay='--';
   if(bs&&bs.ip){
     var ipRaw=String(bs.ip).trim();
     var ipParts=ipRaw.split('.');
     var ipDec=(parseInt(ipParts[0])||0)+(parseInt(ipParts[1]||0)/3);
-    var bsHR=parseInt(bs.hr)||0,bsBB=parseInt(bs.bb)||0,bsHBP=parseInt(bs.hbp)||0,bsK=parseInt(bs.so)||0;
-    if(ipDec>0)fip=((13*bsHR+3*(bsBB+bsHBP)-2*bsK)/ipDec)+FIP_CONSTANT;
+    ipDisplay=ipRaw;
+    var bsHR=parseInt(bs.hr)||0,bsBB=parseInt(bs.bb)||0,bsHBP=parseInt(bs.hbp)||0,bsK=parseInt(bs.so)||0,bsER=parseInt(bs.er)||0;
+    if(ipDec>0){
+      fip=((13*bsHR+3*(bsBB+bsHBP)-2*bsK)/ipDec)+FIP_CONSTANT;
+      era=(bsER*9)/ipDec;
+    }
   }
 
   return{
@@ -440,7 +444,7 @@ function computePitcherProfile(name, rows){
     fbPct:bipCount>0?fbCount/bipCount:0,
     maxEV:maxEV,avgEV:evCount>0?evSum/evCount:0,
     bestVelo:bestVelo,maxVelo:maxVelo,
-    fip:fip,
+    fip:fip,era:era,ipDisplay:ipDisplay,
     totalPitches:rows.length,
     pitchTypes:pitchTypes,rows:rows
   };
@@ -632,13 +636,13 @@ function buildCard(){
   document.getElementById('cardPos').textContent='Walters State CC';
 
   // Season stats
-  document.getElementById('sTBF').textContent=p.tbf;
+  document.getElementById('sTBF').textContent=p.ipDisplay;
   document.getElementById('sWOBA').textContent=fmt3(p.wobaAgainst);
   document.getElementById('sKPct').textContent=pct(p.kPct);
   document.getElementById('sBBPct').textContent=pct(p.bbPct);
   document.getElementById('sKBB').textContent=(p.kBBPct*100).toFixed(1)+'%';
+  document.getElementById('sERA').textContent=p.era!==null?p.era.toFixed(2):'--';
   document.getElementById('sFIP').textContent=p.fip!==null?p.fip.toFixed(2):'--';
-  document.getElementById('sGB').textContent=pct(p.gbPct);
 
   // Stuff
   document.getElementById('tBestVelo').textContent=p.bestVelo>0?p.bestVelo.toFixed(1):'--';
