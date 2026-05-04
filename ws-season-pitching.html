@@ -241,12 +241,18 @@ canvas{display:block;border-radius:4px}
         <thead><tr>
           <th style="text-align:left">Pitch</th>
           <th>Usage</th>
-          <th>Velo</th>
-          <th>Swing%</th>
-          <th>Whiff%</th>
+          <th>Avg Velo</th>
+          <th>Max Velo</th>
+          <th>iVB</th>
+          <th>HB</th>
+          <th>Spin</th>
+          <th>VAA</th>
+          <th>RelH</th>
+          <th>Ext</th>
+          <th>Zone%</th>
           <th>SwStr%</th>
           <th>Chase%</th>
-          <th>Hard%</th>
+          <th>Str%</th>
         </tr></thead>
         <tbody id="pitchTableBody"></tbody>
       </table>
@@ -279,7 +285,7 @@ var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 var allPitches=[], gamesMeta=[], tableData=[];
 var sortCol='tbf', sortAsc=false, selectedPitcher=null;
 var seasonPitching={};
-var FIP_CONSTANT=5.49; // WSCC 2026 NJCAA-calibrated
+var FIP_CONSTANT=5.49; // NJCAA D1 2026 league-calibrated
 
 var PITCH_COLORS={
   'Fastball':'#e63946','Four-Seam':'#e63946','FourSeamFastBall':'#e63946',
@@ -328,7 +334,7 @@ function computePitcherProfile(name, rows){
   rows.forEach(function(r){
     var call=(r.PitchCall||'').trim();
     var pt=normPitch(r.TaggedPitchType,r.AutoPitchType);
-    if(!pitchTypes[pt])pitchTypes[pt]={total:0,swings:0,whiffs:0,chases:0,ozPitches:0,ev:[],velos:[],contacts:0};
+    if(!pitchTypes[pt])pitchTypes[pt]={total:0,swings:0,whiffs:0,calledStrikes:0,chases:0,ozPitches:0,inZone:0,strikes:0,ev:[],velos:[],contacts:0,ivb:[],hb:[],spin:[],vaa:[],relh:[],ext:[]};
     pitchTypes[pt].total++;
 
     // Pitch velo
@@ -344,11 +350,24 @@ function computePitcherProfile(name, rows){
 
     if(isSwing){swings++;pitchTypes[pt].swings++;}
     if(isWhiff){whiffs++;pitchTypes[pt].whiffs++;}
-    if(call==='StrikeCalled')calledStrikes++;
-    if(isStrike)totalStrikes++;
-    if(inside){inZone++;if(isSwing)inZoneSwings++;}
+    if(call==='StrikeCalled'){calledStrikes++;pitchTypes[pt].calledStrikes++;}
+    if(isStrike){totalStrikes++;pitchTypes[pt].strikes++;}
+    if(inside){inZone++;pitchTypes[pt].inZone++;if(isSwing)inZoneSwings++;}
     if(outside){ozPitches++;pitchTypes[pt].ozPitches++;if(isSwing){ozSwings++;pitchTypes[pt].chases++;}}
 
+    // Movement & physical metrics (TrackMan in inches)
+    var ivb=parseFloat(r.InducedVertBreak||'NaN');
+    var hb=parseFloat(r.HorzBreak||'NaN');
+    var spin=parseFloat(r.SpinRate||'NaN');
+    var vaa=parseFloat(r.VertApprAngle||'NaN');
+    var relh=parseFloat(r.RelHeight||'NaN');
+    var ext=parseFloat(r.Extension||'NaN');
+    if(!isNaN(ivb))pitchTypes[pt].ivb.push(ivb);
+    if(!isNaN(hb))pitchTypes[pt].hb.push(hb);
+    if(!isNaN(spin)&&spin>0)pitchTypes[pt].spin.push(spin);
+    if(!isNaN(vaa))pitchTypes[pt].vaa.push(vaa);
+    if(!isNaN(relh)&&relh>0)pitchTypes[pt].relh.push(relh);
+    if(!isNaN(ext)&&ext>0)pitchTypes[pt].ext.push(ext);
     if(parseInt(r.PitchofPA)===1)tbf++;
     if(r.KorBB==='Strikeout')ks++;
     if(r.KorBB==='Walk')bbs++;
@@ -557,29 +576,46 @@ function buildPitchTable(p){
   var tbody=document.getElementById('pitchTableBody');if(!tbody)return;
   tbody.innerHTML='';
   var totalPitches=p.totalPitches;
+
+  function avg(arr){return arr.length>0?arr.reduce(function(a,b){return a+b;},0)/arr.length:null;}
+  function maxArr(arr){return arr.length>0?Math.max.apply(null,arr):null;}
+  function fmt1(v){return v!==null&&!isNaN(v)?v.toFixed(1):'--';}
+  function fmt0(v){return v!==null&&!isNaN(v)?Math.round(v)+'':'--';}
+
   Object.entries(p.pitchTypes)
     .filter(function(e){return e[1].total>=3;})
     .sort(function(a,b){return b[1].total-a[1].total;})
     .forEach(function(e){
       var pt=e[0],d=e[1];
       var usagePct=totalPitches>0?(d.total/totalPitches*100).toFixed(1)+'%':'--';
-      var sw=d.total>0?d.swings/d.total:0;
-      var wh=d.swings>0?d.whiffs/d.swings:0;
-      var swstr=d.total>0?d.whiffs/d.total:0;
-      var ch=d.ozPitches>0?d.chases/d.ozPitches:0;
-      var hard=d.ev.length>0?d.ev.filter(function(v){return v>=95;}).length/d.ev.length:0;
-      // Avg velo for this pitch
-      var avgVelo=d.velos.length>0?(d.velos.reduce(function(a,b){return a+b;},0)/d.velos.length).toFixed(1):'--';
+      var avgVelo=fmt1(avg(d.velos));
+      var maxVelo=fmt1(maxArr(d.velos));
+      var ivb=fmt1(avg(d.ivb));
+      var hb=fmt1(avg(d.hb));
+      var spin=fmt0(avg(d.spin));
+      var vaa=fmt1(avg(d.vaa));
+      var relh=fmt1(avg(d.relh));
+      var ext=fmt1(avg(d.ext));
+      var zonePct=d.total>0?pct(d.inZone/d.total):'--';
+      var swstrPct=d.total>0?pct(d.whiffs/d.total):'--';
+      var chasePct=d.ozPitches>0?pct(d.chases/d.ozPitches):'--';
+      var strPct=d.total>0?pct(d.strikes/d.total):'--';
       var color=pitchColor(pt);
       tbody.innerHTML+='<tr>'+
         '<td style="display:flex;align-items:center;gap:4px"><div class="pitch-dot" style="background:'+color+'"></div>'+escH(pt)+'</td>'+
         '<td>'+usagePct+'</td>'+
         '<td>'+avgVelo+'</td>'+
-        '<td>'+pct(sw)+'</td>'+
-        '<td>'+pct(wh)+'</td>'+
-        '<td>'+pct(swstr)+'</td>'+
-        '<td>'+(ch>0?pct(ch):'--')+'</td>'+
-        '<td>'+pct(hard)+'</td>'+
+        '<td>'+maxVelo+'</td>'+
+        '<td>'+ivb+'"</td>'+
+        '<td>'+hb+'"</td>'+
+        '<td>'+spin+'</td>'+
+        '<td>'+vaa+'°</td>'+
+        '<td>'+relh+'"</td>'+
+        '<td>'+ext+'"</td>'+
+        '<td>'+zonePct+'</td>'+
+        '<td>'+swstrPct+'</td>'+
+        '<td>'+chasePct+'</td>'+
+        '<td>'+strPct+'</td>'+
         '</tr>';
     });
 }
