@@ -189,12 +189,12 @@ canvas{display:block;border-radius:4px}
     <div class="stat-section">
       <span class="stat-section-label">Stuff &middot; TrackMan</span>
       <div class="stat-row">
-        <div class="stat-box"><span class="stat-val hi" id="tBestVelo">&#8212;</span><span class="stat-lbl">Best Velo</span></div>
-        <div class="stat-box"><span class="stat-val" id="tMaxVelo">&#8212;</span><span class="stat-lbl">Max Velo</span></div>
+        <div class="stat-box"><span class="stat-val hi" id="tMaxVelo">&#8212;</span><span class="stat-lbl">Max Velo</span></div>
         <div class="stat-box"><span class="stat-val" id="tCSW">&#8212;</span><span class="stat-lbl">CSW%</span></div>
         <div class="stat-box"><span class="stat-val" id="tSwStr">&#8212;</span><span class="stat-lbl">SwStr%</span></div>
         <div class="stat-box"><span class="stat-val" id="tChase">&#8212;</span><span class="stat-lbl">Chase%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tZone">&#8212;</span><span class="stat-lbl">Zone%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tPutAway">&#8212;</span><span class="stat-lbl">Put Away%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tFPS">&#8212;</span><span class="stat-lbl">FPS%</span></div>
       </div>
     </div>
 
@@ -330,6 +330,7 @@ function computePitcherProfile(name, rows){
   var tbf=0,ks=0,bbs=0,hrs=0,hbps=0;
   var swings=0,whiffs=0,calledStrikes=0,inZone=0,inZoneSwings=0,ozPitches=0,ozSwings=0,totalStrikes=0;
   var bipCount=0,gbCount=0,fbCount=0,hardCount=0,solidCount=0,evCount=0,evSum=0,maxEV=0;
+  var putAwayOpps=0,putAways=0,fpsStrikes=0;
   var pitchTypes={};
   var wobaNum=0,wobaDen=0;
 
@@ -370,11 +371,18 @@ function computePitcherProfile(name, rows){
     if(!isNaN(vaa))pitchTypes[pt].vaa.push(vaa);
     if(!isNaN(relh)&&relh>0)pitchTypes[pt].relh.push(relh);
     if(!isNaN(ext)&&ext>0)pitchTypes[pt].ext.push(ext);
-    if(parseInt(r.PitchofPA)===1)tbf++;
+    if(parseInt(r.PitchofPA)===1){tbf++;if(isStrike)fpsStrikes++;}
     if(r.KorBB==='Strikeout')ks++;
     if(r.KorBB==='Walk')bbs++;
     if(r.PlayResult==='HomeRun'||r.PlayResult==='Home Run')hrs++;
     if(r.PitchCall==='HitByPitch')hbps++;
+
+    // Put Away%: K when count is 0-2 or 1-2 (two-strike counts)
+    var balls=parseInt(r.Balls||0)||0,strikes=parseInt(r.Strikes||0)||0;
+    if(strikes===2){
+      putAwayOpps++;
+      if(r.KorBB==='Strikeout')putAways++;
+    }
 
     var ev=parseFloat(r.ExitSpeed);
     var la=parseFloat(r.Angle||r.LaunchAngle||r.VertAngle||'NaN');
@@ -444,7 +452,8 @@ function computePitcherProfile(name, rows){
     fbPct:bipCount>0?fbCount/bipCount:0,
     maxEV:maxEV,avgEV:evCount>0?evSum/evCount:0,
     bestVelo:bestVelo,maxVelo:maxVelo,
-    fip:fip,era:era,ipDisplay:ipDisplay,
+    putAwayPct:putAwayOpps>0?putAways/putAwayOpps:0,
+    fpsPct:tbf>0?fpsStrikes/tbf:0,
     totalPitches:rows.length,
     pitchTypes:pitchTypes,rows:rows
   };
@@ -645,12 +654,12 @@ function buildCard(){
   document.getElementById('sFIP').textContent=p.fip!==null?p.fip.toFixed(2):'--';
 
   // Stuff
-  document.getElementById('tBestVelo').textContent=p.bestVelo>0?p.bestVelo.toFixed(1):'--';
   document.getElementById('tMaxVelo').textContent=p.maxVelo>0?p.maxVelo.toFixed(1):'--';
   document.getElementById('tCSW').textContent=pct(p.cswPct);
   document.getElementById('tSwStr').textContent=pct(p.swstrPct);
   document.getElementById('tChase').textContent=pct(p.chasePct);
-  document.getElementById('tZone').textContent=pct(p.zonePct);
+  document.getElementById('tPutAway').textContent=pct(p.putAwayPct);
+  document.getElementById('tFPS').textContent=pct(p.fpsPct);
 
   // Contact quality
   var hardEl=document.getElementById('tHard');
