@@ -146,7 +146,7 @@ canvas{display:block;border-radius:4px}
           <th onclick="sortTable('solidPct')">Solid%</th>
           <th onclick="sortTable('gbPct')">GB%</th>
           <th onclick="sortTable('fip')">FIP</th>
-          <th onclick="sortTable('bestVelo')">Best Velo</th>
+          <th onclick="sortTable('maxVelo')">Velo</th>
         </tr></thead>
         <tbody id="tableBody"></tbody>
       </table>
@@ -454,6 +454,7 @@ function computePitcherProfile(name, rows){
     bestVelo:bestVelo,maxVelo:maxVelo,
     putAwayPct:putAwayOpps>0?putAways/putAwayOpps:0,
     fpsPct:tbf>0?fpsStrikes/tbf:0,
+    fip:fip,era:era,ipDisplay:ipDisplay,
     totalPitches:rows.length,
     pitchTypes:pitchTypes,rows:rows
   };
@@ -811,7 +812,7 @@ function renderTable(){
       '<td class="'+(p.solidPct>=.25?'val-warn':'')+'">'+pct(p.solidPct)+'</td>'+
       '<td class="'+(p.gbPct>=.50?'val-good':'')+'">'+pct(p.gbPct)+'</td>'+
       '<td class="'+(p.fip!==null&&p.fip<=4.50?'val-good':p.fip!==null&&p.fip>=6.00?'val-warn':'val-hi')+'">'+(p.fip!==null?p.fip.toFixed(2):'--')+'</td>'+
-      '<td class="val-hi">'+(p.bestVelo>0?p.bestVelo.toFixed(1):'--')+'</td>';
+      '<td class="val-hi">'+(p.maxVelo>0?p.maxVelo.toFixed(1):'--')+'</td>';
     tbody.appendChild(tr);
   });
 }
