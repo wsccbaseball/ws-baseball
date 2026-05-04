@@ -139,7 +139,6 @@ canvas{display:block;border-radius:4px}
           <th onclick="sortTable('wobaAgainst')">wOBA</th>
           <th onclick="sortTable('kPct')">K%</th>
           <th onclick="sortTable('bbPct')">BB%</th>
-          <th onclick="sortTable('kBBPct')">K-BB%</th>
           <th onclick="sortTable('cswPct')">CSW%</th>
           <th onclick="sortTable('swstrPct')">SwStr%</th>
           <th onclick="sortTable('chasePct')">Chase%</th>
@@ -148,6 +147,7 @@ canvas{display:block;border-radius:4px}
           <th onclick="sortTable('gbPct')">GB%</th>
           <th onclick="sortTable('fip')">FIP</th>
           <th onclick="sortTable('maxVelo')">Velo</th>
+          <th onclick="sortTable('avgWegs')">Avg GS</th>
         </tr></thead>
         <tbody id="tableBody"></tbody>
       </table>
@@ -181,9 +181,9 @@ canvas{display:block;border-radius:4px}
     <div class="stat-box"><span class="stat-val hi" id="sWOBA">&#8212;</span><span class="stat-lbl">wOBA</span></div>
     <div class="stat-box"><span class="stat-val" id="sKPct">&#8212;</span><span class="stat-lbl">K%</span></div>
     <div class="stat-box"><span class="stat-val" id="sBBPct">&#8212;</span><span class="stat-lbl">BB%</span></div>
-    <div class="stat-box"><span class="stat-val" id="sKBB">&#8212;</span><span class="stat-lbl">K-BB%</span></div>
     <div class="stat-box"><span class="stat-val hi" id="sERA">&#8212;</span><span class="stat-lbl">ERA</span></div>
     <div class="stat-box"><span class="stat-val hi" id="sFIP">&#8212;</span><span class="stat-lbl">FIP</span></div>
+    <div class="stat-box"><span class="stat-val hi" id="sGS">&#8212;</span><span class="stat-lbl">Avg GS</span></div>
   </div>
 </div>
 
@@ -425,17 +425,22 @@ function computePitcherProfile(name, rows){
 
   // FIP from box score IP
   var bs=seasonPitching[lastName.toLowerCase()]||seasonPitching[lastName]||null;
-  var fip=null,era=null,ipDisplay='--';
+  var fip=null,era=null,ipDisplay='--',avgWegs=null;
   if(bs&&bs.ip){
     var ipRaw=String(bs.ip).trim();
     var ipParts=ipRaw.split('.');
     var ipDec=(parseInt(ipParts[0])||0)+(parseInt(ipParts[1]||0)/3);
+    var ipOuts=(parseInt(ipParts[0])||0)*3+(parseInt(ipParts[1]||0));
     ipDisplay=ipRaw;
-    var bsHR=parseInt(bs.hr)||0,bsBB=parseInt(bs.bb)||0,bsHBP=parseInt(bs.hbp)||0,bsK=parseInt(bs.so)||0,bsER=parseInt(bs.er)||0;
+    var bsHR=parseInt(bs.hr)||0,bsBBval=parseInt(bs.bb)||0,bsHBP=parseInt(bs.hbp)||0,bsK=parseInt(bs.so)||0,bsER=parseInt(bs.er)||0;
+    var bsH=parseInt(bs.h)||0,bsAPP=parseInt(bs.app)||1;
     if(ipDec>0){
-      fip=((13*bsHR+3*(bsBB+bsHBP)-2*bsK)/ipDec)+FIP_CONSTANT;
+      fip=((13*bsHR+3*(bsBBval+bsHBP)-2*bsK)/ipDec)+FIP_CONSTANT;
       era=(bsER*9)/ipDec;
     }
+    // WEGS = 52×APP + 2×Outs + K - 2×BB - 2×H - 3×ER - 6×HR + 0.5×Whiffs
+    var wegsTotal=52*bsAPP+2*ipOuts+bsK-2*bsBBval-2*bsH-3*bsER-6*bsHR+0.5*whiffs;
+    avgWegs=wegsTotal/bsAPP;
   }
 
   return{
@@ -458,7 +463,7 @@ function computePitcherProfile(name, rows){
     bestVelo:bestVelo,maxVelo:maxVelo,
     putAwayPct:putAwayOpps>0?putAways/putAwayOpps:0,
     fpsPct:tbf>0?fpsStrikes/tbf:0,
-    fip:fip,era:era,ipDisplay:ipDisplay,
+    fip:fip,era:era,ipDisplay:ipDisplay,avgWegs:avgWegs,
     totalPitches:rows.length,
     pitchTypes:pitchTypes,rows:rows
   };
@@ -654,9 +659,9 @@ function buildCard(){
   document.getElementById('sWOBA').textContent=fmt3(p.wobaAgainst);
   document.getElementById('sKPct').textContent=pct(p.kPct);
   document.getElementById('sBBPct').textContent=pct(p.bbPct);
-  document.getElementById('sKBB').textContent=(p.kBBPct*100).toFixed(1)+'%';
   document.getElementById('sERA').textContent=p.era!==null?p.era.toFixed(2):'--';
   document.getElementById('sFIP').textContent=p.fip!==null?p.fip.toFixed(2):'--';
+  document.getElementById('sGS').textContent=p.avgWegs!==null?p.avgWegs.toFixed(1):'--';
 
   // Stuff
   document.getElementById('tMaxVelo').textContent=p.maxVelo>0?p.maxVelo.toFixed(1):'--';
@@ -831,7 +836,6 @@ function renderTable(){
       '<td class="val-hi">'+fmt3(p.wobaAgainst)+'</td>'+
       '<td class="'+(p.kPct>=.25?'val-good':'')+'">'+pct(p.kPct)+'</td>'+
       '<td class="'+(p.bbPct>=.12?'val-warn':'')+'">'+pct(p.bbPct)+'</td>'+
-      '<td class="'+(p.kBBPct>=.15?'val-good':p.kBBPct<0?'val-warn':'')+'">'+pct(p.kBBPct)+'</td>'+
       '<td class="'+(p.cswPct>=.28?'val-good':'')+'">'+pct(p.cswPct)+'</td>'+
       '<td class="'+(p.swstrPct>=.12?'val-good':'')+'">'+pct(p.swstrPct)+'</td>'+
       '<td class="'+(p.chasePct>=.30?'val-good':'')+'">'+pct(p.chasePct)+'</td>'+
@@ -839,7 +843,8 @@ function renderTable(){
       '<td class="'+(p.solidPct>=.25?'val-warn':'')+'">'+pct(p.solidPct)+'</td>'+
       '<td class="'+(p.gbPct>=.50?'val-good':'')+'">'+pct(p.gbPct)+'</td>'+
       '<td class="'+(p.fip!==null&&p.fip<=4.50?'val-good':p.fip!==null&&p.fip>=6.00?'val-warn':'val-hi')+'">'+(p.fip!==null?p.fip.toFixed(2):'--')+'</td>'+
-      '<td class="val-hi">'+(p.maxVelo>0?p.maxVelo.toFixed(1):'--')+'</td>';
+      '<td class="val-hi">'+(p.maxVelo>0?p.maxVelo.toFixed(1):'--')+'</td>'+
+      '<td class="'+(p.avgWegs!==null&&p.avgWegs>=50?'val-good':p.avgWegs!==null&&p.avgWegs<40?'val-warn':'val-hi')+'">'+(p.avgWegs!==null?p.avgWegs.toFixed(1):'--')+'</td>';
     tbody.appendChild(tr);
   });
 }
