@@ -520,7 +520,7 @@ function drawZoneGrid(canvasId,rows,valueFn,minVal,maxVal,label,xMin,xMax,yMin,y
   var gridW=W-PAD_L-PAD_R,gridH=H-PAD_T-PAD_B;
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);
-  var kdeResult=buildKDEGrid(rows,valueFn,0.10,xMin,xMax,yMin,yMax,densityMode);
+  var kdeResult=buildKDEGrid(rows,valueFn,densityMode?0.14:0.10,xMin,xMax,yMin,yMax,densityMode);
   var grid=kdeResult.grid;
   var GW=kdeResult.gw,GH=kdeResult.gh;
   var X_MIN=kdeResult.xMin,X_MAX=kdeResult.xMax,Y_MIN=kdeResult.yMin,Y_MAX=kdeResult.yMax;
