@@ -241,8 +241,8 @@ canvas{display:block;border-radius:4px}
         <thead><tr>
           <th style="text-align:left">Pitch</th>
           <th>Usage</th>
-          <th>Avg Velo</th>
-          <th>Max Velo</th>
+          <th>Velo</th>
+          <th>Max</th>
           <th>iVB</th>
           <th>HB</th>
           <th>Spin</th>
@@ -253,6 +253,7 @@ canvas{display:block;border-radius:4px}
           <th>SwStr%</th>
           <th>Chase%</th>
           <th>Str%</th>
+          <th>Hard%</th>
         </tr></thead>
         <tbody id="pitchTableBody"></tbody>
       </table>
@@ -307,6 +308,8 @@ var WOBA_WEIGHTS={'Single':0.88,'Double':1.24,'Triple':1.56,'HomeRun':2.08,'Home
 
 function normPitch(t,a){var raw=(!t||t==='Undefined')?a:t;return PITCH_NORM[raw]||raw||'Other';}
 function pitchColor(t){return PITCH_COLORS[normPitch(t)]||PITCH_COLORS[t]||'#888888';}
+var PITCH_ABBREV={'Fastball':'FB','Sinker':'SI','Curveball':'CB','Slider':'SL','Cutter':'CT','ChangeUp':'CH','Splitter':'SP','Knuckleball':'KN','Other':'OT'};
+function pitchAbbrev(t){return PITCH_ABBREV[t]||t.slice(0,3).toUpperCase();}
 
 async function supaFetch(path){
   var rows=[],from=0;
@@ -600,22 +603,25 @@ function buildPitchTable(p){
       var swstrPct=d.total>0?pct(d.whiffs/d.total):'--';
       var chasePct=d.ozPitches>0?pct(d.chases/d.ozPitches):'--';
       var strPct=d.total>0?pct(d.strikes/d.total):'--';
+      var hard=d.ev.length>0?pct(d.ev.filter(function(v){return v>=95;}).length/d.ev.length):'--';
       var color=pitchColor(pt);
+      var abbrev=pitchAbbrev(pt);
       tbody.innerHTML+='<tr>'+
-        '<td style="display:flex;align-items:center;gap:4px"><div class="pitch-dot" style="background:'+color+'"></div>'+escH(pt)+'</td>'+
+        '<td style="display:flex;align-items:center;gap:4px"><div class="pitch-dot" style="background:'+color+'"></div>'+escH(abbrev)+'</td>'+
         '<td>'+usagePct+'</td>'+
         '<td>'+avgVelo+'</td>'+
         '<td>'+maxVelo+'</td>'+
-        '<td>'+ivb+'"</td>'+
-        '<td>'+hb+'"</td>'+
+        '<td>'+ivb+'</td>'+
+        '<td>'+hb+'</td>'+
         '<td>'+spin+'</td>'+
-        '<td>'+vaa+'°</td>'+
-        '<td>'+relh+'"</td>'+
-        '<td>'+ext+'"</td>'+
+        '<td>'+vaa+'</td>'+
+        '<td>'+relh+'</td>'+
+        '<td>'+ext+'</td>'+
         '<td>'+zonePct+'</td>'+
         '<td>'+swstrPct+'</td>'+
         '<td>'+chasePct+'</td>'+
         '<td>'+strPct+'</td>'+
+        '<td>'+hard+'</td>'+
         '</tr>';
     });
 }
