@@ -173,7 +173,7 @@ canvas{display:block;border-radius:4px}
     <div class="stat-section"><span class="stat-section-label">Season Stats</span><div class="stat-row"><div class="stat-box"><span class="stat-val hi" id="sAVG">&#8212;</span><span class="stat-lbl">PA</span></div><div class="stat-box"><span class="stat-val" id="sOBP">&#8212;</span><span class="stat-lbl">wOBA</span></div><div class="stat-box"><span class="stat-val" id="sSLG">&#8212;</span><span class="stat-lbl">ISO</span></div><div class="stat-box"><span class="stat-val hi" id="sWOBA">&#8212;</span><span class="stat-lbl">AVG</span></div><div class="stat-box"><span class="stat-val" id="sHR">&#8212;</span><span class="stat-lbl">HR</span></div><div class="stat-box"><span class="stat-val" id="sRBI">&#8212;</span><span class="stat-lbl">XBH</span></div><div class="stat-box"><span class="stat-val" id="sSB">&#8212;</span><span class="stat-lbl">K-BB%</span></div></div></div>
     <div class="stat-section"><span class="stat-section-label">Contact Quality &middot; TrackMan</span><div class="stat-row"><div class="stat-box"><span class="stat-val" id="tHard">&#8212;</span><span class="stat-lbl">Hard%</span></div><div class="stat-box"><span class="stat-val" id="tBarrel">&#8212;</span><span class="stat-lbl">Solid%</span></div><div class="stat-box"><span class="stat-val hi" id="tBestSpeed">&#8212;</span><span class="stat-lbl">Best Speed</span></div><div class="stat-box"><span class="stat-val" id="tMaxEV">&#8212;</span><span class="stat-lbl">Max EV</span></div><div class="stat-box"><span class="stat-val" id="tGB">&#8212;</span><span class="stat-lbl">GB%</span></div><div class="stat-box"><span class="stat-val" id="tFB">&#8212;</span><span class="stat-lbl">FB%</span></div></div></div>
     <div class="stat-section"><span class="stat-section-label">Plate Discipline &middot; TrackMan</span><div class="stat-row"><div class="stat-box"><span class="stat-val" id="tSwing">&#8212;</span><span class="stat-lbl">Swing%</span></div><div class="stat-box"><span class="stat-val" id="tChase">&#8212;</span><span class="stat-lbl">Chase%</span></div><div class="stat-box"><span class="stat-val" id="tZSwing">&#8212;</span><span class="stat-lbl">Z-Swing%</span></div><div class="stat-box"><span class="stat-val" id="tWhiff">&#8212;</span><span class="stat-lbl">Whiff%</span></div><div class="stat-box"><span class="stat-val hi" id="tSGR">&#8212;</span><span class="stat-lbl">SGR</span></div></div></div>
-    <div class="hmap-section"><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">wOBA</div><canvas id="zmapWoba" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Hard%</div><canvas id="zmapHard" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">ISO</div><canvas id="zmapIso" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Whiff Zones</div><canvas id="zmapWhiff" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div></div><div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View &middot; looking toward the pitcher</div></div>
+    <div class="hmap-section"><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">wOBA</div><canvas id="zmapWoba" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">FB Whiff</div><canvas id="zmapHard" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px" id="zmapBreakLabel">Breaking Ball Whiff</div><canvas id="zmapIso" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">SwStr Zones</div><canvas id="zmapWhiff" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div></div><div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View &middot; looking toward the pitcher</div></div>
     <div class="pitch-section"><span class="stat-section-label" style="display:block;margin-bottom:4px">Pitch Mix</span><table class="pitch-table"><thead><tr><th style="text-align:left">Pitch</th><th>Usage</th><th>Swing%</th><th>Whiff%</th><th>SwStr%</th><th>Chase%</th><th>Hard%</th><th>Best Speed</th></tr></thead><tbody id="pitchTableBody"></tbody></table></div>
     <div class="card-footer"><div>&#9918; Walters State CC &middot; 2026</div><div>Data: TrackMan</div><div id="footR">wsccbaseball.github.io</div></div>
     <button class="save-btn" onclick="saveCard()">&#128229; SAVE CARD IMAGE</button>
@@ -422,7 +422,7 @@ function drawZoneGrid(canvasId,rows,valueFn,minVal,maxVal,label,xMin,xMax,yMin,y
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);
 
-  var kdeResult=buildKDEGrid(rows,valueFn,0.10,xMin,xMax,yMin,yMax,densityMode);
+  var kdeResult=buildKDEGrid(rows,valueFn,densityMode?0.14:0.10,xMin,xMax,yMin,yMax,densityMode);
   var grid=kdeResult.grid;
   var GW=kdeResult.gw,GH=kdeResult.gh;
   // *** FIX: declare X_MIN/X_MAX/Y_MIN/Y_MAX HERE, before any loop that uses them ***
@@ -562,10 +562,32 @@ function buildCard(){
   document.getElementById('tWhiff').textContent=pct(p.whiffPct);
   document.getElementById('tSGR').textContent=(p.seagerScore||0).toFixed(2);
   setTimeout(function(){
+    // wOBA
     drawZoneGrid('zmapWoba',p.rows,wobaVal,0,1,'wOBA');
-    drawZoneGrid('zmapHard',p.rows,hardVal,0,1,'Hard%');
-    drawZoneGrid('zmapIso',p.rows,isoVal,0,1,'ISO');
-    drawZoneGrid('zmapWhiff',p.rows,whiffVal,0,1,'Whiff Zones',null,null,null,null,true);
+
+    // FB whiff only
+    var fbRows=p.rows.filter(function(r){return normPitch(r.TaggedPitchType||r.AutoPitchType)==='Fastball';});
+    drawZoneGrid('zmapHard',fbRows,function(r){return r.PitchCall==='StrikeSwinging'?1:null;},0,1,'FB Whiff',null,null,null,null,true);
+
+    // Primary breaking ball whiff by usage
+    var breakTypes=['Curveball','Slider','Cutter'];
+    var primaryBreak=null,primaryCount=0;
+    breakTypes.forEach(function(bt){
+      var cnt=(p.pitchTypes[bt]&&p.pitchTypes[bt].total)||0;
+      if(cnt>primaryCount){primaryCount=cnt;primaryBreak=bt;}
+    });
+    if(primaryBreak&&primaryCount>=3){
+      var breakRows=p.rows.filter(function(r){return normPitch(r.TaggedPitchType||r.AutoPitchType)===primaryBreak;});
+      var lbl=document.getElementById('zmapBreakLabel');
+      if(lbl)lbl.textContent=primaryBreak+' Whiff';
+      drawZoneGrid('zmapIso',breakRows,function(r){return r.PitchCall==='StrikeSwinging'?1:null;},0,1,primaryBreak+' Whiff',null,null,null,null,true);
+    } else {
+      var ctx2=document.getElementById('zmapIso').getContext('2d');
+      ctx2.clearRect(0,0,400,320);ctx2.fillStyle='#dce8f5';ctx2.fillRect(0,0,400,320);
+    }
+
+    // SwStr all pitches
+    drawZoneGrid('zmapWhiff',p.rows,function(r){return r.PitchCall==='StrikeSwinging'?1:null;},0,1,'SwStr',null,null,null,null,true);
     buildPitchTable(p);
   },30);
   document.getElementById('main-screen').style.display='none';
