@@ -210,7 +210,7 @@ canvas{display:block;border-radius:4px}
     <div class="stat-box"><span class="stat-val" id="tGB2">&#8212;</span><span class="stat-lbl">GB%</span></div>
     <div class="stat-box"><span class="stat-val" id="tFB">&#8212;</span><span class="stat-lbl">FB%</span></div>
     <div class="stat-box"><span class="stat-val" id="tMaxEV">&#8212;</span><span class="stat-lbl">Max EV</span></div>
-    <div class="stat-box"><span class="stat-val" id="tAvgEV">&#8212;</span><span class="stat-lbl">Avg EV</span></div>
+    <div class="stat-box"><span class="stat-val" id="tAvgEV">&#8212;</span><span class="stat-lbl">Best Speed</span></div>
   </div>
 </div>
 
@@ -680,7 +680,7 @@ function buildCard(){
   document.getElementById('tGB2').textContent=pct(p.gbPct);
   document.getElementById('tFB').textContent=pct(p.fbPct);
   document.getElementById('tMaxEV').textContent=p.maxEV>0?p.maxEV.toFixed(1):'--';
-  document.getElementById('tAvgEV').textContent=p.avgEV>0?p.avgEV.toFixed(1):'--';
+  document.getElementById('tAvgEV').textContent=p.bestVelo>0?p.bestVelo.toFixed(1):'--';
 
   setTimeout(function(){
     // Fastball location
