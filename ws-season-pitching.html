@@ -50,7 +50,7 @@ table.stats-tbl tr:hover td{background:#f4efe4;cursor:pointer}
 table.stats-tbl tr:hover td:first-child{background:#f4efe4}
 table.stats-tbl tr.selected td{background:#e8f0fb!important}
 table.stats-tbl tr.selected td:first-child{background:#e8f0fb!important}
-.val-hi{color:#1a3a5c;font-weight:800}
+.val-hi{color:#1a3a5c;font-weight:400}
 .val-good{color:#2a7a3a}
 .val-warn{color:#b05000}
 .no-data{text-align:center;padding:40px;color:#9b8c74;font-family:'Barlow',sans-serif;font-size:.9rem}
@@ -139,6 +139,7 @@ canvas{display:block;border-radius:4px}
           <th onclick="sortTable('wobaAgainst')">wOBA</th>
           <th onclick="sortTable('kPct')">K%</th>
           <th onclick="sortTable('bbPct')">BB%</th>
+          <th onclick="sortTable('kBBPct')">K-BB%</th>
           <th onclick="sortTable('cswPct')">CSW%</th>
           <th onclick="sortTable('swstrPct')">SwStr%</th>
           <th onclick="sortTable('chasePct')">Chase%</th>
@@ -836,6 +837,7 @@ function renderTable(){
       '<td class="val-hi">'+fmt3(p.wobaAgainst)+'</td>'+
       '<td class="'+(p.kPct>=.25?'val-good':'')+'">'+pct(p.kPct)+'</td>'+
       '<td class="'+(p.bbPct>=.12?'val-warn':'')+'">'+pct(p.bbPct)+'</td>'+
+      '<td class="'+(p.kBBPct>=.15?'val-good':p.kBBPct<0?'val-warn':'')+'">'+pct(p.kBBPct)+'</td>'+
       '<td class="'+(p.cswPct>=.28?'val-good':'')+'">'+pct(p.cswPct)+'</td>'+
       '<td class="'+(p.swstrPct>=.12?'val-good':'')+'">'+pct(p.swstrPct)+'</td>'+
       '<td class="'+(p.chasePct>=.30?'val-good':'')+'">'+pct(p.chasePct)+'</td>'+
