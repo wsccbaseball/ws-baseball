@@ -635,7 +635,10 @@ function drawVeloByInning(rows) {
     inningMap[inn].push(parseFloat(r.RelSpeed));
   });
 
-  var inningNums = Object.keys(inningMap).map(Number).sort(function(a,b){return a-b;});
+  // Require at least 3 pitches per inning to count, and 2+ qualifying innings
+  var inningNums = Object.keys(inningMap).map(Number).filter(function(n){
+    return n > 0 && inningMap[n].length >= 3;
+  }).sort(function(a,b){return a-b;});
   if (inningNums.length < 2) { wrap.style.display = 'none'; return; }
 
   var avgByInning = inningNums.map(function(inn) {
