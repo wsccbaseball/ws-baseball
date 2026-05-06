@@ -649,6 +649,9 @@ function drawVeloByInning(rows) {
   var peakVelo = Math.max.apply(null, avgByInning);
   var gameAvg  = avgByInning.reduce(function(s,v){return s+v;},0) / avgByInning.length;
 
+  // Must be visible before measuring dimensions
+  wrap.style.display = 'block';
+
   var dpr = window.devicePixelRatio || 1;
   var displayW = cv.parentElement.clientWidth - 16;
   var displayH = Math.round(displayW * 0.26);
@@ -720,8 +723,6 @@ function drawVeloByInning(rows) {
   ctx.font=Math.max(6,W*0.019)+'px Barlow,sans-serif';
   ctx.fillStyle='#b0bac8'; ctx.textAlign='left';
   ctx.fillText('INN', PL, H-3);
-
-  wrap.style.display = 'block';
 }
 
 // ── Pitch Arsenal Table ──────────────────────────────────────────────────────
