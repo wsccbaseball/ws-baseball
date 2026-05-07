@@ -152,7 +152,7 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
   </div>
   <div class="legend" id="cardLegend"></div>
 
-  <!-- Velo by Inning — only shown for starters (2+ innings) -->
+  <!-- Velo by Inning — hidden until drawn -->
 
   <div class="velo-inning-wrap" id="veloInningWrap" style="display:none;">
     <div class="velo-inning-title">FB Velocity by Inning</div>
@@ -498,6 +498,9 @@ async function generate() {
       return '<div class="legend-item"><div class="legend-dot" style="background:'+TC[t]+'"></div>'+t+'</div>';
     }).join('');
 
+    // Reset velo chart before redraw
+    document.getElementById('veloInningWrap').style.display = 'none';
+
     buildPitchTable(pitchData, types);
     document.getElementById('card').style.display = 'block';
     document.getElementById('saveBtnWrap').style.display = 'block';
@@ -508,7 +511,7 @@ async function generate() {
       document.getElementById('cLHHn').textContent = drawLoc('cLHH','Left',pitchData)+' Pitches';
       document.getElementById('cRHHn').textContent = drawLoc('cRHH','Right',pitchData)+' Pitches';
       drawBrk('cBrk',pitchData);
-      drawVeloByInning('cVeloInning', pitchData);
+      drawVeloByInning(pitchData);
       document.getElementById('card').scrollIntoView({behavior:'smooth'});
     }, 80);
 
@@ -524,26 +527,28 @@ async function generate() {
 }
 
 // ── Velo by Inning ───────────────────────────────────────────────────────────
-function drawVeloByInning(id, data) {
+function drawVeloByInning(pitchData) {
   var wrap = document.getElementById('veloInningWrap');
-  var cv   = document.getElementById(id);
+  var cv   = document.getElementById('cVeloInning');
 
-  // Fastball + Sinker only
-  var fbData = data.filter(function(d) {
+  var fbData = pitchData.filter(function(d) {
     return (d.type === 'Fastball' || d.type === 'Sinker') && d.velo > 0 && d.inning > 0;
   });
 
-  // Group by inning
   var inningMap = {};
   fbData.forEach(function(d) {
     if (!inningMap[d.inning]) inningMap[d.inning] = [];
     inningMap[d.inning].push(d.velo);
   });
 
-  var inningNums = Object.keys(inningMap).map(Number).sort(function(a,b){return a-b;});
+  var inningNums = Object.keys(inningMap).map(Number).filter(function(n){
+    return n > 0 && inningMap[n].length >= 3;
+  }).sort(function(a,b){return a-b;});
 
-  // Need 2+ innings to be meaningful
   if (inningNums.length < 2) { wrap.style.display = 'none'; return; }
+
+  // Show before measuring so clientWidth is non-zero
+  wrap.style.display = 'block';
 
   var avgByInning = inningNums.map(function(inn) {
     var arr = inningMap[inn];
@@ -553,12 +558,11 @@ function drawVeloByInning(id, data) {
   var peakVelo = Math.max.apply(null, avgByInning);
   var gameAvg  = avgByInning.reduce(function(s,v){return s+v;},0) / avgByInning.length;
 
-  // Size canvas
-  var dpr      = window.devicePixelRatio || 1;
+  var dpr = window.devicePixelRatio || 1;
   var displayW = cv.parentElement.clientWidth - 16;
   var displayH = Math.round(displayW * 0.26);
-  cv.width     = displayW * dpr;
-  cv.height    = displayH * dpr;
+  cv.width  = displayW * dpr;
+  cv.height = displayH * dpr;
   cv.style.width  = displayW + 'px';
   cv.style.height = displayH + 'px';
   var ctx = cv.getContext('2d');
@@ -566,91 +570,68 @@ function drawVeloByInning(id, data) {
 
   var W = displayW, H = displayH;
   var PL = 30, PR = 10, PT = 16, PB = 18;
-  var cW = W - PL - PR;
-  var cH = H - PT - PB;
+  var cW = W - PL - PR, cH = H - PT - PB;
 
   var veloMin = Math.min.apply(null, avgByInning);
   var yMin = Math.floor(veloMin) - 2;
-  var yMax = Math.ceil(peakVelo)  + 1;
+  var yMax = Math.ceil(peakVelo) + 1;
   var yRange = yMax - yMin || 1;
 
-  function xp(i) {
-    return inningNums.length === 1 ? PL + cW/2 : PL + (i / (inningNums.length-1)) * cW;
-  }
-  function yp(v) { return PT + cH - ((v - yMin) / yRange * cH); }
+  function xp(i){ return inningNums.length===1 ? PL+cW/2 : PL+(i/(inningNums.length-1))*cW; }
+  function yp(v){ return PT + cH - ((v-yMin)/yRange*cH); }
 
-  // Background
   ctx.fillStyle = '#f8fafd';
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(0,0,W,H);
 
-  // Horizontal gridlines + y-axis labels
   var step = yRange <= 5 ? 1 : 2;
   for (var gv = Math.ceil(yMin); gv <= yMax; gv += step) {
     var gy = yp(gv);
-    ctx.strokeStyle = '#dde4ef'; ctx.lineWidth = 0.5;
-    ctx.beginPath(); ctx.moveTo(PL, gy); ctx.lineTo(W - PR, gy); ctx.stroke();
-    ctx.fillStyle = '#9aacbc';
-    ctx.font = Math.max(7, W * 0.021) + 'px Barlow Condensed,sans-serif';
-    ctx.textAlign = 'right';
-    ctx.fillText(gv, PL - 3, gy + 3);
+    ctx.strokeStyle='#dde4ef'; ctx.lineWidth=0.5;
+    ctx.beginPath(); ctx.moveTo(PL,gy); ctx.lineTo(W-PR,gy); ctx.stroke();
+    ctx.fillStyle='#9aacbc';
+    ctx.font=Math.max(7,W*0.021)+'px Barlow Condensed,sans-serif';
+    ctx.textAlign='right';
+    ctx.fillText(gv, PL-3, gy+3);
   }
 
-  // Game avg dashed reference line
-  ctx.strokeStyle = 'rgba(100,130,170,0.35)';
-  ctx.lineWidth = 1;
-  ctx.setLineDash([3,3]);
-  ctx.beginPath(); ctx.moveTo(PL, yp(gameAvg)); ctx.lineTo(W - PR, yp(gameAvg)); ctx.stroke();
+  ctx.strokeStyle='rgba(100,130,170,0.35)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(PL,yp(gameAvg)); ctx.lineTo(W-PR,yp(gameAvg)); ctx.stroke();
   ctx.setLineDash([]);
 
-  // Connecting line
-  ctx.strokeStyle = '#2d5a8e';
-  ctx.lineWidth = 1.8;
-  ctx.lineJoin = 'round';
+  ctx.strokeStyle='#2d5a8e'; ctx.lineWidth=1.8; ctx.lineJoin='round';
   ctx.beginPath();
-  avgByInning.forEach(function(v, i) {
-    i === 0 ? ctx.moveTo(xp(i), yp(v)) : ctx.lineTo(xp(i), yp(v));
-  });
+  avgByInning.forEach(function(v,i){ i===0?ctx.moveTo(xp(i),yp(v)):ctx.lineTo(xp(i),yp(v)); });
   ctx.stroke();
 
-  // Dots + labels
-  var dotR = Math.max(4, W * 0.012);
-  var fs   = Math.max(7.5, W * 0.026);
-  avgByInning.forEach(function(v, i) {
+  var dotR = Math.max(4, W*0.012);
+  var fs   = Math.max(7.5, W*0.026);
+  avgByInning.forEach(function(v,i){
     var drop = peakVelo - v;
-    var col  = drop <= 1.0 ? '#2a9d8f' : drop <= 2.5 ? '#f4a261' : '#e63946';
-    var cx   = xp(i), cy = yp(v);
+    var col  = drop<=1.0 ? '#2a9d8f' : drop<=2.5 ? '#f4a261' : '#e63946';
+    var cx=xp(i), cy=yp(v);
 
-    // Subtle shadow
-    ctx.beginPath(); ctx.arc(cx, cy, dotR + 1.5, 0, Math.PI*2);
-    ctx.fillStyle = 'rgba(0,0,0,0.07)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx,cy,dotR+1.5,0,Math.PI*2);
+    ctx.fillStyle='rgba(0,0,0,0.07)'; ctx.fill();
 
-    // Dot
-    ctx.beginPath(); ctx.arc(cx, cy, dotR, 0, Math.PI*2);
-    ctx.fillStyle = col; ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx,cy,dotR,0,Math.PI*2);
+    ctx.fillStyle=col; ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.7)'; ctx.lineWidth=1; ctx.stroke();
 
-    // Velo above dot
-    ctx.font = 'bold ' + fs + 'px Barlow Condensed,sans-serif';
-    ctx.fillStyle = '#1a1a2e';
-    ctx.textAlign = 'center';
-    ctx.fillText(v.toFixed(1), cx, cy - dotR - 2.5);
+    ctx.font='bold '+fs+'px Barlow Condensed,sans-serif';
+    ctx.fillStyle='#1a1a2e'; ctx.textAlign='center';
+    ctx.fillText(v.toFixed(1), cx, cy-dotR-2.5);
 
-    // Inning below axis
-    ctx.font = Math.max(7, W * 0.023) + 'px Barlow Condensed,sans-serif';
-    ctx.fillStyle = '#6b7fa0';
-    ctx.fillText(inningNums[i], cx, H - 3);
+    ctx.font=Math.max(7,W*0.023)+'px Barlow Condensed,sans-serif';
+    ctx.fillStyle='#6b7fa0';
+    ctx.fillText(inningNums[i], cx, H-3);
   });
 
-  // "INN" axis label
-  ctx.font = Math.max(6, W * 0.019) + 'px Barlow,sans-serif';
-  ctx.fillStyle = '#b0bac8';
-  ctx.textAlign = 'left';
-  ctx.fillText('INN', PL, H - 3);
-
-  wrap.style.display = 'block';
+  ctx.font=Math.max(6,W*0.019)+'px Barlow,sans-serif';
+  ctx.fillStyle='#b0bac8'; ctx.textAlign='left';
+  ctx.fillText('INN', PL, H-3);
 }
 
-// ── Pitch Arsenal Table (unchanged) ─────────────────────────────────────────
+// ── Pitch Arsenal Table ──────────────────────────────────────────────────────
 function buildPitchTable(data, types) {
   var tbody = document.getElementById('cardPitchRows');
   tbody.innerHTML = '';
@@ -707,7 +688,7 @@ function buildPitchTable(data, types) {
   tbody.appendChild(tr);
 }
 
-// ── Canvas helpers (unchanged) ───────────────────────────────────────────────
+// ── Canvas helpers ───────────────────────────────────────────────────────────
 function setupCanvas(id,w,h){
   var cv=document.getElementById(id);
   var dpr=window.devicePixelRatio||1;
