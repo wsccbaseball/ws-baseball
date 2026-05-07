@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -96,14 +97,10 @@ canvas{display:block;border-radius:4px}
 .img-overlay img{max-width:100%;max-height:80vh;border-radius:6px}
 .overlay-hint{margin-top:14px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:600;color:rgba(255,255,255,.75);text-align:center}
 .overlay-close{margin-top:16px;padding:10px 32px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:8px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;cursor:pointer}
-/* ── Execution table wOBA coloring ── */
 .exec-elite{color:#1a6b3a;font-weight:800}
 .exec-good{color:#2a7a3a}
 .exec-avg{color:#7a5a00}
 .exec-bad{color:#b03000;font-weight:800}
-/* ── Velo by Inning (single game only) ── */
-.velo-inning-wrap{padding:4px 8px 4px;border-top:1px solid #e4eaf4;border-bottom:1px solid #e4eaf4;background:#f8fafd}
-.velo-inning-title{font-family:'Anton',sans-serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#7a8faa;text-align:center;margin-bottom:2px}
 </style>
 </head>
 <body>
@@ -174,114 +171,111 @@ canvas{display:block;border-radius:4px}
       <div class="hdr-center">
         <div class="player-name" id="cardName">&#8212;</div>
         <div class="player-pos" id="cardPos">Walters State CC</div>
-        <div class="card-type" id="cardType">Season Pitching Summary</div>
+        <div class="card-type">Season Pitching Summary</div>
         <div class="season-tag">2026 NJCAA Season</div>
       </div>
       <div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div>
     </div>
 
-    <!-- Season Stats -->
-    <div class="stat-section">
-      <span class="stat-section-label">Season Stats</span>
-      <div class="stat-row">
-        <div class="stat-box"><span class="stat-val hi" id="sTBF">&#8212;</span><span class="stat-lbl">IP</span></div>
-        <div class="stat-box"><span class="stat-val hi" id="sWOBA">&#8212;</span><span class="stat-lbl">wOBA</span></div>
-        <div class="stat-box"><span class="stat-val" id="sKPct">&#8212;</span><span class="stat-lbl">K%</span></div>
-        <div class="stat-box"><span class="stat-val" id="sBBPct">&#8212;</span><span class="stat-lbl">BB%</span></div>
-        <div class="stat-box"><span class="stat-val hi" id="sERA">&#8212;</span><span class="stat-lbl">ERA</span></div>
-        <div class="stat-box"><span class="stat-val hi" id="sFIP">&#8212;</span><span class="stat-lbl">FIP</span></div>
-        <div class="stat-box"><span class="stat-val hi" id="sGS">&#8212;</span><span class="stat-lbl">Avg GS</span></div>
-      </div>
-    </div>
+```
+<!-- Season Stats — hidden when game filter active -->
+<div class="stat-section" id="seasonStatsSection">
+  <span class="stat-section-label">Season Stats</span>
+  <div class="stat-row">
+    <div class="stat-box"><span class="stat-val hi" id="sTBF">&#8212;</span><span class="stat-lbl">IP</span></div>
+    <div class="stat-box"><span class="stat-val hi" id="sWOBA">&#8212;</span><span class="stat-lbl">wOBA</span></div>
+    <div class="stat-box"><span class="stat-val" id="sKPct">&#8212;</span><span class="stat-lbl">K%</span></div>
+    <div class="stat-box"><span class="stat-val" id="sBBPct">&#8212;</span><span class="stat-lbl">BB%</span></div>
+    <div class="stat-box"><span class="stat-val hi" id="sERA">&#8212;</span><span class="stat-lbl">ERA</span></div>
+    <div class="stat-box"><span class="stat-val hi" id="sFIP">&#8212;</span><span class="stat-lbl">FIP</span></div>
+    <div class="stat-box"><span class="stat-val hi" id="sGS">&#8212;</span><span class="stat-lbl">Avg GS</span></div>
+  </div>
+</div>
 
-    <!-- Stuff -->
-    <div class="stat-section">
-      <span class="stat-section-label">Stuff &middot; TrackMan</span>
-      <div class="stat-row">
-        <div class="stat-box"><span class="stat-val hi" id="tMaxVelo">&#8212;</span><span class="stat-lbl">Max Velo</span></div>
-        <div class="stat-box"><span class="stat-val" id="tCSW">&#8212;</span><span class="stat-lbl">CSW%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tSwStr">&#8212;</span><span class="stat-lbl">SwStr%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tChase">&#8212;</span><span class="stat-lbl">Chase%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tPutAway">&#8212;</span><span class="stat-lbl">Put Away%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tFPS">&#8212;</span><span class="stat-lbl">FPS%</span></div>
-      </div>
-    </div>
+<!-- Stuff -->
+<div class="stat-section">
+  <span class="stat-section-label">Stuff &middot; TrackMan</span>
+  <div class="stat-row">
+    <div class="stat-box"><span class="stat-val hi" id="tMaxVelo">&#8212;</span><span class="stat-lbl">Max Velo</span></div>
+    <div class="stat-box"><span class="stat-val" id="tCSW">&#8212;</span><span class="stat-lbl">CSW%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tSwStr">&#8212;</span><span class="stat-lbl">SwStr%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tChase">&#8212;</span><span class="stat-lbl">Chase%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tPutAway">&#8212;</span><span class="stat-lbl">Put Away%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tFPS">&#8212;</span><span class="stat-lbl">FPS%</span></div>
+  </div>
+</div>
 
-    <!-- Contact Quality Against -->
-    <div class="stat-section">
-      <span class="stat-section-label">Contact Quality Against &middot; TrackMan</span>
-      <div class="stat-row">
-        <div class="stat-box"><span class="stat-val" id="tHard">&#8212;</span><span class="stat-lbl">Hard%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tSolid">&#8212;</span><span class="stat-lbl">Solid%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tGB2">&#8212;</span><span class="stat-lbl">GB%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tFB">&#8212;</span><span class="stat-lbl">FB%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tMaxEV">&#8212;</span><span class="stat-lbl">Max EV</span></div>
-        <div class="stat-box"><span class="stat-val" id="tAvgEV">&#8212;</span><span class="stat-lbl">Best Speed</span></div>
-      </div>
-    </div>
+<!-- Contact Quality Against -->
+<div class="stat-section">
+  <span class="stat-section-label">Contact Quality Against &middot; TrackMan</span>
+  <div class="stat-row">
+    <div class="stat-box"><span class="stat-val" id="tHard">&#8212;</span><span class="stat-lbl">Hard%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tSolid">&#8212;</span><span class="stat-lbl">Solid%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tGB2">&#8212;</span><span class="stat-lbl">GB%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tFB">&#8212;</span><span class="stat-lbl">FB%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tMaxEV">&#8212;</span><span class="stat-lbl">Max EV</span></div>
+    <div class="stat-box"><span class="stat-val" id="tAvgEV">&#8212;</span><span class="stat-lbl">Best Speed</span></div>
+  </div>
+</div>
 
-    <!-- Zone Heat Maps -->
-    <div class="hmap-section">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <div>
-          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Fastball Location</div>
-          <canvas id="zmapWoba" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-        </div>
-        <div>
-          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px" id="zmapBreakLabel">Breaking Ball Location</div>
-          <canvas id="zmapHard" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-        </div>
-        <div>
-          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">SwStr Locations</div>
-          <canvas id="zmapWhiff" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-        </div>
-        <div>
-          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Hard Hit Locations</div>
-          <canvas id="zmapSwStr" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-        </div>
-      </div>
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View &middot; looking toward the pitcher</div>
+<!-- Zone Heat Maps -->
+<div class="hmap-section">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+    <div>
+      <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Fastball Location</div>
+      <canvas id="zmapWoba" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
     </div>
+    <div>
+      <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px" id="zmapBreakLabel">Breaking Ball Location</div>
+      <canvas id="zmapHard" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+    </div>
+    <div>
+      <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">SwStr Locations</div>
+      <canvas id="zmapWhiff" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+    </div>
+    <div>
+      <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Hard Hit Locations</div>
+      <canvas id="zmapSwStr" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+    </div>
+  </div>
+  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View &middot; looking toward the pitcher</div>
+</div>
 
-    <!-- Velo by Inning — only shown when 1 game selected -->
-    <div class="velo-inning-wrap" id="veloInningWrap" style="display:none;">
-      <div class="velo-inning-title">FB Velocity by Inning</div>
-      <canvas id="cVeloInning"></canvas>
-    </div>
+<!-- Pitch Arsenal -->
+<div class="pitch-section">
+  <span class="stat-section-label" style="display:block;margin-bottom:4px">Pitch Arsenal</span>
+  <table class="pitch-table">
+    <thead><tr>
+      <th style="text-align:left">Pitch</th>
+      <th>Usage</th><th>Velo</th><th>Max</th><th>iVB</th><th>HB</th>
+      <th>Spin</th><th>VAA</th><th>RelH</th><th>Ext</th>
+      <th>SwStr%</th><th>Chase%</th><th>Str%</th><th>Hard%</th>
+    </tr></thead>
+    <tbody id="pitchTableBody"></tbody>
+  </table>
+</div>
 
-    <!-- Pitch Arsenal -->
-    <div class="pitch-section">
-      <span class="stat-section-label" style="display:block;margin-bottom:4px">Pitch Arsenal</span>
-      <table class="pitch-table">
-        <thead><tr>
-          <th style="text-align:left">Pitch</th>
-          <th>Usage</th><th>Velo</th><th>Max</th><th>iVB</th><th>HB</th>
-          <th>Spin</th><th>VAA</th><th>RelH</th><th>Ext</th>
-          <th>SwStr%</th><th>Chase%</th><th>Str%</th><th>Hard%</th>
-        </tr></thead>
-        <tbody id="pitchTableBody"></tbody>
-      </table>
-    </div>
+<!-- Results by Pitch Type -->
+<div class="pitch-section" style="border-top:2px solid #1a3a5c;padding-top:0">
+  <div style="font-family:'Anton',sans-serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;background:#1a3a5c;color:#fff;padding:3px 6px;margin:0 -6px 4px;display:block">Results by Pitch Type</div>
+  <table class="pitch-table">
+    <thead><tr>
+      <th style="text-align:left">Pitch</th>
+      <th>AB</th><th>AVG</th><th>SLG</th><th>ISO</th>
+      <th>Whf%</th><th>GB%</th><th>Brl%</th><th>wOBA</th>
+    </tr></thead>
+    <tbody id="execTableBody"></tbody>
+  </table>
+</div>
 
-    <!-- Results by Pitch Type -->
-    <div class="pitch-section" style="border-top:2px solid #1a3a5c;padding-top:0">
-      <div style="font-family:'Anton',sans-serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;background:#1a3a5c;color:#fff;padding:3px 6px;margin:0 -6px 4px;display:block">Results by Pitch Type</div>
-      <table class="pitch-table">
-        <thead><tr>
-          <th style="text-align:left">Pitch</th>
-          <th>AB</th><th>AVG</th><th>SLG</th><th>ISO</th>
-          <th>Whf%</th><th>GB%</th><th>Brl%</th><th>wOBA</th>
-        </tr></thead>
-        <tbody id="execTableBody"></tbody>
-      </table>
-    </div>
+<div class="card-footer">
+  <div>&#9918; Walters State CC &middot; 2026</div>
+  <div>Data: TrackMan</div>
+  <div id="footR">wsccbaseball.github.io</div>
+</div>
+<button class="save-btn" onclick="saveCard()">&#128229; SAVE CARD IMAGE</button>
+```
 
-    <div class="card-footer">
-      <div>&#9918; Walters State CC &middot; 2026</div>
-      <div>Data: TrackMan</div>
-      <div id="footR">wsccbaseball.github.io</div>
-    </div>
-    <button class="save-btn" onclick="saveCard()">&#128229; SAVE CARD IMAGE</button>
   </div>
 </div>
 
@@ -362,24 +356,20 @@ function computePitcherProfile(name, rows){
       ptKs:0,ptBBs:0,ptHBPs:0,ptGB:0,ptBarrels:0,ptEVContacts:0
     };
     pitchTypes[pt].total++;
-
     var velo=parseFloat(r.RelSpeed||r.PitchSpeed||r.StartSpeed||'NaN');
     if(!isNaN(velo)&&velo>0)pitchTypes[pt].velos.push(velo);
-
     var isSwing=['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
     var isWhiff=call==='StrikeSwinging';
     var isStrike=['StrikeCalled','StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
     var side=parseFloat(r.PlateLocSide),height=parseFloat(r.PlateLocHeight);
     var inside=!isNaN(side)&&!isNaN(height)&&Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
     var outside=!isNaN(side)&&!isNaN(height)&&!inside;
-
     if(isSwing){swings++;pitchTypes[pt].swings++;}
     if(isWhiff){whiffs++;pitchTypes[pt].whiffs++;}
     if(call==='StrikeCalled'){calledStrikes++;pitchTypes[pt].calledStrikes++;}
     if(isStrike){totalStrikes++;pitchTypes[pt].strikes++;}
     if(inside){inZone++;pitchTypes[pt].inZone++;if(isSwing)inZoneSwings++;}
     if(outside){ozPitches++;pitchTypes[pt].ozPitches++;if(isSwing){ozSwings++;pitchTypes[pt].chases++;}}
-
     var ivb=parseFloat(r.InducedVertBreak||'NaN');
     var hb=parseFloat(r.HorzBreak||'NaN');
     var spin=parseFloat(r.SpinRate||'NaN');
@@ -397,14 +387,11 @@ function computePitcherProfile(name, rows){
     if(r.KorBB==='Walk'){bbs++;pitchTypes[pt].ptBBs++;}
     if(r.PlayResult==='HomeRun'||r.PlayResult==='Home Run')hrs++;
     if(r.PitchCall==='HitByPitch'){hbps++;pitchTypes[pt].ptHBPs++;}
-
     var balls=parseInt(r.Balls||0)||0,strikes=parseInt(r.Strikes||0)||0;
     if(strikes===2){putAwayOpps++;if(r.KorBB==='Strikeout')putAways++;}
-
     var ev=parseFloat(r.ExitSpeed);
     var la=parseFloat(r.Angle||r.LaunchAngle||r.VertAngle||'NaN');
     if(!isNaN(ev)&&ev>0){pitchTypes[pt].ev.push(ev);pitchTypes[pt].contacts++;}
-
     if(call==='InPlay'){
       bipCount++;
       pitchTypes[pt].ptInPlay++;
@@ -464,268 +451,111 @@ function computePitcherProfile(name, rows){
 
   return{
     name:name,displayName:displayName,lastName:lastName,
-    tbf:tbf,
-    wobaAgainst:wobaDen>0?wobaNum/wobaDen:0,
-    kPct:tbf>0?ks/tbf:0,
-    bbPct:tbf>0?bbs/tbf:0,
-    kBBPct:tbf>0?(ks-bbs)/tbf:0,
-    hr:hrs,
-    cswPct:rows.length>0?(calledStrikes+whiffs)/rows.length:0,
+    tbf:tbf,wobaAgainst:wobaDen>0?wobaNum/wobaDen:0,
+    kPct:tbf>0?ks/tbf:0,bbPct:tbf>0?bbs/tbf:0,kBBPct:tbf>0?(ks-bbs)/tbf:0,
+    hr:hrs,cswPct:rows.length>0?(calledStrikes+whiffs)/rows.length:0,
     swstrPct:rows.length>0?whiffs/rows.length:0,
     chasePct:ozPitches>0?ozSwings/ozPitches:0,
     zonePct:rows.length>0?inZone/rows.length:0,
     hardPct:evCount>0?hardCount/evCount:0,
     solidPct:bipCount>0?solidCount/bipCount:0,
-    gbPct:bipCount>0?gbCount/bipCount:0,
-    fbPct:bipCount>0?fbCount/bipCount:0,
+    gbPct:bipCount>0?gbCount/bipCount:0,fbPct:bipCount>0?fbCount/bipCount:0,
     maxEV:maxEV,avgEV:evCount>0?evSum/evCount:0,
     bestVelo:bestVelo,maxVelo:maxVelo,
     putAwayPct:putAwayOpps>0?putAways/putAwayOpps:0,
     fpsPct:tbf>0?fpsStrikes/tbf:0,
     fip:fip,era:era,ipDisplay:ipDisplay,avgWegs:avgWegs,
-    totalPitches:rows.length,
-    pitchTypes:pitchTypes,rows:rows
+    totalPitches:rows.length,pitchTypes:pitchTypes,rows:rows
   };
 }
 
 // ── KDE Heat Map Engine ──────────────────────────────────────────────────────
 var HMAP_GRID=40;
-
 function buildKDEGrid(rows,valueFn,sigma,xMin,xMax,yMin,yMax,densityMode){
   var X_MIN=xMin||-1.05,X_MAX=xMax||1.05,Y_MIN=yMin||1.2,Y_MAX=yMax||3.9;
   var GW=HMAP_GRID,GH=HMAP_GRID;
   var weightGrid=new Float32Array(GW*GH);
   var valueGrid=new Float32Array(GW*GH);
   rows.forEach(function(r){
-    var side=parseFloat(r.PlateLocSide);
-    var height=parseFloat(r.PlateLocHeight);
-    var displaySide=-side;
+    var side=parseFloat(r.PlateLocSide);var height=parseFloat(r.PlateLocHeight);var displaySide=-side;
     if(isNaN(displaySide)||isNaN(height))return;
     if(displaySide<X_MIN||displaySide>X_MAX||height<Y_MIN||height>Y_MAX)return;
     if(Math.abs(displaySide)>(X_MAX-0.05)||height<(Y_MIN+0.05)||height>(Y_MAX-0.05))return;
-    var val=valueFn(r);
-    if(val===null||val===undefined||isNaN(val))return;
-    var gx=(displaySide-X_MIN)/(X_MAX-X_MIN)*(GW-1);
-    var gy=(Y_MAX-height)/(Y_MAX-Y_MIN)*(GH-1);
-    var sig=sigma*GW;
-    var rad=Math.ceil(3*sig);
-    for(var dy=-rad;dy<=rad;dy++){
-      for(var dx=-rad;dx<=rad;dx++){
-        var ix=Math.round(gx+dx),iy=Math.round(gy+dy);
-        if(ix<0||ix>=GW||iy<0||iy>=GH)continue;
-        var dist2=(dx*dx+dy*dy)/(sig*sig);
-        var k=Math.exp(-0.5*dist2);
-        weightGrid[iy*GW+ix]+=k;
-        valueGrid[iy*GW+ix]+=k*val;
-      }
-    }
+    var val=valueFn(r);if(val===null||val===undefined||isNaN(val))return;
+    var gx=(displaySide-X_MIN)/(X_MAX-X_MIN)*(GW-1);var gy=(Y_MAX-height)/(Y_MAX-Y_MIN)*(GH-1);
+    var sig=sigma*GW;var rad=Math.ceil(3*sig);
+    for(var dy=-rad;dy<=rad;dy++){for(var dx=-rad;dx<=rad;dx++){
+      var ix=Math.round(gx+dx),iy=Math.round(gy+dy);
+      if(ix<0||ix>=GW||iy<0||iy>=GH)continue;
+      var dist2=(dx*dx+dy*dy)/(sig*sig);var k=Math.exp(-0.5*dist2);
+      weightGrid[iy*GW+ix]+=k;valueGrid[iy*GW+ix]+=k*val;
+    }}
   });
-  var result=new Float32Array(GW*GH);
-  var validVals=[];
+  var result=new Float32Array(GW*GH);var validVals=[];
   for(var i=0;i<GW*GH;i++){
     if(weightGrid[i]>0.01){result[i]=densityMode?weightGrid[i]:valueGrid[i]/weightGrid[i];validVals.push(result[i]);}
     else result[i]=NaN;
   }
   return{grid:result,gw:GW,gh:GH,xMin:X_MIN,xMax:X_MAX,yMin:Y_MIN,yMax:Y_MAX,validVals:validVals};
 }
-
 function hotColdColor(t){
-  t=Math.max(0,Math.min(1,t));
-  var r,g,b;
+  t=Math.max(0,Math.min(1,t));var r,g,b;
   if(t<0.5){var s=t*2;r=Math.round(59+s*(255-59));g=Math.round(113+s*(255-113));b=Math.round(204+s*(255-204));}
   else{var s=(t-0.5)*2;r=255;g=Math.round(255-s*255);b=Math.round(255-s*255);}
   return[r,g,b];
 }
-
 function drawZoneGrid(canvasId,rows,valueFn,minVal,maxVal,label,xMin,xMax,yMin,yMax,densityMode){
   var cv=document.getElementById(canvasId);if(!cv)return;
   var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
   var PAD_L=8,PAD_R=8,PAD_T=8,PAD_B=8;
   var gridW=W-PAD_L-PAD_R,gridH=H-PAD_T-PAD_B;
-  ctx.clearRect(0,0,W,H);
-  ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);
   var kdeResult=buildKDEGrid(rows,valueFn,densityMode?0.14:0.10,xMin,xMax,yMin,yMax,densityMode);
-  var grid=kdeResult.grid;
-  var GW=kdeResult.gw,GH=kdeResult.gh;
+  var grid=kdeResult.grid;var GW=kdeResult.gw,GH=kdeResult.gh;
   var X_MIN=kdeResult.xMin,X_MAX=kdeResult.xMax,Y_MIN=kdeResult.yMin,Y_MAX=kdeResult.yMax;
   var FILL_X=Math.min(X_MAX-0.05,0.833+0.25),FILL_Y_TOP=Math.min(Y_MAX-0.05,3.5+0.25),FILL_Y_BOT=Math.max(Y_MIN+0.05,1.5-0.25);
   var filled=grid.slice();
   for(var iter=0;iter<8;iter++){
-    for(var gy=0;gy<GH;gy++){
-      for(var gx=0;gx<GW;gx++){
-        var fx=X_MIN+(gx+0.5)/GW*(X_MAX-X_MIN);
-        var fy=Y_MAX-(gy+0.5)/GH*(Y_MAX-Y_MIN);
-        if(Math.abs(fx)>FILL_X||fy<FILL_Y_BOT||fy>FILL_Y_TOP){filled[gy*GW+gx]=NaN;continue;}
-        if(!isNaN(filled[gy*GW+gx]))continue;
-        var sum=0,cnt=0;
-        if(gx>0&&!isNaN(filled[gy*GW+gx-1])){sum+=filled[gy*GW+gx-1];cnt++;}
-        if(gx<GW-1&&!isNaN(filled[gy*GW+gx+1])){sum+=filled[gy*GW+gx+1];cnt++;}
-        if(gy>0&&!isNaN(filled[(gy-1)*GW+gx])){sum+=filled[(gy-1)*GW+gx];cnt++;}
-        if(gy<GH-1&&!isNaN(filled[(gy+1)*GW+gx])){sum+=filled[(gy+1)*GW+gx];cnt++;}
-        if(cnt>0)filled[gy*GW+gx]=sum/cnt;
-      }
-    }
+    for(var gy=0;gy<GH;gy++){for(var gx=0;gx<GW;gx++){
+      var fx=X_MIN+(gx+0.5)/GW*(X_MAX-X_MIN);var fy=Y_MAX-(gy+0.5)/GH*(Y_MAX-Y_MIN);
+      if(Math.abs(fx)>FILL_X||fy<FILL_Y_BOT||fy>FILL_Y_TOP){filled[gy*GW+gx]=NaN;continue;}
+      if(!isNaN(filled[gy*GW+gx]))continue;
+      var sum=0,cnt=0;
+      if(gx>0&&!isNaN(filled[gy*GW+gx-1])){sum+=filled[gy*GW+gx-1];cnt++;}
+      if(gx<GW-1&&!isNaN(filled[gy*GW+gx+1])){sum+=filled[gy*GW+gx+1];cnt++;}
+      if(gy>0&&!isNaN(filled[(gy-1)*GW+gx])){sum+=filled[(gy-1)*GW+gx];cnt++;}
+      if(gy<GH-1&&!isNaN(filled[(gy+1)*GW+gx])){sum+=filled[(gy+1)*GW+gx];cnt++;}
+      if(cnt>0)filled[gy*GW+gx]=sum/cnt;
+    }}
   }
   var vv=kdeResult.validVals;
-  var mn=vv.length?Math.min.apply(null,vv):minVal;
-  var mxv=vv.length?Math.max.apply(null,vv):maxVal;
+  var mn=vv.length?Math.min.apply(null,vv):minVal;var mxv=vv.length?Math.max.apply(null,vv):maxVal;
   var range=Math.max(mxv-mn,0.001);
   var imgData=ctx.createImageData(gridW,gridH);
   var cellW=gridW/GW,cellH=gridH/GH;
-  for(var py=0;py<gridH;py++){
-    for(var px=0;px<gridW;px++){
-      var gxi=Math.min(GW-1,Math.floor(px/cellW));
-      var gyi=Math.min(GH-1,Math.floor(py/cellH));
-      var val=filled[gyi*GW+gxi];
-      var pidx=(py*gridW+px)*4;
-      var pfx=X_MIN+(px/gridW)*(X_MAX-X_MIN);
-      var pfy=Y_MAX-(py/gridH)*(Y_MAX-Y_MIN);
-      var EDGE=0.833+0.15,ETOP=3.5+0.15,EBOT=1.5-0.15;
-      var dX=Math.max(0,Math.abs(pfx)-EDGE);
-      var dY=Math.max(0,Math.max(EBOT-pfy,pfy-ETOP));
-      var edgeDist=Math.max(dX,dY);
-      var edgeAlpha=edgeDist<=0?1:Math.max(0,1-edgeDist/0.12);
-      if(isNaN(val)||edgeAlpha<=0){
-        imgData.data[pidx]=imgData.data[pidx+1]=imgData.data[pidx+2]=imgData.data[pidx+3]=0;
-      } else {
-        var t=(val-mn)/range;
-        var col=hotColdColor(t);
-        imgData.data[pidx]=col[0];imgData.data[pidx+1]=col[1];imgData.data[pidx+2]=col[2];
-        imgData.data[pidx+3]=Math.round(edgeAlpha*255);
-      }
-    }
-  }
-  ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);
-  ctx.putImageData(imgData,PAD_L,PAD_T);
+  for(var py=0;py<gridH;py++){for(var px=0;px<gridW;px++){
+    var gxi=Math.min(GW-1,Math.floor(px/cellW));var gyi=Math.min(GH-1,Math.floor(py/cellH));
+    var val=filled[gyi*GW+gxi];var pidx=(py*gridW+px)*4;
+    var pfx=X_MIN+(px/gridW)*(X_MAX-X_MIN);var pfy=Y_MAX-(py/gridH)*(Y_MAX-Y_MIN);
+    var EDGE=0.833+0.15,ETOP=3.5+0.15,EBOT=1.5-0.15;
+    var dX=Math.max(0,Math.abs(pfx)-EDGE);var dY=Math.max(0,Math.max(EBOT-pfy,pfy-ETOP));
+    var edgeDist=Math.max(dX,dY);var edgeAlpha=edgeDist<=0?1:Math.max(0,1-edgeDist/0.12);
+    if(isNaN(val)||edgeAlpha<=0){imgData.data[pidx]=imgData.data[pidx+1]=imgData.data[pidx+2]=imgData.data[pidx+3]=0;}
+    else{var t=(val-mn)/range;var col=hotColdColor(t);imgData.data[pidx]=col[0];imgData.data[pidx+1]=col[1];imgData.data[pidx+2]=col[2];imgData.data[pidx+3]=Math.round(edgeAlpha*255);}
+  }}
+  ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);ctx.putImageData(imgData,PAD_L,PAD_T);
   function px2(x){return PAD_L+(x-X_MIN)/(X_MAX-X_MIN)*gridW;}
   function py2(y){return PAD_T+(Y_MAX-y)/(Y_MAX-Y_MIN)*gridH;}
-  var zXmin=-0.833,zXmax=0.833,zYmin=1.5,zYmax=3.5;
   ctx.strokeStyle='rgba(0,0,0,0.75)';ctx.lineWidth=2;
-  ctx.strokeRect(px2(zXmin),py2(zYmax),px2(zXmax)-px2(zXmin),py2(zYmin)-py2(zYmax));
+  ctx.strokeRect(px2(-0.833),py2(3.5),px2(0.833)-px2(-0.833),py2(1.5)-py2(3.5));
   ctx.strokeStyle='rgba(0,0,0,0.15)';ctx.lineWidth=0.5;
-  var zW=(px2(zXmax)-px2(zXmin))/3,zH=(py2(zYmin)-py2(zYmax))/3;
+  var zW=(px2(0.833)-px2(-0.833))/3,zH=(py2(1.5)-py2(3.5))/3;
   for(var i=1;i<3;i++){
-    ctx.beginPath();ctx.moveTo(px2(zXmin)+zW*i,py2(zYmax));ctx.lineTo(px2(zXmin)+zW*i,py2(zYmin));ctx.stroke();
-    ctx.beginPath();ctx.moveTo(px2(zXmin),py2(zYmax)+zH*i);ctx.lineTo(px2(zXmax),py2(zYmax)+zH*i);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(px2(-0.833)+zW*i,py2(3.5));ctx.lineTo(px2(-0.833)+zW*i,py2(1.5));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(px2(-0.833),py2(3.5)+zH*i);ctx.lineTo(px2(0.833),py2(3.5)+zH*i);ctx.stroke();
   }
 }
 
-function wobaVal(r){if(r.PitchCall!=='InPlay')return null;return WOBA_WEIGHTS[r.PlayResult||'']||0;}
-function hardVal(r){var ev=parseFloat(r.ExitSpeed);if(isNaN(ev)||ev<=0||r.PitchCall!=='InPlay')return null;return ev>=95?1:0;}
-function whiffVal(r){return(r.PitchCall||'').trim()==='StrikeSwinging'?1:null;}
-function swstrVal(r){return(r.PitchCall||'').trim()==='StrikeSwinging'?1:null;}
-
-// ── Velo by Inning ───────────────────────────────────────────────────────────
-function drawVeloByInning(rows) {
-  var wrap = document.getElementById('veloInningWrap');
-  var cv   = document.getElementById('cVeloInning');
-
-  // Fastball + Sinker only
-  var fbData = rows.filter(function(r) {
-    var pt = normPitch(r.TaggedPitchType, r.AutoPitchType);
-    var v  = parseFloat(r.RelSpeed || '0');
-    var inn = parseInt(r.Inning) || 0;
-    return (pt === 'Fastball' || pt === 'Sinker') && v > 0 && inn > 0;
-  });
-
-  var inningMap = {};
-  fbData.forEach(function(r) {
-    var inn = parseInt(r.Inning);
-    if (!inningMap[inn]) inningMap[inn] = [];
-    inningMap[inn].push(parseFloat(r.RelSpeed));
-  });
-
-  // Require at least 3 pitches per inning to count, and 2+ qualifying innings
-  var inningNums = Object.keys(inningMap).map(Number).filter(function(n){
-    return n > 0 && inningMap[n].length >= 3;
-  }).sort(function(a,b){return a-b;});
-  if (inningNums.length < 2) { wrap.style.display = 'none'; return; }
-
-  var avgByInning = inningNums.map(function(inn) {
-    var arr = inningMap[inn];
-    return arr.reduce(function(s,v){return s+v;},0) / arr.length;
-  });
-
-  var peakVelo = Math.max.apply(null, avgByInning);
-  var gameAvg  = avgByInning.reduce(function(s,v){return s+v;},0) / avgByInning.length;
-
-  // Must be visible before measuring dimensions
-  wrap.style.display = 'block';
-
-  var dpr = window.devicePixelRatio || 1;
-  var displayW = cv.parentElement.clientWidth - 16;
-  var displayH = Math.round(displayW * 0.26);
-  cv.width  = displayW * dpr;
-  cv.height = displayH * dpr;
-  cv.style.width  = displayW + 'px';
-  cv.style.height = displayH + 'px';
-  var ctx = cv.getContext('2d');
-  ctx.scale(dpr, dpr);
-
-  var W = displayW, H = displayH;
-  var PL = 30, PR = 10, PT = 16, PB = 18;
-  var cW = W - PL - PR, cH = H - PT - PB;
-
-  var veloMin = Math.min.apply(null, avgByInning);
-  var yMin = Math.floor(veloMin) - 2;
-  var yMax = Math.ceil(peakVelo) + 1;
-  var yRange = yMax - yMin || 1;
-
-  function xp(i){ return inningNums.length===1 ? PL+cW/2 : PL+(i/(inningNums.length-1))*cW; }
-  function yp(v){ return PT + cH - ((v-yMin)/yRange*cH); }
-
-  ctx.fillStyle = '#f8fafd';
-  ctx.fillRect(0,0,W,H);
-
-  var step = yRange <= 5 ? 1 : 2;
-  for (var gv = Math.ceil(yMin); gv <= yMax; gv += step) {
-    var gy = yp(gv);
-    ctx.strokeStyle='#dde4ef'; ctx.lineWidth=0.5;
-    ctx.beginPath(); ctx.moveTo(PL,gy); ctx.lineTo(W-PR,gy); ctx.stroke();
-    ctx.fillStyle='#9aacbc';
-    ctx.font=Math.max(7,W*0.021)+'px Barlow Condensed,sans-serif';
-    ctx.textAlign='right';
-    ctx.fillText(gv, PL-3, gy+3);
-  }
-
-  ctx.strokeStyle='rgba(100,130,170,0.35)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
-  ctx.beginPath(); ctx.moveTo(PL,yp(gameAvg)); ctx.lineTo(W-PR,yp(gameAvg)); ctx.stroke();
-  ctx.setLineDash([]);
-
-  ctx.strokeStyle='#2d5a8e'; ctx.lineWidth=1.8; ctx.lineJoin='round';
-  ctx.beginPath();
-  avgByInning.forEach(function(v,i){ i===0?ctx.moveTo(xp(i),yp(v)):ctx.lineTo(xp(i),yp(v)); });
-  ctx.stroke();
-
-  var dotR = Math.max(4, W*0.012);
-  var fs   = Math.max(7.5, W*0.026);
-  avgByInning.forEach(function(v,i){
-    var drop = peakVelo - v;
-    var col  = drop<=1.0 ? '#2a9d8f' : drop<=2.5 ? '#f4a261' : '#e63946';
-    var cx=xp(i), cy=yp(v);
-
-    ctx.beginPath(); ctx.arc(cx,cy,dotR+1.5,0,Math.PI*2);
-    ctx.fillStyle='rgba(0,0,0,0.07)'; ctx.fill();
-
-    ctx.beginPath(); ctx.arc(cx,cy,dotR,0,Math.PI*2);
-    ctx.fillStyle=col; ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,0.7)'; ctx.lineWidth=1; ctx.stroke();
-
-    ctx.font='bold '+fs+'px Barlow Condensed,sans-serif';
-    ctx.fillStyle='#1a1a2e'; ctx.textAlign='center';
-    ctx.fillText(v.toFixed(1), cx, cy-dotR-2.5);
-
-    ctx.font=Math.max(7,W*0.023)+'px Barlow Condensed,sans-serif';
-    ctx.fillStyle='#6b7fa0';
-    ctx.fillText(inningNums[i], cx, H-3);
-  });
-
-  ctx.font=Math.max(6,W*0.019)+'px Barlow,sans-serif';
-  ctx.fillStyle='#b0bac8'; ctx.textAlign='left';
-  ctx.fillText('INN', PL, H-3);
-}
-
-// ── Pitch Arsenal Table ──────────────────────────────────────────────────────
 function buildPitchTable(p){
   var tbody=document.getElementById('pitchTableBody');if(!tbody)return;
   tbody.innerHTML='';
@@ -734,50 +564,32 @@ function buildPitchTable(p){
   function maxArr(arr){return arr.length>0?Math.max.apply(null,arr):null;}
   function fmt1(v){return v!==null&&!isNaN(v)?v.toFixed(1):'--';}
   function fmt0(v){return v!==null&&!isNaN(v)?Math.round(v)+'':'--';}
-  Object.entries(p.pitchTypes)
-    .filter(function(e){return e[1].total>=3;})
-    .sort(function(a,b){return b[1].total-a[1].total;})
-    .forEach(function(e){
-      var pt=e[0],d=e[1];
-      var usagePct=totalPitches>0?(d.total/totalPitches*100).toFixed(1)+'%':'--';
-      var avgVelo=fmt1(avg(d.velos));
-      var maxVelo=fmt1(maxArr(d.velos));
-      var ivb=fmt1(avg(d.ivb));
-      var hb=fmt1(avg(d.hb));
-      var spin=fmt0(avg(d.spin));
-      var vaa=fmt1(avg(d.vaa));
-      var relh=fmt1(avg(d.relh));
-      var ext=fmt1(avg(d.ext));
-      var swstrPct=d.total>0?pct(d.whiffs/d.total):'--';
-      var chasePct=d.ozPitches>0?pct(d.chases/d.ozPitches):'--';
-      var strPct=d.total>0?pct(d.strikes/d.total):'--';
-      var hard=d.ev.length>0?pct(d.ev.filter(function(v){return v>=95;}).length/d.ev.length):'--';
-      var color=pitchColor(pt);
-      var abbrev=pitchAbbrev(pt);
-      tbody.innerHTML+='<tr>'+
-        '<td style="display:flex;align-items:center;gap:4px"><div class="pitch-dot" style="background:'+color+'"></div>'+escH(abbrev)+'</td>'+
-        '<td>'+usagePct+'</td><td>'+avgVelo+'</td><td>'+maxVelo+'</td>'+
-        '<td>'+ivb+'</td><td>'+hb+'</td><td>'+spin+'</td><td>'+vaa+'</td>'+
-        '<td>'+relh+'</td><td>'+ext+'</td>'+
-        '<td>'+swstrPct+'</td><td>'+chasePct+'</td><td>'+strPct+'</td><td>'+hard+'</td>'+
-        '</tr>';
-    });
+  Object.entries(p.pitchTypes).filter(function(e){return e[1].total>=3;}).sort(function(a,b){return b[1].total-a[1].total;}).forEach(function(e){
+    var pt=e[0],d=e[1];
+    tbody.innerHTML+='<tr>'+
+      '<td style="display:flex;align-items:center;gap:4px"><div class="pitch-dot" style="background:'+pitchColor(pt)+'"></div>'+escH(pitchAbbrev(pt))+'</td>'+
+      '<td>'+(totalPitches>0?(d.total/totalPitches*100).toFixed(1)+'%':'--')+'</td>'+
+      '<td>'+fmt1(avg(d.velos))+'</td><td>'+fmt1(maxArr(d.velos))+'</td>'+
+      '<td>'+fmt1(avg(d.ivb))+'</td><td>'+fmt1(avg(d.hb))+'</td><td>'+fmt0(avg(d.spin))+'</td>'+
+      '<td>'+fmt1(avg(d.vaa))+'</td><td>'+fmt1(avg(d.relh))+'</td><td>'+fmt1(avg(d.ext))+'</td>'+
+      '<td>'+pct(d.whiffs/d.total)+'</td>'+
+      '<td>'+(d.ozPitches>0?pct(d.chases/d.ozPitches):'--')+'</td>'+
+      '<td>'+pct(d.strikes/d.total)+'</td>'+
+      '<td>'+(d.ev.length>0?pct(d.ev.filter(function(v){return v>=95;}).length/d.ev.length):'--')+'</td>'+
+      '</tr>';
+  });
 }
 
-// ── Execution Table ──────────────────────────────────────────────────────────
 function buildExecutionTable(p){
   var tbody=document.getElementById('execTableBody');if(!tbody)return;
   tbody.innerHTML='';
-  var types=Object.entries(p.pitchTypes)
-    .filter(function(e){return e[1].total>=3;})
-    .sort(function(a,b){return b[1].total-a[1].total;})
-    .map(function(e){return e[0];});
+  var types=Object.entries(p.pitchTypes).filter(function(e){return e[1].total>=3;}).sort(function(a,b){return b[1].total-a[1].total;}).map(function(e){return e[0];});
   var tot={ptInPlay:0,singles:0,doubles:0,triples:0,ptHRs:0,ptKs:0,ptBBs:0,ptHBPs:0,ptGB:0,ptBarrels:0,ptEVContacts:0,whiffs:0,total:p.totalPitches};
   Object.values(p.pitchTypes).forEach(function(d){
-    tot.ptInPlay+=d.ptInPlay||0; tot.singles+=d.singles||0; tot.doubles+=d.doubles||0;
-    tot.triples+=d.triples||0; tot.ptHRs+=d.ptHRs||0; tot.ptKs+=d.ptKs||0;
-    tot.ptBBs+=d.ptBBs||0; tot.ptHBPs+=d.ptHBPs||0; tot.ptGB+=d.ptGB||0;
-    tot.ptBarrels+=d.ptBarrels||0; tot.ptEVContacts+=d.ptEVContacts||0; tot.whiffs+=d.whiffs||0;
+    tot.ptInPlay+=d.ptInPlay||0;tot.singles+=d.singles||0;tot.doubles+=d.doubles||0;
+    tot.triples+=d.triples||0;tot.ptHRs+=d.ptHRs||0;tot.ptKs+=d.ptKs||0;
+    tot.ptBBs+=d.ptBBs||0;tot.ptHBPs+=d.ptHBPs||0;tot.ptGB+=d.ptGB||0;
+    tot.ptBarrels+=d.ptBarrels||0;tot.ptEVContacts+=d.ptEVContacts||0;tot.whiffs+=d.whiffs||0;
   });
   function renderRow(label,d,color,isTot){
     var ab=d.ptInPlay+(d.ptKs||0);
@@ -794,23 +606,16 @@ function buildExecutionTable(p){
     function fa(v){if(v===null)return'--';var s=v.toFixed(3);return s.startsWith('0.')?s.slice(1):s;}
     function fp(v){if(v===null)return'--';return(v*100).toFixed(1)+'%';}
     var wc='';
-    if(woba!==null){
-      if(woba<0.250)wc='exec-elite';
-      else if(woba<0.320)wc='exec-good';
-      else if(woba<0.380)wc='exec-avg';
-      else wc='exec-bad';
-    }
+    if(woba!==null){if(woba<0.250)wc='exec-elite';else if(woba<0.320)wc='exec-good';else if(woba<0.380)wc='exec-avg';else wc='exec-bad';}
     var tr=document.createElement('tr');
     if(isTot){tr.style.fontWeight='700';tr.style.background='#e8f0fb';}
-    tr.innerHTML=
-      '<td style="display:flex;align-items:center;gap:4px">'+(isTot?'':'<div class="pitch-dot" style="background:'+color+'"></div>')+escH(label)+'</td>'+
-      '<td>'+(ab>0?ab:'--')+'</td>'+
-      '<td>'+fa(avg)+'</td><td>'+fa(slg)+'</td><td>'+fa(iso)+'</td>'+
+    tr.innerHTML='<td style="display:flex;align-items:center;gap:4px">'+(isTot?'':'<div class="pitch-dot" style="background:'+color+'"></div>')+escH(label)+'</td>'+
+      '<td>'+(ab>0?ab:'--')+'</td><td>'+fa(avg)+'</td><td>'+fa(slg)+'</td><td>'+fa(iso)+'</td>'+
       '<td>'+fp(whiffPct)+'</td><td>'+fp(gbPct)+'</td><td>'+fp(barrelPct)+'</td>'+
       '<td class="'+wc+'">'+fa(woba)+'</td>';
     tbody.appendChild(tr);
   }
-  types.forEach(function(t){ renderRow(pitchAbbrev(t),p.pitchTypes[t],pitchColor(t),false); });
+  types.forEach(function(t){renderRow(pitchAbbrev(t),p.pitchTypes[t],pitchColor(t),false);});
   renderRow('All',tot,'#1a3a5c',true);
 }
 
@@ -818,23 +623,28 @@ function buildCard(){
   var p=tableData.find(function(d){return d.name===selectedPitcher;});
   if(!p)return;
 
-  var selGames = getSelectedGames();
-  var isSingleGame = selGames.length === 1;
-
-  // Update card type label
-  document.getElementById('cardType').textContent = isSingleGame
-    ? (gamesMeta.find(function(g){return g.game_id===selGames[0];})||{display_name:''}).display_name || 'Game Summary'
-    : 'Season Pitching Summary';
+  var selGames=getSelectedGames();
+  var gameFiltered=selGames.length>0;
 
   document.getElementById('cardName').textContent=p.displayName;
   document.getElementById('cardPos').textContent='Walters State CC';
-  document.getElementById('sTBF').textContent=p.ipDisplay;
-  document.getElementById('sWOBA').textContent=fmt3(p.wobaAgainst);
-  document.getElementById('sKPct').textContent=pct(p.kPct);
-  document.getElementById('sBBPct').textContent=pct(p.bbPct);
-  document.getElementById('sERA').textContent=p.era!==null?p.era.toFixed(2):'--';
-  document.getElementById('sFIP').textContent=p.fip!==null?p.fip.toFixed(2):'--';
-  document.getElementById('sGS').textContent=p.avgWegs!==null?p.avgWegs.toFixed(1):'--';
+
+  // Season stats section — only show when viewing full season (no game filter)
+  // because IP/ERA/FIP/WEGS come from the season box score, not filtered TrackMan data
+  var ssSection=document.getElementById('seasonStatsSection');
+  if(gameFiltered){
+    ssSection.style.display='none';
+  } else {
+    ssSection.style.display='block';
+    document.getElementById('sTBF').textContent=p.ipDisplay;
+    document.getElementById('sWOBA').textContent=fmt3(p.wobaAgainst);
+    document.getElementById('sKPct').textContent=pct(p.kPct);
+    document.getElementById('sBBPct').textContent=pct(p.bbPct);
+    document.getElementById('sERA').textContent=p.era!==null?p.era.toFixed(2):'--';
+    document.getElementById('sFIP').textContent=p.fip!==null?p.fip.toFixed(2):'--';
+    document.getElementById('sGS').textContent=p.avgWegs!==null?p.avgWegs.toFixed(1):'--';
+  }
+
   document.getElementById('tMaxVelo').textContent=p.maxVelo>0?p.maxVelo.toFixed(1):'--';
   document.getElementById('tCSW').textContent=pct(p.cswPct);
   document.getElementById('tSwStr').textContent=pct(p.swstrPct);
@@ -849,9 +659,6 @@ function buildCard(){
   document.getElementById('tFB').textContent=pct(p.fbPct);
   document.getElementById('tMaxEV').textContent=p.maxEV>0?p.maxEV.toFixed(1):'--';
   document.getElementById('tAvgEV').textContent=p.bestVelo>0?p.bestVelo.toFixed(1):'--';
-
-  // Hide velo chart by default; will show if conditions met
-  document.getElementById('veloInningWrap').style.display='none';
 
   setTimeout(function(){
     var fbRows=p.rows.filter(function(r){return normPitch(r.TaggedPitchType,r.AutoPitchType)==='Fastball';});
@@ -870,10 +677,6 @@ function buildCard(){
     }
     drawZoneGrid('zmapWhiff',p.rows,function(r){return r.PitchCall==='StrikeSwinging'?1:null;},0,1,'SwStr',null,null,null,null,true);
     drawZoneGrid('zmapSwStr',p.rows,function(r){var ev=parseFloat(r.ExitSpeed);return(!isNaN(ev)&&ev>=95&&r.PitchCall==='InPlay')?1:null;},0,1,'Hard Hit',null,null,null,null,true);
-
-    // Velo by inning — only when exactly 1 game selected
-    if(isSingleGame) drawVeloByInning(p.rows);
-
     buildPitchTable(p);
     buildExecutionTable(p);
   },30);
@@ -912,11 +715,9 @@ async function boot(){
       var edgeData=await edgeRes.json();
       if(edgeData.pitching&&Array.isArray(edgeData.pitching)){
         edgeData.pitching.forEach(function(p){
-          var n=(p.name||'').trim();
-          if(!n)return;
+          var n=(p.name||'').trim();if(!n)return;
           var lastName=n.split(/\s+/).pop().toLowerCase();
-          seasonPitching[lastName]=p;
-          seasonPitching[n.toLowerCase()]=p;
+          seasonPitching[lastName]=p;seasonPitching[n.toLowerCase()]=p;
         });
       }
     }catch(e){console.warn('Season stats unavailable',e);}
@@ -997,8 +798,7 @@ function renderTable(){
     if(selectedPitcher===p.name)tr.className='selected';
     tr.onclick=function(){selectedPitcher=p.name;document.querySelectorAll('#tableBody tr').forEach(function(r){r.classList.remove('selected');});tr.classList.add('selected');document.getElementById('genCardBtn').disabled=false;document.getElementById('selHint').textContent=p.displayName+' selected';};
     tr.innerHTML=
-      '<td>'+escH(p.displayName)+'</td>'+
-      '<td>'+p.tbf+'</td>'+
+      '<td>'+escH(p.displayName)+'</td><td>'+p.tbf+'</td>'+
       '<td class="val-hi">'+fmt3(p.wobaAgainst)+'</td>'+
       '<td class="'+(p.kPct>=.25?'val-good':'')+'">'+pct(p.kPct)+'</td>'+
       '<td class="'+(p.bbPct>=.12?'val-warn':'')+'">'+pct(p.bbPct)+'</td>'+
@@ -1020,5 +820,6 @@ function showMain(){document.getElementById('card-screen').style.display='none';
 
 boot();
 </script>
+
 </body>
 </html>
