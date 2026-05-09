@@ -431,7 +431,7 @@ function computePitcherProfile(name, rows){
   var bestVelo=topHalf.length>0?topHalf.reduce(function(a,b){return a+b;},0)/topHalf.length:0;
   var maxVelo=allVelos.length>0?allVelos[0]:0;
 
-  var bs=seasonPitching[lastName.toLowerCase()]||seasonPitching[lastName]||null;
+  var bs=seasonPitching[displayName.toLowerCase()]||seasonPitching[lastName.toLowerCase()]||seasonPitching[lastName]||null;
   var fip=null,era=null,ipDisplay='--',avgWegs=null;
   if(bs&&bs.ip){
     var ipRaw=String(bs.ip).trim();
