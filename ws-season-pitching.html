@@ -101,6 +101,9 @@ canvas{display:block;border-radius:4px}
 .exec-good{color:#2a7a3a}
 .exec-avg{color:#7a5a00}
 .exec-bad{color:#b03000;font-weight:800}
+.tab-bar{background:#fffdf7;border-bottom:2px solid #1a3a5c;display:flex;gap:0}
+.tab-btn{flex:1;padding:9px 6px;font-family:'Anton',sans-serif;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;border:none;background:transparent;color:#6b5f47;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s}
+.tab-btn.active{color:#1a3a5c;border-bottom:3px solid #1a3a5c;background:#f0eadc}
 </style>
 </head>
 <body>
@@ -134,6 +137,10 @@ canvas{display:block;border-radius:4px}
     </div>
     <div class="filter-count" id="filterCount"></div>
   </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tabResults" onclick="switchTab('results')">&#x1F4CA; Results</button>
+    <button class="tab-btn" id="tabStuff" onclick="switchTab('stuff')">&#x26BE; Stuff</button>
+  </div>
   <div id="table-screen">
     <div class="table-wrap">
       <table class="stats-tbl">
@@ -157,6 +164,15 @@ canvas{display:block;border-radius:4px}
           <th onclick="sortTable('avgWegs')">Avg GS</th>
         </tr></thead>
         <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <!-- Stuff tab -->
+  <div id="stuff-screen" style="display:none;padding:0 0 80px">
+    <div class="table-wrap">
+      <table class="stats-tbl" id="stuffTbl" style="min-width:900px">
+        <thead id="stuffHead"></thead>
+        <tbody id="stuffBody"></tbody>
       </table>
     </div>
   </div>
@@ -712,6 +728,163 @@ function fmt3(v){if(!v&&v!==0)return'--';var s=parseFloat(v).toFixed(3);return s
 function pct(v){if(isNaN(v)||v===null||v===undefined)return'--';return(v*100).toFixed(1)+'%';}
 function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
+var currentTab='results';
+var stuffSortPt=null,stuffSortCol=null,stuffSortAsc=false;
+
+function switchTab(tab){
+  currentTab=tab;
+  document.getElementById('tabResults').classList.toggle('active',tab==='results');
+  document.getElementById('tabStuff').classList.toggle('active',tab==='stuff');
+  document.getElementById('table-screen').style.display=tab==='results'?'block':'none';
+  document.getElementById('stuff-screen').style.display=tab==='stuff'?'block':'none';
+  if(tab==='stuff')buildStuffTable();
+}
+
+function sortStuff(pt,col){
+  if(stuffSortPt===pt&&stuffSortCol===col)stuffSortAsc=!stuffSortAsc;
+  else{stuffSortPt=pt;stuffSortCol=col;stuffSortAsc=false;}
+  buildStuffTable();
+}
+
+function stuffVal(d,col){
+  function avg(a){return a.length>0?a.reduce(function(s,v){return s+v;},0)/a.length:null;}
+  if(!d)return null;
+  if(col==='Velo')return avg(d.velos);
+  if(col==='Max')return d.velos.length>0?Math.max.apply(null,d.velos):null;
+  if(col==='iVB')return avg(d.ivb);
+  if(col==='HB')return avg(d.hb);
+  if(col==='Spin')return avg(d.spin);
+  if(col==='VAA')return avg(d.vaa);
+  if(col==='Ext')return avg(d.ext);
+  if(col==='RelH')return avg(d.relh);
+  return null;
+}
+
+function buildStuffTable(){
+  var MIN_PITCHES=10,MIN_PITCHERS=2;
+  // Determine active pitch types (thrown by >=2 pitchers with >=10 pitches)
+  var ptCounts={};
+  tableData.forEach(function(p){
+    Object.keys(p.pitchTypes).forEach(function(pt){
+      if(p.pitchTypes[pt].total>=MIN_PITCHES)ptCounts[pt]=(ptCounts[pt]||0)+1;
+    });
+  });
+  var activePT=Object.keys(ptCounts)
+    .filter(function(pt){return ptCounts[pt]>=MIN_PITCHERS;})
+    .sort(function(a,b){return ptCounts[b]-ptCounts[a];});
+
+  var SUB=['Velo','Max','iVB','HB','Spin','VAA','Ext','RelH'];
+  var PITCH_COLORS_LOCAL={
+    'Fastball':'#c0282f','Sinker':'#c05010','Curveball':'#7010c0',
+    'Slider':'#1a7a6e','Cutter':'#0a9a80','ChangeUp':'#c07000',
+    'Splitter':'#a09000','Knuckleball':'#555555','Other':'#444444'
+  };
+
+  // Build two-row header
+  var thead=document.getElementById('stuffHead');
+  thead.innerHTML='';
+  var row1=document.createElement('tr');
+  var row2=document.createElement('tr');
+
+  // Pitcher th spans 2 rows
+  var thP=document.createElement('th');
+  thP.rowSpan=2;thP.textContent='Pitcher';
+  thP.style.cssText='text-align:left;min-width:110px;position:sticky;left:0;z-index:3;background:#1a3a5c;vertical-align:middle';
+  thP.onclick=function(){stuffSortPt=null;stuffSortCol=null;buildStuffTable();};
+  row1.appendChild(thP);
+
+  activePT.forEach(function(pt){
+    var col=PITCH_COLORS_LOCAL[pt]||'#555';
+    var abbrev=pitchAbbrev(pt);
+    // Group header
+    var th1=document.createElement('th');
+    th1.colSpan=SUB.length;th1.textContent=abbrev;
+    th1.style.cssText='background:'+col+';border-left:3px solid rgba(255,255,255,0.35);font-size:.8rem;letter-spacing:.12em;text-align:center;padding:5px 3px';
+    row1.appendChild(th1);
+    // Sub headers
+    SUB.forEach(function(s,i){
+      var th2=document.createElement('th');
+      th2.textContent=s;
+      th2.style.cssText='background:'+col+'cc;cursor:pointer;font-size:.62rem;padding:4px 3px;white-space:nowrap'+(i===0?';border-left:3px solid rgba(255,255,255,0.35)':'');
+      var isSorted=stuffSortPt===pt&&stuffSortCol===s;
+      if(isSorted)th2.textContent=s+(stuffSortAsc?' ▲':' ▼');
+      th2.onclick=(function(pt,s){return function(){sortStuff(pt,s);};})(pt,s);
+      row2.appendChild(th2);
+    });
+  });
+  thead.appendChild(row1);
+  thead.appendChild(row2);
+
+  // Sort data
+  var selectedPitchers=getSelectedPitchers();
+  var data=tableData.filter(function(p){return p.tbf>0&&(!selectedPitchers.length||selectedPitchers.includes(p.name));});
+  if(stuffSortPt&&stuffSortCol){
+    data.sort(function(a,b){
+      var av=stuffVal(a.pitchTypes[stuffSortPt],stuffSortCol);
+      var bv=stuffVal(b.pitchTypes[stuffSortPt],stuffSortCol);
+      var miss=stuffSortAsc?Infinity:-Infinity;
+      av=av!==null?av:miss; bv=bv!==null?bv:miss;
+      return stuffSortAsc?av-bv:bv-av;
+    });
+  } else {
+    data.sort(function(a,b){return a.displayName.localeCompare(b.displayName);});
+  }
+
+  // Build rows
+  var tbody=document.getElementById('stuffBody');
+  tbody.innerHTML='';
+  function avg(a){return a.length>0?a.reduce(function(s,v){return s+v;},0)/a.length:null;}
+  function fmt1(v){return v!==null?v.toFixed(1):'--';}
+  function fmt0(v){return v!==null?Math.round(v)+'':'--';}
+
+  data.forEach(function(p){
+    var tr=document.createElement('tr');
+    if(selectedPitcher===p.name)tr.className='selected';
+    tr.onclick=function(){
+      selectedPitcher=p.name;
+      document.querySelectorAll('#stuffBody tr,#tableBody tr').forEach(function(r){r.classList.remove('selected');});
+      tr.classList.add('selected');
+      document.getElementById('genCardBtn').disabled=false;
+      document.getElementById('selHint').textContent=p.displayName+' selected';
+    };
+    // Name cell
+    var tdN=document.createElement('td');
+    tdN.textContent=p.displayName;
+    tdN.style.cssText='font-weight:700;border-right:2px solid #c5b88a;position:sticky;left:0;z-index:1;background:#fffdf7;text-align:left';
+    tr.appendChild(tdN);
+
+    activePT.forEach(function(pt,pti){
+      var col=PITCH_COLORS_LOCAL[pt]||'#555';
+      var d=p.pitchTypes[pt];
+      var hasData=d&&d.total>=MIN_PITCHES;
+      var vals=hasData?[
+        fmt1(avg(d.velos)),
+        fmt1(d.velos.length>0?Math.max.apply(null,d.velos):null),
+        fmt1(avg(d.ivb)),
+        fmt1(avg(d.hb)),
+        fmt0(avg(d.spin)),
+        fmt1(avg(d.vaa)),
+        fmt1(avg(d.ext)),
+        fmt1(avg(d.relh))
+      ]:['--','--','--','--','--','--','--','--'];
+
+      vals.forEach(function(val,i){
+        var td2=document.createElement('td');
+        td2.textContent=val;
+        var borderL=i===0?'border-left:3px solid '+col+'55;':'';
+        var dimmed=val==='--'?'color:#ccc;':''
+        var hiSort=stuffSortPt===pt&&stuffSortCol===SUB[i]?'background:#eef4fc!important;font-weight:700;':'';
+        td2.style.cssText=borderL+dimmed;
+        if(stuffSortPt===pt&&stuffSortCol===SUB[i]&&hasData)td2.style.background='#eef4fc';
+        tr.appendChild(td2);
+      });
+    });
+    tbody.appendChild(tr);
+  });
+
+  if(!data.length)tbody.innerHTML='<tr><td colspan="'+(1+activePT.length*SUB.length)+'" class="no-data">No data</td></tr>';
+}
+
 async function boot(){
   try{
     setProgress(5,'Loading season stats...');
@@ -790,6 +963,7 @@ function onFilterChange(){
   filtered.forEach(function(r){var n=(r.Pitcher||'').trim();if(!n)return;if(!pitchers[n])pitchers[n]=[];pitchers[n].push(r);});
   tableData=Object.values(pitchers).map(function(rows){return computePitcherProfile(rows[0].Pitcher,rows);});
   renderTable();
+  if(currentTab==='stuff')buildStuffTable();
 }
 function renderTable(){
   var selectedPitchers=getSelectedPitchers();
