@@ -930,8 +930,7 @@ function buildTrendTable(){
   var html='<div style="padding:8px 12px 4px;font-family:Anton,sans-serif;font-size:.75rem;letter-spacing:.08em;color:#1a3a5c;text-transform:uppercase;background:#fffdf7;border-bottom:1px solid #e8e0d0">'+escH(displayName)+' — Game Log</div>';
   html+='<div class="table-wrap"><table class="stats-tbl" style="min-width:680px"><thead><tr>';
   html+='<th style="text-align:left;min-width:130px">Game</th>';
-  html+='<th>Role</th><th>NP</th><th>TBF</th><th>K</th><th>BB</th><th>H</th>';
-  html+='<th>wOBA</th><th>K%</th><th>BB%</th><th>SwStr%</th><th>CSW%</th><th>Hard%</th><th>FB Velo</th>';
+  html+='<th>Role</th><th>NP</th><th>TBF</th><th>FB Velo</th>';
   html+='</tr></thead><tbody>';
 
   gameIds.forEach(function(gid){
@@ -992,20 +991,11 @@ function buildTrendTable(){
     html+='<td style="font-size:.78rem;color:'+(role==='Start'?'#1a3a5c':'#9b8c74')+'">'+role+'</td>';
     html+='<td>'+np+'</td>';
     html+='<td>'+tbf+'</td>';
-    html+='<td class="'+(ks>=5?'val-good':'')+'">'+ks+'</td>';
-    html+='<td class="'+(bbs>=3?'val-warn':'')+'">'+bbs+'</td>';
-    html+='<td>'+hits+'</td>';
-    html+='<td class="'+wc+'">'+fa(woba)+'</td>';
-    html+='<td class="'+kc+'">'+fp(kPct)+'</td>';
-    html+='<td class="'+bbc+'">'+fp(bbPct)+'</td>';
-    html+='<td class="'+sc+'">'+fp(swstrPct)+'</td>';
-    html+='<td>'+fp(cswPct)+'</td>';
-    html+='<td class="'+hc+'">'+fp(hardPct)+'</td>';
     html+='<td class="val-hi">'+(fbVelo!==null?fbVelo.toFixed(1):'--')+'</td>';
     html+='</tr>';
   });
 
-  if(!gameIds.length)html+='<tr><td colspan="14" class="no-data">No games found</td></tr>';
+  if(!gameIds.length)html+='<tr><td colspan="5" class="no-data">No games found</td></tr>';
   html+='</tbody></table></div>';
   screen.innerHTML=html;
 }
