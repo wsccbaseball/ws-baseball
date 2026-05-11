@@ -40,11 +40,10 @@ body{font-family:'Barlow Condensed',sans-serif;background:#f2ead8;min-height:100
 .filter-count{font-family:'Barlow',sans-serif;font-size:.72rem;color:#6b5f47;align-self:flex-end;padding-bottom:6px;white-space:nowrap}
 #table-screen{padding:0 0 80px}
 .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-table.stats-tbl{width:100%;border-collapse:collapse;font-family:'Barlow Condensed',sans-serif;min-width:680px}
+table.stats-tbl{width:100%;border-collapse:collapse;font-family:'Barlow Condensed',sans-serif;min-width:780px}
 table.stats-tbl thead tr{background:#1a3a5c}
 table.stats-tbl th{color:#fff;font-size:.7rem;font-weight:700;padding:8px 6px;text-align:center;white-space:nowrap;cursor:pointer;user-select:none;border-right:1px solid rgba(255,255,255,.1)}
 table.stats-tbl th:first-child{text-align:left;min-width:110px;position:sticky;left:0;z-index:2;background:#1a3a5c}
-table.stats-tbl th.sorted{color:#a8c8f0;background:#152d4a}
 table.stats-tbl td{padding:8px 6px;text-align:center;font-size:.88rem;border-bottom:1px solid #e8e0d0;color:#1a1a2e;border-right:1px solid #ede6d8}
 table.stats-tbl td:first-child{text-align:left;font-weight:700;border-right:2px solid #c5b88a;position:sticky;left:0;z-index:1;background:#fffdf7}
 table.stats-tbl tr:hover td{background:#f4efe4;cursor:pointer}
@@ -71,7 +70,6 @@ table.stats-tbl tr.selected td:first-child{background:#e8f0fb!important}
 .card-type{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:#fff;margin-top:2px}
 .season-tag{font-size:10px;font-style:italic;color:#7bb3e0}
 .logo-box{width:42px;text-align:center}
-.game-line{background:#e8f0fb;text-align:center;padding:5px 8px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:#1a3a5c;border-bottom:2px solid #c5d8f0}
 .stat-section{padding:4px 6px 2px;border-bottom:1px solid #e4eaf4;overflow:hidden}
 .stat-section-label{font-family:'Anton',sans-serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#7a8faa;padding:3px 0 2px;display:block}
 .stat-row{display:flex;width:100%}
@@ -83,13 +81,6 @@ table.stats-tbl tr.selected td:first-child{background:#e8f0fb!important}
 .stat-val.warn{color:#b05000}
 .stat-lbl{font-family:'Barlow Condensed',sans-serif;font-size:7.5px;font-weight:600;color:#9b8c9a;text-transform:uppercase;letter-spacing:.4px;display:block;margin-top:1px}
 .hmap-section{padding:5px 6px 4px;border-bottom:1px solid #e4eaf4}
-.hmap-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
-.hmap-title{font-family:'Anton',sans-serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#1a3a5c}
-.hmap-legend{display:flex;flex-wrap:wrap;gap:3px 8px;justify-content:flex-end}
-.hmap-legend-item{display:flex;align-items:center;gap:2px;font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#6b5f47}
-.hmap-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.hmap-canvas-wrap{display:flex;gap:4px;align-items:flex-start}
-.hmap-canvas-label{font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:2px}
 canvas{display:block;border-radius:4px}
 .pitch-section{padding:4px 6px 5px}
 .pitch-table{width:100%;border-collapse:collapse;font-family:'Barlow Condensed',sans-serif}
@@ -106,6 +97,11 @@ canvas{display:block;border-radius:4px}
 .img-overlay img{max-width:100%;max-height:80vh;border-radius:6px}
 .overlay-hint{margin-top:14px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:600;color:rgba(255,255,255,.75);text-align:center}
 .overlay-close{margin-top:16px;padding:10px 32px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:8px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;cursor:pointer}
+/* wOBA coloring on pitch mix table */
+.woba-elite{color:#1a6b3a;font-weight:800}
+.woba-good{color:#2a7a3a}
+.woba-avg{color:#7a5a00}
+.woba-bad{color:#b03000;font-weight:800}
 </style>
 </head>
 <body>
@@ -145,10 +141,13 @@ canvas{display:block;border-radius:4px}
         <thead><tr>
           <th onclick="sortTable('displayName')">Player</th>
           <th onclick="sortTable('pa')">PA</th>
+          <th onclick="sortTable('avg')">AVG</th>
           <th onclick="sortTable('woba')">wOBA</th>
-          <th onclick="sortTable('solidPct')">Solid%</th>
+          <th onclick="sortTable('iso')">ISO</th>
+          <th onclick="sortTable('kPct')">K%</th>
+          <th onclick="sortTable('bbPct')">BB%</th>
           <th onclick="sortTable('hardHit')">Hard%</th>
-          <th onclick="sortTable('swingPct')">Swing%</th>
+          <th onclick="sortTable('solidPct')">Solid%</th>
           <th onclick="sortTable('chasePct')">Chase%</th>
           <th onclick="sortTable('zSwingPct')">Z-Swing%</th>
           <th onclick="sortTable('seagerScore')">SGR</th>
@@ -169,13 +168,87 @@ canvas{display:block;border-radius:4px}
     <button class="back-btn" onclick="showSelect()">&#8592; Back</button>
   </div>
   <div class="card" id="card">
-    <div class="card-header"><div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div><div class="hdr-center"><div class="player-name" id="cardName">&#8212;</div><div class="player-pos" id="cardPos">Walters State CC</div><div class="card-type">Season Hitting Summary</div><div class="season-tag">2026 NJCAA Season</div></div><div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div></div>
-    <div class="stat-section"><span class="stat-section-label">Season Stats</span><div class="stat-row"><div class="stat-box"><span class="stat-val hi" id="sAVG">&#8212;</span><span class="stat-lbl">PA</span></div><div class="stat-box"><span class="stat-val" id="sOBP">&#8212;</span><span class="stat-lbl">wOBA</span></div><div class="stat-box"><span class="stat-val" id="sSLG">&#8212;</span><span class="stat-lbl">ISO</span></div><div class="stat-box"><span class="stat-val hi" id="sWOBA">&#8212;</span><span class="stat-lbl">AVG</span></div><div class="stat-box"><span class="stat-val" id="sHR">&#8212;</span><span class="stat-lbl">HR</span></div><div class="stat-box"><span class="stat-val" id="sRBI">&#8212;</span><span class="stat-lbl">XBH</span></div><div class="stat-box"><span class="stat-val" id="sSB">&#8212;</span><span class="stat-lbl">K-BB%</span></div></div></div>
-    <div class="stat-section"><span class="stat-section-label">Contact Quality &middot; TrackMan</span><div class="stat-row"><div class="stat-box"><span class="stat-val" id="tHard">&#8212;</span><span class="stat-lbl">Hard%</span></div><div class="stat-box"><span class="stat-val" id="tBarrel">&#8212;</span><span class="stat-lbl">Solid%</span></div><div class="stat-box"><span class="stat-val hi" id="tBestSpeed">&#8212;</span><span class="stat-lbl">Best Speed</span></div><div class="stat-box"><span class="stat-val" id="tMaxEV">&#8212;</span><span class="stat-lbl">Max EV</span></div><div class="stat-box"><span class="stat-val" id="tGB">&#8212;</span><span class="stat-lbl">GB%</span></div><div class="stat-box"><span class="stat-val" id="tFB">&#8212;</span><span class="stat-lbl">FB%</span></div></div></div>
-    <div class="stat-section"><span class="stat-section-label">Plate Discipline &middot; TrackMan</span><div class="stat-row"><div class="stat-box"><span class="stat-val" id="tSwing">&#8212;</span><span class="stat-lbl">Swing%</span></div><div class="stat-box"><span class="stat-val" id="tChase">&#8212;</span><span class="stat-lbl">Chase%</span></div><div class="stat-box"><span class="stat-val" id="tZSwing">&#8212;</span><span class="stat-lbl">Z-Swing%</span></div><div class="stat-box"><span class="stat-val" id="tWhiff">&#8212;</span><span class="stat-lbl">Whiff%</span></div><div class="stat-box"><span class="stat-val hi" id="tSGR">&#8212;</span><span class="stat-lbl">SGR</span></div></div></div>
-    <div class="hmap-section"><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">wOBA</div><canvas id="zmapWoba" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">FB Whiff</div><canvas id="zmapHard" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px" id="zmapBreakLabel">Breaking Ball Whiff</div><canvas id="zmapIso" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div><div><div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">SwStr Zones</div><canvas id="zmapWhiff" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas></div></div><div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View &middot; looking toward the pitcher</div></div>
-    <div class="pitch-section"><span class="stat-section-label" style="display:block;margin-bottom:4px">Pitch Mix</span><table class="pitch-table"><thead><tr><th style="text-align:left">Pitch</th><th>Usage</th><th>Swing%</th><th>Whiff%</th><th>SwStr%</th><th>Chase%</th><th>Hard%</th><th>Best Speed</th></tr></thead><tbody id="pitchTableBody"></tbody></table></div>
-    <div class="card-footer"><div>&#9918; Walters State CC &middot; 2026</div><div>Data: TrackMan</div><div id="footR">wsccbaseball.github.io</div></div>
+    <div class="card-header">
+      <div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div>
+      <div class="hdr-center">
+        <div class="player-name" id="cardName">&#8212;</div>
+        <div class="player-pos" id="cardPos">Walters State CC</div>
+        <div class="card-type">Season Hitting Summary</div>
+        <div class="season-tag">2026 NJCAA Season</div>
+      </div>
+      <div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div>
+    </div>
+    <div class="stat-section">
+      <span class="stat-section-label">Season Stats</span>
+      <div class="stat-row">
+        <div class="stat-box"><span class="stat-val hi" id="sAVG">&#8212;</span><span class="stat-lbl">PA</span></div>
+        <div class="stat-box"><span class="stat-val" id="sOBP">&#8212;</span><span class="stat-lbl">wOBA</span></div>
+        <div class="stat-box"><span class="stat-val" id="sSLG">&#8212;</span><span class="stat-lbl">ISO</span></div>
+        <div class="stat-box"><span class="stat-val hi" id="sWOBA">&#8212;</span><span class="stat-lbl">AVG</span></div>
+        <div class="stat-box"><span class="stat-val" id="sHR">&#8212;</span><span class="stat-lbl">HR</span></div>
+        <div class="stat-box"><span class="stat-val" id="sRBI">&#8212;</span><span class="stat-lbl">XBH</span></div>
+        <div class="stat-box"><span class="stat-val" id="sSB">&#8212;</span><span class="stat-lbl">K-BB%</span></div>
+      </div>
+    </div>
+    <div class="stat-section">
+      <span class="stat-section-label">Contact Quality &middot; TrackMan</span>
+      <div class="stat-row">
+        <div class="stat-box"><span class="stat-val" id="tHard">&#8212;</span><span class="stat-lbl">Hard%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tBarrel">&#8212;</span><span class="stat-lbl">Solid%</span></div>
+        <div class="stat-box"><span class="stat-val hi" id="tBestSpeed">&#8212;</span><span class="stat-lbl">Best Speed</span></div>
+        <div class="stat-box"><span class="stat-val" id="tMaxEV">&#8212;</span><span class="stat-lbl">Max EV</span></div>
+        <div class="stat-box"><span class="stat-val" id="tGB">&#8212;</span><span class="stat-lbl">GB%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tFB">&#8212;</span><span class="stat-lbl">FB%</span></div>
+      </div>
+    </div>
+    <div class="stat-section">
+      <span class="stat-section-label">Plate Discipline &middot; TrackMan</span>
+      <div class="stat-row">
+        <div class="stat-box"><span class="stat-val" id="tSwing">&#8212;</span><span class="stat-lbl">Swing%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tChase">&#8212;</span><span class="stat-lbl">Chase%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tZSwing">&#8212;</span><span class="stat-lbl">Z-Swing%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tWhiff">&#8212;</span><span class="stat-lbl">Whiff%</span></div>
+        <div class="stat-box"><span class="stat-val hi" id="tSGR">&#8212;</span><span class="stat-lbl">SGR</span></div>
+      </div>
+    </div>
+    <div class="hmap-section">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div>
+          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">wOBA</div>
+          <canvas id="zmapWoba" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+        </div>
+        <div>
+          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">FB Whiff</div>
+          <canvas id="zmapHard" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+        </div>
+        <div>
+          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px" id="zmapBreakLabel">Breaking Ball Whiff</div>
+          <canvas id="zmapIso" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+        </div>
+        <div>
+          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">SwStr Zones</div>
+          <canvas id="zmapWhiff" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+        </div>
+      </div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View &middot; looking toward the pitcher</div>
+    </div>
+    <!-- Pitch Mix with wOBA + ISO -->
+    <div class="pitch-section">
+      <span class="stat-section-label" style="display:block;margin-bottom:4px">Pitch Mix</span>
+      <table class="pitch-table">
+        <thead><tr>
+          <th style="text-align:left">Pitch</th>
+          <th>Usage</th><th>Swing%</th><th>Whiff%</th><th>Chase%</th>
+          <th>Hard%</th><th>wOBA</th><th>ISO</th>
+        </tr></thead>
+        <tbody id="pitchTableBody"></tbody>
+      </table>
+    </div>
+    <div class="card-footer">
+      <div>&#9918; Walters State CC &middot; 2026</div>
+      <div>Data: TrackMan</div>
+      <div id="footR">wsccbaseball.github.io</div>
+    </div>
     <button class="save-btn" onclick="saveCard()">&#128229; SAVE CARD IMAGE</button>
   </div>
 </div>
@@ -293,7 +366,12 @@ function computeProfile(name,rows){
     var call=(r.PitchCall||'').trim();
     var side=parseFloat(r.PlateLocSide),height=parseFloat(r.PlateLocHeight);
     var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||'Other');
-    if(!pitchTypes[pt])pitchTypes[pt]={total:0,swings:0,whiffs:0,chases:0,ozTotal:0,ozPitches:0,ev:[],contacts:0,bip:[],whiffPts:[],weakPts:[]};
+    if(!pitchTypes[pt])pitchTypes[pt]={
+      total:0,swings:0,whiffs:0,chases:0,ozPitches:0,ev:[],contacts:0,bip:[],
+      // ── result tracking per pitch type ──
+      ptInPlay:0,ptSingles:0,ptDoubles:0,ptTriples:0,ptHRs:0,
+      ptKs:0,ptBBs:0,ptHBPs:0
+    };
     pitchTypes[pt].total++;
     var isSwing=['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
     var isWhiff=call==='StrikeSwinging';
@@ -304,7 +382,20 @@ function computeProfile(name,rows){
     if(isWhiff){whiffs++;pitchTypes[pt].whiffs++;}
     if(isContact)pitchTypes[pt].contacts++;
     if(inside){inZone++;if(isSwing)inZoneSwings++;}
-    if(outside){ozPitches++;pitchTypes[pt].ozPitches++;if(isSwing){ozSwings++;pitchTypes[pt].chases++;pitchTypes[pt].ozTotal++;}}
+    if(outside){ozPitches++;pitchTypes[pt].ozPitches++;if(isSwing){ozSwings++;pitchTypes[pt].chases++;}}
+    // K / BB / HBP per pitch type
+    if(r.KorBB==='Strikeout')pitchTypes[pt].ptKs++;
+    if(r.KorBB==='Walk')pitchTypes[pt].ptBBs++;
+    if(call==='HitByPitch')pitchTypes[pt].ptHBPs++;
+    // InPlay results per pitch type
+    if(call==='InPlay'){
+      pitchTypes[pt].ptInPlay++;
+      var res=r.PlayResult||'';
+      if(res==='Single')pitchTypes[pt].ptSingles++;
+      else if(res==='Double')pitchTypes[pt].ptDoubles++;
+      else if(res==='Triple')pitchTypes[pt].ptTriples++;
+      else if(res==='HomeRun'||res==='Home Run')pitchTypes[pt].ptHRs++;
+    }
     var ev=parseFloat(r.ExitSpeed);
     var la=parseFloat(r.Angle||r.LaunchAngle||r.VertAngle||'NaN');
     if(!isNaN(ev)&&ev>0){
@@ -312,7 +403,6 @@ function computeProfile(name,rows){
       pitchTypes[pt].ev.push(ev);
       if(!isNaN(side)&&!isNaN(height)){
         bip.push({side:side,height:height,ev:ev,pt:pt,result:(r.PlayResult||'')});
-        if(ev<90&&['InPlay','FoulBall','FoulBallNotFieldable'].includes(call))pitchTypes[pt].weakPts.push({side:side,height:height,ev:ev});
         pitchTypes[pt].bip.push({side:side,height:height,ev:ev,result:(r.PlayResult||'')});
       }
       if(!isNaN(la)&&ev>=95&&la>=8&&la<=32)solidContact++;
@@ -338,23 +428,28 @@ function computeProfile(name,rows){
   var bsSF=bs?parseInt(bs.sf)||0:0;
   var bsSH=bs?parseInt(bs.sh)||0:0;
   var bsPA=bsAB+bsBB+bsHBP+bsSF+bsSH;
+  var bsK=bs?parseInt(bs.k||bs.so)||0:0;
   var bs1B=Math.max(0,(bs?parseInt(bs.h)||0:0)-(bs?parseInt(bs.doubles)||0:0)-(bs?parseInt(bs.triples)||0:0)-(bs?parseInt(bs.hr)||0:0));
   var woba=bsPA>0?(bsBB*.69+bsHBP*.72+bs1B*.88+(bs?parseInt(bs.doubles)||0:0)*1.24+(bs?parseInt(bs.triples)||0:0)*1.56+(bs?parseInt(bs.hr)||0:0)*2.08)/bsPA:0;
+  var bsAVG=bs?parseFloat(bs.avg)||0:0;
+  var bsSLG=bs?parseFloat(bs.slg)||0:0;
+  var iso=bsSLG>0&&bsAVG>0?bsSLG-bsAVG:0;
 
   return{
     name:name,displayName:displayName,lastName:lastName,
     gp:bs?parseInt(bs.gp)||0:0,pa:bsPA,
-    avg:bs?parseFloat(bs.avg)||0:0,obp:bs?parseFloat(bs.obp)||0:0,
-    slg:bs?parseFloat(bs.slg)||0:0,woba:woba,
+    avg:bsAVG,obp:bs?parseFloat(bs.obp)||0:0,
+    slg:bsSLG,woba:woba,iso:iso,
     hr:bs?parseInt(bs.hr)||0:0,rbi:bs?parseInt(bs.rbi)||0:0,
     sb:bs?parseInt(bs.sb)||0:0,h:bs?parseInt(bs.h)||0:0,
     xbh:(bs?parseInt(bs.doubles)||0:0)+(bs?parseInt(bs.triples)||0:0)+(bs?parseInt(bs.hr)||0:0),
-    bsK:bs?parseInt(bs.k||bs.so)||0:0,bsBBval:bsBB,
+    bsK:bsK,bsBBval:bsBB,
+    kPct:bsPA>0?bsK/bsPA:0,
+    bbPct:bsPA>0?bsBB/bsPA:0,
     swingPct:rows.length>0?swings/rows.length:0,
     whiffPct:swings>0?whiffs/swings:0,
     chasePct:ozPitches>0?ozSwings/ozPitches:0,
     zSwingPct:inZone>0?inZoneSwings/inZone:0,
-    sgr:(inZone>0&&ozPitches>0)?(inZoneSwings/inZone)-(ozSwings/ozPitches):0,
     seagerScore:computeSEAGER(rows),
     hardHit:evCount>0?bip.filter(function(b){return b.ev>=95;}).length/evCount:0,
     solidPct:bipCount>0?solidContact/bipCount:0,
@@ -364,156 +459,99 @@ function computeProfile(name,rows){
   };
 }
 
-// ── Zone Heat Map Engine (Gaussian KDE) ──────────────────────────────────────
+// ── Zone Heat Map Engine ──────────────────────────────────────────────────────
 var HMAP_GRID=40;
-
 function buildKDEGrid(rows,valueFn,sigma,xMin,xMax,yMin,yMax,densityMode){
   var X_MIN=xMin||-1.05,X_MAX=xMax||1.05,Y_MIN=yMin||1.2,Y_MAX=yMax||3.9;
   var GW=HMAP_GRID,GH=HMAP_GRID;
-  var weightGrid=new Float32Array(GW*GH);
-  var valueGrid=new Float32Array(GW*GH);
+  var weightGrid=new Float32Array(GW*GH);var valueGrid=new Float32Array(GW*GH);
   rows.forEach(function(r){
-    var side=parseFloat(r.PlateLocSide);
-    var height=parseFloat(r.PlateLocHeight);
-    var displaySide=-side;
+    var side=parseFloat(r.PlateLocSide);var height=parseFloat(r.PlateLocHeight);var displaySide=-side;
     if(isNaN(displaySide)||isNaN(height))return;
     if(displaySide<X_MIN||displaySide>X_MAX||height<Y_MIN||height>Y_MAX)return;
     if(Math.abs(displaySide)>(X_MAX-0.05)||height<(Y_MIN+0.05)||height>(Y_MAX-0.05))return;
-    var val=valueFn(r);
-    if(val===null||val===undefined||isNaN(val))return;
-    var gx=(displaySide-X_MIN)/(X_MAX-X_MIN)*(GW-1);
-    var gy=(Y_MAX-height)/(Y_MAX-Y_MIN)*(GH-1);
-    var sig=sigma*GW;
-    var rad=Math.ceil(3*sig);
-    for(var dy=-rad;dy<=rad;dy++){
-      for(var dx=-rad;dx<=rad;dx++){
-        var ix=Math.round(gx+dx),iy=Math.round(gy+dy);
-        if(ix<0||ix>=GW||iy<0||iy>=GH)continue;
-        var dist2=(dx*dx+dy*dy)/(sig*sig);
-        var k=Math.exp(-0.5*dist2);
-        weightGrid[iy*GW+ix]+=k;
-        valueGrid[iy*GW+ix]+=k*val;
-      }
-    }
+    var val=valueFn(r);if(val===null||val===undefined||isNaN(val))return;
+    var gx=(displaySide-X_MIN)/(X_MAX-X_MIN)*(GW-1);var gy=(Y_MAX-height)/(Y_MAX-Y_MIN)*(GH-1);
+    var sig=sigma*GW;var rad=Math.ceil(3*sig);
+    for(var dy=-rad;dy<=rad;dy++){for(var dx=-rad;dx<=rad;dx++){
+      var ix=Math.round(gx+dx),iy=Math.round(gy+dy);
+      if(ix<0||ix>=GW||iy<0||iy>=GH)continue;
+      var dist2=(dx*dx+dy*dy)/(sig*sig);var k=Math.exp(-0.5*dist2);
+      weightGrid[iy*GW+ix]+=k;valueGrid[iy*GW+ix]+=k*val;
+    }}
   });
-  var result=new Float32Array(GW*GH);
-  var validVals=[];
+  var result=new Float32Array(GW*GH);var validVals=[];
   for(var i=0;i<GW*GH;i++){
     if(weightGrid[i]>0.01){result[i]=densityMode?weightGrid[i]:valueGrid[i]/weightGrid[i];validVals.push(result[i]);}
     else result[i]=NaN;
   }
   return{grid:result,gw:GW,gh:GH,xMin:X_MIN,xMax:X_MAX,yMin:Y_MIN,yMax:Y_MAX,validVals:validVals};
 }
-
 function hotColdColor(t){
-  t=Math.max(0,Math.min(1,t));
-  var r,g,b;
+  t=Math.max(0,Math.min(1,t));var r,g,b;
   if(t<0.5){var s=t*2;r=Math.round(59+s*(255-59));g=Math.round(113+s*(255-113));b=Math.round(204+s*(255-204));}
   else{var s=(t-0.5)*2;r=255;g=Math.round(255-s*255);b=Math.round(255-s*255);}
   return[r,g,b];
 }
-
 function drawZoneGrid(canvasId,rows,valueFn,minVal,maxVal,label,xMin,xMax,yMin,yMax,densityMode){
   var cv=document.getElementById(canvasId);if(!cv)return;
   var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
   var PAD_L=8,PAD_R=8,PAD_T=8,PAD_B=8;
   var gridW=W-PAD_L-PAD_R,gridH=H-PAD_T-PAD_B;
-
-  ctx.clearRect(0,0,W,H);
-  ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);
-
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);
   var kdeResult=buildKDEGrid(rows,valueFn,densityMode?0.14:0.10,xMin,xMax,yMin,yMax,densityMode);
-  var grid=kdeResult.grid;
-  var GW=kdeResult.gw,GH=kdeResult.gh;
-  // *** FIX: declare X_MIN/X_MAX/Y_MIN/Y_MAX HERE, before any loop that uses them ***
+  var grid=kdeResult.grid;var GW=kdeResult.gw,GH=kdeResult.gh;
   var X_MIN=kdeResult.xMin,X_MAX=kdeResult.xMax,Y_MIN=kdeResult.yMin,Y_MAX=kdeResult.yMax;
-
-  // Fill NaN cells by nearest neighbor - only within shadow zone
   var FILL_X=Math.min(X_MAX-0.05,0.833+0.25),FILL_Y_TOP=Math.min(Y_MAX-0.05,3.5+0.25),FILL_Y_BOT=Math.max(Y_MIN+0.05,1.5-0.25);
   var filled=grid.slice();
   for(var iter=0;iter<8;iter++){
-    for(var gy=0;gy<GH;gy++){
-      for(var gx=0;gx<GW;gx++){
-        var fx=X_MIN+(gx+0.5)/GW*(X_MAX-X_MIN);
-        var fy=Y_MAX-(gy+0.5)/GH*(Y_MAX-Y_MIN);
-        if(Math.abs(fx)>FILL_X||fy<FILL_Y_BOT||fy>FILL_Y_TOP){filled[gy*GW+gx]=NaN;continue;}
-        if(!isNaN(filled[gy*GW+gx]))continue;
-        var sum=0,cnt=0;
-        if(gx>0&&!isNaN(filled[gy*GW+gx-1])){sum+=filled[gy*GW+gx-1];cnt++;}
-        if(gx<GW-1&&!isNaN(filled[gy*GW+gx+1])){sum+=filled[gy*GW+gx+1];cnt++;}
-        if(gy>0&&!isNaN(filled[(gy-1)*GW+gx])){sum+=filled[(gy-1)*GW+gx];cnt++;}
-        if(gy<GH-1&&!isNaN(filled[(gy+1)*GW+gx])){sum+=filled[(gy+1)*GW+gx];cnt++;}
-        if(cnt>0)filled[gy*GW+gx]=sum/cnt;
-      }
-    }
+    for(var gy=0;gy<GH;gy++){for(var gx=0;gx<GW;gx++){
+      var fx=X_MIN+(gx+0.5)/GW*(X_MAX-X_MIN);var fy=Y_MAX-(gy+0.5)/GH*(Y_MAX-Y_MIN);
+      if(Math.abs(fx)>FILL_X||fy<FILL_Y_BOT||fy>FILL_Y_TOP){filled[gy*GW+gx]=NaN;continue;}
+      if(!isNaN(filled[gy*GW+gx]))continue;
+      var sum=0,cnt=0;
+      if(gx>0&&!isNaN(filled[gy*GW+gx-1])){sum+=filled[gy*GW+gx-1];cnt++;}
+      if(gx<GW-1&&!isNaN(filled[gy*GW+gx+1])){sum+=filled[gy*GW+gx+1];cnt++;}
+      if(gy>0&&!isNaN(filled[(gy-1)*GW+gx])){sum+=filled[(gy-1)*GW+gx];cnt++;}
+      if(gy<GH-1&&!isNaN(filled[(gy+1)*GW+gx])){sum+=filled[(gy+1)*GW+gx];cnt++;}
+      if(cnt>0)filled[gy*GW+gx]=sum/cnt;
+    }}
   }
-
-  // Dynamic range
   var vv=kdeResult.validVals;
-  var mn=vv.length?Math.min.apply(null,vv):minVal;
-  var mxv=vv.length?Math.max.apply(null,vv):maxVal;
+  var mn=vv.length?Math.min.apply(null,vv):minVal;var mxv=vv.length?Math.max.apply(null,vv):maxVal;
   var range=Math.max(mxv-mn,0.001);
-
-  // Render ImageData
   var imgData=ctx.createImageData(gridW,gridH);
   var cellW=gridW/GW,cellH=gridH/GH;
-  for(var py=0;py<gridH;py++){
-    for(var px=0;px<gridW;px++){
-      var gxi=Math.min(GW-1,Math.floor(px/cellW));
-      var gyi=Math.min(GH-1,Math.floor(py/cellH));
-      var val=filled[gyi*GW+gxi];
-      var pidx=(py*gridW+px)*4;
-      var pfx=X_MIN+(px/gridW)*(X_MAX-X_MIN);
-      var pfy=Y_MAX-(py/gridH)*(Y_MAX-Y_MIN);
-      var EDGE=0.833+0.15,ETOP=3.5+0.15,EBOT=1.5-0.15;
-      var dX=Math.max(0,Math.abs(pfx)-EDGE);
-      var dY=Math.max(0,Math.max(EBOT-pfy,pfy-ETOP));
-      var edgeDist=Math.max(dX,dY);
-      var edgeAlpha=edgeDist<=0?1:Math.max(0,1-edgeDist/0.12);
-      if(isNaN(val)||edgeAlpha<=0){
-        imgData.data[pidx]=imgData.data[pidx+1]=imgData.data[pidx+2]=imgData.data[pidx+3]=0;
-      } else {
-        var t=(val-mn)/range;
-        var col=hotColdColor(t);
-        imgData.data[pidx]=col[0];
-        imgData.data[pidx+1]=col[1];
-        imgData.data[pidx+2]=col[2];
-        imgData.data[pidx+3]=Math.round(edgeAlpha*255);
-      }
-    }
-  }
-  ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);
-  ctx.putImageData(imgData,PAD_L,PAD_T);
-
-  // Zone border + grid lines
+  for(var py=0;py<gridH;py++){for(var px=0;px<gridW;px++){
+    var gxi=Math.min(GW-1,Math.floor(px/cellW));var gyi=Math.min(GH-1,Math.floor(py/cellH));
+    var val=filled[gyi*GW+gxi];var pidx=(py*gridW+px)*4;
+    var pfx=X_MIN+(px/gridW)*(X_MAX-X_MIN);var pfy=Y_MAX-(py/gridH)*(Y_MAX-Y_MIN);
+    var EDGE=0.833+0.15,ETOP=3.5+0.15,EBOT=1.5-0.15;
+    var dX=Math.max(0,Math.abs(pfx)-EDGE);var dY=Math.max(0,Math.max(EBOT-pfy,pfy-ETOP));
+    var edgeDist=Math.max(dX,dY);var edgeAlpha=edgeDist<=0?1:Math.max(0,1-edgeDist/0.12);
+    if(isNaN(val)||edgeAlpha<=0){imgData.data[pidx]=imgData.data[pidx+1]=imgData.data[pidx+2]=imgData.data[pidx+3]=0;}
+    else{var t=(val-mn)/range;var col=hotColdColor(t);imgData.data[pidx]=col[0];imgData.data[pidx+1]=col[1];imgData.data[pidx+2]=col[2];imgData.data[pidx+3]=Math.round(edgeAlpha*255);}
+  }}
+  ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);ctx.putImageData(imgData,PAD_L,PAD_T);
   function px2(x){return PAD_L+(x-X_MIN)/(X_MAX-X_MIN)*gridW;}
   function py2(y){return PAD_T+(Y_MAX-y)/(Y_MAX-Y_MIN)*gridH;}
-  var zXmin=-0.833,zXmax=0.833,zYmin=1.5,zYmax=3.5;
   ctx.strokeStyle='rgba(0,0,0,0.75)';ctx.lineWidth=2;
-  ctx.strokeRect(px2(zXmin),py2(zYmax),px2(zXmax)-px2(zXmin),py2(zYmin)-py2(zYmax));
+  ctx.strokeRect(px2(-0.833),py2(3.5),px2(0.833)-px2(-0.833),py2(1.5)-py2(3.5));
   ctx.strokeStyle='rgba(0,0,0,0.15)';ctx.lineWidth=0.5;
-  var zW=(px2(zXmax)-px2(zXmin))/3,zH=(py2(zYmin)-py2(zYmax))/3;
+  var zW=(px2(0.833)-px2(-0.833))/3,zH=(py2(1.5)-py2(3.5))/3;
   for(var i=1;i<3;i++){
-    ctx.beginPath();ctx.moveTo(px2(zXmin)+zW*i,py2(zYmax));ctx.lineTo(px2(zXmin)+zW*i,py2(zYmin));ctx.stroke();
-    ctx.beginPath();ctx.moveTo(px2(zXmin),py2(zYmax)+zH*i);ctx.lineTo(px2(zXmax),py2(zYmax)+zH*i);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(px2(-0.833)+zW*i,py2(3.5));ctx.lineTo(px2(-0.833)+zW*i,py2(1.5));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(px2(-0.833),py2(3.5)+zH*i);ctx.lineTo(px2(0.833),py2(3.5)+zH*i);ctx.stroke();
   }
 }
 
-// Value functions
 var WOBA_WEIGHTS={'Single':0.88,'Double':1.24,'Triple':1.56,'HomeRun':2.08,'Home Run':2.08};
 function wobaVal(r){if(r.PitchCall!=='InPlay')return null;return WOBA_WEIGHTS[r.PlayResult||'']||0;}
-function isoVal(r){
-  if(r.PitchCall!=='InPlay')return null;
-  var tbMap={'Single':1,'Double':2,'Triple':3,'HomeRun':4,'Home Run':4};
-  var tb=tbMap[r.PlayResult||'']||0;
-  return tb-(tb>0?1:0);
-}
-function hardVal(r){var ev=parseFloat(r.ExitSpeed);if(isNaN(ev)||ev<=0||r.PitchCall!=='InPlay')return null;return ev>=95?1:0;}
-function whiffVal(r){return(r.PitchCall||'').trim()==='StrikeSwinging'?1:null;}
 
 function buildPitchTable(p){
   var tbody=document.getElementById('pitchTableBody');if(!tbody)return;
   tbody.innerHTML='';
+  var totalPitches=Object.values(p.pitchTypes).reduce(function(s,v){return s+v.total;},0);
   Object.entries(p.pitchTypes)
     .filter(function(e){return e[1].total>=3;})
     .sort(function(a,b){return b[1].total-a[1].total;})
@@ -523,14 +561,39 @@ function buildPitchTable(p){
       var wh=d.swings>0?d.whiffs/d.swings:0;
       var ch=d.ozPitches>0?d.chases/d.ozPitches:0;
       var hard=d.ev.length>0?d.ev.filter(function(v){return v>=95;}).length/d.ev.length:0;
-      var sortedEV=d.ev.slice().sort(function(a,b){return b-a;});
-      var topHalf=sortedEV.slice(0,Math.ceil(sortedEV.length/2));
-      var bestSpeed=topHalf.length>0?(topHalf.reduce(function(a,b){return a+b;},0)/topHalf.length).toFixed(1):'--';
-      var totalPitches=Object.values(p.pitchTypes).reduce(function(s,v){return s+v.total;},0);
       var usagePct=totalPitches>0?(d.total/totalPitches*100).toFixed(1)+'%':'--';
       var color=pitchColor(pt);
-      var swstr=d.total>0?d.whiffs/d.total:0;
-      tbody.innerHTML+='<tr><td style="display:flex;align-items:center;gap:4px"><div class="pitch-dot" style="background:'+color+'"></div>'+escH(pt)+'</td><td>'+usagePct+'</td><td>'+pct(sw)+'</td><td>'+pct(wh)+'</td><td>'+pct(swstr)+'</td><td>'+(ch>0?pct(ch):'--')+'</td><td>'+pct(hard)+'</td><td>'+bestSpeed+'</td></tr>';
+
+      // ── wOBA and ISO per pitch type ──
+      var ab=d.ptInPlay+(d.ptKs||0);
+      var hits=(d.ptSingles||0)+(d.ptDoubles||0)+(d.ptTriples||0)+(d.ptHRs||0);
+      var ptAVG=ab>0?hits/ab:null;
+      var ptSLG=ab>0?((d.ptSingles||0)+2*(d.ptDoubles||0)+3*(d.ptTriples||0)+4*(d.ptHRs||0))/ab:null;
+      var ptISO=(ptAVG!==null&&ptSLG!==null)?ptSLG-ptAVG:null;
+      var wobaDen=ab+(d.ptBBs||0)+(d.ptHBPs||0);
+      var wobaNum=0.88*(d.ptSingles||0)+1.24*(d.ptDoubles||0)+1.56*(d.ptTriples||0)+2.08*(d.ptHRs||0)+0.69*(d.ptBBs||0)+0.72*(d.ptHBPs||0);
+      var ptWOBA=wobaDen>0?wobaNum/wobaDen:null;
+
+      function fa(v){if(v===null)return'--';var s=v.toFixed(3);return s.startsWith('0.')?s.slice(1):s;}
+      var wc='';
+      if(ptWOBA!==null){
+        if(ptWOBA>=0.500)wc='woba-bad';
+        else if(ptWOBA>=0.380)wc='woba-avg';
+        else if(ptWOBA>=0.300)wc='woba-good';
+        else wc='woba-elite';
+      }
+
+      tbody.innerHTML+=
+        '<tr>'+
+        '<td style="display:flex;align-items:center;gap:4px"><div class="pitch-dot" style="background:'+color+'"></div>'+escH(pt)+'</td>'+
+        '<td>'+usagePct+'</td>'+
+        '<td>'+pct(sw)+'</td>'+
+        '<td>'+pct(wh)+'</td>'+
+        '<td>'+(ch>0?pct(ch):'--')+'</td>'+
+        '<td>'+pct(hard)+'</td>'+
+        '<td class="'+wc+'">'+fa(ptWOBA)+'</td>'+
+        '<td>'+fa(ptISO)+'</td>'+
+        '</tr>';
     });
 }
 
@@ -541,8 +604,7 @@ function buildCard(){
   document.getElementById('cardPos').textContent='Walters State CC';
   document.getElementById('sAVG').textContent=p.pa;
   document.getElementById('sOBP').textContent=fmt3(p.woba);
-  var iso=p.slg>0&&p.avg>0?fmt3(p.slg-p.avg):'--';
-  document.getElementById('sSLG').textContent=iso;
+  document.getElementById('sSLG').textContent=p.iso>0?fmt3(p.iso):'--';
   document.getElementById('sWOBA').textContent=fmt3(p.avg);
   document.getElementById('sHR').textContent=p.hr;
   document.getElementById('sRBI').textContent=p.xbh;
@@ -562,31 +624,20 @@ function buildCard(){
   document.getElementById('tWhiff').textContent=pct(p.whiffPct);
   document.getElementById('tSGR').textContent=(p.seagerScore||0).toFixed(2);
   setTimeout(function(){
-    // wOBA
     drawZoneGrid('zmapWoba',p.rows,wobaVal,0,1,'wOBA');
-
-    // FB whiff only
     var fbRows=p.rows.filter(function(r){return normPitch(r.TaggedPitchType||r.AutoPitchType)==='Fastball';});
     drawZoneGrid('zmapHard',fbRows,function(r){return r.PitchCall==='StrikeSwinging'?1:null;},0,1,'FB Whiff',null,null,null,null,true);
-
-    // Primary breaking ball whiff by usage
     var breakTypes=['Curveball','Slider','Cutter'];
     var primaryBreak=null,primaryCount=0;
-    breakTypes.forEach(function(bt){
-      var cnt=(p.pitchTypes[bt]&&p.pitchTypes[bt].total)||0;
-      if(cnt>primaryCount){primaryCount=cnt;primaryBreak=bt;}
-    });
+    breakTypes.forEach(function(bt){var cnt=(p.pitchTypes[bt]&&p.pitchTypes[bt].total)||0;if(cnt>primaryCount){primaryCount=cnt;primaryBreak=bt;}});
     if(primaryBreak&&primaryCount>=3){
       var breakRows=p.rows.filter(function(r){return normPitch(r.TaggedPitchType||r.AutoPitchType)===primaryBreak;});
-      var lbl=document.getElementById('zmapBreakLabel');
-      if(lbl)lbl.textContent=primaryBreak+' Whiff';
+      var lbl=document.getElementById('zmapBreakLabel');if(lbl)lbl.textContent=primaryBreak+' Whiff';
       drawZoneGrid('zmapIso',breakRows,function(r){return r.PitchCall==='StrikeSwinging'?1:null;},0,1,primaryBreak+' Whiff',null,null,null,null,true);
     } else {
       var ctx2=document.getElementById('zmapIso').getContext('2d');
       ctx2.clearRect(0,0,400,320);ctx2.fillStyle='#dce8f5';ctx2.fillRect(0,0,400,320);
     }
-
-    // SwStr all pitches
     drawZoneGrid('zmapWhiff',p.rows,function(r){return r.PitchCall==='StrikeSwinging'?1:null;},0,1,'SwStr',null,null,null,null,true);
     buildPitchTable(p);
   },30);
@@ -692,12 +743,28 @@ function renderTable(){
   data.sort(function(a,b){var av=a[sortCol]||0,bv=b[sortCol]||0;if(typeof av==='string')return sortAsc?av.localeCompare(bv):bv.localeCompare(av);return sortAsc?av-bv:bv-av;});
   document.getElementById('filterCount').textContent=data.length+' players';
   var tbody=document.getElementById('tableBody');tbody.innerHTML='';
-  if(!data.length){tbody.innerHTML='<tr><td colspan="13" class="no-data">No players match current filters</td></tr>';return;}
+  if(!data.length){tbody.innerHTML='<tr><td colspan="16" class="no-data">No players match current filters</td></tr>';return;}
   data.forEach(function(p){
     var tr=document.createElement('tr');
     if(selectedPlayer===p.name)tr.className='selected';
     tr.onclick=function(){selectedPlayer=p.name;document.querySelectorAll('#tableBody tr').forEach(function(r){r.classList.remove('selected');});tr.classList.add('selected');document.getElementById('genCardBtn').disabled=false;document.getElementById('selHint').textContent=p.displayName+' selected';};
-    tr.innerHTML='<td>'+escH(p.displayName)+'</td><td>'+p.pa+'</td><td class="val-hi">'+fmt3(p.woba)+'</td><td class="'+(p.solidPct>=.25?'val-good':'')+'">'+pct(p.solidPct)+'</td><td class="'+(p.hardHit>=.35?'val-good':'')+'">'+pct(p.hardHit)+'</td><td>'+pct(p.swingPct)+'</td><td class="'+(p.chasePct>=.30?'val-warn':'')+'">'+pct(p.chasePct)+'</td><td>'+pct(p.zSwingPct)+'</td><td class="'+((p.seagerScore||0)>=5?'val-good':(p.seagerScore||0)<0?'val-warn':'')+'">'+(p.seagerScore||0).toFixed(2)+'</td><td>'+pct(p.gbPct)+'</td><td>'+pct(p.fbPct)+'</td><td class="val-hi">'+(p.bestSpeed>0?p.bestSpeed.toFixed(1):'--')+'</td><td>'+(p.maxEV>0?p.maxEV.toFixed(1):'--')+'</td>';
+    tr.innerHTML=
+      '<td>'+escH(p.displayName)+'</td>'+
+      '<td>'+p.pa+'</td>'+
+      '<td class="'+(p.avg>=.300?'val-good':p.avg>0&&p.avg<.200?'val-warn':'val-hi')+'">'+fmt3(p.avg)+'</td>'+
+      '<td class="'+(p.woba>=.450?'val-good':p.woba>0&&p.woba<.300?'val-warn':'val-hi')+'">'+fmt3(p.woba)+'</td>'+
+      '<td class="'+(p.iso>=.200?'val-good':p.iso>0&&p.iso<.100?'val-warn':'')+'">'+fmt3(p.iso)+'</td>'+
+      '<td class="'+(p.kPct>=.25?'val-warn':'')+'">'+pct(p.kPct)+'</td>'+
+      '<td class="'+(p.bbPct>=.12?'val-good':'')+'">'+pct(p.bbPct)+'</td>'+
+      '<td class="'+(p.hardHit>=.35?'val-good':'')+'">'+pct(p.hardHit)+'</td>'+
+      '<td class="'+(p.solidPct>=.25?'val-good':'')+'">'+pct(p.solidPct)+'</td>'+
+      '<td class="'+(p.chasePct>=.30?'val-warn':'')+'">'+pct(p.chasePct)+'</td>'+
+      '<td>'+pct(p.zSwingPct)+'</td>'+
+      '<td class="'+((p.seagerScore||0)>=5?'val-good':(p.seagerScore||0)<0?'val-warn':'')+'">'+(p.seagerScore||0).toFixed(2)+'</td>'+
+      '<td>'+pct(p.gbPct)+'</td>'+
+      '<td>'+pct(p.fbPct)+'</td>'+
+      '<td class="val-hi">'+(p.bestSpeed>0?p.bestSpeed.toFixed(1):'--')+'</td>'+
+      '<td>'+(p.maxEV>0?p.maxEV.toFixed(1):'--')+'</td>';
     tbody.appendChild(tr);
   });
 }
