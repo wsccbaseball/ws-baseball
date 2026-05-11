@@ -152,6 +152,10 @@ canvas{display:block;border-radius:4px}
           <th onclick="sortTable('gbPct')">GB%</th>
           <th onclick="sortTable('fip')">FIP</th>
           <th onclick="sortTable('maxVelo')">Velo</th>
+          <th onclick="sortTable('avgIVB')">iVB</th>
+          <th onclick="sortTable('avgHB')">HB</th>
+          <th onclick="sortTable('avgSpin')">Spin</th>
+          <th onclick="sortTable('strPct')">Comp%</th>
           <th onclick="sortTable('avgWegs')">Avg GS</th>
         </tr></thead>
         <tbody id="tableBody"></tbody>
@@ -465,6 +469,10 @@ function computePitcherProfile(name, rows){
     putAwayPct:putAwayOpps>0?putAways/putAwayOpps:0,
     fpsPct:tbf>0?fpsStrikes/tbf:0,
     fip:fip,era:era,ipDisplay:ipDisplay,avgWegs:avgWegs,
+    strPct:rows.length>0?totalStrikes/rows.length:0,
+    avgIVB:(function(){var a=[];Object.values(pitchTypes).forEach(function(d){d.ivb.forEach(function(v){a.push(v);});});return a.length>0?a.reduce(function(s,v){return s+v;},0)/a.length:null;})(),
+    avgHB:(function(){var a=[];Object.values(pitchTypes).forEach(function(d){d.hb.forEach(function(v){a.push(v);});});return a.length>0?a.reduce(function(s,v){return s+v;},0)/a.length:null;})(),
+    avgSpin:(function(){var a=[];Object.values(pitchTypes).forEach(function(d){d.spin.forEach(function(v){a.push(v);});});return a.length>0?a.reduce(function(s,v){return s+v;},0)/a.length:null;})(),
     totalPitches:rows.length,pitchTypes:pitchTypes,rows:rows
   };
 }
@@ -792,7 +800,7 @@ function renderTable(){
   data.sort(function(a,b){var av=a[sortCol]||0,bv=b[sortCol]||0;if(typeof av==='string')return sortAsc?av.localeCompare(bv):bv.localeCompare(av);return sortAsc?av-bv:bv-av;});
   document.getElementById('filterCount').textContent=data.length+' pitchers';
   var tbody=document.getElementById('tableBody');tbody.innerHTML='';
-  if(!data.length){tbody.innerHTML='<tr><td colspan="13" class="no-data">No pitchers match current filters</td></tr>';return;}
+  if(!data.length){tbody.innerHTML='<tr><td colspan="19" class="no-data">No pitchers match current filters</td></tr>';return;}
   data.forEach(function(p){
     var tr=document.createElement('tr');
     if(selectedPitcher===p.name)tr.className='selected';
@@ -811,6 +819,10 @@ function renderTable(){
       '<td class="'+(p.gbPct>=.50?'val-good':'')+'">'+pct(p.gbPct)+'</td>'+
       '<td class="'+(p.fip!==null&&p.fip<=4.50?'val-good':p.fip!==null&&p.fip>=6.00?'val-warn':'val-hi')+'">'+(p.fip!==null?p.fip.toFixed(2):'--')+'</td>'+
       '<td class="val-hi">'+(p.maxVelo>0?p.maxVelo.toFixed(1):'--')+'</td>'+
+      '<td class="val-hi">'+(p.avgIVB!==null?p.avgIVB.toFixed(1):'--')+'</td>'+
+      '<td class="val-hi">'+(p.avgHB!==null?p.avgHB.toFixed(1):'--')+'</td>'+
+      '<td class="val-hi">'+(p.avgSpin!==null?Math.round(p.avgSpin)+'':'--')+'</td>'+
+      '<td class="'+(p.strPct>=.65?'val-good':p.strPct<=.55?'val-warn':'val-hi')+'">'+(p.strPct>0?pct(p.strPct):'--')+'</td>'+
       '<td class="'+(p.avgWegs!==null&&p.avgWegs>=50?'val-good':p.avgWegs!==null&&p.avgWegs<40?'val-warn':'val-hi')+'">'+(p.avgWegs!==null?p.avgWegs.toFixed(1):'--')+'</td>';
     tbody.appendChild(tr);
   });
