@@ -8,26 +8,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Anton&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-background: #f2ead8;
-color: #1a1a1a;
-font-family: ‘Source Serif 4’, Georgia, serif;
-min-height: 100vh;
-}
-
+body { background: #f2ead8; color: #1a1a1a; font-family: 'Source Serif 4', Georgia, serif; min-height: 100vh; }
 .container { max-width: 900px; margin: 0 auto; padding-bottom: 60px; }
 
-.header {
-background: #1a1a1a;
-color: #f2ead8;
-padding: 14px 18px 12px;
-display: flex;
-align-items: flex-end;
-justify-content: space-between;
-flex-wrap: wrap;
-gap: 6px;
-}
+.header { background: #1a1a1a; color: #f2ead8; padding: 14px 18px 12px; display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
 .header-title { font-family: ‘Abril Fatface’, serif; font-size: 22px; line-height: 1; }
 .header-sub { font-family: ‘Anton’, sans-serif; font-size: 10px; letter-spacing: 2.5px; color: #a89070; margin-top: 3px; text-transform: uppercase; }
 .header-badge { font-family: ‘Anton’, sans-serif; font-size: 10px; letter-spacing: 2px; color: #a89070; border: 1px solid #3a3a3a; padding: 3px 8px; text-transform: uppercase; }
@@ -112,7 +96,7 @@ tbody tr:hover { background: #ede5d0; }
   <div class="controls">
     <div class="select-wrap">
       <select id="teamSelect" onchange="onTeamChange()">
-        <option value="">— Select Opponent —</option>
+        <option value="">— Loading opponents… —</option>
       </select>
     </div>
     <div class="select-wrap">
@@ -162,318 +146,355 @@ tbody tr:hover { background: #ede5d0; }
 ```
 
   </div>
-
 </div>
-<script>
-const SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
 
-const PITCH_META = {
-‘FourSeamFastBall’: { abbr:‘FF’, label:‘Four-Seam’,   color:’#e03030’ },
-‘Four-Seam’:        { abbr:‘FF’, label:‘Four-Seam’,   color:’#e03030’ },
-‘Fastball’:         { abbr:‘FF’, label:‘Fastball’,    color:’#e03030’ },
-‘TwoSeamFastBall’:  { abbr:‘SI’, label:‘Sinker’,      color:’#ff7f0e’ },
-‘Sinker’:           { abbr:‘SI’, label:‘Sinker’,      color:’#ff7f0e’ },
-‘Cutter’:           { abbr:‘CT’, label:‘Cutter’,      color:’#e377c2’ },
-‘Slider’:           { abbr:‘SL’, label:‘Slider’,      color:’#2ca02c’ },
-‘Curveball’:        { abbr:‘CB’, label:‘Curveball’,   color:’#1f77b4’ },
-‘ChangeUp’:         { abbr:‘CH’, label:‘Changeup’,    color:’#9467bd’ },
-‘Changeup’:         { abbr:‘CH’, label:‘Changeup’,    color:’#9467bd’ },
-‘Splitter’:         { abbr:‘SP’, label:‘Splitter’,    color:’#8c564b’ },
-‘Knuckleball’:      { abbr:‘KN’, label:‘Knuckleball’, color:’#7f7f7f’ },
-‘Other’:            { abbr:‘OT’, label:‘Other’,       color:’#bcbd22’ },
-‘Undefined’:        { abbr:’??’, label:‘Unknown’,     color:’#bbbbbb’ },
+<script>
+var SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
+
+var PITCH_META = {
+  'FourSeamFastBall':{ abbr:'FF', label:'Four-Seam',   color:'#e03030' },
+  'Four-Seam':       { abbr:'FF', label:'Four-Seam',   color:'#e03030' },
+  'Fastball':        { abbr:'FF', label:'Fastball',    color:'#e03030' },
+  'TwoSeamFastBall': { abbr:'SI', label:'Sinker',      color:'#ff7f0e' },
+  'Sinker':          { abbr:'SI', label:'Sinker',      color:'#ff7f0e' },
+  'Cutter':          { abbr:'CT', label:'Cutter',      color:'#e377c2' },
+  'Slider':          { abbr:'SL', label:'Slider',      color:'#2ca02c' },
+  'Curveball':       { abbr:'CB', label:'Curveball',   color:'#1f77b4' },
+  'ChangeUp':        { abbr:'CH', label:'Changeup',    color:'#9467bd' },
+  'Changeup':        { abbr:'CH', label:'Changeup',    color:'#9467bd' },
+  'Splitter':        { abbr:'SP', label:'Splitter',    color:'#8c564b' },
+  'Knuckleball':     { abbr:'KN', label:'Knuckleball', color:'#7f7f7f' },
+  'Other':           { abbr:'OT', label:'Other',       color:'#bcbd22' },
+  'Undefined':       { abbr:'??', label:'Unknown',     color:'#bbbbbb' },
 };
 
-function getMeta(t) { return PITCH_META[t] || { abbr:(t||’??’).substring(0,2).toUpperCase(), label:t||‘Unknown’, color:’#aaaaaa’ }; }
+function getMeta(t) { return PITCH_META[t] || { abbr:(t||'??').substring(0,2).toUpperCase(), label:t||'Unknown', color:'#aaaaaa' }; }
 function resolvedType(p) {
-if (p.TaggedPitchType && p.TaggedPitchType !== ‘Undefined’ && p.TaggedPitchType.trim() !== ‘’) return p.TaggedPitchType;
-return p.AutoPitchType || ‘Undefined’;
+  if (p.TaggedPitchType && p.TaggedPitchType !== 'Undefined' && p.TaggedPitchType.trim() !== '') return p.TaggedPitchType;
+  return p.AutoPitchType || 'Undefined';
 }
 function avg(arr) { var v=arr.filter(function(x){return x!=null&&!isNaN(x);}); if(!v.length)return null; return v.reduce(function(a,b){return a+b;},0)/v.length; }
-function fmt(val,dec) { if(val==null||isNaN(val))return ‘—’; return val.toFixed(dec!=null?dec:1); }
-function parseIP(s) { if(!s)return 0; var p=String(s).trim().split(’.’); return (parseInt(p[0])||0)+(parseInt(p[1])||0)/3; }
-function formatIP(d) { var f=Math.floor(d); return f+’.’+Math.round((d-f)*3); }
+function fmt(val,dec) { if(val==null||isNaN(val))return '—'; return val.toFixed(dec!=null?dec:1); }
+function parseIP(s) { if(!s)return 0; var p=String(s).trim().split('.'); return (parseInt(p[0])||0)+(parseInt(p[1])||0)/3; }
+function formatIP(d) { var f=Math.floor(d); return f+'.'+Math.round((d-f)*3); }
 
-async function sbFetch(table, params) {
-var res = await fetch(SUPABASE_URL+’/rest/v1/’+table+’?’+params, {
-headers: { ‘apikey’:SUPABASE_KEY, ‘Authorization’:’Bearer ’+SUPABASE_KEY, ‘Accept’:‘application/json’ }
-});
-if (!res.ok) {
-var txt = await res.text();
-throw new Error(’Supabase ‘+res.status+’: ’+txt);
-}
-return res.json();
+function sbFetch(table, params) {
+  return fetch(SUPABASE_URL+'/rest/v1/'+table+'?'+params, {
+    headers: { 'apikey':SUPABASE_KEY, 'Authorization':'Bearer '+SUPABASE_KEY, 'Accept':'application/json' }
+  }).then(function(res) {
+    if (!res.ok) return res.text().then(function(t){ throw new Error('Supabase '+res.status+': '+t); });
+    return res.json();
+  });
 }
 
-// ── Load teams from games table (small table, reliable) ──────
-async function loadTeams() {
-try {
-var games = await sbFetch(‘games’, ‘select=home_team,away_team’);
-var all = [];
-games.forEach(function(g) {
-if (g.home_team && g.home_team !== ‘Wal_Sen’) all.push(g.home_team);
-if (g.away_team && g.away_team !== ‘Wal_Sen’) all.push(g.away_team);
-});
-var teams = […new Set(all)].filter(function(t){return t&&t.trim()!==’’;}).sort();
-var sel = document.getElementById(‘teamSelect’);
-teams.forEach(function(t) {
-var o = document.createElement(‘option’);
-o.value = t; o.textContent = t;
-sel.appendChild(o);
-});
-} catch(e) {
-console.error(‘loadTeams:’, e);
-document.getElementById(‘teamSelect’).insertAdjacentHTML(‘beforeend’,
-‘<option disabled>Error loading teams</option>’);
-}
+// ── Load teams: get all game_ids from games table, then fetch
+//   one opposing pitch per game in parallel to collect team codes ──
+function loadTeams() {
+  sbFetch('games', 'select=game_id&order=date.desc').then(function(games) {
+    if (!games || !games.length) {
+      setTeamError('No games found in database.');
+      return;
+    }
+
+    // Fire one request per game asking for 1 opposing pitch
+    var promises = games.map(function(g) {
+      return sbFetch('pitches',
+        'select=PitcherTeam&game_id=eq.'+encodeURIComponent(g.game_id)+
+        '&PitcherTeam=not.eq.Wal_Sen&PitcherTeam=not.is.null&limit=1'
+      ).catch(function() { return []; });
+    });
+
+    Promise.all(promises).then(function(results) {
+      var seen = {};
+      results.forEach(function(rows) {
+        rows.forEach(function(r) { if (r.PitcherTeam) seen[r.PitcherTeam] = true; });
+      });
+      var teams = Object.keys(seen).sort();
+
+      var sel = document.getElementById('teamSelect');
+      sel.innerHTML = '<option value="">— Select Opponent —</option>';
+
+      if (!teams.length) {
+        setTeamError('No opponent teams found.');
+        return;
+      }
+
+      teams.forEach(function(t) {
+        var o = document.createElement('option');
+        o.value = t; o.textContent = t;
+        sel.appendChild(o);
+      });
+    });
+  }).catch(function(e) {
+    console.error('loadTeams:', e);
+    setTeamError('Error: '+e.message);
+  });
 }
 
-async function onTeamChange() {
-var team = document.getElementById(‘teamSelect’).value;
-var ps = document.getElementById(‘pitcherSelect’);
-ps.innerHTML = ‘<option value="">— Select Pitcher —</option>’;
-ps.disabled = true;
-document.getElementById(‘reportArea’).style.display = ‘none’;
-document.getElementById(‘emptyState’).style.display = ‘block’;
-if (!team) return;
-try {
-var data = await sbFetch(‘pitches’,
-‘select=Pitcher&PitcherTeam=eq.’+encodeURIComponent(team)+’&Pitcher=not.is.null&limit=5000’
-);
-var pitchers = […new Set(data.map(function(r){return r.Pitcher;}).filter(Boolean))].sort();
-pitchers.forEach(function(p) {
-var o = document.createElement(‘option’);
-o.value = p; o.textContent = p;
-ps.appendChild(o);
-});
-ps.disabled = false;
-} catch(e) {
-console.error(‘onTeamChange:’, e);
+function setTeamError(msg) {
+  var sel = document.getElementById('teamSelect');
+  sel.innerHTML = '<option value="">' + msg + '</option>';
 }
+
+function onTeamChange() {
+  var team = document.getElementById('teamSelect').value;
+  var ps = document.getElementById('pitcherSelect');
+  ps.innerHTML = '<option value="">— Select Pitcher —</option>';
+  ps.disabled = true;
+  document.getElementById('reportArea').style.display = 'none';
+  document.getElementById('emptyState').style.display = 'block';
+  if (!team) return;
+
+  sbFetch('pitches',
+    'select=Pitcher&PitcherTeam=eq.'+encodeURIComponent(team)+
+    '&Pitcher=not.is.null&limit=5000'
+  ).then(function(data) {
+    var pitchers = [];
+    var seen = {};
+    data.forEach(function(r) { if (r.Pitcher && !seen[r.Pitcher]) { seen[r.Pitcher]=true; pitchers.push(r.Pitcher); } });
+    pitchers.sort();
+    pitchers.forEach(function(p) {
+      var o = document.createElement('option');
+      o.value = p; o.textContent = p;
+      ps.appendChild(o);
+    });
+    ps.disabled = false;
+  }).catch(function(e) { console.error('onTeamChange:', e); });
 }
 
 var currentPitches = [];
 
-async function onPitcherChange() {
-var pitcher = document.getElementById(‘pitcherSelect’).value;
-var team    = document.getElementById(‘teamSelect’).value;
-if (!pitcher) return;
+function onPitcherChange() {
+  var pitcher = document.getElementById('pitcherSelect').value;
+  var team    = document.getElementById('teamSelect').value;
+  if (!pitcher) return;
 
-document.getElementById(‘emptyState’).style.display = ‘none’;
-document.getElementById(‘reportArea’).style.display = ‘block’;
-document.getElementById(‘pitcherNameDisplay’).textContent = pitcher;
-document.getElementById(‘pitcherTeamDisplay’).textContent = team;
-document.getElementById(‘pitcherMeta’).textContent = ‘’;
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('reportArea').style.display = 'block';
+  document.getElementById('pitcherNameDisplay').textContent = pitcher;
+  document.getElementById('pitcherTeamDisplay').textContent = team;
+  document.getElementById('pitcherMeta').textContent = '';
 
-[‘boxScoreArea’,‘arsenalArea’,‘countArea’,‘locationArea’].forEach(function(id){
-document.getElementById(id).innerHTML = ‘<div class="msg">Loading…</div>’;
-});
-switchTab(‘arsenal’);
+  ['boxScoreArea','arsenalArea','countArea','locationArea'].forEach(function(id){
+    document.getElementById(id).innerHTML = '<div class="msg">Loading…</div>';
+  });
+  switchTab('arsenal');
 
-try {
-var pitches = await sbFetch(‘pitches’,
-‘select=*&Pitcher=eq.’+encodeURIComponent(pitcher)+
-‘&PitcherTeam=eq.’+encodeURIComponent(team)+
-‘&order=game_id.asc&limit=1000’
-);
-currentPitches = pitches;
-var gameIds = […new Set(pitches.map(function(p){return p.game_id;}).filter(Boolean))];
-document.getElementById(‘pitcherMeta’).textContent =
-gameIds.length+’ Game’+(gameIds.length!==1?‘s’:’’)+’ · ‘+pitches.length+’ Pitches’;
+  sbFetch('pitches',
+    'select=*&Pitcher=eq.'+encodeURIComponent(pitcher)+
+    '&PitcherTeam=eq.'+encodeURIComponent(team)+
+    '&order=game_id.asc&limit=1000'
+  ).then(function(pitches) {
+    currentPitches = pitches;
+    var gameIds = [];
+    var seenGames = {};
+    pitches.forEach(function(p) { if (p.game_id && !seenGames[p.game_id]) { seenGames[p.game_id]=true; gameIds.push(p.game_id); } });
+    document.getElementById('pitcherMeta').textContent =
+      gameIds.length+' Game'+(gameIds.length!==1?'s':'')+' · '+pitches.length+' Pitches';
 
-```
-renderArsenal(pitches);
-renderCounts(pitches);
-renderLocations(pitches);
-fetchBoxScores(pitcher, gameIds);
-```
-
-} catch(e) {
-console.error(‘onPitcherChange:’, e);
-document.getElementById(‘arsenalArea’).innerHTML = ‘<div class="msg">Error: ‘+e.message+’</div>’;
-document.getElementById(‘boxScoreArea’).innerHTML = ‘<div class="msg">Error loading data.</div>’;
-}
+    renderArsenal(pitches);
+    renderCounts(pitches);
+    renderLocations(pitches);
+    fetchBoxScores(pitcher, gameIds);
+  }).catch(function(e) {
+    console.error('onPitcherChange:', e);
+    document.getElementById('arsenalArea').innerHTML = '<div class="msg">Error: '+e.message+'</div>';
+    document.getElementById('boxScoreArea').innerHTML = '<div class="msg">Error loading data.</div>';
+  });
 }
 
 // ── Box Score ────────────────────────────────────────────────
-async function fetchBoxScores(pitcherName, gameIds) {
-if (!gameIds.length) {
-document.getElementById(‘boxScoreArea’).innerHTML = ‘<div class="msg">No games found.</div>’;
-return;
-}
-try {
-var inParam = gameIds.map(function(id){return ‘”’+id+’”’;}).join(’,’);
-var games = await sbFetch(‘games’, ‘select=game_id,box_score_url&game_id=in.(’+inParam+’)’);
-var valid = games.filter(function(g){return g.box_score_url;});
-if (!valid.length) {
-document.getElementById(‘boxScoreArea’).innerHTML = ‘<div class="msg">No box score URLs found for these games.</div>’;
-return;
-}
-var searchName = pitcherName.includes(’,’)
-? pitcherName.split(’,’)[0].trim().toLowerCase()
-: pitcherName.split(’ ‘).pop().toLowerCase();
-var totals = {G:0,IP:0,H:0,R:0,ER:0,BB:0,K:0};
-var found = 0;
-for (var i=0; i<valid.length; i++) {
-try {
-var res = await fetch(SUPABASE_URL+’/functions/v1/fetch-boxscore’, {
-method:‘POST’,
-headers:{‘Content-Type’:‘application/json’,‘Authorization’:‘Bearer ‘+SUPABASE_KEY},
-body:JSON.stringify({url:valid[i].box_score_url})
-});
-if (!res.ok) continue;
-var bs = await res.json();
-var all = (bs.homePitchers||[]).concat(bs.awayPitchers||[]).concat(bs.pitchers||[]);
-var match = null;
-for (var j=0; j<all.length; j++) {
-var n = (all[j].name||all[j].Name||’’).toLowerCase();
-var nLast = n.includes(’,’) ? n.split(’,’)[0].trim() : n.split(’ ’).pop();
-if (nLast.includes(searchName)||searchName.includes(nLast)) { match=all[j]; break; }
-}
-if (match) {
-found++;
-totals.G++;
-totals.IP += parseIP(match.ip||match.IP||‘0’);
-totals.H  += parseInt(match.h ||match.H ||0)||0;
-totals.R  += parseInt(match.r ||match.R ||0)||0;
-totals.ER += parseInt(match.er||match.ER||0)||0;
-totals.BB += parseInt(match.bb||match.BB||0)||0;
-totals.K  += parseInt(match.k ||match.K ||match.so||match.SO||0)||0;
-}
-} catch(e) { console.warn(‘box score error:’, e); }
-}
-renderBoxScore(totals, found, valid.length);
-} catch(e) {
-console.error(‘fetchBoxScores:’, e);
-document.getElementById(‘boxScoreArea’).innerHTML = ‘<div class="msg">Error fetching box scores.</div>’;
-}
+function fetchBoxScores(pitcherName, gameIds) {
+  if (!gameIds.length) {
+    document.getElementById('boxScoreArea').innerHTML = '<div class="msg">No games found.</div>';
+    return;
+  }
+
+  var inParam = gameIds.map(function(id){return '"'+id+'"';}).join(',');
+  sbFetch('games', 'select=game_id,box_score_url&game_id=in.('+inParam+')').then(function(games) {
+    var valid = games.filter(function(g){return g.box_score_url;});
+    if (!valid.length) {
+      document.getElementById('boxScoreArea').innerHTML = '<div class="msg">No box score URLs found for these games.</div>';
+      return;
+    }
+
+    var searchName = pitcherName.includes(',')
+      ? pitcherName.split(',')[0].trim().toLowerCase()
+      : pitcherName.split(' ').pop().toLowerCase();
+
+    var totals = {G:0,IP:0,H:0,R:0,ER:0,BB:0,K:0};
+    var found = 0;
+    var pending = valid.length;
+
+    function done() {
+      pending--;
+      if (pending === 0) renderBoxScore(totals, found, valid.length);
+    }
+
+    valid.forEach(function(game) {
+      fetch(SUPABASE_URL+'/functions/v1/fetch-boxscore', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_KEY},
+        body:JSON.stringify({url:game.box_score_url})
+      }).then(function(res) {
+        if (!res.ok) { done(); return; }
+        return res.json();
+      }).then(function(bs) {
+        if (!bs) { done(); return; }
+        var all = (bs.homePitchers||[]).concat(bs.awayPitchers||[]).concat(bs.pitchers||[]);
+        var match = null;
+        for (var j=0; j<all.length; j++) {
+          var n = (all[j].name||all[j].Name||'').toLowerCase();
+          var nLast = n.includes(',') ? n.split(',')[0].trim() : n.split(' ').pop();
+          if (nLast.includes(searchName)||searchName.includes(nLast)) { match=all[j]; break; }
+        }
+        if (match) {
+          found++;
+          totals.G++;
+          totals.IP += parseIP(match.ip||match.IP||'0');
+          totals.H  += parseInt(match.h ||match.H ||0)||0;
+          totals.R  += parseInt(match.r ||match.R ||0)||0;
+          totals.ER += parseInt(match.er||match.ER||0)||0;
+          totals.BB += parseInt(match.bb||match.BB||0)||0;
+          totals.K  += parseInt(match.k ||match.K ||match.so||match.SO||0)||0;
+        }
+        done();
+      }).catch(function(){ done(); });
+    });
+  }).catch(function(e) {
+    document.getElementById('boxScoreArea').innerHTML = '<div class="msg">Error fetching box scores.</div>';
+  });
 }
 
 function renderBoxScore(t, found, total) {
-if (!found) {
-document.getElementById(‘boxScoreArea’).innerHTML = ‘<div class="msg">Pitcher not matched in box score data.</div>’;
-return;
-}
-var era  = t.IP>0 ? (t.ER/t.IP*9).toFixed(2) : ‘—’;
-var whip = t.IP>0 ? ((t.H+t.BB)/t.IP).toFixed(2) : ‘—’;
-var cells = [{v:t.G,l:‘G’},{v:formatIP(t.IP),l:‘IP’},{v:era,l:‘ERA’},{v:whip,l:‘WHIP’},{v:t.K,l:‘K’},{v:t.BB,l:‘BB’},{v:t.H,l:‘H’},{v:t.ER,l:‘ER’}];
-document.getElementById(‘boxScoreArea’).innerHTML =
-‘<div class="stat-row">’+
-cells.map(function(c){return ‘<div class="stat-cell"><div class="stat-val">’+c.v+’</div><div class="stat-lbl">’+c.l+’</div></div>’;}).join(’’)+
-‘</div><div class="stat-footnote">vs Walters State · ‘+found+’/’+total+’ games matched</div>’;
+  if (!found) {
+    document.getElementById('boxScoreArea').innerHTML = '<div class="msg">Pitcher not matched in box score data.</div>';
+    return;
+  }
+  var era  = t.IP>0 ? (t.ER/t.IP*9).toFixed(2) : '—';
+  var whip = t.IP>0 ? ((t.H+t.BB)/t.IP).toFixed(2) : '—';
+  var cells = [{v:t.G,l:'G'},{v:formatIP(t.IP),l:'IP'},{v:era,l:'ERA'},{v:whip,l:'WHIP'},{v:t.K,l:'K'},{v:t.BB,l:'BB'},{v:t.H,l:'H'},{v:t.ER,l:'ER'}];
+  document.getElementById('boxScoreArea').innerHTML =
+    '<div class="stat-row">'+
+    cells.map(function(c){return '<div class="stat-cell"><div class="stat-val">'+c.v+'</div><div class="stat-lbl">'+c.l+'</div></div>';}).join('')+
+    '</div><div class="stat-footnote">vs Walters State · '+found+'/'+total+' games matched</div>';
 }
 
 // ── Arsenal ──────────────────────────────────────────────────
 function renderArsenal(pitches) {
-var byType={}, total=pitches.length;
-pitches.forEach(function(p){ var pt=resolvedType(p); if(!byType[pt])byType[pt]=[]; byType[pt].push(p); });
-var sorted=Object.entries(byType).sort(function(a,b){return b[1].length-a[1].length;});
-if (!sorted.length) { document.getElementById(‘arsenalArea’).innerHTML=’<div class="msg">No pitch data.</div>’; return; }
-var rows=sorted.map(function(entry){
-var pt=entry[0], ps=entry[1], meta=getMeta(pt), pct=ps.length/total*100;
-var velos=ps.map(function(p){return p.RelSpeed;}).filter(function(v){return v>0;});
-var spins=ps.map(function(p){return p.SpinRate;}).filter(function(v){return v>0;});
-var ivbs=ps.map(function(p){return p.InducedVertBreak;}).filter(function(v){return v!=null&&!isNaN(v);});
-var hbs=ps.map(function(p){return p.HorzBreak;}).filter(function(v){return v!=null&&!isNaN(v);});
-return ‘<tr>’+
-‘<td><div class="pt-pill"><div class="pt-swatch" style="background:'+meta.color+'"></div><span class="pt-abbr">’+meta.abbr+’</span><span class="pt-name">’+meta.label+’</span></div></td>’+
-‘<td>’+ps.length+’</td>’+
-‘<td><div style="font-weight:600">’+pct.toFixed(1)+’%</div><div class="usage-bar"><div class="usage-fill" style="width:'+pct.toFixed(1)+'%;background:'+meta.color+'"></div></div></td>’+
-‘<td>’+fmt(avg(velos))+’</td>’+
-‘<td>’+(velos.length?Math.max.apply(null,velos).toFixed(1):’—’)+’</td>’+
-‘<td>’+fmt(avg(spins),0)+’</td>’+
-‘<td>’+fmt(avg(ivbs))+’</td>’+
-‘<td>’+fmt(avg(hbs))+’</td>’+
-‘</tr>’;
-}).join(’’);
-document.getElementById(‘arsenalArea’).innerHTML=
-‘<table><thead><tr><th style="text-align:left">Pitch</th><th>#</th><th>Usage</th><th>Avg V</th><th>Max V</th><th>Spin</th><th>iVB</th><th>HB</th></tr></thead><tbody>’+rows+’</tbody></table>’;
+  var byType={}, total=pitches.length;
+  pitches.forEach(function(p){ var pt=resolvedType(p); if(!byType[pt])byType[pt]=[]; byType[pt].push(p); });
+  var sorted=Object.entries(byType).sort(function(a,b){return b[1].length-a[1].length;});
+  if (!sorted.length) { document.getElementById('arsenalArea').innerHTML='<div class="msg">No pitch data.</div>'; return; }
+  var rows=sorted.map(function(e){
+    var pt=e[0], ps=e[1], meta=getMeta(pt), pct=ps.length/total*100;
+    var velos=ps.map(function(p){return p.RelSpeed;}).filter(function(v){return v>0;});
+    var spins=ps.map(function(p){return p.SpinRate;}).filter(function(v){return v>0;});
+    var ivbs=ps.map(function(p){return p.InducedVertBreak;}).filter(function(v){return v!=null&&!isNaN(v);});
+    var hbs=ps.map(function(p){return p.HorzBreak;}).filter(function(v){return v!=null&&!isNaN(v);});
+    return '<tr>'+
+      '<td><div class="pt-pill"><div class="pt-swatch" style="background:'+meta.color+'"></div>'+
+      '<span class="pt-abbr">'+meta.abbr+'</span><span class="pt-name">'+meta.label+'</span></div></td>'+
+      '<td>'+ps.length+'</td>'+
+      '<td><div style="font-weight:600">'+pct.toFixed(1)+'%</div>'+
+      '<div class="usage-bar"><div class="usage-fill" style="width:'+pct.toFixed(1)+'%;background:'+meta.color+'"></div></div></td>'+
+      '<td>'+fmt(avg(velos))+'</td>'+
+      '<td>'+(velos.length?Math.max.apply(null,velos).toFixed(1):'—')+'</td>'+
+      '<td>'+fmt(avg(spins),0)+'</td>'+
+      '<td>'+fmt(avg(ivbs))+'</td>'+
+      '<td>'+fmt(avg(hbs))+'</td>'+
+      '</tr>';
+  }).join('');
+  document.getElementById('arsenalArea').innerHTML=
+    '<table><thead><tr><th style="text-align:left">Pitch</th><th>#</th><th>Usage</th>'+
+    '<th>Avg V</th><th>Max V</th><th>Spin</th><th>iVB</th><th>HB</th></tr></thead><tbody>'+rows+'</tbody></table>';
 }
 
 // ── Count Tendencies ─────────────────────────────────────────
 var COUNT_GROUPS = [
-{label:‘First Pitch’,      filter:function(p){return p.Balls===0&&p.Strikes===0;}},
-{label:“Hitter’s Counts”,  filter:function(p){var b=p.Balls,s=p.Strikes;return (b===1&&s===0)||(b===2&&s===0)||(b===3&&s===0)||(b===2&&s===1)||(b===3&&s===1);}},
-{label:‘Even Counts’,      filter:function(p){return (p.Balls===1&&p.Strikes===1)||(p.Balls===2&&p.Strikes===2);}},
-{label:“Pitcher’s Counts”, filter:function(p){var b=p.Balls,s=p.Strikes;return (b===0&&s===1)||(b===0&&s===2)||(b===1&&s===2);}},
-{label:‘Two Strikes’,      filter:function(p){return p.Strikes===2;}},
-{label:‘Full Count’,       filter:function(p){return p.Balls===3&&p.Strikes===2;}},
+  {label:'First Pitch',      filter:function(p){return p.Balls===0&&p.Strikes===0;}},
+  {label:"Hitter's Counts",  filter:function(p){var b=p.Balls,s=p.Strikes;return (b===1&&s===0)||(b===2&&s===0)||(b===3&&s===0)||(b===2&&s===1)||(b===3&&s===1);}},
+  {label:'Even Counts',      filter:function(p){return (p.Balls===1&&p.Strikes===1)||(p.Balls===2&&p.Strikes===2);}},
+  {label:"Pitcher's Counts", filter:function(p){var b=p.Balls,s=p.Strikes;return (b===0&&s===1)||(b===0&&s===2)||(b===1&&s===2);}},
+  {label:'Two Strikes',      filter:function(p){return p.Strikes===2;}},
+  {label:'Full Count',       filter:function(p){return p.Balls===3&&p.Strikes===2;}},
 ];
 
 function renderCounts(pitches) {
-var cells=COUNT_GROUPS.map(function(group){
-var sub=pitches.filter(group.filter);
-if(!sub.length) return ‘<div class="count-cell"><div class="count-label">’+group.label+’</div><div class="count-no-data">No data</div></div>’;
-var n=sub.length, byType={};
-sub.forEach(function(p){var pt=resolvedType(p);byType[pt]=(byType[pt]||0)+1;});
-var sorted=Object.entries(byType).sort(function(a,b){return b[1]-a[1];});
-var bars=sorted.map(function(e){return ‘<div class="count-bar-seg" style="width:'+(e[1]/n*100).toFixed(1)+'%;background:'+getMeta(e[0]).color+'"></div>’;}).join(’’);
-var legend=sorted.slice(0,5).map(function(e){var m=getMeta(e[0]);return ‘<div class="leg-item"><div class="leg-dot" style="background:'+m.color+'"></div><span>’+m.abbr+’ ‘+(e[1]/n*100).toFixed(0)+’%</span></div>’;}).join(’’);
-return ‘<div class="count-cell"><div class="count-label">’+group.label+’ <span class="count-n">n=’+n+’</span></div><div class="count-bar-wrap">’+bars+’</div><div class="count-legend">’+legend+’</div></div>’;
-}).join(’’);
-document.getElementById(‘countArea’).innerHTML=’<div class="count-grid">’+cells+’</div>’;
+  var cells=COUNT_GROUPS.map(function(group){
+    var sub=pitches.filter(group.filter);
+    if(!sub.length) return '<div class="count-cell"><div class="count-label">'+group.label+'</div><div class="count-no-data">No data</div></div>';
+    var n=sub.length, byType={};
+    sub.forEach(function(p){var pt=resolvedType(p);byType[pt]=(byType[pt]||0)+1;});
+    var sorted=Object.entries(byType).sort(function(a,b){return b[1]-a[1];});
+    var bars=sorted.map(function(e){return '<div class="count-bar-seg" style="width:'+(e[1]/n*100).toFixed(1)+'%;background:'+getMeta(e[0]).color+'"></div>';}).join('');
+    var legend=sorted.slice(0,5).map(function(e){var m=getMeta(e[0]);return '<div class="leg-item"><div class="leg-dot" style="background:'+m.color+'"></div><span>'+m.abbr+' '+(e[1]/n*100).toFixed(0)+'%</span></div>';}).join('');
+    return '<div class="count-cell"><div class="count-label">'+group.label+' <span class="count-n">n='+n+'</span></div>'+
+      '<div class="count-bar-wrap">'+bars+'</div><div class="count-legend">'+legend+'</div></div>';
+  }).join('');
+  document.getElementById('countArea').innerHTML='<div class="count-grid">'+cells+'</div>';
 }
 
 // ── Location Maps ────────────────────────────────────────────
 function renderLocations(pitches) {
-var wrap=document.getElementById(‘locationArea’);
-wrap.innerHTML=’’;
-var byType={};
-pitches.forEach(function(p){var pt=resolvedType(p);if(!byType[pt])byType[pt]=[];byType[pt].push(p);});
-var sortedTypes=Object.entries(byType).sort(function(a,b){return b[1].length-a[1].length;});
-var maps=[{label:‘All Pitches’,pitches:pitches,color:null}].concat(
-sortedTypes.map(function(e){return {label:getMeta(e[0]).abbr+’ — ‘+getMeta(e[0]).label,pitches:e[1],color:getMeta(e[0]).color};})
-);
-var locWrap=document.createElement(‘div’);
-locWrap.className=‘loc-wrap’;
-maps.forEach(function(m){
-var item=document.createElement(‘div’); item.className=‘loc-item’;
-var canvas=document.createElement(‘canvas’); canvas.width=155; canvas.height=185;
-canvas.style.cssText=‘width:155px;height:185px;border:1px solid #c8b89a;’;
-drawZoneMap(canvas,m.pitches,m.color);
-var lbl=document.createElement(‘div’); lbl.className=‘loc-label’;
-lbl.textContent=m.label+’ (’+m.pitches.length+’)’;
-item.appendChild(canvas); item.appendChild(lbl); locWrap.appendChild(item);
-});
-wrap.appendChild(locWrap);
+  var wrap=document.getElementById('locationArea');
+  wrap.innerHTML='';
+  var byType={};
+  pitches.forEach(function(p){var pt=resolvedType(p);if(!byType[pt])byType[pt]=[];byType[pt].push(p);});
+  var sortedTypes=Object.entries(byType).sort(function(a,b){return b[1].length-a[1].length;});
+  var maps=[{label:'All Pitches',pitches:pitches,color:null}].concat(
+    sortedTypes.map(function(e){return {label:getMeta(e[0]).abbr+' — '+getMeta(e[0]).label,pitches:e[1],color:getMeta(e[0]).color};})
+  );
+  var locWrap=document.createElement('div');
+  locWrap.className='loc-wrap';
+  maps.forEach(function(m){
+    var item=document.createElement('div'); item.className='loc-item';
+    var canvas=document.createElement('canvas'); canvas.width=155; canvas.height=185;
+    canvas.style.cssText='width:155px;height:185px;border:1px solid #c8b89a;';
+    drawZoneMap(canvas,m.pitches,m.color);
+    var lbl=document.createElement('div'); lbl.className='loc-label';
+    lbl.textContent=m.label+' ('+m.pitches.length+')';
+    item.appendChild(canvas); item.appendChild(lbl); locWrap.appendChild(item);
+  });
+  wrap.appendChild(locWrap);
 }
 
 function drawZoneMap(canvas, pitches, singleColor) {
-var ctx=canvas.getContext(‘2d’), W=canvas.width, H=canvas.height;
-var SIDE_MIN=-2.5,SIDE_MAX=2.5,HT_MIN=0.5,HT_MAX=4.5;
-function toX(s){return(((-s)-SIDE_MIN)/(SIDE_MAX-SIDE_MIN))*W;}
-function toY(h){return H-((h-HT_MIN)/(HT_MAX-HT_MIN))*H;}
-ctx.fillStyle=’#f9f5ec’; ctx.fillRect(0,0,W,H);
-var SZ_L=-0.708,SZ_R=0.708,SZ_B=1.5,SZ_T=3.5;
-ctx.strokeStyle=’#c0b0a0’; ctx.lineWidth=0.8; ctx.setLineDash([3,3]);
-ctx.strokeRect(toX(SZ_R+0.145),toY(SZ_T+0.145),toX(SZ_L-0.145)-toX(SZ_R+0.145),toY(SZ_B-0.145)-toY(SZ_T+0.145));
-ctx.setLineDash([]); ctx.strokeStyle=’#c0b0a0’; ctx.lineWidth=0.5;
-var cW=(SZ_R-SZ_L)/3,rH=(SZ_T-SZ_B)/3;
-for(var i=1;i<3;i++){
-ctx.beginPath();ctx.moveTo(toX(SZ_L+cW*i),toY(SZ_T));ctx.lineTo(toX(SZ_L+cW*i),toY(SZ_B));ctx.stroke();
-ctx.beginPath();ctx.moveTo(toX(SZ_L),toY(SZ_B+rH*i));ctx.lineTo(toX(SZ_R),toY(SZ_B+rH*i));ctx.stroke();
-}
-ctx.strokeStyle=’#1a1a1a’; ctx.lineWidth=1.5;
-ctx.strokeRect(toX(SZ_R),toY(SZ_T),toX(SZ_L)-toX(SZ_R),toY(SZ_B)-toY(SZ_T));
-var pW=toX(SZ_L)-toX(SZ_R),pCX=toX(0),pY=toY(0.25);
-ctx.fillStyle=’#bbbbbb’; ctx.strokeStyle=’#888’; ctx.lineWidth=0.8;
-ctx.beginPath();ctx.moveTo(pCX-pW/2,pY-4);ctx.lineTo(pCX+pW/2,pY-4);ctx.lineTo(pCX+pW/2,pY);ctx.lineTo(pCX,pY+5);ctx.lineTo(pCX-pW/2,pY);ctx.closePath();ctx.fill();ctx.stroke();
-pitches.forEach(function(p){
-var side=p.PlateLocSide,ht=p.PlateLocHeight;
-if(side==null||ht==null||isNaN(side)||isNaN(ht)||Math.abs(side)>3||ht<0||ht>6)return;
-ctx.globalAlpha=0.5;
-ctx.fillStyle=singleColor||getMeta(resolvedType(p)).color;
-ctx.beginPath();ctx.arc(toX(side),toY(ht),2.8,0,Math.PI*2);ctx.fill();
-});
-ctx.globalAlpha=1;
+  var ctx=canvas.getContext('2d'), W=canvas.width, H=canvas.height;
+  var SIDE_MIN=-2.5,SIDE_MAX=2.5,HT_MIN=0.5,HT_MAX=4.5;
+  function toX(s){return(((-s)-SIDE_MIN)/(SIDE_MAX-SIDE_MIN))*W;}
+  function toY(h){return H-((h-HT_MIN)/(HT_MAX-HT_MIN))*H;}
+  ctx.fillStyle='#f9f5ec'; ctx.fillRect(0,0,W,H);
+  var SZ_L=-0.708,SZ_R=0.708,SZ_B=1.5,SZ_T=3.5;
+  ctx.strokeStyle='#c0b0a0'; ctx.lineWidth=0.8; ctx.setLineDash([3,3]);
+  ctx.strokeRect(toX(SZ_R+0.145),toY(SZ_T+0.145),toX(SZ_L-0.145)-toX(SZ_R+0.145),toY(SZ_B-0.145)-toY(SZ_T+0.145));
+  ctx.setLineDash([]); ctx.strokeStyle='#c0b0a0'; ctx.lineWidth=0.5;
+  var cW=(SZ_R-SZ_L)/3,rH=(SZ_T-SZ_B)/3;
+  for(var i=1;i<3;i++){
+    ctx.beginPath();ctx.moveTo(toX(SZ_L+cW*i),toY(SZ_T));ctx.lineTo(toX(SZ_L+cW*i),toY(SZ_B));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(toX(SZ_L),toY(SZ_B+rH*i));ctx.lineTo(toX(SZ_R),toY(SZ_B+rH*i));ctx.stroke();
+  }
+  ctx.strokeStyle='#1a1a1a'; ctx.lineWidth=1.5;
+  ctx.strokeRect(toX(SZ_R),toY(SZ_T),toX(SZ_L)-toX(SZ_R),toY(SZ_B)-toY(SZ_T));
+  var pW=toX(SZ_L)-toX(SZ_R),pCX=toX(0),pY=toY(0.25);
+  ctx.fillStyle='#bbbbbb'; ctx.strokeStyle='#888'; ctx.lineWidth=0.8;
+  ctx.beginPath();ctx.moveTo(pCX-pW/2,pY-4);ctx.lineTo(pCX+pW/2,pY-4);ctx.lineTo(pCX+pW/2,pY);ctx.lineTo(pCX,pY+5);ctx.lineTo(pCX-pW/2,pY);ctx.closePath();ctx.fill();ctx.stroke();
+  pitches.forEach(function(p){
+    var side=p.PlateLocSide,ht=p.PlateLocHeight;
+    if(side==null||ht==null||isNaN(side)||isNaN(ht)||Math.abs(side)>3||ht<0||ht>6)return;
+    ctx.globalAlpha=0.5;
+    ctx.fillStyle=singleColor||getMeta(resolvedType(p)).color;
+    ctx.beginPath();ctx.arc(toX(side),toY(ht),2.8,0,Math.PI*2);ctx.fill();
+  });
+  ctx.globalAlpha=1;
 }
 
 function switchTab(name) {
-document.querySelectorAll(’.tab’).forEach(function(t){t.classList.remove(‘active’);});
-document.querySelectorAll(’.section’).forEach(function(s){s.classList.remove(‘active’);});
-document.querySelector(’.tab[onclick=“switchTab('’+name+’')”]’).classList.add(‘active’);
-document.getElementById(‘tab-’+name).classList.add(‘active’);
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
+  document.querySelector('.tab[onclick="switchTab(\''+name+'\')"]').classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
 }
 
 loadTeams();
