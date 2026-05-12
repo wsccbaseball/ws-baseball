@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Opposing Pitcher Scout — WSCC Baseball</title>
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Anton&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+background: #f2ead8;
+color: #1a1a1a;
+font-family: ‘Source Serif 4’, Georgia, serif;
+min-height: 100vh;
+}
+
+.container { max-width: 900px; margin: 0 auto; padding-bottom: 60px; }
+
+/* ── Header ── */
+.header {
+background: #1a1a1a;
+color: #f2ead8;
+padding: 14px 18px 12px;
+display: flex;
+align-items: flex-end;
+justify-content: space-between;
+flex-wrap: wrap;
+gap: 6px;
+}
+.header-left {}
+.header-title {
+font-family: ‘Abril Fatface’, serif;
+font-size: 22px;
+letter-spacing: 0.3px;
+line-height: 1;
+}
+.header-sub {
+font-family: ‘Anton’, sans-serif;
+font-size: 10px;
+letter-spacing: 2.5px;
+color: #a89070;
+margin-top: 3px;
+text-transform: uppercase;
+}
+.header-badge {
+font-family: ‘Anton’, sans-serif;
+font-size: 10px;
+letter-spacing: 2px;
+color: #a89070;
+border: 1px solid #3a3a3a;
+padding: 3px 8px;
+text-transform: uppercase;
+}
+
+/* ── Banner ── */
+.banner {
+background: #1a1a1a;
+color: #f2ead8;
+font-family: ‘Anton’, sans-serif;
+font-size: 10px;
+letter-spacing: 2.5px;
+padding: 5px 16px;
+text-transform: uppercase;
+}
+
+/* ── Controls ── */
+.controls {
+background: #e8e0c8;
+border-bottom: 1.5px solid #1a1a1a;
+padding: 12px 16px;
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+.select-wrap { position: relative; }
+.select-wrap::after {
+content: ‘▾’;
+position: absolute;
+right: 12px;
+top: 50%;
+-webkit-transform: translateY(-50%);
+transform: translateY(-50%);
+pointer-events: none;
+font-size: 14px;
+color: #5a4a38;
+}
+select {
+width: 100%;
+padding: 9px 32px 9px 12px;
+font-size: 14px;
+font-family: ‘Source Serif 4’, Georgia, serif;
+background: #f2ead8;
+border: 1.5px solid #1a1a1a;
+border-radius: 0;
+color: #1a1a1a;
+-webkit-appearance: none;
+appearance: none;
+cursor: pointer;
+}
+select:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Pitcher Header ── */
+.pitcher-header {
+padding: 12px 16px 10px;
+border-bottom: 1px solid #c8b89a;
+display: flex;
+align-items: flex-start;
+justify-content: space-between;
+flex-wrap: wrap;
+gap: 8px;
+}
+.pitcher-name {
+font-family: ‘Abril Fatface’, serif;
+font-size: 20px;
+line-height: 1.1;
+}
+.pitcher-team {
+font-family: ‘Anton’, sans-serif;
+font-size: 10px;
+letter-spacing: 2px;
+color: #7a6a58;
+margin-top: 2px;
+text-transform: uppercase;
+}
+.pitcher-meta {
+font-family: ‘Anton’, sans-serif;
+font-size: 10px;
+letter-spacing: 1.5px;
+color: #7a6a58;
+text-align: right;
+text-transform: uppercase;
+}
+
+/* ── Stat Row (box score) ── */
+.stat-row {
+display: flex;
+flex-wrap: wrap;
+border-top: 1px solid #c8b89a;
+border-bottom: 1px solid #c8b89a;
+}
+.stat-cell {
+flex: 1;
+min-width: 52px;
+text-align: center;
+padding: 10px 4px 8px;
+border-right: 1px solid #c8b89a;
+background: #f2ead8;
+}
+.stat-cell:last-child { border-right: none; }
+.stat-val {
+font-family: ‘Anton’, sans-serif;
+font-size: 19px;
+line-height: 1;
+color: #1a1a1a;
+}
+.stat-lbl {
+font-family: ‘Anton’, sans-serif;
+font-size: 9px;
+letter-spacing: 1px;
+color: #7a6a58;
+margin-top: 3px;
+text-transform: uppercase;
+}
+.stat-footnote {
+font-family: ‘Anton’, sans-serif;
+font-size: 9px;
+letter-spacing: 1.5px;
+color: #9a8a78;
+padding: 4px 16px;
+text-transform: uppercase;
+background: #ede5d0;
+border-bottom: 1px solid #c8b89a;
+}
+
+/* ── Tabs ── */
+.tab-bar {
+display: flex;
+border-bottom: 2px solid #1a1a1a;
+background: #ede5d0;
+margin: 0;
+}
+.tab {
+padding: 9px 18px;
+font-family: ‘Anton’, sans-serif;
+font-size: 11px;
+letter-spacing: 1.5px;
+text-transform: uppercase;
+cursor: pointer;
+border-bottom: 3px solid transparent;
+margin-bottom: -2px;
+color: #9a8a78;
+-webkit-tap-highlight-color: transparent;
+-webkit-user-select: none;
+user-select: none;
+}
+.tab.active {
+color: #1a1a1a;
+border-bottom-color: #1a1a1a;
+}
+
+/* ── Sections ── */
+.section { display: none; }
+.section.active { display: block; }
+
+/* ── Arsenal Table ── */
+.arsenal-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 0; }
+table {
+width: 100%;
+border-collapse: collapse;
+font-size: 13px;
+}
+thead th {
+font-family: ‘Anton’, sans-serif;
+font-size: 9px;
+letter-spacing: 1.5px;
+text-transform: uppercase;
+padding: 8px 8px;
+text-align: center;
+background: #e0d8c4;
+border-bottom: 2px solid #1a1a1a;
+color: #1a1a1a;
+white-space: nowrap;
+}
+thead th:first-child { text-align: left; padding-left: 14px; }
+tbody td {
+padding: 8px 8px;
+text-align: center;
+border-bottom: 1px solid #d8cdb8;
+vertical-align: middle;
+}
+tbody td:first-child { text-align: left; padding-left: 14px; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: #ede5d0; }
+
+.pt-pill {
+display: inline-flex;
+align-items: center;
+gap: 5px;
+font-size: 12px;
+}
+.pt-swatch {
+width: 10px;
+height: 10px;
+border-radius: 50%;
+flex-shrink: 0;
+}
+.pt-abbr {
+font-family: ‘Anton’, sans-serif;
+font-size: 10px;
+letter-spacing: 0.5px;
+}
+.pt-name {
+font-size: 11px;
+color: #5a4a38;
+}
+
+.usage-bar {
+height: 4px;
+background: #d8cdb8;
+border-radius: 2px;
+margin-top: 3px;
+overflow: hidden;
+}
+.usage-fill { height: 100%; border-radius: 2px; }
+
+/* ── Count Tendencies ── */
+.count-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 1px;
+background: #c8b89a;
+margin: 0;
+}
+.count-cell {
+background: #f2ead8;
+padding: 10px 12px;
+}
+.count-label {
+font-family: ‘Anton’, sans-serif;
+font-size: 9px;
+letter-spacing: 2px;
+text-transform: uppercase;
+color: #7a6a58;
+margin-bottom: 5px;
+}
+.count-n {
+color: #1a1a1a;
+font-size: 9px;
+}
+.count-bar-wrap {
+display: flex;
+height: 16px;
+border-radius: 1px;
+overflow: hidden;
+margin-bottom: 5px;
+background: #d8cdb8;
+}
+.count-bar-seg { height: 100%; }
+.count-legend {
+display: flex;
+flex-wrap: wrap;
+gap: 5px;
+margin-top: 3px;
+}
+.leg-item {
+display: flex;
+align-items: center;
+gap: 3px;
+font-size: 10px;
+color: #3a3a3a;
+}
+.leg-dot {
+width: 7px;
+height: 7px;
+border-radius: 50%;
+flex-shrink: 0;
+}
+.count-no-data {
+font-style: italic;
+font-size: 11px;
+color: #a09080;
+}
+
+/* ── Location Maps ── */
+.loc-wrap {
+display: flex;
+flex-wrap: wrap;
+gap: 10px;
+padding: 14px 12px;
+justify-content: center;
+background: #f2ead8;
+}
+.loc-item { text-align: center; }
+.loc-label {
+font-family: ‘Anton’, sans-serif;
+font-size: 9px;
+letter-spacing: 1.5px;
+text-transform: uppercase;
+color: #7a6a58;
+margin-top: 5px;
+}
+
+/* ── Utility ── */
+.msg {
+padding: 28px 20px;
+text-align: center;
+color: #9a8a78;
+font-style: italic;
+font-size: 13px;
+}
+.loading-dots::after {
+content: ‘…’;
+animation: dots 1.2s steps(4, end) infinite;
+}
+@keyframes dots {
+0%, 100% { content: ‘’; }
+25% { content: ‘.’; }
+50% { content: ‘..’; }
+75% { content: ‘…’; }
+}
+
+.divider {
+height: 1px;
+background: #c8b89a;
+margin: 0;
+}
+
+.empty-state {
+padding: 50px 20px;
+text-align: center;
+color: #9a8a78;
+}
+.empty-state-icon {
+font-size: 36px;
+margin-bottom: 10px;
+opacity: 0.4;
+}
+.empty-state-text {
+font-family: ‘Anton’, sans-serif;
+font-size: 11px;
+letter-spacing: 2px;
+text-transform: uppercase;
+color: #9a8a78;
+}
+</style>
+
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+
+  <div class="header">
+    <div class="header-left">
+      <div class="header-title">Opposing Pitcher Scout</div>
+      <div class="header-sub">WSCC Baseball · TrackMan Analytics</div>
+    </div>
+    <div class="header-badge">Pre-Game Prep</div>
+  </div>
+
+  <!-- Controls -->
+
+  <div class="controls">
+    <div class="select-wrap">
+      <select id="teamSelect" onchange="onTeamChange()">
+        <option value="">— Select Opponent —</option>
+      </select>
+    </div>
+    <div class="select-wrap">
+      <select id="pitcherSelect" onchange="onPitcherChange()" disabled>
+        <option value="">— Select Pitcher —</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+
+  <div id="emptyState" class="empty-state">
+    <div class="empty-state-icon">⚾</div>
+    <div class="empty-state-text">Select an opponent and pitcher<br>to load scout report</div>
+  </div>
+
+  <!-- Report Area -->
+
+  <div id="reportArea" style="display:none;">
+
+```
+<!-- Pitcher Header -->
+<div class="pitcher-header">
+  <div>
+    <div class="pitcher-name" id="pitcherNameDisplay"></div>
+    <div class="pitcher-team" id="pitcherTeamDisplay"></div>
+  </div>
+  <div class="pitcher-meta" id="pitcherMeta"></div>
+</div>
+
+<!-- Box Score -->
+<div class="banner">Season Line vs Walters State</div>
+<div id="boxScoreArea">
+  <div class="msg">
+    <span class="loading-dots">Loading box scores</span>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- Tabs -->
+<div class="tab-bar">
+  <div class="tab active" onclick="switchTab('arsenal')">Arsenal</div>
+  <div class="tab" onclick="switchTab('counts')">By Count</div>
+  <div class="tab" onclick="switchTab('locations')">Locations</div>
+</div>
+
+<!-- Arsenal Tab -->
+<div id="tab-arsenal" class="section active">
+  <div class="arsenal-wrap">
+    <div id="arsenalArea"><div class="msg"><span class="loading-dots">Loading</span></div></div>
+  </div>
+</div>
+
+<!-- Count Tendencies Tab -->
+<div id="tab-counts" class="section">
+  <div id="countArea"><div class="msg"><span class="loading-dots">Loading</span></div></div>
+</div>
+
+<!-- Locations Tab -->
+<div id="tab-locations" class="section">
+  <div id="locationArea"><div class="msg"><span class="loading-dots">Loading</span></div></div>
+</div>
+```
+
+  </div><!-- /reportArea -->
+
+</div><!-- /container -->
+
+<script>
+// ─── Config ───────────────────────────────────────────────────
+const SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
+const SUPABASE_KEY = 'YOUR_ANON_KEY'; // ← paste from another page
+
+// ─── Pitch type helpers ───────────────────────────────────────
+const PITCH_META = {
+  'FourSeamFastBall': { abbr: 'FF', label: 'Four-Seam',  color: '#e03030' },
+  'Four-Seam':        { abbr: 'FF', label: 'Four-Seam',  color: '#e03030' },
+  'Fastball':         { abbr: 'FF', label: 'Fastball',   color: '#e03030' },
+  'TwoSeamFastBall':  { abbr: 'SI', label: 'Sinker',     color: '#ff7f0e' },
+  'Sinker':           { abbr: 'SI', label: 'Sinker',     color: '#ff7f0e' },
+  'Cutter':           { abbr: 'CT', label: 'Cutter',     color: '#e377c2' },
+  'Slider':           { abbr: 'SL', label: 'Slider',     color: '#2ca02c' },
+  'Curveball':        { abbr: 'CB', label: 'Curveball',  color: '#1f77b4' },
+  'ChangeUp':         { abbr: 'CH', label: 'Changeup',   color: '#9467bd' },
+  'Changeup':         { abbr: 'CH', label: 'Changeup',   color: '#9467bd' },
+  'Splitter':         { abbr: 'SP', label: 'Splitter',   color: '#8c564b' },
+  'Knuckleball':      { abbr: 'KN', label: 'Knuckleball',color: '#7f7f7f' },
+  'Other':            { abbr: 'OT', label: 'Other',      color: '#bcbd22' },
+  'Undefined':        { abbr: '??', label: 'Unknown',    color: '#bbbbbb' },
+};
+
+function getMeta(type) {
+  return PITCH_META[type] || { abbr: (type || '??').substring(0, 2).toUpperCase(), label: type || 'Unknown', color: '#aaaaaa' };
+}
+
+function resolvedType(p) {
+  if (p.TaggedPitchType && p.TaggedPitchType !== 'Undefined' && p.TaggedPitchType.trim() !== '') {
+    return p.TaggedPitchType;
+  }
+  return p.AutoPitchType || 'Undefined';
+}
+
+// ─── Math helpers ─────────────────────────────────────────────
+function avg(arr) {
+  const valid = arr.filter(v => v != null && !isNaN(v));
+  if (!valid.length) return null;
+  return valid.reduce((a, b) => a + b, 0) / valid.length;
+}
+function fmt(val, dec) {
+  if (val == null || isNaN(val)) return '—';
+  return val.toFixed(dec != null ? dec : 1);
+}
+function parseIP(ipStr) {
+  if (!ipStr) return 0;
+  const s = String(ipStr).trim();
+  const parts = s.split('.');
+  const full = parseInt(parts[0]) || 0;
+  const thirds = parseInt(parts[1]) || 0;
+  return full + thirds / 3;
+}
+function formatIP(ipDec) {
+  const full = Math.floor(ipDec);
+  const thirds = Math.round((ipDec - full) * 3);
+  return `${full}.${thirds}`;
+}
+
+// ─── Supabase fetch ───────────────────────────────────────────
+async function sbFetch(table, params) {
+  const url = `${SUPABASE_URL}/rest/v1/${table}?${params}`;
+  const res = await fetch(url, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Accept': 'application/json',
+    }
+  });
+  if (!res.ok) throw new Error('Supabase ' + res.status + ': ' + await res.text());
+  return res.json();
+}
+
+// ─── Load teams on boot ───────────────────────────────────────
+async function loadTeams() {
+  try {
+    // Fetch PitcherTeam values — deduplicate in JS, limit fetch to 5000
+    const data = await sbFetch('pitches', 'select=PitcherTeam&limit=5000&PitcherTeam=not.is.null');
+    const all = data.map(r => r.PitcherTeam).filter(Boolean);
+    const teams = [...new Set(all)]
+      .filter(t => !/walters\s*state/i.test(t) && t.trim() !== '')
+      .sort();
+
+    const sel = document.getElementById('teamSelect');
+    teams.forEach(t => {
+      const o = document.createElement('option');
+      o.value = t;
+      o.textContent = t;
+      sel.appendChild(o);
+    });
+  } catch (e) {
+    console.error('loadTeams:', e);
+  }
+}
+
+async function onTeamChange() {
+  const team = document.getElementById('teamSelect').value;
+  const ps = document.getElementById('pitcherSelect');
+  ps.innerHTML = '<option value="">— Select Pitcher —</option>';
+  ps.disabled = !team;
+
+  document.getElementById('reportArea').style.display = 'none';
+  document.getElementById('emptyState').style.display = 'block';
+
+  if (!team) return;
+
+  try {
+    const data = await sbFetch('pitches',
+      'select=Pitcher&Pitcher=not.is.null&PitcherTeam=eq.' + encodeURIComponent(team) + '&limit=5000'
+    );
+    const pitchers = [...new Set(data.map(r => r.Pitcher).filter(Boolean))].sort();
+    pitchers.forEach(p => {
+      const o = document.createElement('option');
+      o.value = p;
+      o.textContent = p;
+      ps.appendChild(o);
+    });
+    ps.disabled = false;
+  } catch (e) {
+    console.error('onTeamChange:', e);
+  }
+}
+
+// ─── Main load ────────────────────────────────────────────────
+let currentPitches = [];
+
+async function onPitcherChange() {
+  const pitcher = document.getElementById('pitcherSelect').value;
+  const team = document.getElementById('teamSelect').value;
+  if (!pitcher) return;
+
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('reportArea').style.display = 'block';
+  document.getElementById('pitcherNameDisplay').textContent = pitcher;
+  document.getElementById('pitcherTeamDisplay').textContent = team;
+  document.getElementById('pitcherMeta').textContent = '';
+
+  // Reset sections to loading
+  setLoading('boxScoreArea');
+  setLoading('arsenalArea');
+  setLoading('countArea');
+  setLoading('locationArea');
+
+  // Switch to arsenal tab
+  switchTab('arsenal');
+
+  try {
+    const pitches = await sbFetch('pitches',
+      'select=*&Pitcher=eq.' + encodeURIComponent(pitcher) +
+      '&PitcherTeam=eq.' + encodeURIComponent(team) +
+      '&order=game_id.asc&limit=2000'
+    );
+    currentPitches = pitches;
+
+    const gameIds = [...new Set(pitches.map(p => p.game_id).filter(Boolean))];
+    document.getElementById('pitcherMeta').textContent =
+      gameIds.length + ' Game' + (gameIds.length !== 1 ? 's' : '') + ' · ' + pitches.length + ' Pitches';
+
+    // Render TrackMan sections immediately
+    renderArsenal(pitches);
+    renderCounts(pitches);
+    renderLocations(pitches);
+
+    // Fetch box scores async
+    fetchBoxScores(pitcher, gameIds);
+
+  } catch (e) {
+    console.error('onPitcherChange:', e);
+    document.getElementById('arsenalArea').innerHTML = '<div class="msg">Error loading pitch data.</div>';
+    document.getElementById('boxScoreArea').innerHTML = '<div class="msg">Error loading data.</div>';
+  }
+}
+
+function setLoading(id) {
+  document.getElementById(id).innerHTML =
+    '<div class="msg"><span class="loading-dots">Loading</span></div>';
+}
+
+// ─── Box Score ────────────────────────────────────────────────
+async function fetchBoxScores(pitcherName, gameIds) {
+  if (!gameIds.length) {
+    document.getElementById('boxScoreArea').innerHTML = '<div class="msg">No games found.</div>';
+    return;
+  }
+
+  try {
+    // Build in() query — game_ids may be strings or ints
+    const inParam = gameIds.map(id => '"' + id + '"').join(',');
+    const games = await sbFetch('games',
+      'select=game_id,box_score_url,date,home_team,away_team&game_id=in.(' + inParam + ')'
+    );
+
+    const validGames = games.filter(g => g.box_score_url);
+    if (!validGames.length) {
+      document.getElementById('boxScoreArea').innerHTML = '<div class="msg">No box score URLs in database for these games.</div>';
+      return;
+    }
+
+    const totals = { G: 0, IP: 0, H: 0, R: 0, ER: 0, BB: 0, K: 0, NP: 0 };
+    let gamesFound = 0;
+
+    // Parse pitcher name for fuzzy match (Last, First → use last name)
+    const searchName = pitcherName.includes(',')
+      ? pitcherName.split(',')[0].trim().toLowerCase()
+      : pitcherName.split(' ').pop().toLowerCase();
+
+    for (const game of validGames) {
+      try {
+        const res = await fetch(SUPABASE_URL + '/functions/v1/fetch-boxscore', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + SUPABASE_KEY,
+          },
+          body: JSON.stringify({ url: game.box_score_url })
+        });
+        if (!res.ok) { console.warn('box score fetch failed for', game.game_id); continue; }
+
+        const bsData = await res.json();
+
+        // Gather all pitchers from both teams
+        const allPitchers = [
+          ...(bsData.homePitchers || []),
+          ...(bsData.awayPitchers || []),
+          ...(bsData.pitchers || []),
+        ];
+
+        // Fuzzy match on last name
+        const match = allPitchers.find(p => {
+          const n = (p.name || p.Name || '').toLowerCase();
+          const nLast = n.includes(',') ? n.split(',')[0].trim() : n.split(' ').pop();
+          return nLast.includes(searchName) || searchName.includes(nLast);
+        });
+
+        if (match) {
+          gamesFound++;
+          totals.G++;
+          totals.IP  += parseIP(match.ip  || match.IP  || '0');
+          totals.H   += parseInt(match.h   || match.H   || 0) || 0;
+          totals.R   += parseInt(match.r   || match.R   || 0) || 0;
+          totals.ER  += parseInt(match.er  || match.ER  || 0) || 0;
+          totals.BB  += parseInt(match.bb  || match.BB  || 0) || 0;
+          totals.K   += parseInt(match.k   || match.K   || match.so || match.SO || 0) || 0;
+          totals.NP  += parseInt(match.np  || match.NP  || match.pitches || 0) || 0;
+        }
+      } catch (e) {
+        console.warn('box score error for game', game.game_id, e);
+      }
+    }
+
+    renderBoxScore(totals, gamesFound, validGames.length);
+
+  } catch (e) {
+    console.error('fetchBoxScores:', e);
+    document.getElementById('boxScoreArea').innerHTML = '<div class="msg">Error fetching box scores.</div>';
+  }
+}
+
+function renderBoxScore(t, found, total) {
+  if (!found) {
+    document.getElementById('boxScoreArea').innerHTML =
+      '<div class="msg">Pitcher not matched in box score data.<br><small>Check name format vs box score.</small></div>';
+    return;
+  }
+
+  const era  = t.IP > 0 ? (t.ER / t.IP * 9).toFixed(2) : '—';
+  const whip = t.IP > 0 ? ((t.H + t.BB) / t.IP).toFixed(2) : '—';
+  const kPer9 = t.IP > 0 ? (t.K / t.IP * 9).toFixed(1) : '—';
+  const bbPer9 = t.IP > 0 ? (t.BB / t.IP * 9).toFixed(1) : '—';
+
+  const cells = [
+    { v: t.G,            l: 'G'    },
+    { v: formatIP(t.IP), l: 'IP'   },
+    { v: era,            l: 'ERA'  },
+    { v: whip,           l: 'WHIP' },
+    { v: t.K,            l: 'K'    },
+    { v: t.BB,           l: 'BB'   },
+    { v: t.H,            l: 'H'    },
+    { v: t.ER,           l: 'ER'   },
+  ];
+
+  const html = `
+    <div class="stat-row">
+      ${cells.map(c => `
+        <div class="stat-cell">
+          <div class="stat-val">${c.v}</div>
+          <div class="stat-lbl">${c.l}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="stat-footnote">
+      vs Walters State · ${found}/${total} games matched
+    </div>
+  `;
+  document.getElementById('boxScoreArea').innerHTML = html;
+}
+
+// ─── Arsenal ──────────────────────────────────────────────────
+function renderArsenal(pitches) {
+  const byType = {};
+  pitches.forEach(p => {
+    const pt = resolvedType(p);
+    if (!byType[pt]) byType[pt] = [];
+    byType[pt].push(p);
+  });
+
+  const total = pitches.length;
+  const sorted = Object.entries(byType).sort((a, b) => b[1].length - a[1].length);
+
+  if (!sorted.length) {
+    document.getElementById('arsenalArea').innerHTML = '<div class="msg">No pitch data.</div>';
+    return;
+  }
+
+  const rows = sorted.map(([pt, ps]) => {
+    const meta = getMeta(pt);
+    const pct = (ps.length / total * 100);
+    const velos = ps.map(p => p.RelSpeed).filter(v => v > 0);
+    const spins = ps.map(p => p.SpinRate).filter(v => v > 0);
+    const ivbs  = ps.map(p => p.InducedVertBreak).filter(v => v != null && !isNaN(v));
+    const hbs   = ps.map(p => p.HorzBreak).filter(v => v != null && !isNaN(v));
+
+    return `
+      <tr>
+        <td>
+          <div class="pt-pill">
+            <div class="pt-swatch" style="background:${meta.color};"></div>
+            <span class="pt-abbr">${meta.abbr}</span>
+            <span class="pt-name">${meta.label}</span>
+          </div>
+        </td>
+        <td>${ps.length}</td>
+        <td>
+          <div style="font-weight:600;font-size:13px;">${pct.toFixed(1)}%</div>
+          <div class="usage-bar">
+            <div class="usage-fill" style="width:${pct.toFixed(1)}%;background:${meta.color};"></div>
+          </div>
+        </td>
+        <td>${fmt(avg(velos))}</td>
+        <td>${velos.length ? Math.max(...velos).toFixed(1) : '—'}</td>
+        <td>${fmt(avg(spins), 0)}</td>
+        <td>${fmt(avg(ivbs))}</td>
+        <td>${fmt(avg(hbs))}</td>
+      </tr>
+    `;
+  });
+
+  document.getElementById('arsenalArea').innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th style="text-align:left;">Pitch</th>
+          <th>#</th>
+          <th>Usage</th>
+          <th>Avg V</th>
+          <th>Max V</th>
+          <th>Spin</th>
+          <th>iVB</th>
+          <th>HB</th>
+        </tr>
+      </thead>
+      <tbody>${rows.join('')}</tbody>
+    </table>
+  `;
+}
+
+// ─── Count Tendencies ─────────────────────────────────────────
+const COUNT_GROUPS = [
+  {
+    label: 'First Pitch',
+    filter: p => p.Balls === 0 && p.Strikes === 0,
+  },
+  {
+    label: "Hitter's Counts",
+    filter: p => {
+      const { Balls: b, Strikes: s } = p;
+      return (b===1&&s===0)||(b===2&&s===0)||(b===3&&s===0)||(b===2&&s===1)||(b===3&&s===1);
+    },
+  },
+  {
+    label: 'Even Counts',
+    filter: p => (p.Balls===1&&p.Strikes===1)||(p.Balls===2&&p.Strikes===2),
+  },
+  {
+    label: "Pitcher's Counts",
+    filter: p => {
+      const { Balls: b, Strikes: s } = p;
+      return (b===0&&s===1)||(b===0&&s===2)||(b===1&&s===2);
+    },
+  },
+  {
+    label: 'Two Strikes',
+    filter: p => p.Strikes === 2,
+  },
+  {
+    label: 'Full Count',
+    filter: p => p.Balls === 3 && p.Strikes === 2,
+  },
+];
+
+function renderCounts(pitches) {
+  // Collect all pitch types for a consistent legend order
+  const typeOrder = [...new Set(pitches.map(resolvedType))];
+  const typeSorted = [...typeOrder].sort((a, b) => {
+    const ca = pitches.filter(p => resolvedType(p) === a).length;
+    const cb = pitches.filter(p => resolvedType(p) === b).length;
+    return cb - ca;
+  });
+
+  const cells = COUNT_GROUPS.map(group => {
+    const subset = pitches.filter(group.filter);
+    if (!subset.length) {
+      return `
+        <div class="count-cell">
+          <div class="count-label">${group.label}</div>
+          <div class="count-no-data">No data</div>
+        </div>
+      `;
+    }
+
+    const n = subset.length;
+    const byType = {};
+    subset.forEach(p => {
+      const pt = resolvedType(p);
+      byType[pt] = (byType[pt] || 0) + 1;
+    });
+    const byTypeSorted = Object.entries(byType).sort((a, b) => b[1] - a[1]);
+
+    const barSegs = byTypeSorted.map(([pt, cnt]) => {
+      const w = (cnt / n * 100).toFixed(1);
+      return `<div class="count-bar-seg" style="width:${w}%;background:${getMeta(pt).color};"></div>`;
+    }).join('');
+
+    const legend = byTypeSorted.slice(0, 5).map(([pt, cnt]) => {
+      const pct = (cnt / n * 100).toFixed(0);
+      const meta = getMeta(pt);
+      return `
+        <div class="leg-item">
+          <div class="leg-dot" style="background:${meta.color};"></div>
+          <span>${meta.abbr} ${pct}%</span>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="count-cell">
+        <div class="count-label">${group.label} <span class="count-n">n=${n}</span></div>
+        <div class="count-bar-wrap">${barSegs}</div>
+        <div class="count-legend">${legend}</div>
+      </div>
+    `;
+  });
+
+  document.getElementById('countArea').innerHTML =
+    `<div class="count-grid">${cells.join('')}</div>`;
+}
+
+// ─── Location Maps ────────────────────────────────────────────
+function renderLocations(pitches) {
+  const wrap = document.getElementById('locationArea');
+  wrap.innerHTML = '';
+
+  // Determine pitch types sorted by frequency
+  const byType = {};
+  pitches.forEach(p => {
+    const pt = resolvedType(p);
+    if (!byType[pt]) byType[pt] = [];
+    byType[pt].push(p);
+  });
+  const sortedTypes = Object.entries(byType).sort((a, b) => b[1].length - a[1].length);
+
+  // All pitches + individual types
+  const maps = [
+    { label: 'All Pitches', pitches, color: null },
+    ...sortedTypes.map(([pt, ps]) => ({
+      label: getMeta(pt).abbr + ' — ' + getMeta(pt).label,
+      pitches: ps,
+      color: getMeta(pt).color,
+    })),
+  ];
+
+  const locWrap = document.createElement('div');
+  locWrap.className = 'loc-wrap';
+
+  maps.forEach(({ label, pitches: ps, color }) => {
+    const item = document.createElement('div');
+    item.className = 'loc-item';
+
+    const canvas = document.createElement('canvas');
+    const W = 155, H = 185;
+    canvas.width = W;
+    canvas.height = H;
+    canvas.style.cssText = `width:${W}px;height:${H}px;border:1px solid #c8b89a;`;
+    drawZoneMap(canvas, ps, color);
+
+    const lbl = document.createElement('div');
+    lbl.className = 'loc-label';
+    lbl.textContent = label + ' (' + ps.length + ')';
+
+    item.appendChild(canvas);
+    item.appendChild(lbl);
+    locWrap.appendChild(item);
+  });
+
+  wrap.appendChild(locWrap);
+}
+
+function drawZoneMap(canvas, pitches, singleColor) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // Coordinate system
+  // PlateLocSide: positive = catcher's right → negate for pitcher's view
+  // PlateLocHeight: feet from ground, typical 0–5 ft visible range
+  const SIDE_MIN = -2.5, SIDE_MAX = 2.5;
+  const HT_MIN = 0.5, HT_MAX = 4.5;
+
+  function toX(side)   { return (((-side) - SIDE_MIN) / (SIDE_MAX - SIDE_MIN)) * W; }
+  function toY(height) { return H - ((height - HT_MIN) / (HT_MAX - HT_MIN)) * H; }
+
+  // Background
+  ctx.fillStyle = '#f9f5ec';
+  ctx.fillRect(0, 0, W, H);
+
+  // Strike zone
+  const SZ_L = -0.708, SZ_R = 0.708;
+  const SZ_B = 1.5,    SZ_T = 3.5;
+
+  // Shadow zone (dashed)
+  const SHADOW = 0.145; // ~1.75 inches
+  ctx.strokeStyle = '#c0b0a0';
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([3, 3]);
+  const shX = toX(SZ_R + SHADOW);
+  const shY = toY(SZ_T + SHADOW);
+  const shW = toX(SZ_L - SHADOW) - shX;
+  const shH = toY(SZ_B - SHADOW) - shY;
+  ctx.strokeRect(shX, shY, shW, shH);
+
+  // Strike zone grid (3×3)
+  ctx.setLineDash([]);
+  ctx.strokeStyle = '#c0b0a0';
+  ctx.lineWidth = 0.5;
+  const colW = (SZ_R - SZ_L) / 3;
+  const rowH = (SZ_T - SZ_B) / 3;
+  for (let i = 1; i < 3; i++) {
+    // Vertical
+    const vx = toX(SZ_L + colW * i);
+    ctx.beginPath(); ctx.moveTo(vx, toY(SZ_T)); ctx.lineTo(vx, toY(SZ_B)); ctx.stroke();
+    // Horizontal
+    const hy = toY(SZ_B + rowH * i);
+    ctx.beginPath(); ctx.moveTo(toX(SZ_L), hy); ctx.lineTo(toX(SZ_R), hy); ctx.stroke();
+  }
+
+  // Strike zone border
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([]);
+  const zX = toX(SZ_R);
+  const zY = toY(SZ_T);
+  const zW = toX(SZ_L) - zX;
+  const zH = toY(SZ_B) - zY;
+  ctx.strokeRect(zX, zY, zW, zH);
+
+  // Home plate (trapezoid simplified as pentagon)
+  const plateY = toY(0.25);
+  const plateW = toX(SZ_L) - toX(SZ_R);
+  const plateCX = toX(0);
+  ctx.fillStyle = '#bbbbbb';
+  ctx.strokeStyle = '#888888';
+  ctx.lineWidth = 0.8;
+  ctx.beginPath();
+  ctx.moveTo(plateCX - plateW / 2, plateY - 4);
+  ctx.lineTo(plateCX + plateW / 2, plateY - 4);
+  ctx.lineTo(plateCX + plateW / 2, plateY);
+  ctx.lineTo(plateCX, plateY + 5);
+  ctx.lineTo(plateCX - plateW / 2, plateY);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Plot pitches
+  pitches.forEach(p => {
+    const side = p.PlateLocSide;
+    const ht   = p.PlateLocHeight;
+    if (side == null || ht == null || isNaN(side) || isNaN(ht)) return;
+    if (Math.abs(side) > 3 || ht < 0 || ht > 6) return;
+
+    const x = toX(side);
+    const y = toY(ht);
+    const color = singleColor || getMeta(resolvedType(p)).color;
+
+    ctx.globalAlpha = 0.50;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, 2.8, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+}
+
+// ─── Tabs ─────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const tabEl = document.querySelector('.tab[onclick="switchTab(\'' + name + '\')"]');
+  if (tabEl) tabEl.classList.add('active');
+  const sec = document.getElementById('tab-' + name);
+  if (sec) sec.classList.add('active');
+}
+
+// ─── Boot ─────────────────────────────────────────────────────
+loadTeams();
+</script>
+
+</body>
+</html>
