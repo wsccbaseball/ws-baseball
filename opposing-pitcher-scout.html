@@ -191,7 +191,7 @@ function sbFetch(table, params) {
 // Each request fetches 500 rows at a different point in the table,
 // all in parallel. Covers ~63k rows with 9 samples = full coverage.
 function loadTeams() {
-  var OFFSETS = [0, 7000, 14000, 21000, 28000, 35000, 42000, 49000, 56000];
+  var OFFSETS = [0, 1000, 2000, 3000, 4000];
 
   var promises = OFFSETS.map(function(offset) {
     return fetch(
