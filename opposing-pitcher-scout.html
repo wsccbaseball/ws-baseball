@@ -369,6 +369,8 @@ tbody tr:hover { background: #ede5d0; }
 const SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
 
+const PITCH_COLS = 'Pitcher,PitcherTeam,game_id,TaggedPitchType,AutoPitchType,RelSpeed,SpinRate,InducedVertBreak,HorzBreak,PlateLocSide,PlateLocHeight,Balls,Strikes';
+
 const PITCH_META = {
   'FourSeamFastBall': { abbr: 'FF', label: 'Four-Seam',   color: '#e03030' },
   'Four-Seam':        { abbr: 'FF', label: 'Four-Seam',   color: '#e03030' },
@@ -431,7 +433,7 @@ async function sbFetch(table, params) {
 async function loadTeams() {
   try {
     const data = await sbFetch('pitches',
-      'select=PitcherTeam&PitcherTeam=not.eq.Wal_Sen&PitcherTeam=not.is.null&limit=5000'
+      'select=PitcherTeam&PitcherTeam=not.eq.Wal_Sen&PitcherTeam=not.is.null&limit=50000'
     );
     const teams = [...new Set(data.map(r => r.PitcherTeam).filter(Boolean))]
       .filter(t => t.trim() !== '')
@@ -456,7 +458,7 @@ async function onTeamChange() {
   try {
     const data = await sbFetch('pitches',
       'select=Pitcher&PitcherTeam=eq.' + encodeURIComponent(team) +
-      '&Pitcher=not.is.null&limit=5000'
+      '&Pitcher=not.is.null&limit=50000'
     );
     const pitchers = [...new Set(data.map(r => r.Pitcher).filter(Boolean))].sort();
     pitchers.forEach(p => {
@@ -488,7 +490,8 @@ async function onPitcherChange() {
 
   try {
     const pitches = await sbFetch('pitches',
-      'select=*&Pitcher=eq.' + encodeURIComponent(pitcher) +
+      'select=' + PITCH_COLS +
+      '&Pitcher=eq.' + encodeURIComponent(pitcher) +
       '&PitcherTeam=eq.' + encodeURIComponent(team) +
       '&order=game_id.asc&limit=2000'
     );
@@ -638,9 +641,9 @@ function renderArsenal(pitches) {
 
 const COUNT_GROUPS = [
   { label: 'First Pitch',      filter: p => p.Balls===0 && p.Strikes===0 },
-  { label: "Hitter's Counts",  filter: p => { const b=p.Balls,s=p.Strikes; return (b===1&&s===0)||(b===2&&s===0)||(b===3&&s===0)||(b===2&&s===1)||(b===3&&s===1); } },
+  { label: "Hitter's Counts",  filter: p => { var b=p.Balls,s=p.Strikes; return (b===1&&s===0)||(b===2&&s===0)||(b===3&&s===0)||(b===2&&s===1)||(b===3&&s===1); } },
   { label: 'Even Counts',      filter: p => (p.Balls===1&&p.Strikes===1)||(p.Balls===2&&p.Strikes===2) },
-  { label: "Pitcher's Counts", filter: p => { const b=p.Balls,s=p.Strikes; return (b===0&&s===1)||(b===0&&s===2)||(b===1&&s===2); } },
+  { label: "Pitcher's Counts", filter: p => { var b=p.Balls,s=p.Strikes; return (b===0&&s===1)||(b===0&&s===2)||(b===1&&s===2); } },
   { label: 'Two Strikes',      filter: p => p.Strikes===2 },
   { label: 'Full Count',       filter: p => p.Balls===3 && p.Strikes===2 },
 ];
@@ -651,13 +654,13 @@ function renderCounts(pitches) {
     if (!sub.length) return '<div class="count-cell"><div class="count-label">' + group.label + '</div><div class="count-no-data">No data</div></div>';
     const n = sub.length;
     const byType = {};
-    sub.forEach(p => { const pt = resolvedType(p); byType[pt] = (byType[pt]||0)+1; });
+    sub.forEach(p => { var pt = resolvedType(p); byType[pt] = (byType[pt]||0)+1; });
     const sorted = Object.entries(byType).sort((a,b) => b[1]-a[1]);
     const bars = sorted.map(([pt,cnt]) =>
       '<div class="count-bar-seg" style="width:' + (cnt/n*100).toFixed(1) + '%;background:' + getMeta(pt).color + '"></div>'
     ).join('');
     const legend = sorted.slice(0,5).map(([pt,cnt]) => {
-      const meta = getMeta(pt);
+      var meta = getMeta(pt);
       return '<div class="leg-item"><div class="leg-dot" style="background:' + meta.color + '"></div><span>' + meta.abbr + ' ' + (cnt/n*100).toFixed(0) + '%</span></div>';
     }).join('');
     return '<div class="count-cell">' +
@@ -674,25 +677,25 @@ function renderLocations(pitches) {
   wrap.innerHTML = '';
   const byType = {};
   pitches.forEach(p => {
-    const pt = resolvedType(p);
+    var pt = resolvedType(p);
     if (!byType[pt]) byType[pt] = [];
     byType[pt].push(p);
   });
   const sortedTypes = Object.entries(byType).sort((a,b) => b[1].length - a[1].length);
   const maps = [
-    { label: 'All Pitches', pitches, color: null },
+    { label: 'All Pitches', pitches: pitches, color: null },
     ...sortedTypes.map(([pt,ps]) => ({ label: getMeta(pt).abbr + ' — ' + getMeta(pt).label, pitches: ps, color: getMeta(pt).color }))
   ];
   const locWrap = document.createElement('div');
   locWrap.className = 'loc-wrap';
   maps.forEach(function(m) {
-    const item = document.createElement('div');
+    var item = document.createElement('div');
     item.className = 'loc-item';
-    const canvas = document.createElement('canvas');
+    var canvas = document.createElement('canvas');
     canvas.width = 155; canvas.height = 185;
     canvas.style.cssText = 'width:155px;height:185px;border:1px solid #c8b89a;';
     drawZoneMap(canvas, m.pitches, m.color);
-    const lbl = document.createElement('div');
+    var lbl = document.createElement('div');
     lbl.className = 'loc-label';
     lbl.textContent = m.label + ' (' + m.pitches.length + ')';
     item.appendChild(canvas);
@@ -703,16 +706,16 @@ function renderLocations(pitches) {
 }
 
 function drawZoneMap(canvas, pitches, singleColor) {
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  const SIDE_MIN = -2.5, SIDE_MAX = 2.5, HT_MIN = 0.5, HT_MAX = 4.5;
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  var SIDE_MIN = -2.5, SIDE_MAX = 2.5, HT_MIN = 0.5, HT_MAX = 4.5;
   function toX(side)   { return (((-side) - SIDE_MIN) / (SIDE_MAX - SIDE_MIN)) * W; }
   function toY(height) { return H - ((height - HT_MIN) / (HT_MAX - HT_MIN)) * H; }
 
   ctx.fillStyle = '#f9f5ec';
   ctx.fillRect(0, 0, W, H);
 
-  const SZ_L=-0.708, SZ_R=0.708, SZ_B=1.5, SZ_T=3.5;
+  var SZ_L=-0.708, SZ_R=0.708, SZ_B=1.5, SZ_T=3.5;
 
   ctx.strokeStyle = '#c0b0a0'; ctx.lineWidth = 0.8; ctx.setLineDash([3,3]);
   ctx.strokeRect(toX(SZ_R+0.145), toY(SZ_T+0.145), toX(SZ_L-0.145)-toX(SZ_R+0.145), toY(SZ_B-0.145)-toY(SZ_T+0.145));
