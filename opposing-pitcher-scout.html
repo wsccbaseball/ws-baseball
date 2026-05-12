@@ -552,7 +552,7 @@ async function sbFetch(table, params) {
 async function loadTeams() {
   try {
     // Fetch PitcherTeam values — deduplicate in JS, limit fetch to 5000
-    const data = await sbFetch('pitches', 'select=PitcherTeam&limit=5000&PitcherTeam=not.is.null');
+const data = await sbFetch('pitches', 'select=PitcherTeam&limit=5000&PitcherTeam=not.eq.Wal_Sen&PitcherTeam=not.is.null');
     const all = data.map(r => r.PitcherTeam).filter(Boolean);
     const teams = [...new Set(all)]
       .filter(t => !/walters\s*state/i.test(t) && t.trim() !== '')
