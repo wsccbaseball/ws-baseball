@@ -112,16 +112,15 @@ tbody tr:hover { background: #ede5d0; }
   </div>
 
   <div id="reportArea" style="display:none;">
+    <div class="pitcher-header">
+      <div>
+        <div class="pitcher-name" id="pitcherNameDisplay"></div>
+        <div class="pitcher-team" id="pitcherTeamDisplay"></div>
+      </div>
+      <div class="pitcher-meta" id="pitcherMeta"></div>
+    </div>
 
 ```
-<div class="pitcher-header">
-  <div>
-    <div class="pitcher-name" id="pitcherNameDisplay"></div>
-    <div class="pitcher-team" id="pitcherTeamDisplay"></div>
-  </div>
-  <div class="pitcher-meta" id="pitcherMeta"></div>
-</div>
-
 <div class="banner">Season Line vs Walters State</div>
 <div id="boxScoreArea"><div class="msg">Loading box scores…</div></div>
 <div class="divider"></div>
@@ -188,53 +187,40 @@ function sbFetch(table, params) {
   });
 }
 
-// ── Load teams: get all game_ids from games table, then fetch
-//   one opposing pitch per game in parallel to collect team codes ──
+// ── Load teams by sampling pitches table at multiple offsets ──
+// Each request fetches 500 rows at a different point in the table,
+// all in parallel. Covers ~63k rows with 9 samples = full coverage.
 function loadTeams() {
-  sbFetch('games', 'select=game_id&order=date.desc').then(function(games) {
-    if (!games || !games.length) {
-      setTeamError('No games found in database.');
+  var OFFSETS = [0, 7000, 14000, 21000, 28000, 35000, 42000, 49000, 56000];
+
+  var promises = OFFSETS.map(function(offset) {
+    return fetch(
+      SUPABASE_URL+'/rest/v1/pitches?select=PitcherTeam&PitcherTeam=not.eq.Wal_Sen&PitcherTeam=not.is.null&limit=500&offset='+offset,
+      { headers: { 'apikey':SUPABASE_KEY, 'Authorization':'Bearer '+SUPABASE_KEY, 'Accept':'application/json' } }
+    ).then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; });
+  });
+
+  Promise.all(promises).then(function(pages) {
+    var seen = {};
+    pages.forEach(function(rows) {
+      rows.forEach(function(r) { if (r.PitcherTeam && r.PitcherTeam.trim()) seen[r.PitcherTeam] = true; });
+    });
+    var teams = Object.keys(seen).sort();
+    var sel = document.getElementById('teamSelect');
+    sel.innerHTML = '<option value="">— Select Opponent —</option>';
+    if (!teams.length) {
+      sel.innerHTML = '<option value="">No opponents found</option>';
       return;
     }
-
-    // Fire one request per game asking for 1 opposing pitch
-    var promises = games.map(function(g) {
-      return sbFetch('pitches',
-        'select=PitcherTeam&game_id=eq.'+encodeURIComponent(g.game_id)+
-        '&PitcherTeam=not.eq.Wal_Sen&PitcherTeam=not.is.null&limit=1'
-      ).catch(function() { return []; });
-    });
-
-    Promise.all(promises).then(function(results) {
-      var seen = {};
-      results.forEach(function(rows) {
-        rows.forEach(function(r) { if (r.PitcherTeam) seen[r.PitcherTeam] = true; });
-      });
-      var teams = Object.keys(seen).sort();
-
-      var sel = document.getElementById('teamSelect');
-      sel.innerHTML = '<option value="">— Select Opponent —</option>';
-
-      if (!teams.length) {
-        setTeamError('No opponent teams found.');
-        return;
-      }
-
-      teams.forEach(function(t) {
-        var o = document.createElement('option');
-        o.value = t; o.textContent = t;
-        sel.appendChild(o);
-      });
+    teams.forEach(function(t) {
+      var o = document.createElement('option');
+      o.value = t; o.textContent = t;
+      sel.appendChild(o);
     });
   }).catch(function(e) {
     console.error('loadTeams:', e);
-    setTeamError('Error: '+e.message);
+    document.getElementById('teamSelect').innerHTML = '<option value="">Error loading teams</option>';
   });
-}
-
-function setTeamError(msg) {
-  var sel = document.getElementById('teamSelect');
-  sel.innerHTML = '<option value="">' + msg + '</option>';
 }
 
 function onTeamChange() {
@@ -247,14 +233,11 @@ function onTeamChange() {
   if (!team) return;
 
   sbFetch('pitches',
-    'select=Pitcher&PitcherTeam=eq.'+encodeURIComponent(team)+
-    '&Pitcher=not.is.null&limit=5000'
+    'select=Pitcher&PitcherTeam=eq.'+encodeURIComponent(team)+'&Pitcher=not.is.null&limit=5000'
   ).then(function(data) {
-    var pitchers = [];
-    var seen = {};
+    var seen = {}, pitchers = [];
     data.forEach(function(r) { if (r.Pitcher && !seen[r.Pitcher]) { seen[r.Pitcher]=true; pitchers.push(r.Pitcher); } });
-    pitchers.sort();
-    pitchers.forEach(function(p) {
+    pitchers.sort().forEach(function(p) {
       var o = document.createElement('option');
       o.value = p; o.textContent = p;
       ps.appendChild(o);
@@ -287,12 +270,10 @@ function onPitcherChange() {
     '&order=game_id.asc&limit=1000'
   ).then(function(pitches) {
     currentPitches = pitches;
-    var gameIds = [];
-    var seenGames = {};
-    pitches.forEach(function(p) { if (p.game_id && !seenGames[p.game_id]) { seenGames[p.game_id]=true; gameIds.push(p.game_id); } });
+    var seenG = {}, gameIds = [];
+    pitches.forEach(function(p){ if (p.game_id && !seenG[p.game_id]) { seenG[p.game_id]=true; gameIds.push(p.game_id); } });
     document.getElementById('pitcherMeta').textContent =
       gameIds.length+' Game'+(gameIds.length!==1?'s':'')+' · '+pitches.length+' Pitches';
-
     renderArsenal(pitches);
     renderCounts(pitches);
     renderLocations(pitches);
@@ -310,144 +291,115 @@ function fetchBoxScores(pitcherName, gameIds) {
     document.getElementById('boxScoreArea').innerHTML = '<div class="msg">No games found.</div>';
     return;
   }
-
   var inParam = gameIds.map(function(id){return '"'+id+'"';}).join(',');
-  sbFetch('games', 'select=game_id,box_score_url&game_id=in.('+inParam+')').then(function(games) {
+  sbFetch('games','select=game_id,box_score_url&game_id=in.('+inParam+')').then(function(games) {
     var valid = games.filter(function(g){return g.box_score_url;});
     if (!valid.length) {
-      document.getElementById('boxScoreArea').innerHTML = '<div class="msg">No box score URLs found for these games.</div>';
+      document.getElementById('boxScoreArea').innerHTML = '<div class="msg">No box score URLs found.</div>';
       return;
     }
-
     var searchName = pitcherName.includes(',')
       ? pitcherName.split(',')[0].trim().toLowerCase()
       : pitcherName.split(' ').pop().toLowerCase();
-
-    var totals = {G:0,IP:0,H:0,R:0,ER:0,BB:0,K:0};
-    var found = 0;
-    var pending = valid.length;
-
-    function done() {
-      pending--;
-      if (pending === 0) renderBoxScore(totals, found, valid.length);
-    }
-
-    valid.forEach(function(game) {
-      fetch(SUPABASE_URL+'/functions/v1/fetch-boxscore', {
+    var totals={G:0,IP:0,H:0,R:0,ER:0,BB:0,K:0}, found=0, pending=valid.length;
+    function done(){ if(--pending===0) renderBoxScore(totals,found,valid.length); }
+    valid.forEach(function(game){
+      fetch(SUPABASE_URL+'/functions/v1/fetch-boxscore',{
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_KEY},
         body:JSON.stringify({url:game.box_score_url})
-      }).then(function(res) {
-        if (!res.ok) { done(); return; }
-        return res.json();
-      }).then(function(bs) {
-        if (!bs) { done(); return; }
-        var all = (bs.homePitchers||[]).concat(bs.awayPitchers||[]).concat(bs.pitchers||[]);
-        var match = null;
-        for (var j=0; j<all.length; j++) {
-          var n = (all[j].name||all[j].Name||'').toLowerCase();
-          var nLast = n.includes(',') ? n.split(',')[0].trim() : n.split(' ').pop();
-          if (nLast.includes(searchName)||searchName.includes(nLast)) { match=all[j]; break; }
+      }).then(function(r){return r.ok?r.json():null;}).then(function(bs){
+        if (!bs){done();return;}
+        var all=(bs.homePitchers||[]).concat(bs.awayPitchers||[]).concat(bs.pitchers||[]);
+        var match=null;
+        for(var j=0;j<all.length;j++){
+          var n=(all[j].name||all[j].Name||'').toLowerCase();
+          var nL=n.includes(',')?n.split(',')[0].trim():n.split(' ').pop();
+          if(nL.includes(searchName)||searchName.includes(nL)){match=all[j];break;}
         }
-        if (match) {
-          found++;
-          totals.G++;
-          totals.IP += parseIP(match.ip||match.IP||'0');
-          totals.H  += parseInt(match.h ||match.H ||0)||0;
-          totals.R  += parseInt(match.r ||match.R ||0)||0;
-          totals.ER += parseInt(match.er||match.ER||0)||0;
-          totals.BB += parseInt(match.bb||match.BB||0)||0;
-          totals.K  += parseInt(match.k ||match.K ||match.so||match.SO||0)||0;
+        if(match){
+          found++; totals.G++;
+          totals.IP+=parseIP(match.ip||match.IP||'0');
+          totals.H +=parseInt(match.h ||match.H ||0)||0;
+          totals.R +=parseInt(match.r ||match.R ||0)||0;
+          totals.ER+=parseInt(match.er||match.ER||0)||0;
+          totals.BB+=parseInt(match.bb||match.BB||0)||0;
+          totals.K +=parseInt(match.k ||match.K ||match.so||match.SO||0)||0;
         }
         done();
-      }).catch(function(){ done(); });
+      }).catch(function(){done();});
     });
-  }).catch(function(e) {
-    document.getElementById('boxScoreArea').innerHTML = '<div class="msg">Error fetching box scores.</div>';
+  }).catch(function(){
+    document.getElementById('boxScoreArea').innerHTML='<div class="msg">Error fetching box scores.</div>';
   });
 }
 
-function renderBoxScore(t, found, total) {
-  if (!found) {
-    document.getElementById('boxScoreArea').innerHTML = '<div class="msg">Pitcher not matched in box score data.</div>';
-    return;
-  }
-  var era  = t.IP>0 ? (t.ER/t.IP*9).toFixed(2) : '—';
-  var whip = t.IP>0 ? ((t.H+t.BB)/t.IP).toFixed(2) : '—';
-  var cells = [{v:t.G,l:'G'},{v:formatIP(t.IP),l:'IP'},{v:era,l:'ERA'},{v:whip,l:'WHIP'},{v:t.K,l:'K'},{v:t.BB,l:'BB'},{v:t.H,l:'H'},{v:t.ER,l:'ER'}];
-  document.getElementById('boxScoreArea').innerHTML =
-    '<div class="stat-row">'+
-    cells.map(function(c){return '<div class="stat-cell"><div class="stat-val">'+c.v+'</div><div class="stat-lbl">'+c.l+'</div></div>';}).join('')+
-    '</div><div class="stat-footnote">vs Walters State · '+found+'/'+total+' games matched</div>';
+function renderBoxScore(t,found,total){
+  if(!found){document.getElementById('boxScoreArea').innerHTML='<div class="msg">Pitcher not matched in box score data.</div>';return;}
+  var era=t.IP>0?(t.ER/t.IP*9).toFixed(2):'—', whip=t.IP>0?((t.H+t.BB)/t.IP).toFixed(2):'—';
+  var cells=[{v:t.G,l:'G'},{v:formatIP(t.IP),l:'IP'},{v:era,l:'ERA'},{v:whip,l:'WHIP'},{v:t.K,l:'K'},{v:t.BB,l:'BB'},{v:t.H,l:'H'},{v:t.ER,l:'ER'}];
+  document.getElementById('boxScoreArea').innerHTML=
+    '<div class="stat-row">'+cells.map(function(c){return '<div class="stat-cell"><div class="stat-val">'+c.v+'</div><div class="stat-lbl">'+c.l+'</div></div>';}).join('')+'</div>'+
+    '<div class="stat-footnote">vs Walters State · '+found+'/'+total+' games matched</div>';
 }
 
 // ── Arsenal ──────────────────────────────────────────────────
-function renderArsenal(pitches) {
-  var byType={}, total=pitches.length;
-  pitches.forEach(function(p){ var pt=resolvedType(p); if(!byType[pt])byType[pt]=[]; byType[pt].push(p); });
+function renderArsenal(pitches){
+  var byType={},total=pitches.length;
+  pitches.forEach(function(p){var pt=resolvedType(p);if(!byType[pt])byType[pt]=[];byType[pt].push(p);});
   var sorted=Object.entries(byType).sort(function(a,b){return b[1].length-a[1].length;});
-  if (!sorted.length) { document.getElementById('arsenalArea').innerHTML='<div class="msg">No pitch data.</div>'; return; }
+  if(!sorted.length){document.getElementById('arsenalArea').innerHTML='<div class="msg">No pitch data.</div>';return;}
   var rows=sorted.map(function(e){
-    var pt=e[0], ps=e[1], meta=getMeta(pt), pct=ps.length/total*100;
+    var pt=e[0],ps=e[1],meta=getMeta(pt),pct=ps.length/total*100;
     var velos=ps.map(function(p){return p.RelSpeed;}).filter(function(v){return v>0;});
     var spins=ps.map(function(p){return p.SpinRate;}).filter(function(v){return v>0;});
     var ivbs=ps.map(function(p){return p.InducedVertBreak;}).filter(function(v){return v!=null&&!isNaN(v);});
     var hbs=ps.map(function(p){return p.HorzBreak;}).filter(function(v){return v!=null&&!isNaN(v);});
-    return '<tr>'+
-      '<td><div class="pt-pill"><div class="pt-swatch" style="background:'+meta.color+'"></div>'+
-      '<span class="pt-abbr">'+meta.abbr+'</span><span class="pt-name">'+meta.label+'</span></div></td>'+
-      '<td>'+ps.length+'</td>'+
-      '<td><div style="font-weight:600">'+pct.toFixed(1)+'%</div>'+
+    return '<tr><td><div class="pt-pill"><div class="pt-swatch" style="background:'+meta.color+'"></div><span class="pt-abbr">'+meta.abbr+'</span><span class="pt-name">'+meta.label+'</span></div></td>'+
+      '<td>'+ps.length+'</td><td><div style="font-weight:600">'+pct.toFixed(1)+'%</div>'+
       '<div class="usage-bar"><div class="usage-fill" style="width:'+pct.toFixed(1)+'%;background:'+meta.color+'"></div></div></td>'+
-      '<td>'+fmt(avg(velos))+'</td>'+
-      '<td>'+(velos.length?Math.max.apply(null,velos).toFixed(1):'—')+'</td>'+
-      '<td>'+fmt(avg(spins),0)+'</td>'+
-      '<td>'+fmt(avg(ivbs))+'</td>'+
-      '<td>'+fmt(avg(hbs))+'</td>'+
-      '</tr>';
+      '<td>'+fmt(avg(velos))+'</td><td>'+(velos.length?Math.max.apply(null,velos).toFixed(1):'—')+'</td>'+
+      '<td>'+fmt(avg(spins),0)+'</td><td>'+fmt(avg(ivbs))+'</td><td>'+fmt(avg(hbs))+'</td></tr>';
   }).join('');
   document.getElementById('arsenalArea').innerHTML=
-    '<table><thead><tr><th style="text-align:left">Pitch</th><th>#</th><th>Usage</th>'+
-    '<th>Avg V</th><th>Max V</th><th>Spin</th><th>iVB</th><th>HB</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    '<table><thead><tr><th style="text-align:left">Pitch</th><th>#</th><th>Usage</th><th>Avg V</th><th>Max V</th><th>Spin</th><th>iVB</th><th>HB</th></tr></thead><tbody>'+rows+'</tbody></table>';
 }
 
 // ── Count Tendencies ─────────────────────────────────────────
-var COUNT_GROUPS = [
+var COUNT_GROUPS=[
   {label:'First Pitch',      filter:function(p){return p.Balls===0&&p.Strikes===0;}},
-  {label:"Hitter's Counts",  filter:function(p){var b=p.Balls,s=p.Strikes;return (b===1&&s===0)||(b===2&&s===0)||(b===3&&s===0)||(b===2&&s===1)||(b===3&&s===1);}},
-  {label:'Even Counts',      filter:function(p){return (p.Balls===1&&p.Strikes===1)||(p.Balls===2&&p.Strikes===2);}},
-  {label:"Pitcher's Counts", filter:function(p){var b=p.Balls,s=p.Strikes;return (b===0&&s===1)||(b===0&&s===2)||(b===1&&s===2);}},
+  {label:"Hitter's Counts",  filter:function(p){var b=p.Balls,s=p.Strikes;return(b===1&&s===0)||(b===2&&s===0)||(b===3&&s===0)||(b===2&&s===1)||(b===3&&s===1);}},
+  {label:'Even Counts',      filter:function(p){return(p.Balls===1&&p.Strikes===1)||(p.Balls===2&&p.Strikes===2);}},
+  {label:"Pitcher's Counts", filter:function(p){var b=p.Balls,s=p.Strikes;return(b===0&&s===1)||(b===0&&s===2)||(b===1&&s===2);}},
   {label:'Two Strikes',      filter:function(p){return p.Strikes===2;}},
   {label:'Full Count',       filter:function(p){return p.Balls===3&&p.Strikes===2;}},
 ];
 
-function renderCounts(pitches) {
-  var cells=COUNT_GROUPS.map(function(group){
-    var sub=pitches.filter(group.filter);
-    if(!sub.length) return '<div class="count-cell"><div class="count-label">'+group.label+'</div><div class="count-no-data">No data</div></div>';
-    var n=sub.length, byType={};
+function renderCounts(pitches){
+  var cells=COUNT_GROUPS.map(function(g){
+    var sub=pitches.filter(g.filter);
+    if(!sub.length)return '<div class="count-cell"><div class="count-label">'+g.label+'</div><div class="count-no-data">No data</div></div>';
+    var n=sub.length,byType={};
     sub.forEach(function(p){var pt=resolvedType(p);byType[pt]=(byType[pt]||0)+1;});
     var sorted=Object.entries(byType).sort(function(a,b){return b[1]-a[1];});
     var bars=sorted.map(function(e){return '<div class="count-bar-seg" style="width:'+(e[1]/n*100).toFixed(1)+'%;background:'+getMeta(e[0]).color+'"></div>';}).join('');
     var legend=sorted.slice(0,5).map(function(e){var m=getMeta(e[0]);return '<div class="leg-item"><div class="leg-dot" style="background:'+m.color+'"></div><span>'+m.abbr+' '+(e[1]/n*100).toFixed(0)+'%</span></div>';}).join('');
-    return '<div class="count-cell"><div class="count-label">'+group.label+' <span class="count-n">n='+n+'</span></div>'+
-      '<div class="count-bar-wrap">'+bars+'</div><div class="count-legend">'+legend+'</div></div>';
+    return '<div class="count-cell"><div class="count-label">'+g.label+' <span class="count-n">n='+n+'</span></div><div class="count-bar-wrap">'+bars+'</div><div class="count-legend">'+legend+'</div></div>';
   }).join('');
   document.getElementById('countArea').innerHTML='<div class="count-grid">'+cells+'</div>';
 }
 
 // ── Location Maps ────────────────────────────────────────────
-function renderLocations(pitches) {
+function renderLocations(pitches){
   var wrap=document.getElementById('locationArea');
   wrap.innerHTML='';
   var byType={};
   pitches.forEach(function(p){var pt=resolvedType(p);if(!byType[pt])byType[pt]=[];byType[pt].push(p);});
   var sortedTypes=Object.entries(byType).sort(function(a,b){return b[1].length-a[1].length;});
   var maps=[{label:'All Pitches',pitches:pitches,color:null}].concat(
-    sortedTypes.map(function(e){return {label:getMeta(e[0]).abbr+' — '+getMeta(e[0]).label,pitches:e[1],color:getMeta(e[0]).color};})
+    sortedTypes.map(function(e){return{label:getMeta(e[0]).abbr+' — '+getMeta(e[0]).label,pitches:e[1],color:getMeta(e[0]).color};})
   );
-  var locWrap=document.createElement('div');
-  locWrap.className='loc-wrap';
+  var locWrap=document.createElement('div'); locWrap.className='loc-wrap';
   maps.forEach(function(m){
     var item=document.createElement('div'); item.className='loc-item';
     var canvas=document.createElement('canvas'); canvas.width=155; canvas.height=185;
@@ -460,8 +412,8 @@ function renderLocations(pitches) {
   wrap.appendChild(locWrap);
 }
 
-function drawZoneMap(canvas, pitches, singleColor) {
-  var ctx=canvas.getContext('2d'), W=canvas.width, H=canvas.height;
+function drawZoneMap(canvas,pitches,singleColor){
+  var ctx=canvas.getContext('2d'),W=canvas.width,H=canvas.height;
   var SIDE_MIN=-2.5,SIDE_MAX=2.5,HT_MIN=0.5,HT_MAX=4.5;
   function toX(s){return(((-s)-SIDE_MIN)/(SIDE_MAX-SIDE_MIN))*W;}
   function toY(h){return H-((h-HT_MIN)/(HT_MAX-HT_MIN))*H;}
@@ -483,14 +435,13 @@ function drawZoneMap(canvas, pitches, singleColor) {
   pitches.forEach(function(p){
     var side=p.PlateLocSide,ht=p.PlateLocHeight;
     if(side==null||ht==null||isNaN(side)||isNaN(ht)||Math.abs(side)>3||ht<0||ht>6)return;
-    ctx.globalAlpha=0.5;
-    ctx.fillStyle=singleColor||getMeta(resolvedType(p)).color;
+    ctx.globalAlpha=0.5; ctx.fillStyle=singleColor||getMeta(resolvedType(p)).color;
     ctx.beginPath();ctx.arc(toX(side),toY(ht),2.8,0,Math.PI*2);ctx.fill();
   });
   ctx.globalAlpha=1;
 }
 
-function switchTab(name) {
+function switchTab(name){
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
   document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
   document.querySelector('.tab[onclick="switchTab(\''+name+'\')"]').classList.add('active');
