@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Umpire Season Rankings — WSCC Baseball</title>
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Anton&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #f2ead8; color: #1a1a1a; font-family: 'Source Serif 4', Georgia, serif; min-height: 100vh; }
+.container { max-width: 900px; margin: 0 auto; padding-bottom: 60px; }
+
+.header { background: #1a1a1a; color: #f2ead8; padding: 14px 18px 12px; display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+.header-title { font-family: ‘Abril Fatface’, serif; font-size: 22px; line-height: 1; }
+.header-sub { font-family: ‘Anton’, sans-serif; font-size: 10px; letter-spacing: 2.5px; color: #a89070; margin-top: 3px; text-transform: uppercase; }
+.header-badge { font-family: ‘Anton’, sans-serif; font-size: 10px; letter-spacing: 2px; color: #a89070; border: 1px solid #3a3a3a; padding: 3px 8px; text-transform: uppercase; }
+
+.banner { background: #1a1a1a; color: #f2ead8; font-family: ‘Anton’, sans-serif; font-size: 10px; letter-spacing: 2.5px; padding: 5px 16px; text-transform: uppercase; }
+
+/* Summary strip */
+.summary-strip { display: flex; border-bottom: 1.5px solid #1a1a1a; }
+.sum-cell { flex: 1; text-align: center; padding: 10px 6px 8px; border-right: 1px solid #c8b89a; background: #f2ead8; }
+.sum-cell:last-child { border-right: none; }
+.sum-val { font-family: ‘Anton’, sans-serif; font-size: 22px; line-height: 1; color: #1a1a1a; }
+.sum-lbl { font-family: ‘Anton’, sans-serif; font-size: 9px; letter-spacing: 1px; color: #7a6a58; margin-top: 3px; text-transform: uppercase; }
+
+/* Table */
+.tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 560px; }
+
+thead th {
+font-family: ‘Anton’, sans-serif;
+font-size: 9px;
+letter-spacing: 1.5px;
+text-transform: uppercase;
+padding: 8px 10px;
+text-align: center;
+background: #1a1a1a;
+color: #f2ead8;
+white-space: nowrap;
+cursor: pointer;
+-webkit-user-select: none;
+user-select: none;
+border-right: 1px solid #3a3a3a;
+}
+thead th:last-child { border-right: none; }
+thead th:first-child { text-align: left; }
+thead th:hover { background: #2a2a2a; }
+thead th.sorted-asc::after  { content: ’ ▲’; opacity: 0.8; }
+thead th.sorted-desc::after { content: ’ ▼’; opacity: 0.8; }
+
+tbody tr { border-bottom: 1px solid #d8cdb8; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #ede5d0; }
+
+tbody td { padding: 10px 10px; text-align: center; vertical-align: middle; }
+tbody td:first-child { text-align: left; }
+
+.ump-name { font-family: ‘Source Serif 4’, Georgia, serif; font-weight: 600; font-size: 13px; }
+.ump-games { font-family: ‘Anton’, sans-serif; font-size: 9px; letter-spacing: 1px; color: #7a6a58; margin-top: 1px; text-transform: uppercase; }
+
+.rank-badge {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+width: 20px;
+height: 20px;
+border-radius: 50%;
+font-family: ‘Anton’, sans-serif;
+font-size: 10px;
+margin-right: 6px;
+flex-shrink: 0;
+}
+.rank-1 { background: #1a1a1a; color: #f2ead8; }
+.rank-other { background: #e8e0c8; color: #5a4a38; }
+
+/* Accuracy bar */
+.acc-wrap { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.acc-val { font-family: ‘Anton’, sans-serif; font-size: 15px; line-height: 1; }
+.acc-bar-bg { width: 48px; height: 3px; background: #d8cdb8; border-radius: 2px; overflow: hidden; }
+.acc-bar-fill { height: 100%; border-radius: 2px; }
+.acc-good { color: #1a7a35; }
+.acc-mid  { color: #b8892a; }
+.acc-bad  { color: #c0392b; }
+
+/* Missed calls */
+.missed-val { font-family: ‘Anton’, sans-serif; font-size: 15px; }
+.missed-sub { font-size: 9px; color: #7a6a58; font-family: ‘Anton’, sans-serif; letter-spacing: 0.5px; }
+
+/* Favor */
+.favor-ws  { color: #1a3a5c; font-family: ‘Anton’, sans-serif; font-size: 13px; font-weight: 700; }
+.favor-opp { color: #c0392b; font-family: ‘Anton’, sans-serif; font-size: 13px; }
+.favor-even { color: #7a6a58; font-family: ‘Anton’, sans-serif; font-size: 13px; }
+
+.msg { padding: 40px 20px; text-align: center; color: #9a8a78; font-style: italic; font-size: 14px; }
+
+/* Sort controls on mobile */
+.sort-bar { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: #ede5d0; border-bottom: 1px solid #c8b89a; flex-wrap: wrap; }
+.sort-lbl { font-family: ‘Anton’, sans-serif; font-size: 9px; letter-spacing: 1.5px; color: #7a6a58; text-transform: uppercase; }
+.sort-btn { font-family: ‘Anton’, sans-serif; font-size: 9px; letter-spacing: 1px; padding: 3px 8px; border: 1px solid #c8b89a; background: #f2ead8; color: #5a4a38; cursor: pointer; text-transform: uppercase; -webkit-tap-highlight-color: transparent; }
+.sort-btn.active { background: #1a1a1a; color: #f2ead8; border-color: #1a1a1a; }
+
+.no-data { padding: 30px; text-align: center; color: #9a8a78; font-style: italic; font-size: 13px; }
+</style>
+
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div>
+      <div class="header-title">Umpire Rankings</div>
+      <div class="header-sub">WSCC Baseball · 2026 Season</div>
+    </div>
+    <div class="header-badge">Season</div>
+  </div>
+
+  <div class="banner">Season Summary</div>
+  <div class="summary-strip">
+    <div class="sum-cell">
+      <div class="sum-val" id="sumUmpires">—</div>
+      <div class="sum-lbl">Umpires</div>
+    </div>
+    <div class="sum-cell">
+      <div class="sum-val" id="sumGames">—</div>
+      <div class="sum-lbl">Games Tracked</div>
+    </div>
+    <div class="sum-cell">
+      <div class="sum-val" id="sumCalled">—</div>
+      <div class="sum-lbl">Called Pitches</div>
+    </div>
+    <div class="sum-cell">
+      <div class="sum-val" id="sumAvgAcc">—</div>
+      <div class="sum-lbl">Avg Accuracy</div>
+    </div>
+  </div>
+
+  <div class="sort-bar">
+    <span class="sort-lbl">Sort:</span>
+    <button class="sort-btn active" onclick="setSort('acc')">Accuracy</button>
+    <button class="sort-btn" onclick="setSort('games')">Games</button>
+    <button class="sort-btn" onclick="setSort('missed')">Missed</button>
+    <button class="sort-btn" onclick="setSort('favorWS')">Favor WS</button>
+    <button class="sort-btn" onclick="setSort('favorOpp')">Favor Opp</button>
+  </div>
+
+  <div class="banner" style="margin-top:0;">Umpire Rankings</div>
+  <div class="tbl-wrap">
+    <div id="tableArea"><div class="msg">Loading…</div></div>
+  </div>
+
+</div>
+
+<script>
+var SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
+
+var allUmpires = [];
+var currentSort = 'acc';
+var sortDir = { acc: -1, games: -1, missed: 1, favorWS: -1, favorOpp: -1 };
+
+function isWS(teamCode) {
+  if (!teamCode) return false;
+  var t = teamCode.toLowerCase();
+  return t.indexOf('wal') !== -1;
+}
+
+function sbFetch(table, params) {
+  return fetch(SUPABASE_URL + '/rest/v1/' + table + '?' + params, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Accept': 'application/json' }
+  }).then(function(r) {
+    if (!r.ok) return r.text().then(function(t) { throw new Error(t); });
+    return r.json();
+  });
+}
+
+function loadData() {
+  sbFetch('umpire_games', 'select=*&order=game_date.asc&limit=1000').then(function(rows) {
+    if (!rows.length) {
+      document.getElementById('tableArea').innerHTML = '<div class="no-data">No umpire data recorded yet.<br>Generate scorecards to populate rankings.</div>';
+      return;
+    }
+
+    // Aggregate by umpire
+    var byUmp = {};
+    rows.forEach(function(r) {
+      var name = (r.umpire_name || 'Unknown').trim();
+      if (!byUmp[name]) byUmp[name] = {
+        name: name,
+        games: 0,
+        totalCalled: 0,
+        totalCorrect: 0,
+        totalMissedClear: 0,
+        totalMissedBorderline: 0,
+        favorWS: 0,
+        favorOpp: 0,
+      };
+      var u = byUmp[name];
+      u.games++;
+      u.totalCalled    += r.total_called    || 0;
+      u.totalCorrect   += r.correct         || 0;
+      u.totalMissedClear      += r.missed_clear      || 0;
+      u.totalMissedBorderline += r.missed_borderline || 0;
+
+      // favor_team + favor_runs
+      var ft = r.favor_team || '';
+      var fr = r.favor_runs || 0;
+      if (isWS(ft)) {
+        u.favorWS += fr;
+      } else if (ft) {
+        u.favorOpp += fr;
+      }
+    });
+
+    allUmpires = Object.values(byUmp).map(function(u) {
+      // Accuracy = correct / (correct + missed_clear) — excludes borderline from denominator
+      var clearDenom = u.totalCorrect + u.totalMissedClear;
+      var acc = clearDenom > 0 ? u.totalCorrect / clearDenom * 100 : 0;
+      var totalMissed = u.totalMissedClear + u.totalMissedBorderline;
+      return {
+        name:      u.name,
+        games:     u.games,
+        called:    u.totalCalled,
+        missed:    totalMissed,
+        missedClear: u.totalMissedClear,
+        missedBorderline: u.totalMissedBorderline,
+        acc:       acc,
+        favorWS:   parseFloat(u.favorWS.toFixed(2)),
+        favorOpp:  parseFloat(u.favorOpp.toFixed(2)),
+      };
+    });
+
+    // Summary strip
+    var totalGames   = rows.length;
+    var totalCalled  = rows.reduce(function(s,r){return s+(r.total_called||0);}, 0);
+    var allAccs      = allUmpires.map(function(u){return u.acc;});
+    var avgAcc       = allAccs.reduce(function(a,b){return a+b;},0) / allAccs.length;
+
+    document.getElementById('sumUmpires').textContent = allUmpires.length;
+    document.getElementById('sumGames').textContent   = totalGames;
+    document.getElementById('sumCalled').textContent  = totalCalled.toLocaleString();
+    document.getElementById('sumAvgAcc').textContent  = Math.round(avgAcc) + '%';
+
+    renderTable();
+  }).catch(function(e) {
+    document.getElementById('tableArea').innerHTML = '<div class="msg">Error loading data: ' + e.message + '</div>';
+  });
+}
+
+function setSort(col) {
+  if (currentSort === col) {
+    sortDir[col] *= -1;
+  } else {
+    currentSort = col;
+  }
+  document.querySelectorAll('.sort-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.querySelector('.sort-btn[onclick="setSort(\'' + col + '\')"]').classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  var sorted = allUmpires.slice().sort(function(a, b) {
+    return (b[currentSort] - a[currentSort]) * sortDir[currentSort];
+  });
+
+  if (!sorted.length) {
+    document.getElementById('tableArea').innerHTML = '<div class="no-data">No umpires found.</div>';
+    return;
+  }
+
+  var rows = sorted.map(function(u, i) {
+    var rank = i + 1;
+    var accColor = u.acc >= 90 ? 'acc-good' : u.acc >= 80 ? 'acc-mid' : 'acc-bad';
+    var barColor = u.acc >= 90 ? '#1a7a35' : u.acc >= 80 ? '#b8892a' : '#c0392b';
+    var barW     = Math.min(100, Math.round(u.acc));
+
+    // Favor display
+    var netFavor = u.favorWS - u.favorOpp;
+    var favorHtml;
+    if (Math.abs(netFavor) < 0.05) {
+      favorHtml = '<span class="favor-even">—</span>';
+    } else if (netFavor > 0) {
+      favorHtml = '<span class="favor-ws">+' + netFavor.toFixed(2) + ' WS</span>';
+    } else {
+      favorHtml = '<span class="favor-opp">+' + Math.abs(netFavor).toFixed(2) + ' OPP</span>';
+    }
+
+    return '<tr>' +
+      '<td>' +
+        '<div style="display:flex;align-items:center;">' +
+          '<span class="rank-badge ' + (rank===1?'rank-1':'rank-other') + '">' + rank + '</span>' +
+          '<div>' +
+            '<div class="ump-name">' + u.name + '</div>' +
+            '<div class="ump-games">' + u.games + ' game' + (u.games!==1?'s':'') + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</td>' +
+      '<td>' +
+        '<div class="acc-wrap">' +
+          '<div class="acc-val ' + accColor + '">' + u.acc.toFixed(1) + '%</div>' +
+          '<div class="acc-bar-bg"><div class="acc-bar-fill" style="width:' + barW + '%;background:' + barColor + ';"></div></div>' +
+        '</div>' +
+      '</td>' +
+      '<td>' +
+        '<div class="missed-val">' + u.called + '</div>' +
+      '</td>' +
+      '<td>' +
+        '<div class="missed-val ' + (u.missed===0?'acc-good':'') + '">' + u.missed + '</div>' +
+        '<div class="missed-sub">' + u.missedClear + ' clear · ' + u.missedBorderline + ' brdrln</div>' +
+      '</td>' +
+      '<td>' +
+        '<div style="font-family:\'Anton\',sans-serif;font-size:13px;color:#1a3a5c;">' +
+          (u.favorWS > 0 ? '+' + u.favorWS.toFixed(2) : '—') +
+        '</div>' +
+      '</td>' +
+      '<td>' +
+        '<div style="font-family:\'Anton\',sans-serif;font-size:13px;color:#c0392b;">' +
+          (u.favorOpp > 0 ? '+' + u.favorOpp.toFixed(2) : '—') +
+        '</div>' +
+      '</td>' +
+      '<td>' + favorHtml + '</td>' +
+      '</tr>';
+  }).join('');
+
+  document.getElementById('tableArea').innerHTML =
+    '<table>' +
+    '<thead><tr>' +
+    '<th style="text-align:left;" onclick="thSort(\'acc\')">Umpire</th>' +
+    '<th onclick="thSort(\'acc\')">Accuracy</th>' +
+    '<th onclick="thSort(\'called\')">Called</th>' +
+    '<th onclick="thSort(\'missed\')">Missed</th>' +
+    '<th onclick="thSort(\'favorWS\')">Favor WS</th>' +
+    '<th onclick="thSort(\'favorOpp\')">Favor Opp</th>' +
+    '<th onclick="thSort(\'net\')">Net RE24</th>' +
+    '</tr></thead>' +
+    '<tbody>' + rows + '</tbody>' +
+    '</table>';
+}
+
+function thSort(col) {
+  // Map net to computed field
+  if (col === 'net') {
+    // Add net field if not present
+    allUmpires.forEach(function(u) { u.net = u.favorWS - u.favorOpp; });
+  }
+  if (col === 'called') {
+    allUmpires.forEach(function(u) { u.called = u.called; });
+  }
+  setSort(col);
+}
+
+loadData();
+</script>
+
+</body>
+</html>
