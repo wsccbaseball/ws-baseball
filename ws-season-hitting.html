@@ -858,10 +858,33 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
   // Background
   ctx.fillStyle='#1a3a2a'; ctx.fillRect(0,0,W,H);
 
-  // Coordinate system
-  // X: lateral feet, range -3 to +3 (neg = catcher's left = pull for RHH)
-  // Y: front/back feet, range -1.5 (behind) to +3.5 (out front)
-  var X_MIN=-3, X_MAX=3, Y_MIN=-1.5, Y_MAX=3.5;
+  // Filter to contact pitches only
+  var contactRows=rows.filter(function(r){
+    var c=(r.PitchCall||'').trim();
+    return c==='InPlay'||c==='FoulBall'||c==='FoulBallNotFieldable';
+  });
+
+  // Auto-detect coordinate range from actual data
+  var xs=[], ys=[];
+  contactRows.forEach(function(r){
+    var cx=parseFloat(r.ContactPositionX||r.contact_position_x||'NaN');
+    var cy=parseFloat(r.ContactPositionY||r.contact_position_y||'NaN');
+    if(!isNaN(cx))xs.push(cx);
+    if(!isNaN(cy))ys.push(cy);
+  });
+
+  var hasData = xs.length > 0 && ys.length > 0;
+  var xMid=0, yMid=1, spread=2;
+  if(hasData){
+    xMid=(Math.min.apply(null,xs)+Math.max.apply(null,xs))/2;
+    yMid=(Math.min.apply(null,ys)+Math.max.apply(null,ys))/2;
+    var xSpread=Math.max(Math.max.apply(null,xs)-Math.min.apply(null,xs), 0.5);
+    var ySpread=Math.max(Math.max.apply(null,ys)-Math.min.apply(null,ys), 0.5);
+    spread=Math.max(xSpread,ySpread)*0.6;
+  }
+  var X_MIN=xMid-spread, X_MAX=xMid+spread;
+  var Y_MIN=yMid-spread*1.1, Y_MAX=yMid+spread*0.9;
+
   var PAD_L=38, PAD_R=12, PAD_T=20, PAD_B=60;
   var GW=W-PAD_L-PAD_R, GH=H-PAD_T-PAD_B;
 
@@ -921,11 +944,10 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
   ctx.fillText('FRONT OF PLATE', PAD_L+4, toCanvasY(0)-4);
 
   // Plot dots
-  rows.forEach(function(r){
+  contactRows.forEach(function(r){
     var cx=parseFloat(r.ContactPositionX||r.contact_position_x||'NaN');
     var cy=parseFloat(r.ContactPositionY||r.contact_position_y||'NaN');
     if(isNaN(cx)||isNaN(cy))return;
-    if(cx<X_MIN||cx>X_MAX||cy<Y_MIN||cy>Y_MAX)return;
     var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||'Other');
     var col=pitchColor(pt);
     var px2=toCanvasX(cx), py2=toCanvasY(cy);
@@ -937,7 +959,6 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
   ctx.globalAlpha=1;
 
   // No data message
-  var hasData=rows.some(function(r){return !isNaN(parseFloat(r.ContactPositionX||r.contact_position_x));});
   if(!hasData){
     ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.font='13px Barlow Condensed, sans-serif'; ctx.textAlign='center';
     ctx.fillText('ContactPositionX/Y not available in this dataset', W/2, H/2);
