@@ -191,7 +191,7 @@ function sbFetch(table, params) {
 // Each request fetches 500 rows at a different point in the table,
 // all in parallel. Covers ~63k rows with 9 samples = full coverage.
 function loadTeams() {
-  var OFFSETS = [0, 1000, 2000, 3000, 4000];
+  var OFFSETS = [0, 500, 1000, 1500, 2000, 2500, 3000];
 
   var promises = OFFSETS.map(function(offset) {
     return fetch(
@@ -267,11 +267,11 @@ function onPitcherChange() {
   sbFetch('pitches',
     'select=*&Pitcher=eq.'+encodeURIComponent(pitcher)+
     '&PitcherTeam=eq.'+encodeURIComponent(team)+
-    '&order=game_id.asc&limit=1000'
+    '&limit=1000'
   ).then(function(pitches) {
     currentPitches = pitches;
     var seenG = {}, gameIds = [];
-    pitches.forEach(function(p){ if (p.game_id && !seenG[p.game_id]) { seenG[p.game_id]=true; gameIds.push(p.game_id); } });
+    pitches.forEach(function(p){ var gid = p.GameID || p.game_id; if (gid && !seenG[gid]) { seenG[gid]=true; gameIds.push(gid); } });
     document.getElementById('pitcherMeta').textContent =
       gameIds.length+' Game'+(gameIds.length!==1?'s':'')+' · '+pitches.length+' Pitches';
     renderArsenal(pitches);
