@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -97,7 +96,6 @@ canvas{display:block;border-radius:4px}
 .img-overlay img{max-width:100%;max-height:80vh;border-radius:6px}
 .overlay-hint{margin-top:14px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:600;color:rgba(255,255,255,.75);text-align:center}
 .overlay-close{margin-top:16px;padding:10px 32px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:8px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;cursor:pointer}
-/* wOBA coloring on pitch mix table */
 .woba-elite{color:#1a6b3a;font-weight:800}
 .woba-good{color:#2a7a3a}
 .woba-avg{color:#7a5a00}
@@ -229,7 +227,6 @@ canvas{display:block;border-radius:4px}
       </div>
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View &middot; looking toward the pitcher</div>
     </div>
-    <!-- Pitch Mix with wOBA + ISO -->
     <div class="pitch-section">
       <span class="stat-section-label" style="display:block;margin-bottom:4px">Pitch Mix</span>
       <table class="pitch-table">
@@ -320,12 +317,23 @@ function swingTakeRV(balls,strikes,outs,baseState){
 }
 
 function computeSEAGER(rows){
-  var evSum=0,evCount=0,hardCount=0;
-  rows.forEach(function(r){var ev=parseFloat(r.ExitSpeed);if(!isNaN(ev)&&ev>0&&r.PitchCall==='InPlay'){evSum+=ev;evCount++;if(ev>=95)hardCount++;}});
-  var avgEV=evCount>0?evSum/evCount:85;
-  var hardPct=evCount>0?hardCount/evCount:0.25;
-  var contactMult=0.25+(Math.min(avgEV,100)-75)/80+(hardPct*0.5);
+  // Best Speed (top 50% of exit velos) instead of avg EV
+  var evs=[];
+  rows.forEach(function(r){
+    var ev=parseFloat(r.ExitSpeed);
+    if(!isNaN(ev)&&ev>0&&r.PitchCall==='InPlay')evs.push(ev);
+  });
+  evs.sort(function(a,b){return b-a;});
+  var topHalf=evs.slice(0,Math.ceil(evs.length/2));
+  var bestSpeed=topHalf.length>0?topHalf.reduce(function(a,b){return a+b;},0)/topHalf.length:85;
+  var hardPct=evs.length>0?evs.filter(function(v){return v>=95;}).length/evs.length:0.25;
+
+  var contactMult=0.25+(Math.min(bestSpeed,100)-75)/80+(hardPct*0.5);
   contactMult=Math.max(0.20,Math.min(contactMult,0.75));
+
+  // Neutral baseline — prevents passive hitters gaming the optimal value
+  var NEUTRAL_MULT=0.45;
+
   var totalScore=0,pitchCount=0;
   rows.forEach(function(r){
     var call=(r.PitchCall||'').trim();
@@ -343,9 +351,15 @@ function computeSEAGER(rows){
     var sp=strikeProbability(side,height,zTop,zBot,0.833);
     var rv=swingTakeRV(balls,strikes,outs,baseState);
     var evTake=sp*rv.strikeVal+(1-sp)*rv.ballVal;
-    var evSwing=-sp*rv.delta*contactMult;
-    var optVal=Math.max(evTake,evSwing);
-    var actVal=isSwing?evSwing:evTake;
+
+    // optVal uses neutral contact quality — prevents passive hitters gaming the baseline
+    var evSwingOptimal=-sp*rv.delta*NEUTRAL_MULT;
+    var optVal=Math.max(evTake,evSwingOptimal);
+
+    // actVal uses this hitter's actual contact quality
+    var evSwingActual=-sp*rv.delta*contactMult;
+    var actVal=isSwing?evSwingActual:evTake;
+
     totalScore+=(actVal-optVal);pitchCount++;
   });
   return pitchCount>0?-(totalScore/pitchCount)*100:0;
@@ -365,7 +379,6 @@ function computeProfile(name,rows){
     var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||'Other');
     if(!pitchTypes[pt])pitchTypes[pt]={
       total:0,swings:0,whiffs:0,chases:0,ozPitches:0,ev:[],contacts:0,bip:[],
-      // ── result tracking per pitch type ──
       ptInPlay:0,ptSingles:0,ptDoubles:0,ptTriples:0,ptHRs:0,
       ptKs:0,ptBBs:0,ptHBPs:0
     };
@@ -380,11 +393,9 @@ function computeProfile(name,rows){
     if(isContact)pitchTypes[pt].contacts++;
     if(inside){inZone++;if(isSwing)inZoneSwings++;}
     if(outside){ozPitches++;pitchTypes[pt].ozPitches++;if(isSwing){ozSwings++;pitchTypes[pt].chases++;}}
-    // K / BB / HBP per pitch type
     if(r.KorBB==='Strikeout')pitchTypes[pt].ptKs++;
     if(r.KorBB==='Walk')pitchTypes[pt].ptBBs++;
     if(call==='HitByPitch')pitchTypes[pt].ptHBPs++;
-    // InPlay results per pitch type
     if(call==='InPlay'){
       pitchTypes[pt].ptInPlay++;
       var res=r.PlayResult||'';
@@ -456,7 +467,6 @@ function computeProfile(name,rows){
   };
 }
 
-// ── Zone Heat Map Engine ──────────────────────────────────────────────────────
 var HMAP_GRID=40;
 function buildKDEGrid(rows,valueFn,sigma,xMin,xMax,yMin,yMax,densityMode){
   var X_MIN=xMin||-1.05,X_MAX=xMax||1.05,Y_MIN=yMin||1.2,Y_MAX=yMax||3.9;
@@ -560,8 +570,6 @@ function buildPitchTable(p){
       var hard=d.ev.length>0?d.ev.filter(function(v){return v>=95;}).length/d.ev.length:0;
       var usagePct=totalPitches>0?(d.total/totalPitches*100).toFixed(1)+'%':'--';
       var color=pitchColor(pt);
-
-      // ── wOBA and ISO per pitch type ──
       var ab=d.ptInPlay+(d.ptKs||0);
       var hits=(d.ptSingles||0)+(d.ptDoubles||0)+(d.ptTriples||0)+(d.ptHRs||0);
       var ptAVG=ab>0?hits/ab:null;
@@ -570,7 +578,6 @@ function buildPitchTable(p){
       var wobaDen=ab+(d.ptBBs||0)+(d.ptHBPs||0);
       var wobaNum=0.88*(d.ptSingles||0)+1.24*(d.ptDoubles||0)+1.56*(d.ptTriples||0)+2.08*(d.ptHRs||0)+0.69*(d.ptBBs||0)+0.72*(d.ptHBPs||0);
       var ptWOBA=wobaDen>0?wobaNum/wobaDen:null;
-
       function fa(v){if(v===null)return'--';var s=v.toFixed(3);return s.startsWith('0.')?s.slice(1):s;}
       var wc='';
       if(ptWOBA!==null){
@@ -579,7 +586,6 @@ function buildPitchTable(p){
         else if(ptWOBA>=0.300)wc='woba-good';
         else wc='woba-elite';
       }
-
       tbody.innerHTML+=
         '<tr>'+
         '<td style="display:flex;align-items:center;gap:4px"><div class="pitch-dot" style="background:'+color+'"></div>'+escH(pt)+'</td>'+
