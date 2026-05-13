@@ -29,13 +29,6 @@ select:disabled { opacity: 0.5; cursor: not-allowed; }
 .pitcher-team { font-family: ‘Anton’, sans-serif; font-size: 10px; letter-spacing: 2px; color: #7a6a58; margin-top: 2px; text-transform: uppercase; }
 .pitcher-meta { font-family: ‘Anton’, sans-serif; font-size: 10px; letter-spacing: 1.5px; color: #7a6a58; text-align: right; text-transform: uppercase; }
 
-.stat-row { display: flex; flex-wrap: wrap; border-top: 1px solid #c8b89a; border-bottom: 1px solid #c8b89a; }
-.stat-cell { flex: 1; min-width: 52px; text-align: center; padding: 10px 4px 8px; border-right: 1px solid #c8b89a; background: #f2ead8; }
-.stat-cell:last-child { border-right: none; }
-.stat-val { font-family: ‘Anton’, sans-serif; font-size: 19px; line-height: 1; color: #1a1a1a; }
-.stat-lbl { font-family: ‘Anton’, sans-serif; font-size: 9px; letter-spacing: 1px; color: #7a6a58; margin-top: 3px; text-transform: uppercase; }
-.stat-footnote { font-family: ‘Anton’, sans-serif; font-size: 9px; letter-spacing: 1.5px; color: #9a8a78; padding: 4px 16px; text-transform: uppercase; background: #ede5d0; border-bottom: 1px solid #c8b89a; }
-
 .tab-bar { display: flex; border-bottom: 2px solid #1a1a1a; background: #ede5d0; }
 .tab { padding: 9px 18px; font-family: ‘Anton’, sans-serif; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; color: #9a8a78; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
 .tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; }
@@ -121,10 +114,6 @@ tbody tr:hover { background: #ede5d0; }
     </div>
 
 ```
-<div class="banner">Season Line vs Walters State</div>
-<div id="boxScoreArea"><div class="msg">Loading box scores…</div></div>
-<div class="divider"></div>
-
 <div class="tab-bar">
   <div class="tab active" onclick="switchTab('arsenal')">Arsenal</div>
   <div class="tab" onclick="switchTab('counts')">By Count</div>
@@ -175,8 +164,6 @@ function resolvedType(p) {
 }
 function avg(arr) { var v=arr.filter(function(x){return x!=null&&!isNaN(x);}); if(!v.length)return null; return v.reduce(function(a,b){return a+b;},0)/v.length; }
 function fmt(val,dec) { if(val==null||isNaN(val))return '—'; return val.toFixed(dec!=null?dec:1); }
-function parseIP(s) { if(!s)return 0; var p=String(s).trim().split('.'); return (parseInt(p[0])||0)+(parseInt(p[1])||0)/3; }
-function formatIP(d) { var f=Math.floor(d); return f+'.'+Math.round((d-f)*3); }
 
 function sbFetch(table, params) {
   return fetch(SUPABASE_URL+'/rest/v1/'+table+'?'+params, {
@@ -259,7 +246,7 @@ function onPitcherChange() {
   document.getElementById('pitcherTeamDisplay').textContent = team;
   document.getElementById('pitcherMeta').textContent = '';
 
-  ['boxScoreArea','arsenalArea','countArea','locationArea'].forEach(function(id){
+  ['arsenalArea','countArea','locationArea'].forEach(function(id){
     document.getElementById(id).innerHTML = '<div class="msg">Loading…</div>';
   });
   switchTab('arsenal');
@@ -277,70 +264,10 @@ function onPitcherChange() {
     renderArsenal(pitches);
     renderCounts(pitches);
     renderLocations(pitches);
-    fetchBoxScores(pitcher, gameIds);
   }).catch(function(e) {
     console.error('onPitcherChange:', e);
     document.getElementById('arsenalArea').innerHTML = '<div class="msg">Error: '+e.message+'</div>';
-    document.getElementById('boxScoreArea').innerHTML = '<div class="msg">Error loading data.</div>';
   });
-}
-
-// ── Box Score ────────────────────────────────────────────────
-function fetchBoxScores(pitcherName, gameIds) {
-  if (!gameIds.length) {
-    document.getElementById('boxScoreArea').innerHTML = '<div class="msg">No games found.</div>';
-    return;
-  }
-  var inParam = gameIds.map(function(id){return '"'+id+'"';}).join(',');
-  sbFetch('games','select=game_id,box_score_url&game_id=in.('+inParam+')').then(function(games) {
-    var valid = games.filter(function(g){return g.box_score_url;});
-    if (!valid.length) {
-      document.getElementById('boxScoreArea').innerHTML = '<div class="msg">No box score URLs found.</div>';
-      return;
-    }
-    var searchName = pitcherName.includes(',')
-      ? pitcherName.split(',')[0].trim().toLowerCase()
-      : pitcherName.split(' ').pop().toLowerCase();
-    var totals={G:0,IP:0,H:0,R:0,ER:0,BB:0,K:0}, found=0, pending=valid.length;
-    function done(){ if(--pending===0) renderBoxScore(totals,found,valid.length); }
-    valid.forEach(function(game){
-      fetch(SUPABASE_URL+'/functions/v1/fetch-boxscore',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPABASE_KEY},
-        body:JSON.stringify({url:game.box_score_url})
-      }).then(function(r){return r.ok?r.json():null;}).then(function(bs){
-        if (!bs){done();return;}
-        var all=(bs.homePitchers||[]).concat(bs.awayPitchers||[]).concat(bs.pitchers||[]);
-        var match=null;
-        for(var j=0;j<all.length;j++){
-          var n=(all[j].name||all[j].Name||'').toLowerCase();
-          var nL=n.includes(',')?n.split(',')[0].trim():n.split(' ').pop();
-          if(nL.includes(searchName)||searchName.includes(nL)){match=all[j];break;}
-        }
-        if(match){
-          found++; totals.G++;
-          totals.IP+=parseIP(match.ip||match.IP||'0');
-          totals.H +=parseInt(match.h ||match.H ||0)||0;
-          totals.R +=parseInt(match.r ||match.R ||0)||0;
-          totals.ER+=parseInt(match.er||match.ER||0)||0;
-          totals.BB+=parseInt(match.bb||match.BB||0)||0;
-          totals.K +=parseInt(match.k ||match.K ||match.so||match.SO||0)||0;
-        }
-        done();
-      }).catch(function(){done();});
-    });
-  }).catch(function(){
-    document.getElementById('boxScoreArea').innerHTML='<div class="msg">Error fetching box scores.</div>';
-  });
-}
-
-function renderBoxScore(t,found,total){
-  if(!found){document.getElementById('boxScoreArea').innerHTML='<div class="msg">Pitcher not matched in box score data.</div>';return;}
-  var era=t.IP>0?(t.ER/t.IP*9).toFixed(2):'—', whip=t.IP>0?((t.H+t.BB)/t.IP).toFixed(2):'—';
-  var cells=[{v:t.G,l:'G'},{v:formatIP(t.IP),l:'IP'},{v:era,l:'ERA'},{v:whip,l:'WHIP'},{v:t.K,l:'K'},{v:t.BB,l:'BB'},{v:t.H,l:'H'},{v:t.ER,l:'ER'}];
-  document.getElementById('boxScoreArea').innerHTML=
-    '<div class="stat-row">'+cells.map(function(c){return '<div class="stat-cell"><div class="stat-val">'+c.v+'</div><div class="stat-lbl">'+c.l+'</div></div>';}).join('')+'</div>'+
-    '<div class="stat-footnote">vs Walters State · '+found+'/'+total+' games matched</div>';
 }
 
 // ── Arsenal ──────────────────────────────────────────────────
