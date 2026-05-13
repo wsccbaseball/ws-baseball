@@ -145,7 +145,7 @@ canvas{display:block;border-radius:4px}
           <th onclick="sortTable('swingPct')">Swing%</th>
           <th onclick="sortTable('chasePct')">Chase%</th>
           <th onclick="sortTable('zSwingPct')">Z-Swing%</th>
-          <th onclick="sortTable('seagerScore')">SGR</th>
+          <th onclick="sortTable('seagerScore')">ZO%</th>
           <th onclick="sortTable('gbPct')">GB%</th>
           <th onclick="sortTable('fbPct')">FB%</th>
           <th onclick="sortTable('bestSpeed')">Best Speed</th>
@@ -203,7 +203,7 @@ canvas{display:block;border-radius:4px}
         <div class="stat-box"><span class="stat-val" id="tChase">&#8212;</span><span class="stat-lbl">Chase%</span></div>
         <div class="stat-box"><span class="stat-val" id="tZSwing">&#8212;</span><span class="stat-lbl">Z-Swing%</span></div>
         <div class="stat-box"><span class="stat-val" id="tWhiff">&#8212;</span><span class="stat-lbl">Whiff%</span></div>
-        <div class="stat-box"><span class="stat-val hi" id="tSGR">&#8212;</span><span class="stat-lbl">SGR</span></div>
+        <div class="stat-box"><span class="stat-val hi" id="tSGR">&#8212;</span><span class="stat-lbl">ZO%</span></div>
       </div>
     </div>
     <div class="hmap-section">
@@ -316,53 +316,9 @@ function swingTakeRV(balls,strikes,outs,baseState){
   return{strikeVal:reVal(balls,strikes+1),ballVal:reVal(balls+1,strikes),delta:reVal(balls,strikes+1)-reVal(balls+1,strikes)};
 }
 
-function computeSEAGER(rows){
-  // Best Speed (top 50% of exit velos) instead of avg EV
-  var evs=[];
-  rows.forEach(function(r){
-    var ev=parseFloat(r.ExitSpeed);
-    if(!isNaN(ev)&&ev>0&&r.PitchCall==='InPlay')evs.push(ev);
-  });
-  evs.sort(function(a,b){return b-a;});
-  var topHalf=evs.slice(0,Math.ceil(evs.length/2));
-  var bestSpeed=topHalf.length>0?topHalf.reduce(function(a,b){return a+b;},0)/topHalf.length:85;
-  var hardPct=evs.length>0?evs.filter(function(v){return v>=95;}).length/evs.length:0.25;
-
-  var contactMult=0.25+(Math.min(bestSpeed,100)-75)/80+(hardPct*0.5);
-  contactMult=Math.max(0.20,Math.min(contactMult,0.75));
-
-  // Neutral baseline — prevents passive hitters gaming the optimal value
-  var NEUTRAL_MULT=0.45;
-
-  var totalScore=0,pitchCount=0;
-  rows.forEach(function(r){
-    var call=(r.PitchCall||'').trim();
-    var isSwing=['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
-    var isTake=call==='StrikeCalled'||call==='BallCalled';
-    if(!isSwing&&!isTake)return;
-    var side=parseFloat(r.PlateLocSide),height=parseFloat(r.PlateLocHeight);
-    if(isNaN(side)||isNaN(height))return;
-    var balls=parseInt(r.Balls||r.BallCount||0)||0;
-    var strikes=parseInt(r.Strikes||r.StrikeCount||0)||0;
-    var outs=parseInt(r.Outs||r.OutsBeforePitch||0)||0;
-    var on1b=!!(r.Runner1B||'').trim(),on2b=!!(r.Runner2B||'').trim(),on3b=!!(r.Runner3B||'').trim();
-    var baseState=(on1b?1:0)|(on2b?2:0)|(on3b?4:0);
-    var zTop=parseFloat(r.ZoneTop)||3.5,zBot=parseFloat(r.ZoneBottom)||1.5;
-    var sp=strikeProbability(side,height,zTop,zBot,0.833);
-    var rv=swingTakeRV(balls,strikes,outs,baseState);
-    var evTake=sp*rv.strikeVal+(1-sp)*rv.ballVal;
-
-    // optVal uses neutral contact quality — prevents passive hitters gaming the baseline
-    var evSwingOptimal=-sp*rv.delta*NEUTRAL_MULT;
-    var optVal=Math.max(evTake,evSwingOptimal);
-
-    // actVal uses this hitter's actual contact quality
-    var evSwingActual=-sp*rv.delta*contactMult;
-    var actVal=isSwing?evSwingActual:evTake;
-
-    totalScore+=(actVal-optVal);pitchCount++;
-  });
-  return pitchCount>0?-(totalScore/pitchCount)*100:0;
+function computeZOScore(zSwingPct, chasePct){
+  // Zone Swing% minus Chase% — positive is good, negative is bad
+  return (zSwingPct - chasePct) * 100;
 }
 
 function computeProfile(name,rows){
@@ -458,7 +414,7 @@ function computeProfile(name,rows){
     whiffPct:swings>0?whiffs/swings:0,
     chasePct:ozPitches>0?ozSwings/ozPitches:0,
     zSwingPct:inZone>0?inZoneSwings/inZone:0,
-    seagerScore:computeSEAGER(rows),
+    seagerScore:computeZOScore(inZone>0?inZoneSwings/inZone:0, ozPitches>0?ozSwings/ozPitches:0),
     hardHit:evCount>0?bip.filter(function(b){return b.ev>=95;}).length/evCount:0,
     solidPct:bipCount>0?solidContact/bipCount:0,
     gbPct:bipCount>0?gbCount/bipCount:0,fbPct:bipCount>0?fbCount/bipCount:0,
@@ -625,7 +581,7 @@ function buildCard(){
   document.getElementById('tSwing').textContent=pct(p.swingPct);
   document.getElementById('tZSwing').textContent=pct(p.zSwingPct);
   document.getElementById('tWhiff').textContent=pct(p.whiffPct);
-  document.getElementById('tSGR').textContent=(p.seagerScore||0).toFixed(2);
+  document.getElementById('tSGR').textContent=(p.seagerScore||0).toFixed(1)+'%';
   setTimeout(function(){
     drawZoneGrid('zmapWoba',p.rows,wobaVal,0,1,'wOBA');
     var fbRows=p.rows.filter(function(r){return normPitch(r.TaggedPitchType||r.AutoPitchType)==='Fastball';});
@@ -760,7 +716,7 @@ function renderTable(){
       '<td>'+pct(p.swingPct)+'</td>'+
       '<td class="'+(p.chasePct>=.30?'val-warn':'')+'">'+pct(p.chasePct)+'</td>'+
       '<td>'+pct(p.zSwingPct)+'</td>'+
-      '<td class="'+((p.seagerScore||0)>=5?'val-good':(p.seagerScore||0)<0?'val-warn':'')+'">'+(p.seagerScore||0).toFixed(2)+'</td>'+
+      '<td class="'+((p.seagerScore||0)>=5?'val-good':(p.seagerScore||0)<0?'val-warn':'')+'">'+(p.seagerScore>=0?'+':'')+p.seagerScore.toFixed(1)+'%</td>'+
       '<td>'+pct(p.gbPct)+'</td>'+
       '<td>'+pct(p.fbPct)+'</td>'+
       '<td class="val-hi">'+(p.bestSpeed>0?p.bestSpeed.toFixed(1):'--')+'</td>'+
