@@ -716,7 +716,7 @@ function renderTable(){
       '<td>'+pct(p.swingPct)+'</td>'+
       '<td class="'+(p.chasePct>=.30?'val-warn':'')+'">'+pct(p.chasePct)+'</td>'+
       '<td>'+pct(p.zSwingPct)+'</td>'+
-      '<td class="'+((p.seagerScore||0)>=5?'val-good':(p.seagerScore||0)<0?'val-warn':'')+'">'+(p.seagerScore>=0?'+':'')+p.seagerScore.toFixed(1)+'%</td>'+
+      '<td class="'+((p.seagerScore||0)>=5?'val-good':(p.seagerScore||0)<0?'val-warn':'')+'">'+(p.seagerScore||0).toFixed(1)+'%</td>'+
       '<td>'+pct(p.gbPct)+'</td>'+
       '<td>'+pct(p.fbPct)+'</td>'+
       '<td class="val-hi">'+(p.bestSpeed>0?p.bestSpeed.toFixed(1):'--')+'</td>'+
