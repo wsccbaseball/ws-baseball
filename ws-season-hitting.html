@@ -97,6 +97,23 @@ canvas{display:block;border-radius:4px}
 .overlay-hint{margin-top:14px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:600;color:rgba(255,255,255,.75);text-align:center}
 .overlay-close{margin-top:16px;padding:10px 32px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:8px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;cursor:pointer}
 .woba-elite{color:#1a6b3a;font-weight:800}
+/* ── Visuals Tab ── */
+.main-tab-bar{display:flex;border-bottom:2px solid #1a3a5c;background:#fffdf7;}
+.main-tab{padding:9px 20px;font-family:'Anton',sans-serif;font-size:.72rem;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;color:#9b8c74;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;}
+.main-tab.active{color:#1a3a5c;border-bottom-color:#1a3a5c;}
+.vis-controls{padding:10px 12px;background:#fffdf7;border-bottom:1px solid #ddd5bc;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;}
+.vis-gen-btn{background:#1a3a5c;color:#fff;border:none;padding:8px 18px;font-family:'Anton',sans-serif;font-size:.8rem;letter-spacing:.08em;cursor:pointer;border-radius:4px;white-space:nowrap;}
+.vis-gen-btn:disabled{opacity:.4;cursor:not-allowed;}
+.vis-section{padding:10px 10px 4px;}
+.vis-title{font-family:'Anton',sans-serif;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;color:#1a3a5c;margin-bottom:6px;}
+.vis-canvases{display:flex;flex-direction:column;gap:14px;padding:8px 10px 20px;}
+.vis-canvas-wrap{background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden;}
+.vis-canvas-label{font-family:'Anton',sans-serif;font-size:.62rem;letter-spacing:1.5px;text-transform:uppercase;color:#6b5f47;padding:6px 10px 4px;border-bottom:1px solid #f0e8d8;}
+.vis-legend{display:flex;flex-wrap:wrap;gap:8px;padding:5px 10px 8px;border-top:1px solid #f0e8d8;}
+.vis-leg-item{display:flex;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;font-size:.72rem;color:#5a4a38;}
+.vis-leg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.vis-empty{padding:40px 20px;text-align:center;color:#9b8c74;font-family:'Barlow',sans-serif;font-size:.85rem;font-style:italic;}
+
 .woba-good{color:#2a7a3a}
 .woba-avg{color:#7a5a00}
 .woba-bad{color:#b03000;font-weight:800}
@@ -133,6 +150,12 @@ canvas{display:block;border-radius:4px}
     </div>
     <div class="filter-count" id="filterCount"></div>
   </div>
+  <div class="main-tab-bar">
+    <div class="main-tab active" onclick="switchMainTab('leaderboard')">Leaderboard</div>
+    <div class="main-tab" onclick="switchMainTab('visuals')">Visuals</div>
+  </div>
+
+  <div id="tab-leaderboard">
   <div id="table-screen">
     <div class="table-wrap">
       <table class="stats-tbl">
@@ -155,6 +178,23 @@ canvas{display:block;border-radius:4px}
       </table>
     </div>
   </div>
+  </div><!-- /tab-leaderboard -->
+
+  <!-- Visuals Tab -->
+  <div id="tab-visuals" style="display:none;padding-bottom:80px;">
+    <div class="vis-controls">
+      <div class="fg" style="flex:2;min-width:150px;position:relative">
+        <label>Select Hitter</label>
+        <div class="dd-wrap" id="visPlayerDD">
+          <div class="dd-trigger" onclick="toggleDD('visPlayerDD')"><span id="visPlayerDDLabel">— Select Hitter —</span><span class="dd-arrow">&#9660;</span></div>
+          <div class="dd-menu" id="visPlayerDDMenu"></div>
+        </div>
+      </div>
+      <button class="vis-gen-btn" id="visGenBtn" onclick="generateVisuals()" disabled>Generate Visuals &#8594;</button>
+    </div>
+    <div id="visArea"><div class="vis-empty">Select a hitter to generate contact point and spray chart.</div></div>
+  </div><!-- /tab-visuals -->
+
 </div>
 
 <div id="card-screen">
@@ -642,7 +682,7 @@ async function boot(){
       setProgress(30+Math.round(((i+1)/gamesMeta.length)*60),'Loading game '+(i+1)+' of '+gamesMeta.length+'...');
     }
     setProgress(96,'Building stats...');
-    rebuildTableData(allPitches);populatePlayerFilter();renderTable();
+    rebuildTableData(allPitches);populatePlayerFilter();populateVisPlayerFilter();renderTable();
     document.getElementById('loading-screen').style.display='none';
     document.getElementById('main-screen').style.display='block';
     document.getElementById('bottomBar').style.display='flex';
@@ -728,6 +768,304 @@ function sortTable(col){if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortA
 function showMain(){document.getElementById('card-screen').style.display='none';document.getElementById('main-screen').style.display='block';document.getElementById('bottomBar').style.display='flex';selectedPlayer=null;document.getElementById('genCardBtn').disabled=true;document.getElementById('selHint').textContent='Tap a player to select';}
 
 boot();
+
+// ── Main Tab Switching ────────────────────────────────────────
+function switchMainTab(tab){
+  document.querySelectorAll('.main-tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelector('.main-tab[onclick="switchMainTab(\''+tab+'\')"]').classList.add('active');
+  document.getElementById('tab-leaderboard').style.display = tab==='leaderboard'?'block':'none';
+  document.getElementById('tab-visuals').style.display     = tab==='visuals'?'block':'none';
+}
+
+// ── Populate Visuals Hitter Dropdown ─────────────────────────
+function populateVisPlayerFilter(){
+  var names=Array.from(new Set(allPitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal');}).map(function(r){return r.Batter||'';}).filter(Boolean))).sort();
+  var menu=document.getElementById('visPlayerDDMenu');
+  menu.innerHTML='';
+  names.forEach(function(n){
+    var p=n.split(','),d=p.length>1?(p[1]||'').trim()+' '+p[0].trim():n;
+    var item=document.createElement('div');item.className='dd-item';
+    item.textContent=d;
+    item.addEventListener('click',function(){
+      document.querySelectorAll('#visPlayerDDMenu .dd-item').forEach(function(i){i.classList.remove('checked');});
+      item.classList.add('checked');
+      document.getElementById('visPlayerDDLabel').textContent=d;
+      document.getElementById('visPlayerDD').classList.remove('open');
+      document.getElementById('visGenBtn').disabled=false;
+      document.getElementById('visGenBtn').setAttribute('data-player', n);
+    });
+    menu.appendChild(item);
+  });
+}
+
+// ── Generate Visuals ─────────────────────────────────────────
+function generateVisuals(){
+  var btn=document.getElementById('visGenBtn');
+  var playerName=btn.getAttribute('data-player');
+  if(!playerName)return;
+
+  var rows=allPitches.filter(function(r){
+    return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal')&&r.Batter===playerName;
+  });
+  if(!rows.length){
+    document.getElementById('visArea').innerHTML='<div class="vis-empty">No pitch data for this hitter.</div>';
+    return;
+  }
+
+  // Determine batter side
+  var sideCount={Right:0,Left:0};
+  rows.forEach(function(r){var s=r.BatterSide||r.Batter_Side||'';if(s)sideCount[s]=(sideCount[s]||0)+1;});
+  var batterSide=sideCount.Right>=sideCount.Left?'Right':'Left';
+  var pullLabel  = batterSide==='Right'?'← Pull (L)':'Pull (R) →';
+  var oppoLabel  = batterSide==='Right'?'Oppo (R) →':'← Oppo (L)';
+
+  // Build pitch type legend
+  var ptSeen={};
+  rows.forEach(function(r){var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||'Other');ptSeen[pt]=true;});
+  var legendHtml=Object.keys(ptSeen).map(function(pt){
+    return '<div class="vis-leg-item"><div class="vis-leg-dot" style="background:'+pitchColor(pt)+'"></div>'+pt+'</div>';
+  }).join('');
+
+  var displayName=playerName.split(',').length>1?(playerName.split(',')[1]||'').trim()+' '+playerName.split(',')[0].trim():playerName;
+
+  document.getElementById('visArea').innerHTML=
+    '<div class="vis-canvases">'+
+    '<div class="vis-canvas-wrap">'+
+      '<div class="vis-canvas-label">Contact Point — '+displayName+' ('+batterSide+'HH)</div>'+
+      '<canvas id="cpCanvas" width="360" height="320" style="width:100%;height:auto;display:block;"></canvas>'+
+      '<div class="vis-legend">'+legendHtml+'</div>'+
+    '</div>'+
+    '<div class="vis-canvas-wrap">'+
+      '<div class="vis-canvas-label">Spray Chart — '+displayName+'</div>'+
+      '<canvas id="scCanvas" width="360" height="340" style="width:100%;height:auto;display:block;"></canvas>'+
+      '<div class="vis-legend">'+legendHtml+'</div>'+
+    '</div>'+
+    '</div>';
+
+  setTimeout(function(){
+    drawContactPoint('cpCanvas', rows, batterSide, pullLabel, oppoLabel);
+    drawSprayChart('scCanvas', rows, batterSide);
+  }, 30);
+}
+
+// ── Contact Point Canvas ──────────────────────────────────────
+// Bird's eye view — plate at bottom, Y axis = out front (positive = good extension)
+function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
+  var cv=document.getElementById(canvasId); if(!cv)return;
+  var ctx=cv.getContext('2d'), W=cv.width, H=cv.height;
+  ctx.clearRect(0,0,W,H);
+
+  // Background
+  ctx.fillStyle='#1a3a2a'; ctx.fillRect(0,0,W,H);
+
+  // Coordinate system
+  // X: lateral feet, range -3 to +3 (neg = catcher's left = pull for RHH)
+  // Y: front/back feet, range -1.5 (behind) to +3.5 (out front)
+  var X_MIN=-3, X_MAX=3, Y_MIN=-1.5, Y_MAX=3.5;
+  var PAD_L=38, PAD_R=12, PAD_T=20, PAD_B=60;
+  var GW=W-PAD_L-PAD_R, GH=H-PAD_T-PAD_B;
+
+  function toCanvasX(x){ return PAD_L + (x-X_MIN)/(X_MAX-X_MIN)*GW; }
+  function toCanvasY(y){ return PAD_T + (Y_MAX-y)/(Y_MAX-Y_MIN)*GH; }
+
+  // Grid lines
+  ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=0.5;
+  for(var gx=X_MIN;gx<=X_MAX;gx++){
+    ctx.beginPath(); ctx.moveTo(toCanvasX(gx),PAD_T); ctx.lineTo(toCanvasX(gx),PAD_T+GH); ctx.stroke();
+  }
+  for(var gy=Y_MIN;gy<=Y_MAX;gy+=0.5){
+    ctx.beginPath(); ctx.moveTo(PAD_L,toCanvasY(gy)); ctx.lineTo(PAD_L+GW,toCanvasY(gy)); ctx.stroke();
+  }
+
+  // Center line (0 lateral)
+  ctx.strokeStyle='rgba(255,255,255,0.20)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(toCanvasX(0),PAD_T); ctx.lineTo(toCanvasX(0),PAD_T+GH); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Front of plate line (y=0)
+  ctx.strokeStyle='rgba(255,220,100,0.5)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(PAD_L,toCanvasY(0)); ctx.lineTo(PAD_L+GW,toCanvasY(0)); ctx.stroke();
+
+  // Plate (bird's eye, centered at x=0, y=0...-0.7)
+  var plateW = 17/12; // 17 inches in feet
+  ctx.fillStyle='rgba(255,255,255,0.85)';
+  ctx.beginPath();
+  ctx.moveTo(toCanvasX(-plateW/2), toCanvasY(0));
+  ctx.lineTo(toCanvasX( plateW/2), toCanvasY(0));
+  ctx.lineTo(toCanvasX( plateW/2), toCanvasY(-0.42));
+  ctx.lineTo(toCanvasX(0),         toCanvasY(-0.70));
+  ctx.lineTo(toCanvasX(-plateW/2), toCanvasY(-0.42));
+  ctx.closePath(); ctx.fill();
+
+  // Axis labels
+  ctx.fillStyle='rgba(255,255,255,0.55)';
+  ctx.font='bold 9px Barlow Condensed, sans-serif';
+  ctx.textAlign='center';
+
+  // Pull / Oppo labels
+  var pullX = batterSide==='Right' ? toCanvasX(X_MIN+0.3) : toCanvasX(X_MAX-0.3);
+  var oppoX = batterSide==='Right' ? toCanvasX(X_MAX-0.3) : toCanvasX(X_MIN+0.3);
+  ctx.fillStyle='#f4c542'; ctx.font='bold 8px Barlow Condensed, sans-serif';
+  ctx.textAlign = batterSide==='Right'?'left':'right';
+  ctx.fillText(pullLabel, pullX, H-8);
+  ctx.textAlign = batterSide==='Right'?'right':'left';
+  ctx.fillText(oppoLabel, oppoX, H-8);
+
+  // Y axis label
+  ctx.save(); ctx.translate(12, PAD_T+GH/2); ctx.rotate(-Math.PI/2);
+  ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font='8px Barlow Condensed, sans-serif'; ctx.textAlign='center';
+  ctx.fillText('← LATE    OUT FRONT →', 0, 0); ctx.restore();
+
+  // "FRONT OF PLATE" label
+  ctx.fillStyle='rgba(255,220,100,0.7)'; ctx.font='7px Barlow Condensed, sans-serif'; ctx.textAlign='left';
+  ctx.fillText('FRONT OF PLATE', PAD_L+4, toCanvasY(0)-4);
+
+  // Plot dots
+  rows.forEach(function(r){
+    var cx=parseFloat(r.ContactPositionX||r.contact_position_x||'NaN');
+    var cy=parseFloat(r.ContactPositionY||r.contact_position_y||'NaN');
+    if(isNaN(cx)||isNaN(cy))return;
+    if(cx<X_MIN||cx>X_MAX||cy<Y_MIN||cy>Y_MAX)return;
+    var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||'Other');
+    var col=pitchColor(pt);
+    var px2=toCanvasX(cx), py2=toCanvasY(cy);
+    ctx.globalAlpha=0.75;
+    ctx.fillStyle=col;
+    ctx.strokeStyle='rgba(0,0,0,0.4)'; ctx.lineWidth=0.5;
+    ctx.beginPath(); ctx.arc(px2,py2,4,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  });
+  ctx.globalAlpha=1;
+
+  // No data message
+  var hasData=rows.some(function(r){return !isNaN(parseFloat(r.ContactPositionX||r.contact_position_x));});
+  if(!hasData){
+    ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.font='13px Barlow Condensed, sans-serif'; ctx.textAlign='center';
+    ctx.fillText('ContactPositionX/Y not available in this dataset', W/2, H/2);
+  }
+}
+
+// ── Spray Chart Canvas ────────────────────────────────────────
+function drawSprayChart(canvasId, rows, batterSide){
+  var cv=document.getElementById(canvasId); if(!cv)return;
+  var ctx=cv.getContext('2d'), W=cv.width, H=cv.height;
+  ctx.clearRect(0,0,W,H);
+
+  // Field background
+  ctx.fillStyle='#2d5a2d'; ctx.fillRect(0,0,W,H);
+
+  var CX=W/2, CY=H-30; // home plate position
+  var SCALE=0.62; // pixels per foot
+
+  function fieldToCanvas(dist, dirDeg){
+    var rad=dirDeg*Math.PI/180;
+    // TrackMan direction: 0=CF, neg=LF, pos=RF from batter POV
+    // For LHH we flip x
+    var flip = batterSide==='Left' ? -1 : 1;
+    var x = CX + flip * dist * SCALE * Math.sin(rad);
+    var y = CY - dist * SCALE * Math.cos(rad);
+    return [x,y];
+  }
+
+  // Draw outfield grass arc
+  ctx.fillStyle='#2a5228';
+  ctx.beginPath();
+  ctx.arc(CX, CY, 400*SCALE, -Math.PI*0.82, -Math.PI*0.18);
+  ctx.lineTo(CX, CY);
+  ctx.closePath(); ctx.fill();
+
+  // Draw infield dirt
+  ctx.fillStyle='#8b6914';
+  ctx.beginPath();
+  ctx.arc(CX, CY, 95*SCALE, -Math.PI*0.82, -Math.PI*0.18);
+  ctx.lineTo(CX, CY);
+  ctx.closePath(); ctx.fill();
+
+  // Infield grass
+  ctx.fillStyle='#2d5a2d';
+  ctx.beginPath();
+  ctx.arc(CX, CY, 80*SCALE, -Math.PI*0.82, -Math.PI*0.18);
+  ctx.lineTo(CX, CY);
+  ctx.closePath(); ctx.fill();
+
+  // Foul lines
+  ctx.strokeStyle='rgba(255,255,255,0.7)'; ctx.lineWidth=1.5;
+  var llCoords=fieldToCanvas(330, -45);
+  var rlCoords=fieldToCanvas(330, 45);
+  ctx.beginPath(); ctx.moveTo(CX,CY); ctx.lineTo(llCoords[0],llCoords[1]); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(CX,CY); ctx.lineTo(rlCoords[0],rlCoords[1]); ctx.stroke();
+
+  // Bases
+  function drawBase(dist, dir, size){
+    var bc=fieldToCanvas(dist,dir);
+    ctx.fillStyle='#fff'; ctx.fillRect(bc[0]-size/2,bc[1]-size/2,size,size);
+  }
+  drawBase(90,-45,6); // 3B (pull for RHH)
+  drawBase(127,0,6);  // 2B
+  drawBase(90,45,6);  // 1B (oppo for RHH)
+
+  // Home plate
+  ctx.fillStyle='#fff';
+  ctx.beginPath(); ctx.arc(CX,CY,5,0,Math.PI*2); ctx.fill();
+
+  // Pitcher's mound
+  var mound=fieldToCanvas(60,0);
+  ctx.fillStyle='#8b6914';
+  ctx.beginPath(); ctx.arc(mound[0],mound[1],6,0,Math.PI*2); ctx.fill();
+
+  // Distance arcs (100, 200, 300, 400)
+  [100,200,300,400].forEach(function(d){
+    ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.lineWidth=0.8;
+    ctx.beginPath();
+    ctx.arc(CX, CY, d*SCALE, -Math.PI*0.82, -Math.PI*0.18);
+    ctx.stroke();
+    if(d>=200){
+      var labelPt=fieldToCanvas(d,0);
+      ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.font='8px Barlow Condensed,sans-serif'; ctx.textAlign='center';
+      ctx.fillText(d+"'", labelPt[0], labelPt[1]-3);
+    }
+  });
+
+  // Outfield wall arc
+  ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.arc(CX, CY, 330*SCALE, -Math.PI*0.82, -Math.PI*0.18);
+  ctx.stroke();
+
+  // Plot BIP dots
+  var bipCount=0;
+  rows.forEach(function(r){
+    if(r.PitchCall!=='InPlay')return;
+    var dir=parseFloat(r.Direction||r.HitDirection||'NaN');
+    var dist=parseFloat(r.Distance||r.HitDistance||'NaN');
+    if(isNaN(dir)||isNaN(dist))return;
+    if(dist<10||dist>500)return;
+    bipCount++;
+    var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||'Other');
+    var col=pitchColor(pt);
+    var res=(r.PlayResult||'').toLowerCase();
+    var isHit=res.includes('single')||res.includes('double')||res.includes('triple')||res.includes('homerun')||res.includes('home');
+    var coords=fieldToCanvas(dist,dir);
+    ctx.globalAlpha=isHit?0.90:0.55;
+    ctx.fillStyle=col;
+    ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=0.5;
+    ctx.beginPath(); ctx.arc(coords[0],coords[1],isHit?5:3.5,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  });
+  ctx.globalAlpha=1;
+
+  // Labels
+  ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font='bold 8px Barlow Condensed,sans-serif'; ctx.textAlign='center';
+  var pullSide = batterSide==='Right' ? 'PULL (LF)' : 'PULL (RF)';
+  var oppoSide = batterSide==='Right' ? 'OPPO (RF)' : 'OPPO (LF)';
+  ctx.fillText(pullSide, batterSide==='Right'?40:W-40, 30);
+  ctx.fillText(oppoSide, batterSide==='Right'?W-40:40, 30);
+  ctx.fillText('CF', W/2, 18);
+
+  if(!bipCount){
+    ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.font='13px Barlow Condensed,sans-serif'; ctx.textAlign='center';
+    ctx.fillText('No batted ball data (Direction/Distance not available)', W/2, H/2);
+  }
+}
+
 </script>
 
 </body>
