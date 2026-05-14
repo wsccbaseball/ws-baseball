@@ -864,7 +864,9 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
     return c==='InPlay'||c==='FoulBall'||c==='FoulBallNotFieldable';
   });
 
-  // Auto-detect coordinate range from actual data
+  // Coordinate range:
+  // X always symmetric around 0 (plate center) — prevents false "outside" appearance
+  // Y auto-scales from data but always anchors front-of-plate (0) near bottom quarter
   var xs=[], ys=[];
   contactRows.forEach(function(r){
     var cx=parseFloat(r.ContactPositionX||r.contact_position_x||'NaN');
@@ -874,16 +876,18 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
   });
 
   var hasData = xs.length > 0 && ys.length > 0;
-  var xMid=0, yMid=1, spread=2;
-  if(hasData){
-    xMid=(Math.min.apply(null,xs)+Math.max.apply(null,xs))/2;
-    yMid=(Math.min.apply(null,ys)+Math.max.apply(null,ys))/2;
-    var xSpread=Math.max(Math.max.apply(null,xs)-Math.min.apply(null,xs), 0.5);
-    var ySpread=Math.max(Math.max.apply(null,ys)-Math.min.apply(null,ys), 0.5);
-    spread=Math.max(xSpread,ySpread)*0.6;
-  }
-  var X_MIN=xMid-spread, X_MAX=xMid+spread;
-  var Y_MIN=yMid-spread*1.1, Y_MAX=yMid+spread*0.9;
+
+  // X: always centered at 0, symmetric, min ±0.8ft, sized to contain all data + 20% padding
+  var xHalf = hasData ? Math.max(Math.max.apply(null,xs.map(Math.abs)), 0.8) * 1.2 : 1.5;
+  var X_MIN = -xHalf, X_MAX = xHalf;
+
+  // Y: auto-scale from data, but always include 0 (front of plate) near the bottom
+  var yDataMin = hasData ? Math.min.apply(null,ys) : -0.3;
+  var yDataMax = hasData ? Math.max.apply(null,ys) :  2.0;
+  var yPad = Math.max((yDataMax - yDataMin) * 0.15, 0.2);
+  // Ensure 0 (front of plate) is always visible, with at least 0.4ft below it for the plate shape
+  var Y_MIN = Math.min(yDataMin - yPad, -0.4);
+  var Y_MAX = yDataMax + yPad;
 
   var PAD_L=38, PAD_R=12, PAD_T=20, PAD_B=60;
   var GW=W-PAD_L-PAD_R, GH=H-PAD_T-PAD_B;
