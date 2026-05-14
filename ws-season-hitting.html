@@ -886,7 +886,7 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
   var yDataMax = hasData ? Math.max.apply(null,ys) :  2.0;
   var yPad = Math.max((yDataMax - yDataMin) * 0.15, 0.2);
   // Ensure 0 (front of plate) is always visible, with at least 0.4ft below it for the plate shape
-  var Y_MIN = Math.min(yDataMin - yPad, -0.1);
+  var Y_MIN = Math.min(yDataMin - yPad, -1.5); // always show full plate below Y=0
   var Y_MAX = yDataMax + yPad;
 
   var PAD_L=38, PAD_R=12, PAD_T=20, PAD_B=60;
@@ -909,20 +909,24 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
   ctx.beginPath(); ctx.moveTo(toCanvasX(0),PAD_T); ctx.lineTo(toCanvasX(0),PAD_T+GH); ctx.stroke();
   ctx.setLineDash([]);
 
-  // Front of plate line (y=0)
-  ctx.strokeStyle='rgba(255,220,100,0.5)'; ctx.lineWidth=1;
+  // Front of plate line at Y=0 — matches plate front edge exactly
+  ctx.strokeStyle='rgba(255,220,100,0.6)'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
   ctx.beginPath(); ctx.moveTo(PAD_L,toCanvasY(0)); ctx.lineTo(PAD_L+GW,toCanvasY(0)); ctx.stroke();
+  ctx.setLineDash([]);
 
-  // Plate (bird's eye, centered at x=0, y=0...-0.7)
-  var plateW = 17/12; // 17 inches in feet
-  ctx.fillStyle='rgba(255,255,255,0.85)';
+  // Plate — drawn with front edge exactly at Y=0 in data coords
+  // 17" wide = 1.417ft, depth ~17" = 1.417ft
+  var plateW = 17/12;
+  var plateD = 17/12;
+  ctx.fillStyle='rgba(255,255,255,0.92)';
+  ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=1;
   ctx.beginPath();
-  ctx.moveTo(toCanvasX(-plateW/2), toCanvasY(0));
-  ctx.lineTo(toCanvasX( plateW/2), toCanvasY(0));
-  ctx.lineTo(toCanvasX( plateW/2), toCanvasY(-0.42));
-  ctx.lineTo(toCanvasX(0),         toCanvasY(-0.70));
-  ctx.lineTo(toCanvasX(-plateW/2), toCanvasY(-0.42));
-  ctx.closePath(); ctx.fill();
+  ctx.moveTo(toCanvasX(-plateW/2), toCanvasY(0));           // front-left
+  ctx.lineTo(toCanvasX( plateW/2), toCanvasY(0));           // front-right
+  ctx.lineTo(toCanvasX( plateW/2), toCanvasY(-plateD*0.6)); // back-right
+  ctx.lineTo(toCanvasX(0),         toCanvasY(-plateD));     // back-point
+  ctx.lineTo(toCanvasX(-plateW/2), toCanvasY(-plateD*0.6)); // back-left
+  ctx.closePath(); ctx.fill(); ctx.stroke();
 
   // Axis labels
   ctx.fillStyle='rgba(255,255,255,0.55)';
