@@ -106,8 +106,8 @@ canvas{display:block;border-radius:4px}
 .vis-gen-btn:disabled{opacity:.4;cursor:not-allowed;}
 .vis-section{padding:10px 10px 4px;}
 .vis-title{font-family:'Anton',sans-serif;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;color:#1a3a5c;margin-bottom:6px;}
-.vis-canvases{display:flex;flex-direction:column;gap:14px;padding:8px 10px 20px;}
-.vis-canvas-wrap{background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden;}
+.vis-canvases{display:flex;flex-direction:row;flex-wrap:wrap;gap:14px;padding:8px 10px 20px;}
+.vis-canvas-wrap{background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden;flex:1;min-width:260px;max-width:380px;}
 .vis-canvas-label{font-family:'Anton',sans-serif;font-size:.62rem;letter-spacing:1.5px;text-transform:uppercase;color:#6b5f47;padding:6px 10px 4px;border-bottom:1px solid #f0e8d8;}
 .vis-legend{display:flex;flex-wrap:wrap;gap:8px;padding:5px 10px 8px;border-top:1px solid #f0e8d8;}
 .vis-leg-item{display:flex;align-items:center;gap:4px;font-family:'Barlow Condensed',sans-serif;font-size:.72rem;color:#5a4a38;}
@@ -832,12 +832,12 @@ function generateVisuals(){
     '<div class="vis-canvases">'+
     '<div class="vis-canvas-wrap">'+
       '<div class="vis-canvas-label">Contact Point — '+displayName+' ('+batterSide+'HH)</div>'+
-      '<canvas id="cpCanvas" width="360" height="320" style="width:100%;height:auto;display:block;"></canvas>'+
+      '<canvas id="cpCanvas" width="300" height="270" style="width:100%;height:auto;display:block;"></canvas>'+
       '<div class="vis-legend">'+legendHtml+'</div>'+
     '</div>'+
     '<div class="vis-canvas-wrap">'+
       '<div class="vis-canvas-label">Spray Chart — '+displayName+'</div>'+
-      '<canvas id="scCanvas" width="360" height="340" style="width:100%;height:auto;display:block;"></canvas>'+
+      '<canvas id="scCanvas" width="300" height="280" style="width:100%;height:auto;display:block;"></canvas>'+
       '<div class="vis-legend">'+legendHtml+'</div>'+
     '</div>'+
     '</div>';
