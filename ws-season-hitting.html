@@ -869,8 +869,8 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
   // Y auto-scales from data but always anchors front-of-plate (0) near bottom quarter
   var xs=[], ys=[];
   contactRows.forEach(function(r){
-    var cx=parseFloat(r.ContactPositionX||r.contact_position_x||'NaN');
-    var cy=parseFloat(r.ContactPositionY||r.contact_position_y||'NaN');
+    var cx=parseFloat(r.ContactPositionZ||r.contact_position_z||'NaN'); // lateral (pull/oppo)
+    var cy=parseFloat(r.ContactPositionX||r.contact_position_x||'NaN'); // distance in front of plate
     if(!isNaN(cx))xs.push(cx);
     if(!isNaN(cy))ys.push(cy);
   });
@@ -886,7 +886,7 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
   var yDataMax = hasData ? Math.max.apply(null,ys) :  2.0;
   var yPad = Math.max((yDataMax - yDataMin) * 0.15, 0.2);
   // Ensure 0 (front of plate) is always visible, with at least 0.4ft below it for the plate shape
-  var Y_MIN = Math.min(yDataMin - yPad, -0.4);
+  var Y_MIN = Math.min(yDataMin - yPad, -0.1);
   var Y_MAX = yDataMax + yPad;
 
   var PAD_L=38, PAD_R=12, PAD_T=20, PAD_B=60;
@@ -949,8 +949,8 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
 
   // Plot dots
   contactRows.forEach(function(r){
-    var cx=parseFloat(r.ContactPositionX||r.contact_position_x||'NaN');
-    var cy=parseFloat(r.ContactPositionY||r.contact_position_y||'NaN');
+    var cx=parseFloat(r.ContactPositionZ||r.contact_position_z||'NaN'); // lateral
+    var cy=parseFloat(r.ContactPositionX||r.contact_position_x||'NaN'); // out front
     if(isNaN(cx)||isNaN(cy))return;
     var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||'Other');
     var col=pitchColor(pt);
@@ -965,7 +965,7 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
   // No data message
   if(!hasData){
     ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.font='13px Barlow Condensed, sans-serif'; ctx.textAlign='center';
-    ctx.fillText('ContactPositionX/Y not available in this dataset', W/2, H/2);
+    ctx.fillText('ContactPositionX/Z not available in this dataset', W/2, H/2);
   }
 }
 
