@@ -914,18 +914,18 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
   ctx.beginPath(); ctx.moveTo(PAD_L,toCanvasY(0)); ctx.lineTo(PAD_L+GW,toCanvasY(0)); ctx.stroke();
   ctx.setLineDash([]);
 
-  // Plate — drawn with front edge exactly at Y=0 in data coords
-  // 17" wide = 1.417ft, depth ~17" = 1.417ft
+  // Plate — outline only so dots near plate remain visible
   var plateW = 17/12;
-  var plateD = 17/12;
-  ctx.fillStyle='rgba(255,255,255,0.92)';
-  ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=1;
+  var plateD = 14/12; // slightly shallower so it doesn't dominate
+  ctx.fillStyle='rgba(255,255,255,0.15)';
+  ctx.strokeStyle='rgba(255,255,255,0.85)'; ctx.lineWidth=1.5;
+  ctx.setLineDash([]);
   ctx.beginPath();
-  ctx.moveTo(toCanvasX(-plateW/2), toCanvasY(0));           // front-left
-  ctx.lineTo(toCanvasX( plateW/2), toCanvasY(0));           // front-right
-  ctx.lineTo(toCanvasX( plateW/2), toCanvasY(-plateD*0.6)); // back-right
-  ctx.lineTo(toCanvasX(0),         toCanvasY(-plateD));     // back-point
-  ctx.lineTo(toCanvasX(-plateW/2), toCanvasY(-plateD*0.6)); // back-left
+  ctx.moveTo(toCanvasX(-plateW/2), toCanvasY(0));
+  ctx.lineTo(toCanvasX( plateW/2), toCanvasY(0));
+  ctx.lineTo(toCanvasX( plateW/2), toCanvasY(-plateD*0.6));
+  ctx.lineTo(toCanvasX(0),         toCanvasY(-plateD));
+  ctx.lineTo(toCanvasX(-plateW/2), toCanvasY(-plateD*0.6));
   ctx.closePath(); ctx.fill(); ctx.stroke();
 
   // Axis labels
