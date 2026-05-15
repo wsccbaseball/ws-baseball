@@ -886,7 +886,7 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
   var yDataMax = hasData ? Math.max.apply(null,ys) :  2.0;
   var yPad = Math.max((yDataMax - yDataMin) * 0.15, 0.2);
   // Ensure 0 (front of plate) is always visible, with at least 0.4ft below it for the plate shape
-  var Y_MIN = yDataMin - yPad; // auto from data, plate position is data-driven
+  var Y_MIN = Math.min(yDataMin - yPad, -0.3); // always show below plate back tip (Y=0)
   var Y_MAX = yDataMax + yPad;
 
   var PAD_L=38, PAD_R=12, PAD_T=20, PAD_B=60;
@@ -914,15 +914,12 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
   ctx.beginPath(); ctx.moveTo(PAD_L,toCanvasY(PLATE_FRONT)); ctx.lineTo(PAD_L+GW,toCanvasY(PLATE_FRONT)); ctx.stroke();
   ctx.setLineDash([]);
 
-  // Plate — position derived from actual data lower quartile
-  // ContactPositionX lower quartile ≈ where contact starts (plate front region)
-  var sortedY = ys.slice().sort(function(a,b){return a-b;});
-  var q1Y = sortedY.length ? sortedY[Math.floor(sortedY.length*0.15)] : 1.5;
-  var PLATE_FRONT = q1Y;           // front edge = where earliest contact occurs
-  var PLATE_DEPTH = 17/12;         // 1.417 ft plate depth
-  var PLATE_BACK  = PLATE_FRONT - PLATE_DEPTH;
-  var PLATE_HALF  = 17/24;         // 0.708 ft half-width
-  var PLATE_SHOULDER = PLATE_BACK + PLATE_DEPTH * 0.42;
+  // Plate — hardcoded TrackMan constants
+  // Back tip at Y≈0, front edge at Y≈1.7, width 17" = 0.708ft each side
+  var PLATE_FRONT    = 1.70;   // front edge (toward pitcher)
+  var PLATE_HALF     = 0.708;  // half-width (17"/2)
+  var PLATE_BACK     = 0.0;    // back tip (catcher side)
+  var PLATE_SHOULDER = 0.71;   // where rectangle meets the angled sides (~8.5" up from tip)
 
   ctx.fillStyle='rgba(255,255,255,0.10)';
   ctx.strokeStyle='rgba(255,255,255,0.90)'; ctx.lineWidth=1.5;
