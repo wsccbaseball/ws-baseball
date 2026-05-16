@@ -877,8 +877,9 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
 
   var hasData = xs.length > 0 && ys.length > 0;
 
-  // X: always centered at 0, symmetric, min ±0.8ft, sized to contain all data + 20% padding
-  var xHalf = hasData ? Math.max(Math.max.apply(null,xs.map(Math.abs)), 0.8) * 1.2 : 1.5;
+  // X always fixed -2 to +2 to match TrackMan reference scale
+  // This keeps plate width proportionally correct (17" = 0.708ft in a 4ft range)
+  var xHalf = 2.0;
   var X_MIN = -xHalf, X_MAX = xHalf;
 
   // Y: auto-scale from data, but always include 0 (front of plate) near the bottom
