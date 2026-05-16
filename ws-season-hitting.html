@@ -887,8 +887,10 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
   var yDataMax = hasData ? Math.max.apply(null,ys) :  2.0;
   var yPad = Math.max((yDataMax - yDataMin) * 0.15, 0.2);
   // Ensure 0 (front of plate) is always visible, with at least 0.4ft below it for the plate shape
-  var Y_MIN = Math.min(yDataMin - yPad, -0.3); // always show below plate back tip (Y=0)
-  var Y_MAX = yDataMax + yPad;
+  // Y fixed range matching TrackMan reference: -0.3 to 4.5
+  // Back tip at ~0, front edge at ~1.7, contact out front up to ~4
+  var Y_MIN = -0.3;
+  var Y_MAX = 4.5;
 
   var PAD_L=38, PAD_R=12, PAD_T=20, PAD_B=60;
   var GW=W-PAD_L-PAD_R, GH=H-PAD_T-PAD_B;
