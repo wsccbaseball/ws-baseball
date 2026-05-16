@@ -858,10 +858,9 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
   // Background
   ctx.fillStyle='#1a3a2a'; ctx.fillRect(0,0,W,H);
 
-  // Filter to contact pitches only
+  // InPlay only — foul balls skew deep and inflate late-contact appearance
   var contactRows=rows.filter(function(r){
-    var c=(r.PitchCall||'').trim();
-    return c==='InPlay'||c==='FoulBall'||c==='FoulBallNotFieldable';
+    return (r.PitchCall||'').trim()==='InPlay';
   });
 
   // Coordinate range:
