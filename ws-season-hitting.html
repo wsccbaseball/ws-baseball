@@ -993,10 +993,9 @@ function drawSprayChart(canvasId, rows, batterSide){
 
   function fieldToCanvas(dist, dirDeg){
     var rad=dirDeg*Math.PI/180;
-    // TrackMan direction: 0=CF, neg=LF, pos=RF from batter POV
-    // For LHH we flip x
-    var flip = batterSide==='Left' ? -1 : 1;
-    var x = CX + flip * dist * SCALE * Math.sin(rad);
+    // TrackMan: 0=CF, negative=LF, positive=RF — no flip needed
+    // Labels at top tell user which side is pull for this hitter's handedness
+    var x = CX + dist * SCALE * Math.sin(rad);
     var y = CY - dist * SCALE * Math.cos(rad);
     return [x,y];
   }
@@ -1024,10 +1023,11 @@ function drawSprayChart(canvasId, rows, batterSide){
 
   // Foul lines
   ctx.strokeStyle='rgba(255,255,255,0.7)'; ctx.lineWidth=1.5;
-  var llCoords=fieldToCanvas(330, -45);
-  var rlCoords=fieldToCanvas(330, 45);
-  ctx.beginPath(); ctx.moveTo(CX,CY); ctx.lineTo(llCoords[0],llCoords[1]); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(CX,CY); ctx.lineTo(rlCoords[0],rlCoords[1]); ctx.stroke();
+  // Foul lines: left field foul line at -45°, right field at +45°
+  var lfLine=fieldToCanvas(330, -45);
+  var rfLine=fieldToCanvas(330,  45);
+  ctx.beginPath(); ctx.moveTo(CX,CY); ctx.lineTo(lfLine[0],lfLine[1]); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(CX,CY); ctx.lineTo(rfLine[0],rfLine[1]); ctx.stroke();
 
   // Bases
   function drawBase(dist, dir, size){
@@ -1066,14 +1066,15 @@ function drawSprayChart(canvasId, rows, batterSide){
   ctx.arc(CX, CY, 330*SCALE, -Math.PI*0.82, -Math.PI*0.18);
   ctx.stroke();
 
-  // Plot BIP dots
+  // Plot BIP dots — filter bad TrackMan readings (extreme direction or tiny distance)
   var bipCount=0;
   rows.forEach(function(r){
     if(r.PitchCall!=='InPlay')return;
     var dir=parseFloat(r.Direction||r.HitDirection||'NaN');
     var dist=parseFloat(r.Distance||r.HitDistance||'NaN');
     if(isNaN(dir)||isNaN(dist))return;
-    if(dist<10||dist>500)return;
+    if(dist<15||dist>500)return;          // filter bunts/bad reads
+    if(Math.abs(dir)>75)return;           // filter tracking errors (>75° is foul territory)
     bipCount++;
     var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||'Other');
     var col=pitchColor(pt);
@@ -1089,10 +1090,11 @@ function drawSprayChart(canvasId, rows, batterSide){
 
   // Labels
   ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font='bold 8px Barlow Condensed,sans-serif'; ctx.textAlign='center';
-  var pullSide = batterSide==='Right' ? 'PULL (LF)' : 'PULL (RF)';
-  var oppoSide = batterSide==='Right' ? 'OPPO (RF)' : 'OPPO (LF)';
-  ctx.fillText(pullSide, batterSide==='Right'?40:W-40, 30);
-  ctx.fillText(oppoSide, batterSide==='Right'?W-40:40, 30);
+  // LF always left side of canvas, RF always right — pull/oppo depends on handedness
+  var lfLabel = batterSide==='Right' ? 'PULL (LF)' : 'OPPO (LF)';
+  var rfLabel = batterSide==='Right' ? 'OPPO (RF)' : 'PULL (RF)';
+  ctx.fillText(lfLabel, 40, 30);
+  ctx.fillText(rfLabel, W-40, 30);
   ctx.fillText('CF', W/2, 18);
 
   if(!bipCount){
