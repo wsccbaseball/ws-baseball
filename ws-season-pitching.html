@@ -1086,7 +1086,13 @@ function buildGradesTable(){
     ref[m.key]={mu:mu,sd:Math.sqrt(variance),source:'staff'};
   });
 
-  // Pass 2 — regress -> z -> weighted composite per pitcher
+  // Pass 2 — regress -> z -> reliability-weighted composite per pitcher.
+  // Each metric's contribution is scaled by its reliability rel = n/(n+k):
+  // the share of "known" signal in this pitcher's sample. A metric you've
+  // barely measured (low n) abstains rather than voting average, so what you
+  // CAN measure drives the grade. The per-metric regression above already
+  // pulls thin-sample z's toward 0, which is what keeps low-total-sample
+  // pitchers near 50 overall.
   var graded=pool.map(function(p){
     var composite=0,wUsed=0,zlist={};
     M.forEach(function(m){
@@ -1098,10 +1104,12 @@ function buildGradesTable(){
       var z=r.sd>0?(regressed-r.mu)/r.sd:0;
       var goodZ=z*m.dir;            // positive = strength for every metric
       zlist[m.key]=goodZ;
-      composite+=m.weight*goodZ;
-      wUsed+=m.weight;
+      var rel=(n+m.k)>0?n/(n+m.k):0;   // reliability: share of known signal
+      var eff=m.weight*rel;
+      composite+=eff*goodZ;
+      wUsed+=eff;
     });
-    var comp=wUsed>0?composite/wUsed:0;     // renormalize if a metric was missing
+    var comp=wUsed>0?composite/wUsed:0;     // normalize by effective weight used
     var grade=GRADE_CONFIG.anchor+GRADE_CONFIG.scale*comp;
     return {p:p,grade:grade,z:zlist};
   });
