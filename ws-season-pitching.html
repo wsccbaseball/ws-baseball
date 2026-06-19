@@ -1123,6 +1123,10 @@ function buildGradesTable(){
   html+='<b style="font-family:Anton,sans-serif;letter-spacing:.06em;color:#1a3a5c">PITCHER GRADES</b> &middot; 50 = '+anchorLbl+' average, 60 = one SD better. ';
   html+='Each metric column is a standardized score: <span style="color:#2a7a3a;font-weight:700">green = strength</span>, <span style="color:#b03000;font-weight:700">red = weakness</span>. Thin samples pull toward 50 automatically.';
   html+='</div>';
+  html+='<div style="padding:8px 12px;background:#fffdf7;border-bottom:1px solid #e8e0d0">';
+  html+='<button onclick="computeOppPopulation()" style="font-family:Anton,sans-serif;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:#1a3a5c;border:none;border-radius:5px;padding:8px 12px;cursor:pointer">Compute NJCAA anchors &middot; opponent pool</button>';
+  html+='<div id="oppPopOut" style="margin-top:8px"></div>';
+  html+='</div>';
   html+='<div class="table-wrap"><table class="stats-tbl" style="min-width:760px"><thead><tr>';
   html+='<th>Pitcher</th><th>Grade</th>';
   M.forEach(function(m){html+='<th>'+m.label+'</th>';});
@@ -1171,6 +1175,56 @@ function buildGradesTable(){
       document.getElementById('selHint').textContent=(prof?prof.displayName:nm)+' selected';
     };
   });
+}
+
+// ── NJCAA anchors from the opponent pool (CSW%, SwStr%, Chase%) ───────────────
+// Pools every non-WSCC pitcher already in the loaded pitch data and runs each
+// through the same computePitcherProfile your own pitchers use — identical CSW/
+// SwStr/Chase definitions, same zone, same pipeline. Prints mean + sample SD
+// across that pool as a ready-to-paste pop block. These three TrackMan metrics
+// have no league-wide source; your opponents ARE the NJCAA sample, measured
+// through your exact pipeline. (K%/BB%/FIP anchors come from the box-score tool.)
+function computeOppPopulation(){
+  var out=document.getElementById('oppPopOut');
+  if(!out)return;
+  var MIN_PITCHES=40, MIN_OZ=20;
+  var opp=allPitches.filter(function(r){return r.PitcherTeam&&r.PitcherTeam.toLowerCase().indexOf('wal')===-1;});
+  if(!opp.length){out.innerHTML='<div style="font-family:Barlow,sans-serif;font-size:.72rem;color:#b03000">No opponent pitches found in the loaded data.</div>';return;}
+  var byName={};
+  opp.forEach(function(r){var n=(r.Pitcher||'').trim();if(!n)return;(byName[n]=byName[n]||[]).push(r);});
+  var csw=[],sw=[],ch=[];
+  Object.keys(byName).forEach(function(n){
+    var rows=byName[n];
+    if(rows.length<MIN_PITCHES)return;
+    var p=computePitcherProfile(n,rows);
+    if(!isNaN(p.cswPct))csw.push(p.cswPct);
+    if(!isNaN(p.swstrPct))sw.push(p.swstrPct);
+    if(p.ozPitches>=MIN_OZ&&!isNaN(p.chasePct))ch.push(p.chasePct);
+  });
+  function stats(a){
+    if(a.length<2)return null;
+    var mu=a.reduce(function(s,v){return s+v;},0)/a.length;
+    var variance=a.reduce(function(s,v){return s+(v-mu)*(v-mu);},0)/(a.length-1); // sample SD
+    return {mu:mu,sd:Math.sqrt(variance),n:a.length};
+  }
+  var sCSW=stats(csw),sSW=stats(sw),sCH=stats(ch);
+  if(!sCSW){out.innerHTML='<div style="font-family:Barlow,sans-serif;font-size:.72rem;color:#b03000">Not enough qualifying opponent pitchers (need &ge;2 with &ge;'+MIN_PITCHES+' pitches).</div>';return;}
+  function f(v){return v.toFixed(4);}
+  function line(key,s){return s?'    '+key+':{mu:'+f(s.mu)+', sd:'+f(s.sd)+'},':'    '+key+':null,  // too few opponents to estimate';}
+  var snippet='  pop:{\n'+
+    line('cswPct',sCSW)+'\n'+
+    line('swstrPct',sSW)+'\n'+
+    line('chasePct',sCH)+'\n'+
+    '    kPct:null,    // <- from box-score tool\n'+
+    '    bbPct:null,   // <- from box-score tool\n'+
+    '    fip:null      // <- from box-score tool\n'+
+    '  },';
+  var html='<div style="font-family:Barlow,sans-serif;font-size:.7rem;color:#6b5f47;line-height:1.5;margin-bottom:6px">';
+  html+='Opponent pool: <b>'+sCSW.n+'</b> arms for CSW%/SwStr%, <b>'+(sCH?sCH.n:0)+'</b> for Chase% (&ge;'+MIN_PITCHES+' pitches each). ';
+  html+='Paste these three lines into the <b>pop</b> block at the top of the file — leave the box-score three as <b>null</b> until you compute them. SD is a sample estimate and may run slightly high (small-sample noise on top of true spread), so grades using it will be a touch conservative; hand-trim if you like.';
+  html+='</div>';
+  html+='<pre style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.72rem;background:#1a1a2e;color:#d7e3f4;padding:10px 12px;border-radius:6px;overflow-x:auto;white-space:pre;-webkit-overflow-scrolling:touch;margin:0">'+escH(snippet)+'</pre>';
+  out.innerHTML=html;
 }
 
 
