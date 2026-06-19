@@ -31,6 +31,12 @@ body { font-family: 'Barlow Condensed', sans-serif; background: #f2ead8; min-hei
 .era-box { background: #2d4a1a; padding: 12px; text-align: center; }
 .era-box .val { font-family: 'Anton', sans-serif; font-size: 2rem; color: #f2ead8; line-height: 1; }
 .era-box .lbl { font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: #9b8c74; margin-top: 4px; }
+.anchor-card { background: #fffdf7; border: 1px solid #ddd5bc; border-top: none; padding: 12px 14px; }
+.anchor-card .row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 10px; }
+.anchor-card .row .field-group { flex: 1; }
+.anchor-btn { padding: 11px 14px; background: #1a3a5c; border: none; font-family: 'Anton', sans-serif; font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; color: #fff; cursor: pointer; white-space: nowrap; }
+.anchor-note { font-size: .78rem; color: #6b5f47; line-height: 1.5; margin-bottom: 8px; }
+.anchor-pre { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .76rem; background: #1a1a2e; color: #d7e3f4; padding: 12px; border-radius: 6px; overflow-x: auto; white-space: pre; -webkit-overflow-scrolling: touch; }
 .log { background: #fffdf7; border: 1px solid #ddd5bc; padding: 10px; max-height: 240px; overflow-y: auto; font-size: .78rem; color: #6b5f47; font-family: 'Barlow Condensed', sans-serif; }
 .log-line { padding: 2px 0; border-bottom: 1px solid #f0e8d4; }
 .log-line.ok { color: #2a8a4a; }
@@ -44,7 +50,7 @@ body { font-family: 'Barlow Condensed', sans-serif; background: #f2ead8; min-hei
 <body>
 
 <div class="up-title">
-  <h1>⚾ NJCAA D1 FIP Calibration</h1>
+  <h1>&#9918; NJCAA D1 FIP Calibration</h1>
   <p>Scrapes all NJCAA D1 baseball box scores to compute the league-wide FIP constant.</p>
 </div>
 
@@ -96,14 +102,32 @@ body { font-family: 'Barlow Condensed', sans-serif; background: #f2ead8; min-hei
       <div class="stat-box"><div class="val" id="rK">—</div><div class="lbl">K</div></div>
     </div>
   </div>
+
+  <div class="pb-banner" style="margin-top:10px;">Grade Anchors &middot; K% &middot; BB% &middot; FIP</div>
+  <div class="anchor-card">
+    <div class="anchor-note">Mean and SD of <b>per-pitcher season rates</b> across the NJCAA D1 population — paste into the <b>pop</b> block of ws-season-pitching.html. Requires a fresh full run (per-pitcher lines aren't in older saved progress).</div>
+    <div class="row">
+      <div class="field-group">
+        <label>Min IP to qualify a pitcher</label>
+        <input type="number" id="minIP" value="20" min="1" max="200">
+      </div>
+      <button class="anchor-btn" onclick="computeRateAnchors()">Compute</button>
+    </div>
+    <div id="anchorOut"></div>
+  </div>
+
   <div class="pb-banner" style="margin-top:10px;">Log</div>
   <div class="log" id="log"></div>
 </div>
 
 <script>
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
+// Must match FIP_CONSTANT in ws-season-pitching.html so population FIP is
+// computed the same way as each WSCC pitcher's FIP.
+var FIP_CONSTANT = 5.49;
 var running = false;
 var stats = { games:0, appearances:0, ipOuts:0, er:0, bb:0, k:0, hr:0, hbp:0 };
+var pitcherSeasons = {};   // name(lowercase) -> { ipOuts, h, bb, k, hr, hbp }
 var processedUrls = new Set();
 var allBoxScoreLinks = [];
 
@@ -113,6 +137,7 @@ function loadProgress() {
     if (saved) {
       var d = JSON.parse(saved);
       stats = d.stats || { games:0, appearances:0, ipOuts:0, er:0, bb:0, k:0, hr:0, hbp:0 };
+      pitcherSeasons = d.pitcherSeasons || {};
       processedUrls = new Set(d.processedUrls || []);
       allBoxScoreLinks = d.allBoxScoreLinks || [];
     }
@@ -123,6 +148,7 @@ function saveProgress() {
   try {
     localStorage.setItem('njcaa_fip_cal_v1', JSON.stringify({
       stats: stats,
+      pitcherSeasons: pitcherSeasons,
       processedUrls: Array.from(processedUrls),
       allBoxScoreLinks: allBoxScoreLinks
     }));
@@ -134,10 +160,12 @@ function clearProgress() {
   if (!confirm('Clear all saved progress and start over?')) return;
   localStorage.removeItem('njcaa_fip_cal_v1');
   stats = { games:0, appearances:0, ipOuts:0, er:0, bb:0, k:0, hr:0, hbp:0 };
+  pitcherSeasons = {};
   processedUrls = new Set();
   allBoxScoreLinks = [];
   document.getElementById('results').style.display = 'none';
   document.getElementById('log').innerHTML = '';
+  document.getElementById('anchorOut').innerHTML = '';
   document.getElementById('progressBar').style.width = '0%';
   document.getElementById('statusMsg').textContent = 'Cleared. Ready to start.';
   document.getElementById('runBtn').textContent = 'Start Scrape';
@@ -182,6 +210,60 @@ function updateResults() {
   }
 }
 
+// ── Grade anchors: mean + SD of per-pitcher season rates ─────────────────────
+// K% and BB% use BF ≈ outs + H + BB + HBP (every batter makes an out, hits,
+// walks, or is hit — omits reach-on-error, very close to true BF). FIP per
+// pitcher uses the same constant as ws-season-pitching.html.
+function computeRateAnchors() {
+  var out = document.getElementById('anchorOut');
+  var minIP = parseInt(document.getElementById('minIP').value) || 20;
+  var minOuts = minIP * 3;
+  var kArr = [], bbArr = [], fipArr = [];
+  var qualified = 0, total = 0;
+  Object.keys(pitcherSeasons).forEach(function(key){
+    total++;
+    var p = pitcherSeasons[key];
+    if (p.ipOuts < minOuts) return;
+    var ipDec = p.ipOuts / 3;
+    if (ipDec <= 0) return;
+    var bf = p.ipOuts + (p.h||0) + (p.bb||0) + (p.hbp||0);
+    if (bf <= 0) return;
+    qualified++;
+    kArr.push(p.k / bf);
+    bbArr.push(p.bb / bf);
+    fipArr.push((13*p.hr + 3*(p.bb + p.hbp) - 2*p.k) / ipDec + FIP_CONSTANT);
+  });
+
+  function ms(a) {
+    if (a.length < 2) return null;
+    var mu = a.reduce(function(s,v){return s+v;}, 0) / a.length;
+    var variance = a.reduce(function(s,v){return s+(v-mu)*(v-mu);}, 0) / (a.length - 1); // sample SD
+    return { mu: mu, sd: Math.sqrt(variance), n: a.length };
+  }
+  var sK = ms(kArr), sBB = ms(bbArr), sFIP = ms(fipArr);
+
+  if (!sK) {
+    out.innerHTML = '<div class="anchor-note" style="color:#c0360a">Only ' + qualified + ' pitcher(s) at ≥' + minIP + ' IP. Run the full scrape first, or lower the Min IP.</div>';
+    return;
+  }
+
+  function f4(v){ return v.toFixed(4); }
+  function f2(v){ return v.toFixed(2); }
+  var snippet =
+    '    kPct:{mu:' + f4(sK.mu) + ', sd:' + f4(sK.sd) + '},\n' +
+    '    bbPct:{mu:' + f4(sBB.mu) + ', sd:' + f4(sBB.sd) + '},\n' +
+    '    fip:{mu:' + f2(sFIP.mu) + ', sd:' + f2(sFIP.sd) + '}';
+
+  var html = '';
+  html += '<div class="anchor-note">';
+  html += 'Population: <b>' + qualified + '</b> of ' + total + ' pitchers at &ge;' + minIP + ' IP. ';
+  html += 'League means — K% <b>' + (sK.mu*100).toFixed(1) + '%</b>, BB% <b>' + (sBB.mu*100).toFixed(1) + '%</b>, FIP <b>' + sFIP.mu.toFixed(2) + '</b>. ';
+  html += 'Paste these three lines into the <b>pop</b> block of ws-season-pitching.html (replace the kPct/bbPct/fip nulls). SD is a sample estimate and runs slightly high from per-pitcher noise, so anchored grades will be a touch conservative — hand-trim if needed.';
+  html += '</div>';
+  html += '<div class="anchor-pre">' + snippet.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</div>';
+  out.innerHTML = html;
+}
+
 async function fetchHtml(url) {
   var edgeUrl = document.getElementById('edgeUrl').value.trim();
   var resp = await fetch(edgeUrl + '?url=' + encodeURIComponent(url), {
@@ -217,7 +299,7 @@ function extractBoxScoreLinks(html, baseUrl) {
 }
 
 function parsePitchingLines(html) {
-  // Returns array of objects: { ipOuts, er, bb, k, hr, hbp }
+  // Returns array of objects: { name, ipOuts, h, er, bb, k, hr, hbp }
   var lines = [];
 
   function stripTags(s) {
@@ -252,6 +334,7 @@ function parsePitchingLines(html) {
     lines.push({
       name: name,
       ipOuts: ipOuts,
+      h:   g(2),
       er:  g(4),
       bb:  g(5),
       k:   g(6),
@@ -359,6 +442,16 @@ async function startScrape() {
           stats.k      += l.k;
           stats.hr     += l.hr;
           stats.hbp    += l.hbp;
+          // Accumulate per-pitcher season line for the grade anchors
+          var key = l.name.toLowerCase();
+          if (!pitcherSeasons[key]) pitcherSeasons[key] = { ipOuts:0, h:0, bb:0, k:0, hr:0, hbp:0 };
+          var ps = pitcherSeasons[key];
+          ps.ipOuts += l.ipOuts;
+          ps.h      += l.h;
+          ps.bb     += l.bb;
+          ps.k      += l.k;
+          ps.hr     += l.hr;
+          ps.hbp    += l.hbp;
         });
         var ipDec = stats.ipOuts/3;
         var era = ipDec>0?((stats.er*9)/ipDec).toFixed(2):'--';
@@ -390,6 +483,7 @@ async function startScrape() {
     document.getElementById('progressBar').style.width = '100%';
     document.getElementById('statusMsg').textContent = 'Complete!';
     document.getElementById('runBtn').textContent = 'Done';
+    computeRateAnchors();
   } else {
     document.getElementById('statusMsg').textContent = 'Stopped. Progress saved.';
     document.getElementById('runBtn').textContent = 'Resume';
@@ -405,6 +499,8 @@ window.addEventListener('load', function() {
     updateResults();
     document.getElementById('runBtn').textContent = 'Resume Scrape';
     log('info', 'Saved progress: '+allBoxScoreLinks.length+' URLs, '+stats.appearances+' appearances.');
+    if (Object.keys(pitcherSeasons).length === 0)
+      log('info', 'Note: saved progress predates per-pitcher tracking — Clear & re-run for K%/BB%/FIP anchors.');
   }
 });
 </script>
