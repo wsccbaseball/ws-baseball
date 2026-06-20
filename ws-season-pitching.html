@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -103,7 +104,7 @@ canvas{display:block;border-radius:4px}
 #stuffTbl td,#stuffTbl th{min-width:0;width:46px;max-width:46px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.78rem;padding:6px 2px}
 #stuffTbl td:first-child,#stuffTbl th[rowspan]{width:110px;max-width:110px;min-width:110px;font-size:.82rem}
 .tab-bar{background:#fffdf7;border-bottom:2px solid #1a3a5c;display:flex;gap:0}
-.tab-btn{flex:1;padding:9px 4px;font-family:'Anton',sans-serif;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;border:none;background:transparent;color:#6b5f47;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s}
+.tab-btn{flex:1;padding:9px 6px;font-family:'Anton',sans-serif;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;border:none;background:transparent;color:#6b5f47;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s}
 .tab-btn.active{color:#1a3a5c;border-bottom:3px solid #1a3a5c;background:#f0eadc}
 </style>
 </head>
@@ -142,7 +143,6 @@ canvas{display:block;border-radius:4px}
     <button class="tab-btn active" id="tabResults" onclick="switchTab('results')">&#x1F4CA; Results</button>
     <button class="tab-btn" id="tabStuff" onclick="switchTab('stuff')">&#x26BE; Stuff</button>
     <button class="tab-btn" id="tabTrend" onclick="switchTab('trend')">&#x1F4C8; Trend</button>
-    <button class="tab-btn" id="tabGrades" onclick="switchTab('grades')">&#x1F3AF; Grades</button>
   </div>
   <div id="table-screen">
     <div class="table-wrap">
@@ -179,8 +179,6 @@ canvas{display:block;border-radius:4px}
   </div>
   <!-- Trend tab -->
   <div id="trend-screen" style="display:none;padding:0 0 80px"></div>
-  <!-- Grades tab -->
-  <div id="grades-screen" style="display:none;padding:0 0 80px"></div>
 </div>
 
 <div id="card-screen">
@@ -200,102 +198,104 @@ canvas{display:block;border-radius:4px}
       <div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div>
     </div>
 
-    <!-- Season Stats — hidden when game filter active -->
-    <div class="stat-section" id="seasonStatsSection">
-      <span class="stat-section-label">Season Stats</span>
-      <div class="stat-row">
-        <div class="stat-box"><span class="stat-val hi" id="sTBF">&#8212;</span><span class="stat-lbl">IP</span></div>
-        <div class="stat-box"><span class="stat-val hi" id="sWOBA">&#8212;</span><span class="stat-lbl">wOBA</span></div>
-        <div class="stat-box"><span class="stat-val" id="sKPct">&#8212;</span><span class="stat-lbl">K%</span></div>
-        <div class="stat-box"><span class="stat-val" id="sBBPct">&#8212;</span><span class="stat-lbl">BB%</span></div>
-        <div class="stat-box"><span class="stat-val hi" id="sERA">&#8212;</span><span class="stat-lbl">ERA</span></div>
-        <div class="stat-box"><span class="stat-val hi" id="sFIP">&#8212;</span><span class="stat-lbl">FIP</span></div>
-        <div class="stat-box"><span class="stat-val hi" id="sGS">&#8212;</span><span class="stat-lbl">Avg GS</span></div>
-      </div>
-    </div>
+```
+<!-- Season Stats — hidden when game filter active -->
+<div class="stat-section" id="seasonStatsSection">
+  <span class="stat-section-label">Season Stats</span>
+  <div class="stat-row">
+    <div class="stat-box"><span class="stat-val hi" id="sTBF">&#8212;</span><span class="stat-lbl">IP</span></div>
+    <div class="stat-box"><span class="stat-val hi" id="sWOBA">&#8212;</span><span class="stat-lbl">wOBA</span></div>
+    <div class="stat-box"><span class="stat-val" id="sKPct">&#8212;</span><span class="stat-lbl">K%</span></div>
+    <div class="stat-box"><span class="stat-val" id="sBBPct">&#8212;</span><span class="stat-lbl">BB%</span></div>
+    <div class="stat-box"><span class="stat-val hi" id="sERA">&#8212;</span><span class="stat-lbl">ERA</span></div>
+    <div class="stat-box"><span class="stat-val hi" id="sFIP">&#8212;</span><span class="stat-lbl">FIP</span></div>
+    <div class="stat-box"><span class="stat-val hi" id="sGS">&#8212;</span><span class="stat-lbl">Avg GS</span></div>
+  </div>
+</div>
 
-    <!-- Stuff -->
-    <div class="stat-section">
-      <span class="stat-section-label">Stuff &middot; TrackMan</span>
-      <div class="stat-row">
-        <div class="stat-box"><span class="stat-val hi" id="tMaxVelo">&#8212;</span><span class="stat-lbl">Max Velo</span></div>
-        <div class="stat-box"><span class="stat-val" id="tCSW">&#8212;</span><span class="stat-lbl">CSW%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tSwStr">&#8212;</span><span class="stat-lbl">SwStr%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tChase">&#8212;</span><span class="stat-lbl">Chase%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tPutAway">&#8212;</span><span class="stat-lbl">Put Away%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tFPS">&#8212;</span><span class="stat-lbl">FPS%</span></div>
-      </div>
-    </div>
+<!-- Stuff -->
+<div class="stat-section">
+  <span class="stat-section-label">Stuff &middot; TrackMan</span>
+  <div class="stat-row">
+    <div class="stat-box"><span class="stat-val hi" id="tMaxVelo">&#8212;</span><span class="stat-lbl">Max Velo</span></div>
+    <div class="stat-box"><span class="stat-val" id="tCSW">&#8212;</span><span class="stat-lbl">CSW%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tSwStr">&#8212;</span><span class="stat-lbl">SwStr%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tChase">&#8212;</span><span class="stat-lbl">Chase%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tPutAway">&#8212;</span><span class="stat-lbl">Put Away%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tFPS">&#8212;</span><span class="stat-lbl">FPS%</span></div>
+  </div>
+</div>
 
-    <!-- Contact Quality Against -->
-    <div class="stat-section">
-      <span class="stat-section-label">Contact Quality Against &middot; TrackMan</span>
-      <div class="stat-row">
-        <div class="stat-box"><span class="stat-val" id="tHard">&#8212;</span><span class="stat-lbl">Hard%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tSolid">&#8212;</span><span class="stat-lbl">Solid%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tGB2">&#8212;</span><span class="stat-lbl">GB%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tFB">&#8212;</span><span class="stat-lbl">FB%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tMaxEV">&#8212;</span><span class="stat-lbl">Max EV</span></div>
-        <div class="stat-box"><span class="stat-val" id="tAvgEV">&#8212;</span><span class="stat-lbl">Best Speed</span></div>
-      </div>
-    </div>
+<!-- Contact Quality Against -->
+<div class="stat-section">
+  <span class="stat-section-label">Contact Quality Against &middot; TrackMan</span>
+  <div class="stat-row">
+    <div class="stat-box"><span class="stat-val" id="tHard">&#8212;</span><span class="stat-lbl">Hard%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tSolid">&#8212;</span><span class="stat-lbl">Solid%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tGB2">&#8212;</span><span class="stat-lbl">GB%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tFB">&#8212;</span><span class="stat-lbl">FB%</span></div>
+    <div class="stat-box"><span class="stat-val" id="tMaxEV">&#8212;</span><span class="stat-lbl">Max EV</span></div>
+    <div class="stat-box"><span class="stat-val" id="tAvgEV">&#8212;</span><span class="stat-lbl">Best Speed</span></div>
+  </div>
+</div>
 
-    <!-- Zone Heat Maps -->
-    <div class="hmap-section">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <div>
-          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Fastball Location</div>
-          <canvas id="zmapWoba" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-        </div>
-        <div>
-          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px" id="zmapBreakLabel">Breaking Ball Location</div>
-          <canvas id="zmapHard" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-        </div>
-        <div>
-          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">SwStr Locations</div>
-          <canvas id="zmapWhiff" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-        </div>
-        <div>
-          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Hard Hit Locations</div>
-          <canvas id="zmapSwStr" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-        </div>
-      </div>
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View &middot; looking toward the pitcher</div>
+<!-- Zone Heat Maps -->
+<div class="hmap-section">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+    <div>
+      <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Fastball Location</div>
+      <canvas id="zmapWoba" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
     </div>
+    <div>
+      <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px" id="zmapBreakLabel">Breaking Ball Location</div>
+      <canvas id="zmapHard" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+    </div>
+    <div>
+      <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">SwStr Locations</div>
+      <canvas id="zmapWhiff" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+    </div>
+    <div>
+      <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Hard Hit Locations</div>
+      <canvas id="zmapSwStr" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+    </div>
+  </div>
+  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View &middot; looking toward the pitcher</div>
+</div>
 
-    <!-- Pitch Arsenal -->
-    <div class="pitch-section">
-      <span class="stat-section-label" style="display:block;margin-bottom:4px">Pitch Arsenal</span>
-      <table class="pitch-table">
-        <thead><tr>
-          <th style="text-align:left">Pitch</th>
-          <th>Usage</th><th>Velo</th><th>Max</th><th>iVB</th><th>HB</th>
-          <th>Spin</th><th>VAA</th><th>RelH</th><th>Ext</th>
-          <th>SwStr%</th><th>Chase%</th><th>Str%</th><th>Hard%</th>
-        </tr></thead>
-        <tbody id="pitchTableBody"></tbody>
-      </table>
-    </div>
+<!-- Pitch Arsenal -->
+<div class="pitch-section">
+  <span class="stat-section-label" style="display:block;margin-bottom:4px">Pitch Arsenal</span>
+  <table class="pitch-table">
+    <thead><tr>
+      <th style="text-align:left">Pitch</th>
+      <th>Usage</th><th>Velo</th><th>Max</th><th>iVB</th><th>HB</th>
+      <th>Spin</th><th>VAA</th><th>RelH</th><th>Ext</th>
+      <th>SwStr%</th><th>Chase%</th><th>Str%</th><th>Hard%</th>
+    </tr></thead>
+    <tbody id="pitchTableBody"></tbody>
+  </table>
+</div>
 
-    <!-- Results by Pitch Type -->
-    <div class="pitch-section" style="border-top:2px solid #1a3a5c;padding-top:0">
-      <div style="font-family:'Anton',sans-serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;background:#1a3a5c;color:#fff;padding:3px 6px;margin:0 -6px 4px;display:block">Results by Pitch Type</div>
-      <table class="pitch-table">
-        <thead><tr>
-          <th style="text-align:left">Pitch</th>
-          <th>AB</th><th>AVG</th><th>SLG</th><th>ISO</th>
-          <th>Whf%</th><th>GB%</th><th>Brl%</th><th>wOBA</th>
-        </tr></thead>
-        <tbody id="execTableBody"></tbody>
-      </table>
-    </div>
+<!-- Results by Pitch Type -->
+<div class="pitch-section" style="border-top:2px solid #1a3a5c;padding-top:0">
+  <div style="font-family:'Anton',sans-serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;background:#1a3a5c;color:#fff;padding:3px 6px;margin:0 -6px 4px;display:block">Results by Pitch Type</div>
+  <table class="pitch-table">
+    <thead><tr>
+      <th style="text-align:left">Pitch</th>
+      <th>AB</th><th>AVG</th><th>SLG</th><th>ISO</th>
+      <th>Whf%</th><th>GB%</th><th>Brl%</th><th>wOBA</th>
+    </tr></thead>
+    <tbody id="execTableBody"></tbody>
+  </table>
+</div>
 
-    <div class="card-footer">
-      <div>&#9918; Walters State CC &middot; 2026</div>
-      <div>Data: TrackMan</div>
-      <div id="footR">wsccbaseball.github.io</div>
-    </div>
-    <button class="save-btn" onclick="saveCard()">&#128229; SAVE CARD IMAGE</button>
+<div class="card-footer">
+  <div>&#9918; Walters State CC &middot; 2026</div>
+  <div>Data: TrackMan</div>
+  <div id="footR">wsccbaseball.github.io</div>
+</div>
+<button class="save-btn" onclick="saveCard()">&#128229; SAVE CARD IMAGE</button>
+```
 
   </div>
 </div>
@@ -319,42 +319,6 @@ var allPitches=[], gamesMeta=[], tableData=[];
 var sortCol='tbf', sortAsc=false, selectedPitcher=null;
 var seasonPitching={};
 var FIP_CONSTANT=5.49;
-
-// ═══════════════════════════════════════════════════════════════════════════
-// GRADES CONFIG — retune from the GitHub web editor.
-//   k       = regression constant (Bayesian shrinkage). Bigger = more pull
-//             toward average, so a metric needs a larger sample to move a grade.
-//   weight  = share of the composite. Weights are renormalized per pitcher if a
-//             metric is missing (e.g. no FIP), so grades stay comparable.
-//   dir     = +1 if higher is better, -1 if lower is better.
-//   nKey    = which sample-size field on the pitcher object scales the shrinkage.
-//
-// pop = optional NJCAA population anchors. Leave a metric null to anchor to your
-//       OWN STAFF (50 = staff average). Fill in {mu:.., sd:..} in raw proportion
-//       (CSW% .30 => mu:0.30; FIP => mu:5.20) and that metric anchors to NJCAA
-//       (50 = NJCAA average). Mix and match freely — null falls back to staff.
-// ═══════════════════════════════════════════════════════════════════════════
-var GRADE_CONFIG={
-  metrics:[
-    {key:'cswPct',   label:'CSW%',   nKey:'totalPitches', k:100, weight:0.25, dir:1},
-    {key:'swstrPct', label:'SwStr%', nKey:'totalPitches', k:100, weight:0.15, dir:1},
-    {key:'chasePct', label:'Chase%', nKey:'ozPitches',    k:150, weight:0.10, dir:1},
-    {key:'kPct',     label:'K%',     nKey:'tbf',          k:70,  weight:0.20, dir:1},
-    {key:'bbPct',    label:'BB%',    nKey:'tbf',          k:170, weight:0.20, dir:-1},
-    {key:'fip',      label:'FIP',    nKey:'tbf',          k:300, weight:0.10, dir:-1}
-  ],
-  pop:{
-    cswPct:{mu:0.2814, sd:0.0391},
-    swstrPct:{mu:0.0997, sd:0.0285},
-    chasePct:{mu:0.2663, sd:0.0508},
-    kPct:null,
-    bbPct:null,
-    fip:null
-  },
-  anchor:50,
-  scale:10,
-  minTBFflag:20   // grades below this many batters faced are flagged provisional
-};
 
 var PITCH_COLORS={
   'Fastball':'#e63946','Four-Seam':'#e63946','FourSeamFastBall':'#e63946',
@@ -513,7 +477,6 @@ function computePitcherProfile(name, rows){
     hr:hrs,cswPct:rows.length>0?(calledStrikes+whiffs)/rows.length:0,
     swstrPct:rows.length>0?whiffs/rows.length:0,
     chasePct:ozPitches>0?ozSwings/ozPitches:0,
-    ozPitches:ozPitches,
     zonePct:rows.length>0?inZone/rows.length:0,
     hardPct:evCount>0?hardCount/evCount:0,
     solidPct:bipCount>0?solidCount/bipCount:0,
@@ -776,14 +739,11 @@ function switchTab(tab){
   document.getElementById('tabResults').classList.toggle('active',tab==='results');
   document.getElementById('tabStuff').classList.toggle('active',tab==='stuff');
   document.getElementById('tabTrend').classList.toggle('active',tab==='trend');
-  document.getElementById('tabGrades').classList.toggle('active',tab==='grades');
   document.getElementById('table-screen').style.display=tab==='results'?'block':'none';
   document.getElementById('stuff-screen').style.display=tab==='stuff'?'block':'none';
   document.getElementById('trend-screen').style.display=tab==='trend'?'block':'none';
-  document.getElementById('grades-screen').style.display=tab==='grades'?'block':'none';
   if(tab==='stuff')buildStuffTable();
   if(tab==='trend')buildTrendTable();
-  if(tab==='grades')buildGradesTable();
 }
 
 function sortStuff(pt,col){
@@ -853,7 +813,7 @@ function buildStuffTable(){
       th2.textContent=s;
       th2.style.cssText='background:'+col+'cc;cursor:pointer;font-size:.62rem;padding:4px 3px;white-space:nowrap'+(i===0?';border-left:3px solid rgba(255,255,255,0.35)':'');
       var isSorted=stuffSortPt===pt&&stuffSortCol===s;
-      if(isSorted)th2.textContent=s+(stuffSortAsc?' \u25B2':' \u25BC');
+      if(isSorted)th2.textContent=s+(stuffSortAsc?' ▲':' ▼');
       th2.onclick=(function(pt,s){return function(){sortStuff(pt,s);};})(pt,s);
       row2.appendChild(th2);
     });
@@ -1054,180 +1014,6 @@ function buildTrendTable(){
 }
 
 
-// ── Grades tab — Bayesian-shrinkage composite pitcher grades ─────────────────
-// Two passes: (1) build a reference mean+SD per metric — from CONFIG NJCAA
-// anchors where given, else from this staff; (2) regress each pitcher's metric
-// toward that mean (harder the smaller their sample), z-score, flip so higher is
-// always better, weight, and sum. Grade = anchor + scale * composite.
-function buildGradesTable(){
-  var screen=document.getElementById('grades-screen');
-  var pool=tableData.filter(function(p){return p.tbf>0;});
-  if(pool.length<2){
-    screen.innerHTML='<div class="no-data" style="padding:48px 24px">Need at least 2 pitchers with data to compute grades.</div>';
-    return;
-  }
-  var M=GRADE_CONFIG.metrics;
-
-  // Pass 1 — reference population (mean + SD) per metric
-  var ref={};
-  M.forEach(function(m){
-    var custom=GRADE_CONFIG.pop[m.key];
-    if(custom&&typeof custom.mu==='number'&&typeof custom.sd==='number'&&custom.sd>0){
-      ref[m.key]={mu:custom.mu,sd:custom.sd,source:'NJCAA'};
-      return;
-    }
-    var vals=[];
-    pool.forEach(function(p){
-      var v=p[m.key];
-      if(v!==null&&v!==undefined&&!isNaN(v))vals.push(v);
-    });
-    var mu=vals.length?vals.reduce(function(a,b){return a+b;},0)/vals.length:0;
-    var variance=vals.length?vals.reduce(function(a,b){return a+(b-mu)*(b-mu);},0)/vals.length:0;
-    ref[m.key]={mu:mu,sd:Math.sqrt(variance),source:'staff'};
-  });
-
-  // Pass 2 — regress -> z -> reliability-weighted composite per pitcher.
-  // Each metric's contribution is scaled by its reliability rel = n/(n+k):
-  // the share of "known" signal in this pitcher's sample. A metric you've
-  // barely measured (low n) abstains rather than voting average, so what you
-  // CAN measure drives the grade. The per-metric regression above already
-  // pulls thin-sample z's toward 0, which is what keeps low-total-sample
-  // pitchers near 50 overall.
-  var graded=pool.map(function(p){
-    var composite=0,wUsed=0,zlist={};
-    M.forEach(function(m){
-      var raw=p[m.key];
-      if(raw===null||raw===undefined||isNaN(raw)){zlist[m.key]=null;return;}
-      var n=p[m.nKey]||0;
-      var r=ref[m.key];
-      var regressed=(raw*n+r.mu*m.k)/(n+m.k);
-      var z=r.sd>0?(regressed-r.mu)/r.sd:0;
-      var goodZ=z*m.dir;            // positive = strength for every metric
-      zlist[m.key]=goodZ;
-      var rel=(n+m.k)>0?n/(n+m.k):0;   // reliability: share of known signal
-      var eff=m.weight*rel;
-      composite+=eff*goodZ;
-      wUsed+=eff;
-    });
-    var comp=wUsed>0?composite/wUsed:0;     // normalize by effective weight used
-    var grade=GRADE_CONFIG.anchor+GRADE_CONFIG.scale*comp;
-    return {p:p,grade:grade,z:zlist};
-  });
-
-  var selPitchers=getSelectedPitchers();
-  var display=graded.filter(function(g){return !selPitchers.length||selPitchers.includes(g.p.name);});
-  display.sort(function(a,b){return b.grade-a.grade;});
-
-  var anchorLbl=M.every(function(m){return ref[m.key].source==='NJCAA';})?'NJCAA':'staff';
-  var html='<div style="padding:8px 12px 6px;font-family:Barlow,sans-serif;font-size:.72rem;color:#6b5f47;background:#fffdf7;border-bottom:1px solid #e8e0d0;line-height:1.45">';
-  html+='<b style="font-family:Anton,sans-serif;letter-spacing:.06em;color:#1a3a5c">PITCHER GRADES</b> &middot; 50 = '+anchorLbl+' average, 60 = one SD better. ';
-  html+='Each metric column is a standardized score: <span style="color:#2a7a3a;font-weight:700">green = strength</span>, <span style="color:#b03000;font-weight:700">red = weakness</span>. Thin samples pull toward 50 automatically.';
-  html+='</div>';
-  html+='<div style="padding:8px 12px;background:#fffdf7;border-bottom:1px solid #e8e0d0">';
-  html+='<button onclick="computeOppPopulation()" style="font-family:Anton,sans-serif;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:#1a3a5c;border:none;border-radius:5px;padding:8px 12px;cursor:pointer">Compute NJCAA anchors &middot; opponent pool</button>';
-  html+='<div id="oppPopOut" style="margin-top:8px"></div>';
-  html+='</div>';
-  html+='<div class="table-wrap"><table class="stats-tbl" style="min-width:760px"><thead><tr>';
-  html+='<th>Pitcher</th><th>Grade</th>';
-  M.forEach(function(m){html+='<th>'+m.label+'</th>';});
-  html+='<th>TBF</th><th>NP</th></tr></thead><tbody>';
-
-  function zCell(v){
-    if(v===null||v===undefined||isNaN(v))return '<td style="color:#bbb">--</td>';
-    var cls=v>=0.5?'val-good':v<=-0.5?'val-warn':'';
-    var s=(v>=0?'+':'')+v.toFixed(1);
-    return '<td class="'+cls+'">'+s+'</td>';
-  }
-  function gradeCell(g){
-    var cls,wt='800';
-    if(g>=60)cls='#1a6b3a';
-    else if(g>=55)cls='#2a7a3a';
-    else if(g>=45){cls='#1a3a5c';wt='700';}
-    else if(g>=40)cls='#b05000';
-    else cls='#b03000';
-    return '<td style="font-weight:'+wt+';color:'+cls+';font-size:1.02rem">'+Math.round(g)+'</td>';
-  }
-
-  display.forEach(function(r){
-    var lowN=r.p.tbf<GRADE_CONFIG.minTBFflag;
-    var tr='<tr data-name="'+escH(r.p.name)+'"'+(selectedPitcher===r.p.name?' class="selected"':'')+'>';
-    tr+='<td>'+escH(r.p.displayName)+'</td>';
-    tr+=gradeCell(r.grade);
-    M.forEach(function(m){tr+=zCell(r.z[m.key]);});
-    tr+='<td'+(lowN?' style="color:#b05000"':'')+'>'+r.p.tbf+(lowN?'*':'')+'</td>';
-    tr+='<td>'+r.p.totalPitches+'</td>';
-    tr+='</tr>';
-    html+=tr;
-  });
-  html+='</tbody></table></div>';
-  if(display.some(function(r){return r.p.tbf<GRADE_CONFIG.minTBFflag;}))
-    html+='<div style="padding:7px 12px;font-family:Barlow,sans-serif;font-size:.68rem;color:#b05000;line-height:1.4">* fewer than '+GRADE_CONFIG.minTBFflag+' batters faced — grade is heavily regressed toward average; read as provisional.</div>';
-  screen.innerHTML=html;
-
-  screen.querySelectorAll('tbody tr[data-name]').forEach(function(tr){
-    tr.onclick=function(){
-      var nm=tr.getAttribute('data-name');
-      selectedPitcher=nm;
-      screen.querySelectorAll('tbody tr').forEach(function(x){x.classList.remove('selected');});
-      tr.classList.add('selected');
-      var prof=tableData.find(function(d){return d.name===nm;});
-      document.getElementById('genCardBtn').disabled=false;
-      document.getElementById('selHint').textContent=(prof?prof.displayName:nm)+' selected';
-    };
-  });
-}
-
-// ── NJCAA anchors from the opponent pool (CSW%, SwStr%, Chase%) ───────────────
-// Pools every non-WSCC pitcher already in the loaded pitch data and runs each
-// through the same computePitcherProfile your own pitchers use — identical CSW/
-// SwStr/Chase definitions, same zone, same pipeline. Prints mean + sample SD
-// across that pool as a ready-to-paste pop block. These three TrackMan metrics
-// have no league-wide source; your opponents ARE the NJCAA sample, measured
-// through your exact pipeline. (K%/BB%/FIP anchors come from the box-score tool.)
-function computeOppPopulation(){
-  var out=document.getElementById('oppPopOut');
-  if(!out)return;
-  var MIN_PITCHES=40, MIN_OZ=20;
-  var opp=allPitches.filter(function(r){return r.PitcherTeam&&r.PitcherTeam.toLowerCase().indexOf('wal')===-1;});
-  if(!opp.length){out.innerHTML='<div style="font-family:Barlow,sans-serif;font-size:.72rem;color:#b03000">No opponent pitches found in the loaded data.</div>';return;}
-  var byName={};
-  opp.forEach(function(r){var n=(r.Pitcher||'').trim();if(!n)return;(byName[n]=byName[n]||[]).push(r);});
-  var csw=[],sw=[],ch=[];
-  Object.keys(byName).forEach(function(n){
-    var rows=byName[n];
-    if(rows.length<MIN_PITCHES)return;
-    var p=computePitcherProfile(n,rows);
-    if(!isNaN(p.cswPct))csw.push(p.cswPct);
-    if(!isNaN(p.swstrPct))sw.push(p.swstrPct);
-    if(p.ozPitches>=MIN_OZ&&!isNaN(p.chasePct))ch.push(p.chasePct);
-  });
-  function stats(a){
-    if(a.length<2)return null;
-    var mu=a.reduce(function(s,v){return s+v;},0)/a.length;
-    var variance=a.reduce(function(s,v){return s+(v-mu)*(v-mu);},0)/(a.length-1); // sample SD
-    return {mu:mu,sd:Math.sqrt(variance),n:a.length};
-  }
-  var sCSW=stats(csw),sSW=stats(sw),sCH=stats(ch);
-  if(!sCSW){out.innerHTML='<div style="font-family:Barlow,sans-serif;font-size:.72rem;color:#b03000">Not enough qualifying opponent pitchers (need &ge;2 with &ge;'+MIN_PITCHES+' pitches).</div>';return;}
-  function f(v){return v.toFixed(4);}
-  function line(key,s){return s?'    '+key+':{mu:'+f(s.mu)+', sd:'+f(s.sd)+'},':'    '+key+':null,  // too few opponents to estimate';}
-  var snippet='  pop:{\n'+
-    line('cswPct',sCSW)+'\n'+
-    line('swstrPct',sSW)+'\n'+
-    line('chasePct',sCH)+'\n'+
-    '    kPct:null,    // <- from box-score tool\n'+
-    '    bbPct:null,   // <- from box-score tool\n'+
-    '    fip:null      // <- from box-score tool\n'+
-    '  },';
-  var html='<div style="font-family:Barlow,sans-serif;font-size:.7rem;color:#6b5f47;line-height:1.5;margin-bottom:6px">';
-  html+='Opponent pool: <b>'+sCSW.n+'</b> arms for CSW%/SwStr%, <b>'+(sCH?sCH.n:0)+'</b> for Chase% (&ge;'+MIN_PITCHES+' pitches each). ';
-  html+='Paste these three lines into the <b>pop</b> block at the top of the file — leave the box-score three as <b>null</b> until you compute them. SD is a sample estimate and may run slightly high (small-sample noise on top of true spread), so grades using it will be a touch conservative; hand-trim if you like.';
-  html+='</div>';
-  html+='<pre style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.72rem;background:#1a1a2e;color:#d7e3f4;padding:10px 12px;border-radius:6px;overflow-x:auto;white-space:pre;-webkit-overflow-scrolling:touch;margin:0">'+escH(snippet)+'</pre>';
-  out.innerHTML=html;
-}
-
-
 async function boot(){
   try{
     setProgress(5,'Loading season stats...');
@@ -1308,7 +1094,6 @@ function onFilterChange(){
   renderTable();
   if(currentTab==='stuff')buildStuffTable();
   if(currentTab==='trend')buildTrendTable();
-  if(currentTab==='grades')buildGradesTable();
 }
 function renderTable(){
   var selectedPitchers=getSelectedPitchers();
