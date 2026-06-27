@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Riverside CC — Hitter Book (SAMPLE)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#16243a; --ink-2:#22344f; --paper:#faf8f3; --line:#d6cfc0;
+  --attack:#1f7a3d; --attack-bg:#e4f1e7;
+  --danger:#b4232a; --danger-bg:#f6e2e2;
+  --caution:#9a6a12; --caution-bg:#f8eed6;
+  --noread:#8a909a; --noread-bg:#ecebe7;
+  --muted:#5d6470; --gold:#e7b84b;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:'Barlow',sans-serif;}
+.wrap{max-width:860px;margin:0 auto;padding:24px 20px 60px;}
+.masthead{border-bottom:4px solid var(--ink);padding-bottom:14px;margin-bottom:8px;}
+.masthead .kicker{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.14em;text-transform:uppercase;font-size:.72rem;color:var(--gold);background:var(--ink);display:inline-block;padding:3px 10px;border-radius:2px;}
+.masthead h1{font-family:'Oswald',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.02em;font-size:2.1rem;margin:10px 0 4px;line-height:1;}
+.masthead .identity{font-size:1rem;color:var(--ink-2);font-weight:500;margin:0 0 8px;}
+.masthead .plan{font-size:.95rem;font-style:italic;color:var(--muted);border-left:3px solid var(--gold);padding-left:10px;}
+.datanote{font-size:.74rem;color:var(--muted);margin:10px 0 18px;line-height:1.4;}
+.callout{background:var(--ink);color:var(--paper);border-radius:4px;padding:12px 16px;margin:16px 0 24px;}
+.callout .ct{font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.1em;font-size:.8rem;color:var(--gold);margin-bottom:4px;}
+.callout p{margin:0;font-size:.9rem;line-height:1.45;}
+.hitter{border:1px solid var(--line);border-radius:6px;margin-bottom:18px;overflow:hidden;background:#fff;page-break-inside:avoid;}
+.h-head{display:flex;align-items:center;gap:10px;background:var(--ink);color:var(--paper);padding:9px 14px;flex-wrap:wrap;}
+.slot{font-family:'Oswald',sans-serif;font-weight:700;font-size:1.4rem;color:var(--gold);min-width:26px;text-align:center;}
+.jersey{font-family:'Oswald',sans-serif;font-weight:500;font-size:.8rem;color:var(--paper);opacity:.7;}
+.hname{font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.03em;font-size:1.15rem;flex:1;}
+.pill{font-family:'Oswald',sans-serif;font-weight:600;font-size:.72rem;letter-spacing:.05em;padding:2px 8px;border-radius:10px;}
+.pill.R{background:var(--paper);color:var(--ink);}
+.pill.L{background:var(--gold);color:var(--ink);}
+.pill.S{background:#fff;color:var(--ink);border:1px solid var(--gold);}
+.slash{font-family:'Oswald',sans-serif;font-weight:500;font-size:.9rem;letter-spacing:.02em;width:100%;color:var(--paper);opacity:.92;margin-top:2px;}
+.slash b{color:var(--gold);}
+.h-body{padding:4px 0;}
+.row{display:flex;gap:0;border-top:1px solid var(--line);}
+.row:first-child{border-top:none;}
+.lbl{font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.06em;font-size:.74rem;width:96px;min-width:96px;padding:9px 10px;display:flex;align-items:flex-start;}
+.txt{padding:9px 12px 9px 4px;font-size:.88rem;line-height:1.4;flex:1;}
+.row.out .lbl{background:var(--attack-bg);color:var(--attack);}
+.row.danger .lbl{background:var(--danger-bg);color:var(--danger);}
+.row.run .lbl{background:var(--caution-bg);color:var(--caution);}
+.row.def .lbl{background:var(--noread-bg);color:var(--muted);}
+.row.profile .lbl{background:#eceef2;color:var(--ink-2);}
+.foot{font-size:.78rem;color:var(--muted);border-top:2px solid var(--line);margin-top:24px;padding-top:14px;line-height:1.5;}
+.foot b{color:var(--ink);}
+@media print{
+  @page{size:Letter;margin:15mm 13mm;}
+  body{background:#fff;color:#23282d;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-family:'Barlow',sans-serif;}
+  .wrap{max-width:none;padding:0;}
+  .masthead{border-bottom:2px solid #23282d;padding-bottom:10px;margin-bottom:14px;}
+  .masthead .kicker{background:none;color:#8a857b;font-family:'IBM Plex Mono',monospace;font-weight:500;padding:0;letter-spacing:.12em;font-size:.66rem;}
+  .masthead h1{font-family:'Spectral',serif;color:#23282d;text-transform:none;letter-spacing:.01em;font-weight:600;font-size:1.9rem;margin:6px 0 5px;}
+  .masthead .identity{color:#3a3a3a;font-family:'IBM Plex Mono',monospace;font-size:.74rem;letter-spacing:-.01em;}
+  .masthead .plan{color:#3a3530;border-left:2px solid #c9c2b4;font-style:italic;font-family:'Spectral',serif;}
+  .callout{background:#fff;color:#23282d;border:1px solid #d8d2c6;border-left:3px solid #23282d;border-radius:0;padding:11px 14px;}
+  .callout .ct{color:#3a3530;font-family:'Spectral',serif;font-style:italic;font-weight:600;letter-spacing:0;text-transform:none;font-size:.92rem;}
+  .callout p{font-size:.85rem;}
+  .callout b{color:#23282d;}
+  .hitter{border:none;border-radius:0;background:#fff;box-shadow:none;margin-bottom:15px;border-top:1px solid #cfc9bd;padding-top:11px;page-break-inside:avoid;}
+  .h-head{background:#fff;color:#23282d;padding:0 0 6px;border-bottom:1.5px solid #23282d;gap:9px;align-items:baseline;flex-wrap:wrap;}
+  .slot{font-family:'Spectral',serif;font-weight:600;font-size:1.2rem;color:#23282d;}
+  .jersey{font-family:'IBM Plex Mono',monospace;color:#8a857b;opacity:1;}
+  .hname{font-family:'Spectral',serif;font-weight:600;font-size:1.42rem;color:#23282d;text-transform:none;letter-spacing:.01em;}
+  .pill{font-family:'IBM Plex Mono',monospace;background:#fff!important;color:#5a564e!important;border:1px solid #cfc9bd;border-radius:2px;font-weight:400;}
+  .slash{font-family:'IBM Plex Mono',monospace;color:#3a3a3a;background:#f1eee6;padding:6px 9px;border-radius:3px;margin-top:9px;font-size:.74rem;letter-spacing:-.02em;opacity:1;}
+  .slash b{color:#23282d;}
+  .h-body{padding:0;}
+  .row{display:block;border-top:1px solid #ece8df;padding-top:9px;margin-top:9px;}
+  .row:first-child{border-top:none;padding-top:8px;margin-top:0;}
+  .lbl{width:auto;min-width:0;padding:0 0 2px;background:none!important;color:#3a3530!important;font-family:'Spectral',serif;font-weight:600;font-style:italic;font-size:.88rem;text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:7px;}
+  .lbl::before{display:inline-block;font-style:normal;font-family:'Barlow',sans-serif;font-size:.8rem;line-height:1;content:"\25CB";color:#5a6577;}
+  .out .lbl::before{content:"\2713";color:#2f7a43;font-weight:700;}
+  .danger .lbl::before{content:"\25B2";color:#a8362f;}
+  .run .lbl::before{content:"\25B8";color:#9a6a12;}
+  .def .lbl::before{content:"\25C6";color:#5d6470;}
+  .danger .lbl{font-weight:700;}
+  .txt{padding:0;font-size:.86rem;line-height:1.48;}
+  .txt b{color:#23282d;}
+  .txt i{color:#8a857b;}
+  .foot{border-top:1px solid #cfc9bd;color:#6a655c;}
+  .foot b{color:#23282d;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <span class="kicker">Advance Scout · Hitter Book · SAMPLE PACKET</span>
+    <h1>Riverside CC Lineup</h1>
+    <p class="identity">34–17 grind-it-out, on-base machine — team .317 / .454 OBP / .475 SLG · 295 BB · 114 HBP · only 325 K · 40 HR · 27 SB (82%)</p>
+    <p class="plan">The plan: spin them down, keep the fastball out of the zone, and limit the damage when they reach — because they <em>will</em> reach. Win the at-bat with breaking stuff in the zone; don't give in to a fastball they can square.</p>
+  </div>
+
+  <div class="callout">
+    <div class="ct">Running Game — Our Job</div>
+    <p>RIV's offense runs only moderately — <b>27-for-33 (~82%)</b> as a team, no burners (top thieves: Carter 6, Foster 4, Grant 4; Avery is just 3-for-6 — runs into outs). The steal is <em>not</em> their weapon; the walk and the single are. <b>Hold the lead runner and vary times</b>, but don't over-rotate to it — their bases clog on OBP, not speed.</p>
+  </div>
+
+  <!-- 1 MORGAN -->
+  <div class="hitter">
+    <div class="h-head">
+      <span class="slot">1</span><span class="jersey">#6</span>
+      <span class="hname">Jordan Avery</span><span class="pill R">R/R</span>
+      <span class="slash">.358 / .590 / .603 · 8 HR · 54 BB · 36 HBP · 27 K · 244 PA</span>
+    </div>
+    <div class="h-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">Lineup engine and OBP monster — reaches at a historic clip on 54 walks + 36 hit-by-pitches. Elite discipline (12% chase, 14% miss). Premier table-setter.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt">No out-by-type exists — he handles everything (FB .442, CB .400, and he won't chase the slider at 14%). The only "out" is precise execution down/away and living with the walk. <b>Do not groove.</b></div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">Anything in the zone, especially the fastball (.442 / .670 vs FB). Give in and he punishes it.</div></div>
+      <div class="row run"><div class="lbl">Run / Bunt</div><div class="txt">Not a runner (3 SB). His threat is reaching base, not stealing.</div></div>
+      <div class="row def"><div class="lbl">Defense</div><div class="txt">Big carry to the OF — drives it in the air gap-to-gap (.625/.750, 3 doubles) — so play <b>OF deep and honest</b>. On the ground he's a double-play machine (90% GB on infield contact, 4 DPs in the charted sample); righty pull, so <b>left-side infield at DP depth with a runner on</b>. <i>(Pull direction inferred from handedness/GB lean — confirm vs the chart.)</i></div></div>
+    </div>
+  </div>
+
+  <!-- 2 NEWTON -->
+  <div class="hitter">
+    <div class="h-head">
+      <span class="slot">2</span><span class="jersey">#31</span>
+      <span class="hname">Casey Bennett</span><span class="pill S">SWITCH</span>
+      <span class="slash">.319 / .435 / .508 · 6 HR · 38 BB · 33 K · 230 PA</span>
+    </div>
+    <div class="h-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">Middle-order power/OBP threat, switch hitter (throws right). Patient (.435 OBP, 38 BB), fastball-damage bat.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt">Bury spin <b>down</b> — all breaking/off-speed: SL .231 (15% miss), CB .235 (23% miss), CH .200 (22% miss, 76% GB). Especially the changeup at the knees.</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">Fastball in the zone — .320 / .547, 3 HR, only <b>7% miss</b>. He barely misses a heater. Do not give him one to handle.</div></div>
+      <div class="row run"><div class="lbl">Run / Bunt</div><div class="txt">2 SB — not a runner.</div></div>
+      <div class="row def"><div class="lbl">Defense</div><div class="txt">Two profiles by zone. On the ground he pounds it (92% GB infield, .237) — DP depth. In the air it's all carry (.522/.739, 60% FB) — <b>OF deep</b>. Switch-hitter, so no single pull side: <b>play him straight up in the infield</b>, depth over shade. <i>(OF depth from air-contact power; infield from GB lean.)</i></div></div>
+    </div>
+  </div>
+
+  <!-- 3 HEAD -->
+  <div class="hitter">
+    <div class="h-head">
+      <span class="slot">3</span><span class="jersey">#4</span>
+      <span class="hname">Drew Carter</span><span class="pill R">R/R</span>
+      <span class="slash">.321 / .425 / .481 · 4 HR · 27 BB · 9 HBP · 6-1 SB · 229 PA</span>
+    </div>
+    <div class="h-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">Everyday table-setter — contact and speed, not a masher.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt">Slider down/away — .133, <b>34% miss</b>, his biggest swing-and-miss. Changeup also gets him (17% miss). Bury spin.</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">Fastball in the zone — .280 / .382, sits on it (56% of his diet, only 19% miss). Don't feed it.</div></div>
+      <div class="row run"><div class="lbl">Run / Bunt</div><div class="txt"><b>Real bunt threat</b> (8 bunts charted) plus speed. Corners alert; hold him close.</div></div>
+      <div class="row def"><div class="lbl">Defense</div><div class="txt"><b>Corners honor the bunt</b> — he drops them (6 bunts / 15% of infield contact). Weak grounders otherwise (71% GB, .150, induces 5 errors) — IF honest/DP depth. In the air he lines the gaps (.407/.519) — <b>OF honest gaps</b>. <i>(Pull direction inferred from handedness/GB lean — confirm vs the chart.)</i></div></div>
+    </div>
+  </div>
+
+  <!-- 4 SCHAEFER -->
+  <div class="hitter">
+    <div class="h-head">
+      <span class="slot">4</span><span class="jersey">#27</span>
+      <span class="hname">Eli Dawson</span><span class="pill L">L/L</span>
+      <span class="slash">.327 / .441 / .509 · 16 2B · 4 HR · 25 BB · 203 PA</span>
+    </div>
+    <div class="h-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">High-OBP doubles bat, elite contact (10% miss), left-handed — and an extreme ground-ball hitter (63% GB). Low home-run power; the damage is gap doubles when he gets one in the air.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt"><b>Changeup down</b> — he chases it 42%, .182, rolls it over. Keep the fastball down (67% GB on the FB).</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">When he elevates he lines the gaps (OF .600 / .700; 16 doubles on the year). Don't let him extend on a pitch up.</div></div>
+      <div class="row run"><div class="lbl">Run / Bunt</div><div class="txt">Will drop a bunt (2 charted). Not a burner.</div></div>
+      <div class="row def"><div class="lbl">Defense</div><div class="txt">Extreme ground-ball lefty — on the ground he goes pull-side, so set the infield to the <b>right and DP depth with a runner on</b>. He reaches the OF rarely but lines it gap-to-gap when he does (.600/.700) — OF honest, play the gaps, not deep. <i>(Pull direction inferred from a lefty's heavy GB profile — confirm vs the chart.)</i></div></div>
+    </div>
+  </div>
+
+  <!-- 5 WALLACE -->
+  <div class="hitter">
+    <div class="h-head">
+      <span class="slot">5</span><span class="jersey">#33</span>
+      <span class="hname">Mason Ellis</span><span class="pill R">R/R</span>
+      <span class="slash">.291 / .419 / .358 · 1 HR · 21 BB · 15 HBP · 46 K · 193 PA</span>
+    </div>
+    <div class="h-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">Free-swinging utility bat; on-base is HBP-driven (15 HBP). High strikeout (32 K, 29% miss, 32% chase) and low power.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt"><b>Make him chase</b> — elevated FB (32% miss, .208) and slider down (38% chase). Expand the zone with two strikes; he'll come.</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">Limited — little extra-base pop. Just don't groove a get-me-over he can square.</div></div>
+      <div class="row run"><div class="lbl">Run / Bunt</div><div class="txt">2 SB; will bunt (4 charted).</div></div>
+      <div class="row def"><div class="lbl">Defense</div><div class="txt">Right-handed, low power, grounder-and-fly mix. On the ground he pulls to the <b>left side</b> — infield honest there. To the OF he's fly-ball-heavy but without much carry (.438 on outfield contact) — <b>OF honest-to-shallow</b>. <i>(Pull direction inferred from handedness/GB lean — confirm vs the chart.)</i></div></div>
+    </div>
+  </div>
+
+  <!-- 6 HUSKEY -->
+  <div class="hitter">
+    <div class="h-head">
+      <span class="slot">6</span><span class="jersey">#14</span>
+      <span class="hname">Cole Foster</span><span class="pill R">R/R</span>
+      <span class="slash">.293 / .453 / .456 · 4 HR · 29 BB · 14 HBP · 190 PA</span>
+    </div>
+    <div class="h-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">On-base machine — .453 OBP on 29 BB + 14 HBP (gets plunked). Patient, doesn't chase (19%).</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt">Spin down — CB .222 (76% GB, rolls over), SL .211 (30% miss, 9 K). He won't chase, so <b>beat him in the zone</b> with breaking stuff.</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">Fastball in the zone — .426 / .557 / .745. Sits on it and barrels it.</div></div>
+      <div class="row run"><div class="lbl">Run / Bunt</div><div class="txt">4 SB; bunt threat (3 charted).</div></div>
+      <div class="row def"><div class="lbl">Defense</div><div class="txt">Real carry in the air — .652/.957 with 7 doubles on OF contact — so play <b>OF deep</b>. On the ground he's weak and error-inducing (84% GB infield, .281); righty pull to the <b>left side, DP depth with a runner on</b>. <i>(Pull direction inferred from handedness/GB lean — confirm vs the chart.)</i></div></div>
+    </div>
+  </div>
+
+  <!-- 7 NEAS -->
+  <div class="hitter">
+    <div class="h-head">
+      <span class="slot">7</span><span class="jersey">#5</span>
+      <span class="hname">Riley Grant</span><span class="pill L">L/R</span>
+      <span class="slash">.346 / .483 / .496 · 4 HR · 33 BB · 24 K · 174 PA</span>
+    </div>
+    <div class="h-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">High-OBP, productive RBI table-setter, disciplined (20% chase). Left-handed bat.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt">Bury CB/CH down — CB .071 (19% miss), CH .222. Clear spin-down out plan (unlike Avery, he has a hole).</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">Fastball in the zone — .344 / .462, barrels it. (Slider line is HBP-inflated — he crowds the plate; treat as directional.)</div></div>
+      <div class="row run"><div class="lbl">Run / Bunt</div><div class="txt">0 SB — not a runner.</div></div>
+      <div class="row def"><div class="lbl">Defense</div><div class="txt">Left-handed. On the ground he goes pull-side (right) and pops a lot up (73% GB / 18% PU infield, .273) — set the IF to the <b>right at DP depth</b>. In the air he lines it gap-to-gap (.500/.591) — <b>OF honest gaps</b>. <i>(Pull direction inferred from handedness/GB lean — confirm vs the chart.)</i></div></div>
+    </div>
+  </div>
+
+  <!-- 8 WRATHER -->
+  <div class="hitter">
+    <div class="h-head">
+      <span class="slot">8</span><span class="jersey">#22</span>
+      <span class="hname">Tanner Hayes</span><span class="pill R">R/R</span>
+      <span class="slash">.343 / .392 / .467 · 2 HR · 11 BB · 156 PA</span>
+    </div>
+    <div class="h-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">Pure hitter, fastball-handler. Low walk rate (11 BB) — <b>attackable in the zone if you stay down.</b></div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt">Bury the <b>slider</b> — .188, 23% miss, 77% out (rolls it over). <b>Not the curve</b> — he handles the curve (.400, 3 doubles). The breaking-ball plan is slider, not curveball. Keep everything down.</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">Fastball — sits on it and lifts it (.358 / .472; OF contact .556 / .815 with both triples).</div></div>
+      <div class="row run"><div class="lbl">Run / Bunt</div><div class="txt">Bunt threat (4 charted, 3 sac bunts).</div></div>
+      <div class="row def"><div class="lbl">Defense</div><div class="txt">Drives it in the air gap-to-gap (.556/.815 on OF contact, both triples) — <b>OF deep and honest</b>. On the ground he rolls over to the pull side, so play the <b>left-side infield at DP depth with a runner on</b>. <i>(Pull direction inferred from handedness/GB lean — confirm vs the chart.)</i></div></div>
+    </div>
+  </div>
+
+  <!-- 9 SWINEY -->
+  <div class="hitter">
+    <div class="h-head">
+      <span class="slot">9</span><span class="jersey">#8</span>
+      <span class="hname">Blake Irwin</span><span class="pill L">L/R</span>
+      <span class="slash">.289 / .471 / .392 · 2 HR · 26 BB · 11 HBP · 139 PA · C</span>
+    </div>
+    <div class="h-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">Patient catcher, on-base over power (.471 OBP on 26 BB + 11 HBP). Disciplined (21% miss). Left-handed.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt">Bury the curve (.167, 78% out) and keep the FB down — he rolls it over (52% GB on the fastball, 6 FC-outs).</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">The <b>changeup</b>, oddly — when he gets one he punishes it (.545, 2 HR, 1.091 SLG). Don't hang the change. Gap damage when elevated (OF .500/.643).</div></div>
+      <div class="row run"><div class="lbl">Run / Bunt</div><div class="txt">2 SB.</div></div>
+      <div class="row def"><div class="lbl">Defense</div><div class="txt">Left-handed, ground-ball lean. On the ground he pulls to the <b>right side</b> — set the infield right, DP depth with a runner on. In the air he lines gap-to-gap (.500/.643) — <b>OF honest, play the gaps</b>. <i>(Pull direction inferred from handedness/GB lean — confirm vs the chart.)</i></div></div>
+    </div>
+  </div>
+
+  <!-- 10 JONES -->
+  <div class="hitter">
+    <div class="h-head">
+      <span class="slot">10</span><span class="jersey">#16</span>
+      <span class="hname">Owen Jennings</span><span class="pill R">R/R</span>
+      <span class="slash">.321 / .420 / .444 · 1 HR · 10 BB · 6 HBP · 100 PA</span>
+    </div>
+    <div class="h-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">Solid contact bat, no clear out-by-type — handles FB, CB, and SL. Chases enough (27%) to expand with two strikes.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt">Keep it <b>down</b> — the read is location/zone, not pitch type; he handles FB, CB, and SL, so beat him with location.</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">Anything elevated/middle he lifts (OF .455/1.053, 8 doubles).</div></div>
+      <div class="row run"><div class="lbl">Run / Bunt</div><div class="txt">Bunt shows up once. Not a runner.</div></div>
+      <div class="row def"><div class="lbl">Defense</div><div class="txt">The outlier — <b>fly-ball-heavy in the air</b> (63% FB) with gap pop (.455/.636, 4 doubles), so play <b>OF honest-to-deep</b>. On the ground he rolls over (85% GB infield); righty pull to the <b>left side</b>. <i>(Pull direction inferred from handedness/GB lean — confirm vs the chart.)</i></div></div>
+    </div>
+  </div>
+
+  <!-- 11 OSBORNE -->
+  <div class="hitter">
+    <div class="h-head">
+      <span class="slot">11</span><span class="jersey">#24</span>
+      <span class="hname">Gabe Keller</span><span class="pill L">L/R</span>
+      <span class="slash">.264 / .386 / .514 · 4 HR · 13 BB · 20 K · 88 PA</span>
+    </div>
+    <div class="h-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">Corner power bat, swing-and-miss (34% miss, 20 K), left-handed. Lower-order pop; also catches.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt"><b>Changeup</b> (.000, 45% miss) and spin down — he'll chase the change.</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">FB/SL he can elevate (OF .375 / .750; 1 HR off the slider — he lifts it). Don't give him one to lift.</div></div>
+      <div class="row run"><div class="lbl">Run / Bunt</div><div class="txt">No SB.</div></div>
+      <div class="row def"><div class="lbl">Defense</div><div class="txt">Fly-ball power lefty — lifts it to the OF with carry (.375/.750, a triple and a double on OF contact). <b>Play OF deep</b>; as a lefty with pull-side pop, shade right-center. Infield honest — he doesn't beat you on the ground. <i>(Pull/shade inferred from handedness/power — confirm vs the chart.)</i></div></div>
+    </div>
+  </div>
+
+  <p class="foot">
+    <b>Bench / low-PA (not blocked above):</b> Sam Pruitt (#30) .077/.400/.077, 13 AB — high walk rate, no contact or power; spin-and-FB-miss profile. Negligible PA: Roderick, Kelley, Bohannon.<br>
+    <b>Catchers:</b> Irwin (#8) and Keller (#24) split time behind the plate — run-game/throwing data is carried in the Game Plan, not here.<br>
+    <b>Team approach to attack:</b> the recurring RIV archetype is elite OBP + fastball-handling + spin-vulnerable + heavy infield ground-ball (Avery, Grant, Foster, Bennett all fit). Collective out plan = spin them down, don't feed the fastball in the zone. They'll still reach on walks/HBP → run-game control and DP setup are how we limit it.
+  </p>
+
+</div>
+</body>
+</html>

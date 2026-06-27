@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Plan — Walters State vs Riverside CC (SAMPLE)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#16243a; --ink-2:#22344f; --paper:#faf8f3; --line:#d6cfc0;
+  --attack:#1f7a3d; --attack-bg:#e4f1e7;
+  --danger:#b4232a; --danger-bg:#f6e2e2;
+  --caution:#9a6a12; --caution-bg:#f8eed6;
+  --noread:#8a909a; --noread-bg:#ecebe7;
+  --muted:#5d6470; --gold:#e7b84b;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:'Barlow',sans-serif;}
+.wrap{max-width:880px;margin:0 auto;padding:24px 20px 60px;}
+.masthead{border-bottom:4px solid var(--ink);padding-bottom:14px;margin-bottom:8px;}
+.masthead .kicker{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.14em;text-transform:uppercase;font-size:.72rem;color:var(--gold);background:var(--ink);display:inline-block;padding:3px 10px;border-radius:2px;}
+.masthead h1{font-family:'Oswald',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.02em;font-size:2rem;margin:10px 0 4px;line-height:1.05;}
+.masthead .identity{font-size:.92rem;color:var(--ink-2);font-weight:500;margin:0;}
+.datanote{font-size:.74rem;color:var(--muted);margin:10px 0 18px;line-height:1.4;}
+.keynote{background:var(--ink);color:var(--paper);border-radius:6px;padding:16px 20px;margin:16px 0 26px;}
+.keynote .ct{font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.1em;font-size:.82rem;color:var(--gold);margin-bottom:10px;}
+.beat{display:flex;gap:12px;margin-bottom:9px;}
+.beat .n{font-family:'Oswald',sans-serif;font-weight:700;font-size:1rem;color:var(--gold);min-width:18px;}
+.beat .b{font-size:.92rem;line-height:1.4;}
+.beat .b b{color:#fff;}
+.leave{margin-top:12px;padding-top:11px;border-top:1px solid rgba(255,255,255,.2);font-family:'Oswald',sans-serif;font-weight:500;text-transform:uppercase;letter-spacing:.04em;font-size:.98rem;color:var(--gold);}
+.sec{font-family:'Oswald',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:1.25rem;color:var(--ink);border-bottom:3px solid var(--ink);padding-bottom:5px;margin:30px 0 14px;}
+.sub{font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.06em;font-size:.95rem;color:var(--ink-2);margin:18px 0 8px;border-left:3px solid var(--gold);padding-left:9px;}
+table{width:100%;border-collapse:collapse;margin-bottom:8px;font-size:.85rem;}
+th{font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.04em;font-size:.72rem;text-align:left;background:var(--ink);color:var(--paper);padding:7px 9px;}
+td{padding:8px 9px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.38;}
+tr:nth-child(even) td{background:#fff;}
+.arm-c{font-family:'Oswald',sans-serif;font-weight:600;color:var(--ink);white-space:nowrap;}
+.arm-c .r{display:block;font-family:'Barlow',sans-serif;font-weight:500;font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
+.edge{color:var(--attack);font-weight:500;}
+.tag{display:inline-block;font-family:'Oswald',sans-serif;font-weight:600;font-size:.62rem;letter-spacing:.05em;text-transform:uppercase;padding:1px 6px;border-radius:3px;margin-left:4px;vertical-align:middle;}
+.tag.lhh{background:var(--gold);color:var(--ink);}
+.tag.rhh{background:var(--ink);color:var(--paper);}
+.box{background:#fff;border:1px solid var(--line);border-radius:6px;padding:12px 16px;margin-bottom:12px;font-size:.88rem;line-height:1.5;}
+.box b{color:var(--ink);}
+.box .h{font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:.8rem;color:var(--ink-2);margin-bottom:5px;}
+.green-h{color:var(--attack);}
+.amber-h{color:var(--caution);}
+ul{margin:5px 0 0;padding-left:20px;}
+li{margin-bottom:5px;font-size:.87rem;line-height:1.4;}
+.cheat td:first-child{font-family:'Oswald',sans-serif;font-weight:600;}
+.foot{font-size:.76rem;color:var(--muted);border-top:2px solid var(--line);margin-top:24px;padding-top:14px;line-height:1.5;}
+@media print{
+  @page{size:Letter;margin:14mm 12mm;}
+  body{background:#fff;color:#23282d;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-family:'Barlow',sans-serif;}
+  .wrap{max-width:none;padding:0;}
+  .masthead{border-bottom:2px solid #23282d;padding-bottom:10px;}
+  .masthead .kicker{background:none;color:#8a857b;font-family:'IBM Plex Mono',monospace;font-weight:500;padding:0;letter-spacing:.1em;font-size:.64rem;}
+  .masthead h1{font-family:'Spectral',serif;color:#23282d;text-transform:none;letter-spacing:.01em;font-weight:600;font-size:1.7rem;margin:6px 0 5px;}
+  .masthead .identity{color:#3a3a3a;font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:-.02em;}
+  .masthead .identity b{color:#23282d;}
+  .keynote{background:#fff;color:#23282d;border:1px solid #c9c2b4;border-left:3px solid #23282d;border-radius:0;padding:13px 16px;}
+  .keynote .ct{color:#3a3530;font-family:'Spectral',serif;font-style:italic;font-weight:600;letter-spacing:0;text-transform:none;font-size:1rem;}
+  .beat .n{color:#a8362f;font-family:'Spectral',serif;}
+  .beat .b{font-size:.87rem;}
+  .beat .b b{color:#23282d;}
+  .leave{border-top:1px solid #d8d2c6;color:#23282d;font-family:'Spectral',serif;font-style:italic;font-weight:600;text-transform:none;letter-spacing:0;font-size:1rem;}
+  .sec{color:#23282d;font-family:'Spectral',serif;font-weight:600;text-transform:none;letter-spacing:.01em;border-bottom:2px solid #23282d;page-break-after:avoid;}
+  .sub{color:#3a3530;font-family:'Spectral',serif;font-style:italic;font-weight:600;text-transform:none;letter-spacing:0;border-left:2px solid #c9c2b4;}
+  table{font-size:.79rem;page-break-inside:avoid;}
+  th{background:#fff!important;color:#23282d!important;border-bottom:1.5px solid #23282d;font-family:'IBM Plex Mono',monospace;font-weight:600;text-transform:none;letter-spacing:0;}
+  td{border-bottom:1px solid #ece8df;}
+  tr:nth-child(even) td{background:#fff;}
+  .arm-c{font-family:'Spectral',serif;font-weight:600;color:#23282d;}
+  .arm-c .r{font-family:'IBM Plex Mono',monospace;color:#8a857b;text-transform:none;letter-spacing:0;}
+  .edge{color:#2f7a43;font-weight:600;}
+  .tag{background:#fff!important;color:#23282d!important;border:1px solid #999;border-radius:2px;font-family:'IBM Plex Mono',monospace;}
+  .box{background:#fff;border:1px solid #c9c2b4;border-radius:0;}
+  .box .h{color:#3a3530;font-family:'Spectral',serif;font-style:italic;font-weight:600;letter-spacing:0;text-transform:none;font-size:.94rem;}
+  .box .h.green-h{color:#2f7a43;}
+  .box .h.amber-h{color:#9a6a12;}
+  .box b{color:#23282d;}
+  li{font-size:.84rem;}
+  .cheat td:first-child{font-family:'Spectral',serif;font-weight:600;}
+  .foot{border-top:1px solid #cfc9bd;color:#6a655c;}
+  .foot b{color:#23282d;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <span class="kicker">Game Plan · Walters State vs Riverside CC · SAMPLE PACKET</span>
+    <h1>WSCC vs Riverside CC</h1>
+    <p class="identity">Us: 53–13 · .376 / .489 / .692 · 154 HR · 358 BB · 130 HBP · 113 SB · 6.25 ERA &nbsp;|&nbsp; Them: 34–17 · .317 / .454 / .475 · 40 HR · 295 BB · 114 HBP · 27 SB · 6.85 ERA</p>
+  </div>
+
+  <div class="keynote">
+    <div class="ct">Series Keynote</div>
+    <div class="beat"><span class="n">1</span><span class="b"><b>Who they are:</b> a 34–17 grind-it-out, on-base machine (.454 team OBP) behind a wild, homer-prone staff (6.85 ERA, 264 BB, 54 HBP).</span></div>
+    <div class="beat"><span class="n">2</span><span class="b"><b>What they do well:</b> get on base (295 BB, 114 HBP), put it in play, rarely strike out. Their lineup will pressure us and clog the bases — and they'll take the extra base when it's there (27 SB).</span></div>
+    <div class="beat"><span class="n">3</span><span class="b"><b>What we take advantage of:</b> the talent gap is ours. Their staff is wild and homer-prone, and we out-power them 154 HR to 40 and out-run them 113 to 27. This is a game we win on ability.</span></div>
+    <div class="beat"><span class="n">4</span><span class="b"><b>Our focus:</b> at the plate, make them throw strikes and punish the fastball; on the mound, spin them down and take away the bases.</span></div>
+    <div class="leave">Make 'em throw strikes. Hammer the heater. Don't give away 90 feet.</div>
+  </div>
+
+  <!-- WHEN WE HIT -->
+  <div class="sec">When We Hit</div>
+  <p style="font-size:.88rem;line-height:1.5;margin:0 0 4px;">
+    This whole staff leaks fastballs and walks. The lever changes by arm — starters carry the series, so attack them first; the late-inning arms are beatable on a stack. <b>Note our shape:</b> we're a right-handed-heavy lineup, so the stack-LHH arms (below) put a premium on our two lefty bats — <b>Blair (L, 26 HR) and Walker (L)</b> — late, while the reverse-split arm is a gift for our righties.
+  </p>
+
+  <div class="sub">Starters — these carry the series</div>
+  <table>
+    <tr><th style="width:23%;">Their Arm</th><th style="width:38%;">Our Edge</th><th>How We Attack</th></tr>
+    <tr>
+      <td class="arm-c">Bennett #31<span class="r">RHP · Ace</span></td>
+      <td class="edge">FB leaks power — 14 HR in 62 IP. Our slug vs his heater.</td>
+      <td>Ambush the fastball early and when he falls behind (87% FB behind). Lay off the curve down — that's his chase pitch. Get him in hitter's counts.</td>
+    </tr>
+    <tr>
+      <td class="arm-c">Reed #39<span class="r">LHP · Starter</span></td>
+      <td class="edge">FB-heavy lefty; 5 HR went to RHH.<span class="tag rhh">Our RHH</span></td>
+      <td>Right-handed bats sit fastball and do the damage. Work the count — he folds behind (92% FB, walks balloon). Lay off the curve to lefties.</td>
+    </tr>
+    <tr>
+      <td class="arm-c">Brooks #9<span class="r">RHP · Weakest SP</span></td>
+      <td class="edge">Hittable FB (.340 BAA); abandons the breaker vs lefties.<span class="tag lhh">Stack LHH</span></td>
+      <td><b>Get our lefties up</b> (Blair, Walker) — he throws 89% FB to LHH (.400/.571/.600). Everyone sits fastball; make him land the breaker. The arm to break the game open against.</td>
+    </tr>
+  </table>
+
+  <div class="sub">High-Leverage Relief — late and close</div>
+  <table>
+    <tr><th style="width:23%;">Their Arm</th><th style="width:38%;">Our Edge</th><th>How We Attack</th></tr>
+    <tr>
+      <td class="arm-c">Cross #45<span class="r">LHP · Closer · 5 SV</span></td>
+      <td class="edge">FB gets crushed (.364/.600, 4 HR). <b>Reverse split — LHH crush him.</b><span class="tag lhh">Stack LHH</span></td>
+      <td>Get our left-handed bats to the plate late and <b>hunt the fastball</b>. Lay off the changeup (his only out pitch). Take the walk if he nibbles (8 BB behind).</td>
+    </tr>
+    <tr>
+      <td class="arm-c">Pierce #12<span class="r">RHP · Setup · 3 SV</span></td>
+      <td class="edge">Hardest FB on staff but hittable (5 of 6 HR off it); feeds LHH fastballs.<span class="tag lhh">Stack LHH</span></td>
+      <td>Same blueprint as Cross — lefties sit dead-red (79% FB to LHH, 1.070 OPS). Don't chase the slider with two strikes.</td>
+    </tr>
+    <tr>
+      <td class="arm-c">Shaw #20<span class="r">RHP · Setup</span></td>
+      <td class="edge">24 BB in 30 IP — can't find the zone.</td>
+      <td>Take. Make him throw strikes; don't chase the slider down. Once on, run.</td>
+    </tr>
+    <tr>
+      <td class="arm-c">Lowe #2<span class="r">RHP · Exception</span></td>
+      <td class="edge">None of the staff's usual cracks — efficient GB, doesn't collapse.</td>
+      <td><b>Be aggressive in the zone early.</b> Don't wait for walks that won't come; he pounds the zone. The tough out in their pen.</td>
+    </tr>
+  </table>
+
+  <div class="sub">Middle / Swing — reference</div>
+  <table>
+    <tr><th style="width:23%;">Their Arm</th><th style="width:38%;">Our Edge</th><th>How We Attack</th></tr>
+    <tr>
+      <td class="arm-c">Jake Mercer #28<span class="r">RHP · Reverse</span></td>
+      <td class="edge"><b>Reverse split — RHH hammer him</b> (.370/.537). A gift for our righty-heavy lineup.<span class="tag rhh">Stack RHH</span></td>
+      <td>Our right-handed bats. <b>Important:</b> he throws strikes behind and gets squared up — he won't walk you, so <b>be ready to drive</b>, not just take. Avoid expanding on the curve with two strikes.</td>
+    </tr>
+    <tr>
+      <td class="arm-c">Vance #19<span class="r">LHP · Middle</span></td>
+      <td class="edge">Breaker-first, folds behind; RHH do the damage.<span class="tag rhh">Our RHH</span></td>
+      <td>Make him land the fastball; lay off the breaker down. Work the count.</td>
+    </tr>
+    <tr>
+      <td class="arm-c">Miles Tate #13<span class="r">RHP · Low-Lev</span></td>
+      <td class="edge">Hittable FB, wild, folds behind.</td>
+      <td>Sit the fastball, especially behind. Don't chase the curve.</td>
+    </tr>
+    <tr>
+      <td class="arm-c">Ramsey #7 · Quinn #35 · <span class="r" style="display:inline;">(free-bases)</span></td>
+      <td class="edge">Wildest arms on staff — 22 BB each.</td>
+      <td>If they're in, <b>take and run.</b> Make them prove they can throw a strike.</td>
+    </tr>
+  </table>
+
+  <div class="box" style="margin-top:14px;">
+    <div class="h green-h">Run On Their Catchers</div>
+    Riverside CC's catchers throw poorly — opponents ran <b>62-for-68 (91%)</b> against them on the year. With our 113 SB, the green light is on: <b>get into scoring position and pressure them.</b> Their staff's slow, walk-heavy tempo only helps us run.
+  </div>
+
+  <!-- WHEN WE PITCH -->
+  <div class="sec">When We Pitch</div>
+
+  <div class="box">
+    <div class="h">Pitch to the Out — their lineup is one read</div>
+    The recurring RIV bat is elite OBP + fastball-handling + spin-vulnerable (Avery, Grant, Foster, Bennett all fit the mold). Collective plan: <b>spin them down, keep the fastball out of the zone.</b> They won't chase much and they don't strike out — so beat them <b>in</b> the zone with breaking stuff, and live with the walk rather than grooving a heater they'll square. They'll still reach; that's where the next two boxes matter.
+  </div>
+
+  <div class="box">
+    <div class="h amber-h">Control Their Run Game — From the Mound</div>
+    RIV's offense runs only at a <b>moderate clip — 27 SB, ~82%</b> (Carter, Foster, Grant the main movers; Avery runs into outs). The steal isn't their identity — the walk and the single are. Still, <b>vary times, slide-step, hold the lead runner</b> so their on-base volume doesn't become free 90 feet. Take away the easy bag and they have to string hits together against our stuff.
+  </div>
+
+  <div class="box">
+    <div class="h">Setting Up the Double Play</div>
+    The DP is available, especially behind the ground-ball bats — <b>19 GIDP as a team</b>, led by Dawson (5; a genuine 63%-grounder) and Avery (3). When they reach — and they will — pitch down and trust the infield to turn two and erase the walks.
+  </div>
+
+  <div class="box">
+    <div class="h" style="color:var(--danger);">Watch Names — Don't Give In</div>
+    The bats that beat you on a mistake — pitch around the barrel, take the walk over the damage:
+    <ul>
+      <li><b>Avery (#6)</b> — .590 OBP, no out-by-type. You can't "get" him; execute down/away and live with the walk. Never groove him.</li>
+      <li><b>Bennett (#17, switch)</b> — .508 SLG, barrels the fastball (3 HR, 7% miss on it). Don't give him one to handle — spin down.</li>
+      <li><b>Grant (#5)</b> — .483 OBP / .496 SLG, sits on and squares the fastball. Bury the curve and change.</li>
+      <li><b>Keller (#24)</b> — .514 SLG, 4 HR; lifts mistakes (FB/SL). Lower in the order, but don't exhale — the changeup is the out.</li>
+    </ul>
+  </div>
+
+  <div class="sub">Deploy Our Arms</div>
+  <table class="cheat">
+    <tr><th style="width:30%;">Situation</th><th>Logic</th></tr>
+    <tr><td>Start / bulk innings</td><td>Osbolt (#14, RHP ace), Scott (#31, LHP), Mills (#3, RHP) eat the innings vs a deep, patient lineup — pound the zone with spin, don't nibble into walks against a team that thrives on free passes.</td></tr>
+    <tr><td>vs heart of their order</td><td>Spin-down arms are the fit — their mashers are fastball-handlers. Keep the heater out of the zone; breaking stuff in the zone.</td></tr>
+    <tr><td>Lefty looks</td><td>Tyler (#17, LHP, 3 SV), Martell (#11, LHP) — a different look against a lineup with several lefty bats (Grant, Dawson, Irwin, Keller) and the switch-hitter (Bennett).</td></tr>
+    <tr><td>Close it</td><td>Sharp (#8, RHP, closer) — quick to the plate matters; hold the run game in a one-run spot.</td></tr>
+  </table>
+
+  <p class="foot">
+    <b>Bottom line:</b> we have more power and more speed than they do, against a staff that hands out free bases and leaves fastballs over the plate. Our job is patience at the plate (let them walk us), damage on the heater, aggression on the bases against weak-throwing catchers — and on the mound, spin them down, hold their runners, and turn the double play. Don't try to out-grind a grind-it-out team; <b>out-slug and out-run them.</b>
+  </p>
+
+</div>
+</body>
+</html>

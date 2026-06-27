@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Riverside CC — Pitcher Book (SAMPLE)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#16243a; --ink-2:#22344f; --paper:#faf8f3; --line:#d6cfc0;
+  --attack:#1f7a3d; --attack-bg:#e4f1e7;
+  --danger:#b4232a; --danger-bg:#f6e2e2;
+  --caution:#9a6a12; --caution-bg:#f8eed6;
+  --noread:#8a909a; --noread-bg:#ecebe7;
+  --muted:#5d6470; --gold:#e7b84b;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:'Barlow',sans-serif;}
+.wrap{max-width:860px;margin:0 auto;padding:24px 20px 60px;}
+.masthead{border-bottom:4px solid var(--ink);padding-bottom:14px;margin-bottom:8px;}
+.masthead .kicker{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.14em;text-transform:uppercase;font-size:.72rem;color:var(--gold);background:var(--ink);display:inline-block;padding:3px 10px;border-radius:2px;}
+.masthead h1{font-family:'Oswald',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.02em;font-size:2.1rem;margin:10px 0 4px;line-height:1;}
+.masthead .identity{font-size:1rem;color:var(--ink-2);font-weight:500;margin:0 0 8px;}
+.masthead .plan{font-size:.95rem;font-style:italic;color:var(--muted);border-left:3px solid var(--gold);padding-left:10px;}
+.datanote{font-size:.74rem;color:var(--muted);margin:10px 0 18px;line-height:1.4;}
+.callout{background:var(--ink);color:var(--paper);border-radius:4px;padding:12px 16px;margin:14px 0;}
+.callout .ct{font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.1em;font-size:.8rem;color:var(--gold);margin-bottom:4px;}
+.callout p{margin:0;font-size:.9rem;line-height:1.45;}
+.callout p+p{margin-top:7px;}
+.tier{font-family:'Oswald',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:1.05rem;color:var(--ink);border-bottom:2px solid var(--gold);padding:18px 0 5px;margin-bottom:12px;margin-top:8px;}
+.arm{border:1px solid var(--line);border-radius:6px;margin-bottom:16px;overflow:hidden;background:#fff;page-break-inside:avoid;}
+.a-head{display:flex;align-items:center;gap:10px;background:var(--ink);color:var(--paper);padding:9px 14px;flex-wrap:wrap;}
+.jersey{font-family:'Oswald',sans-serif;font-weight:700;font-size:1.25rem;color:var(--gold);min-width:34px;}
+.aname{font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.03em;font-size:1.12rem;flex:1;}
+.hand{font-family:'Oswald',sans-serif;font-weight:600;font-size:.72rem;letter-spacing:.05em;padding:2px 8px;border-radius:10px;background:var(--paper);color:var(--ink);}
+.hand.LHP{background:var(--gold);}
+.line{font-family:'Oswald',sans-serif;font-weight:500;font-size:.86rem;letter-spacing:.01em;width:100%;color:var(--paper);opacity:.92;margin-top:2px;}
+.line b{color:var(--gold);}
+.role{font-family:'Oswald',sans-serif;font-weight:600;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);background:var(--gold);padding:2px 8px;border-radius:3px;}
+.a-body{padding:4px 0;}
+.row{display:flex;border-top:1px solid var(--line);}
+.row:first-child{border-top:none;}
+.lbl{font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:.72rem;width:92px;min-width:92px;padding:9px 8px;}
+.txt{padding:9px 12px 9px 4px;font-size:.87rem;line-height:1.4;flex:1;}
+.row.out .lbl{background:var(--attack-bg);color:var(--attack);}
+.row.danger .lbl{background:var(--danger-bg);color:var(--danger);}
+.row.count .lbl{background:var(--caution-bg);color:var(--caution);}
+.row.plat .lbl{background:#eceef2;color:var(--ink-2);}
+.row.profile .lbl{background:#eceef2;color:var(--ink-2);}
+.row.arsenal .lbl{background:#eceef2;color:var(--ink-2);}
+.row.notes .lbl{background:var(--noread-bg);color:var(--muted);}
+.warn{color:var(--danger);font-weight:600;}
+.flag{background:var(--caution-bg);border:1px solid var(--caution);border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:.85rem;line-height:1.45;}
+.flag b{color:var(--caution);font-family:'Oswald',sans-serif;letter-spacing:.04em;}
+.foot{font-size:.78rem;color:var(--muted);border-top:2px solid var(--line);margin-top:24px;padding-top:14px;line-height:1.5;}
+.foot b{color:var(--ink);}
+@media print{
+  @page{size:Letter;margin:15mm 13mm;}
+  body{background:#fff;color:#23282d;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-family:'Barlow',sans-serif;}
+  .wrap{max-width:none;padding:0;}
+  .masthead{border-bottom:2px solid #23282d;padding-bottom:10px;margin-bottom:14px;}
+  .masthead .kicker{background:none;color:#8a857b;font-family:'IBM Plex Mono',monospace;font-weight:500;padding:0;letter-spacing:.12em;font-size:.66rem;}
+  .masthead h1{font-family:'Spectral',serif;color:#23282d;text-transform:none;letter-spacing:.01em;font-weight:600;font-size:1.9rem;margin:6px 0 5px;}
+  .masthead .identity{color:#3a3a3a;font-family:'IBM Plex Mono',monospace;font-size:.72rem;letter-spacing:-.01em;}
+  .masthead .plan{color:#3a3530;border-left:2px solid #c9c2b4;font-style:italic;font-family:'Spectral',serif;}
+  .callout{background:#fff;color:#23282d;border:1px solid #d8d2c6;border-left:3px solid #23282d;border-radius:0;padding:11px 14px;}
+  .callout .ct{color:#3a3530;font-family:'Spectral',serif;font-style:italic;font-weight:600;letter-spacing:0;text-transform:none;font-size:.92rem;}
+  .callout p{font-size:.84rem;}
+  .callout b{color:#23282d;}
+  .callout .warn{color:#a8362f;font-weight:700;}
+  .tier{color:#23282d;font-family:'Spectral',serif;font-weight:600;font-style:italic;text-transform:none;letter-spacing:0;border-bottom:1.5px solid #c9c2b4;font-size:1.1rem;}
+  .arm{border:none;border-radius:0;background:#fff;margin-bottom:14px;border-top:1px solid #cfc9bd;padding-top:11px;page-break-inside:avoid;}
+  .a-head{background:#fff;color:#23282d;padding:0 0 6px;border-bottom:1.5px solid #23282d;gap:9px;align-items:baseline;flex-wrap:wrap;}
+  .jersey{font-family:'Spectral',serif;color:#23282d;font-size:1.15rem;}
+  .aname{font-family:'Spectral',serif;font-weight:600;font-size:1.38rem;color:#23282d;text-transform:none;letter-spacing:.01em;}
+  .hand{font-family:'IBM Plex Mono',monospace;background:#fff!important;color:#5a564e!important;border:1px solid #cfc9bd;font-weight:400;}
+  .role{font-family:'IBM Plex Mono',monospace;background:#fff!important;color:#5a564e!important;border:1px solid #cfc9bd;border-radius:2px;font-weight:400;text-transform:none;letter-spacing:0;}
+  .line{font-family:'IBM Plex Mono',monospace;color:#3a3a3a;background:#f1eee6;padding:6px 9px;border-radius:3px;margin-top:9px;font-size:.72rem;letter-spacing:-.02em;opacity:1;}
+  .line b{color:#23282d;}
+  .a-body{padding:0;}
+  .row{display:block;border-top:1px solid #ece8df;padding-top:9px;margin-top:9px;}
+  .row:first-child{border-top:none;padding-top:8px;margin-top:0;}
+  .lbl{width:auto;min-width:0;padding:0 0 2px;background:none!important;color:#3a3530!important;font-family:'Spectral',serif;font-weight:600;font-style:italic;font-size:.86rem;text-transform:none;letter-spacing:0;display:flex;align-items:center;gap:7px;}
+  .lbl::before{display:inline-block;font-style:normal;font-family:'Barlow',sans-serif;font-size:.8rem;line-height:1;content:"\25CB";color:#5a6577;}
+  .out .lbl::before{content:"\2713";color:#2f7a43;font-weight:700;}
+  .danger .lbl::before{content:"\25B2";color:#a8362f;}
+  .count .lbl::before{content:"\25B8";color:#9a6a12;}
+  .notes .lbl::before{content:"\25C6";color:#5d6470;}
+  .danger .lbl{font-weight:700;}
+  .txt{padding:0;font-size:.85rem;line-height:1.46;}
+  .txt b{color:#23282d;}
+  .txt .warn,.warn{color:#a8362f;font-weight:700;}
+  .txt i{color:#8a857b;}
+  .flag{background:#fff;border:1px solid #c9c2b4;border-left:3px solid #a8362f;border-radius:0;}
+  .flag b{color:#a8362f;font-family:'Spectral',serif;font-style:italic;letter-spacing:0;}
+  .foot{border-top:1px solid #cfc9bd;color:#6a655c;}
+  .foot b{color:#23282d;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <span class="kicker">Advance Scout · Pitcher Book · SAMPLE PACKET</span>
+    <h1>Riverside CC Staff</h1>
+    <p class="identity">Wild, walk-prone, homer-prone — 6.85 ERA · 377 IP · 264 BB · 54 HBP · 39 WP · 55 HR · .276 BAA</p>
+    <p class="plan">The plan: make them throw strikes, ambush the fastball, and take what they give on the bases. Most of this staff unravels behind in the count — but the reads are arm-specific. Don't run one blanket approach across the whole staff.</p>
+  </div>
+
+  <div class="callout">
+    <div class="ct">By the Count</div>
+    <p>Get into hitter's counts and most of this staff goes 73–92% fastball with a ballooning slash — <b>sit dead-red when ahead.</b> Two arms break the pattern: <span class="warn">Jake Mercer (#28)</span> throws strikes behind (81%) and gets <em>squared up</em> rather than walking you — be ready to <b>drive</b>, not just take; and <span class="warn">Lowe (#2)</span> doesn't collapse at all — he pounds the zone for ground balls, so <b>be aggressive early</b> instead of waiting on walks that won't come.</p>
+  </div>
+
+  <div class="callout">
+    <div class="ct">Free Bases</div>
+    <p>264 BB + 54 HBP + 39 WP team-wide. Loudest arms: <b>Ramsey</b> (22 BB / 13.2 IP), <b>Shaw</b> (24 BB / 30 IP), <b>Quinn</b> (22 BB / 16.1 IP). Make them prove they can find the zone — take your walks, and once we're on, pressure them.</p>
+  </div>
+
+  <!-- STARTERS -->
+  <div class="tier">Starters</div>
+
+  <div class="arm">
+    <div class="a-head"><span class="jersey">#31</span><span class="aname">Casey Bennett</span><span class="hand">RHP</span><span class="role">Ace</span>
+      <span class="line">5.08 ERA · 62.0 IP · 14 app/5 GS · 14 HR · 59 K · 29 BB · .267 BAA</span></div>
+    <div class="a-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">Workhorse — most innings on the staff. FB/CB two-pitch. Gives up the long ball (14 HR in 62 IP).</div></div>
+      <div class="row arsenal"><div class="lbl">Arsenal</div><div class="txt">FB ~86 (66%) — leaks power, .326/.558 with 5 HR off it. CB ~77 (30%, 30% miss) — the put-away, .180, 24 K. Token changeup. ~9-mph FB-curve spread.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt">Lay off the curve down (it's his chase/put-away pitch). Force him to the fastball and ambush it.</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">The fastball — 14 HR says the heater leaks. Sit on it early and when behind.</div></div>
+      
+      <div class="row plat"><div class="lbl">Platoon</div><div class="txt">Handles both hands (mild). This is a count + pitch-type attack more than a stack.</div></div>
+      <div class="row notes"><div class="lbl">Notes</div><div class="txt">The FB-vs-curve timing gap is the key.</div></div>
+    </div>
+  </div>
+
+  <div class="arm">
+    <div class="a-head"><span class="jersey">#39</span><span class="aname">Marcus Reed</span><span class="hand LHP">LHP</span><span class="role">Starter</span>
+      <span class="line">7.42 ERA · 43.2 IP · 14 app/7 GS · 7 HR · 39 K · 26 BB · 6 WP</span></div>
+    <div class="a-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">Fastball-heavy left-handed starter. Curveball is the whiff pitch.</div></div>
+      <div class="row arsenal"><div class="lbl">Arsenal</div><div class="txt">FB ~84 (76%, 21% miss). CB ~71 (16%, 29% miss) — bat-misser. Token CH/SL. ~13-mph FB-curve spread.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt">The curve gets whiffs; he's behind-count prone, so work the count and make him land it.</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">Power leaks to your RHH (5 HR allowed to right-handed bats). Sit the fastball.</div></div>
+      
+      <div class="row plat"><div class="lbl">Platoon</div><div class="txt">Tougher with the curve to your LHH (57% miss to lefties). <b>Your RHH</b> should sit fastball and do the damage — that's where the home runs went.</div></div>
+      <div class="row notes"><div class="lbl">Notes</div><div class="txt">Left-handed — relevant to deployment.</div></div>
+    </div>
+  </div>
+
+  <div class="arm">
+    <div class="a-head"><span class="jersey">#9</span><span class="aname">Dylan Brooks</span><span class="hand">RHP</span><span class="role">Starter</span>
+      <span class="line">8.53 ERA · 31.2 IP · 15 app/5 GS · 4 HR · 25 K · 21 BB · .340 BAA</span></div>
+    <div class="a-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">Fastball-heavy, gets hit hard (.340 BAA). The breaking ball is his only out pitch. Weakest of the rotation.</div></div>
+      <div class="row arsenal"><div class="lbl">Arsenal</div><div class="txt">FB ~84 (73%) — hittable, .315/.463, only 14% miss. CB+SL ~75 (combined .176, 29% miss, 8 K) — the out. Token CH.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt">The fastball is hittable — sit on it. He has to land the breaker to get outs.</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">The fastball — .315/.463. Get it.</div></div>
+      
+      <div class="row plat"><div class="lbl">Platoon</div><div class="txt"><b>Your LHH crush him</b> — he abandons the breaker vs lefties (89% FB to LHH, .400/.571/.600). <b>Stack LHH.</b> vs your RHH he's serviceable (.259) because he can mix the breaker in.</div></div>
+      <div class="row notes"><div class="lbl">Notes</div><div class="txt">Free-bases arm (10 BB + 5 HBP / 90 BF). The rotation arm to get to.</div></div>
+    </div>
+  </div>
+
+  <!-- LEVERAGE -->
+  <div class="tier">High-Leverage Relief</div>
+
+  <div class="arm">
+    <div class="a-head"><span class="jersey">#45</span><span class="aname">Aiden Cross</span><span class="hand LHP">LHP</span><span class="role">Closer · 5 SV</span>
+      <span class="line">6.52 ERA · 38.2 IP · 23 app · 5 SV · 7 HR · 27 K · 23 BB · 12 HBP · .308 BAA</span></div>
+    <div class="a-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">Left-handed closer — most save chances on the staff, but hittable (.308 BAA, 7 HR).</div></div>
+      <div class="row arsenal"><div class="lbl">Arsenal</div><div class="txt">FB ~83 (62%) — gets crushed, .364/.600 with 4 HR off it. CH ~75 (18%, 40% miss, .133) — his only out pitch. SL boom-or-bust (.333/.800, 2 HR). Show-me CB.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt">The changeup is the bat-misser — lay off it. The fastball is the pitch to hunt.</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">The fastball — .364/.600, 4 HR. Don't miss it late.</div></div>
+      
+      <div class="row plat"><div class="lbl">Platoon</div><div class="txt"><b>Reverse split</b> — your LHH have crushed him (1.393 OPS, .857 SLG, 3 HR in a small sample); your RHH are more contained (.773). <b>Get your left-handed bats to the plate late</b> and hunt the fastball.</div></div>
+      <div class="row notes"><div class="lbl">Notes</div><div class="txt">Free-bases (12 HBP). The closer is beatable on the FB.</div></div>
+    </div>
+  </div>
+
+  <div class="arm">
+    <div class="a-head"><span class="jersey">#12</span><span class="aname">Nolan Pierce</span><span class="hand">RHP</span><span class="role">Setup · 3 SV</span>
+      <span class="line">6.27 ERA · 37.1 IP · 18 app · 3 SV · 6 HR · 33 K · 21 BB · .260 BAA</span></div>
+    <div class="a-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">Hardest fastball on the staff plus a true slider — best whiff in the pen (26% miss). But the heater gets hit.</div></div>
+      <div class="row arsenal"><div class="lbl">Arsenal</div><div class="txt">FB ~88 (50%) — hardest on staff, but .400/.800 with 5 of his 6 HR off it (velo without deception). SL ~80 (41%, 28% miss) — the weapon, .233. Show-me CB/CH. ~8-mph FB-slider spread.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt">Don't chase the slider with two strikes (27% chase). Make him come to the fastball.</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">The fastball — .400/.800. Hunt it early and when behind.</div></div>
+      
+      <div class="row plat"><div class="lbl">Platoon</div><div class="txt"><b>Your LHH get fed the hittable fastball</b> (79% FB to lefties, 1.070 OPS). <b>Stack LHH</b> and sit dead-red.</div></div>
+      <div class="row notes"><div class="lbl">Notes</div><div class="txt">Co-closer profile — same stack-LHH/hunt-FB blueprint as Cross.</div></div>
+    </div>
+  </div>
+
+  <div class="arm">
+    <div class="a-head"><span class="jersey">#20</span><span class="aname">Caleb Shaw</span><span class="hand">RHP</span><span class="role">Setup</span>
+      <span class="line">5.10 ERA · 30.0 IP · 16 app/3 GS · 1 SV · 31 K · 24 BB · .195 BAA</span></div>
+    <div class="a-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">Power two-pitch, best whiff rate in the pen (28% miss) — but severely walk-prone (24 BB/30 IP).</div></div>
+      <div class="row arsenal"><div class="lbl">Arsenal</div><div class="txt">FB ~88 (59%, 21% miss) — walks even off it (19 BB on the FB). SL ~79 (41% miss) — legit out pitch, .154, 11 K.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt">Don't chase the slider down — force him into the zone, where he walks people. <b>Make him throw strikes.</b></div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">Sit the fastball when he's ahead.</div></div>
+      
+      <div class="row plat"><div class="lbl">Platoon</div><div class="txt">Neutral — handles both hands. The walk is the lever, not the platoon.</div></div>
+      <div class="row notes"><div class="lbl">Notes</div><div class="txt">Real K stuff, but the command caps his leverage. Free-bases arm.</div></div>
+    </div>
+  </div>
+
+  <div class="arm">
+    <div class="a-head"><span class="jersey">#2</span><span class="aname">Garrett Lowe</span><span class="hand">RHP</span><span class="role">Exception Arm</span>
+      <span class="line">3.75 ERA · 12.0 IP · 6 app · 8 K · 7 BB · 1 HR · .234 BAA</span></div>
+    <div class="a-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">Most effective arm in the set — efficient, ground-ball heavy (83% BIP-out rate). The exception to the staff's collapse pattern.</div></div>
+      <div class="row arsenal"><div class="lbl">Arsenal</div><div class="txt">FB ~82 (88%, 16% miss). CB ~71 (11%, 40% miss). Two-pitch.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt">He pounds the zone for ground balls and does <b>not</b> collapse behind — don't wait for free passes that won't come. Be aggressive in the zone early.</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">Efficient — don't give away at-bats expecting him to unravel like the rest of the pen.</div></div>
+      <div class="row count"><div class="lbl">By Count</div><div class="txt"><span class="warn">The exception:</span> does not fold behind (.650 OPS behind). He'll be in the zone — hit early.</div></div>
+      <div class="row plat"><div class="lbl">Platoon</div><div class="txt">Dominant vs your RHH (.087, 5 K). Your LHH are the better look (.167, small sample).</div></div>
+      <div class="row notes"><div class="lbl">Notes</div><div class="txt">Small sample but clean. Treat him as the tough out in the pen.</div></div>
+    </div>
+  </div>
+
+  <!-- MIDDLE -->
+  <div class="tier">Middle / Swing Relief</div>
+
+  <div class="arm">
+    <div class="a-head"><span class="jersey">#28</span><span class="aname">Jake Mercer</span><span class="hand">RHP</span><span class="role">Reverse Split</span>
+      <span class="line">5.63 ERA · 24.0 IP · 7 app/1 GS · 3 HR · 21 K · 13 BB · .271 BAA</span></div>
+    <div class="a-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">True 4-pitch swing arm with a genuine out pitch (CB). The key is the reverse split and the way he collapses.</div></div>
+      <div class="row arsenal"><div class="lbl">Arsenal</div><div class="txt">FB ~86 (51%) — below-average velo, low whiff. CB ~80 (21%, 41% miss, 93% GB) — the weapon, death when ahead. SL ~79 (37% miss but .423 in play) — boom-or-bust. Token CH.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt">Don't expand on the curve with two strikes — it's his put-away (50% miss ahead).</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">The slider is boom-or-bust — when he leaves it, it gets barreled.</div></div>
+      <div class="row count"><div class="lbl">By Count</div><div class="txt"><span class="warn">Different from the staff:</span> he does <b>not</b> walk you behind (81% strikes, 1 BB) — he gets squared up (.500 behind). Don't just take and wait for a walk — be ready to <b>drive the ball.</b></div></div>
+      <div class="row plat"><div class="lbl">Platoon</div><div class="txt"><b>Reverse split — your RHH hammer him</b> (.370/.537, 2 HR); your LHH he owns (.100, 7 K, 50% GB). <b>Stack your right-handed bats.</b></div></div>
+      <div class="row notes"><div class="lbl">Notes</div><div class="txt">The one arm where "take and walk" does not apply. Candidate to spot-start.</div></div>
+    </div>
+  </div>
+
+  <div class="arm">
+    <div class="a-head"><span class="jersey">#19</span><span class="aname">Brody Vance</span><span class="hand LHP">LHP</span><span class="role">Middle Relief</span>
+      <span class="line">7.71 ERA · 28.0 IP · 19 app · 4 HR · 22 K · 20 BB · .290 BAA</span></div>
+    <div class="a-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">Breaker-first left-hander, walk-prone, folds behind.</div></div>
+      <div class="row arsenal"><div class="lbl">Arsenal</div><div class="txt">FB ~81 (61%, 17% miss). CB ~69 (18%, 40% miss) — bat-misser. CH ~75. SL ~70.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt">The breaking stuff is his weapon — lay off it down and make him land the fastball.</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">Behind, he's batting practice (1.601 OPS behind).</div></div>
+      
+      <div class="row plat"><div class="lbl">Platoon</div><div class="txt">Leans CB/SL to your LHH (.259). To your RHH he adds the changeup and <b>your RHH do the damage</b> (.326, 2 HR).</div></div>
+      <div class="row notes"><div class="lbl">Notes</div><div class="txt">Left-handed middle reliever.</div></div>
+    </div>
+  </div>
+
+  <div class="arm">
+    <div class="a-head"><span class="jersey">#13</span><span class="aname">Miles Tate</span><span class="hand">RHP</span><span class="role">Low-Lev Middle</span>
+      <span class="line">7.11 ERA · 19.0 IP · 9 app · 3 HR · 16 K · 12 BB · .276 BAA</span></div>
+    <div class="a-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">Curveball-weapon arm; fastball is hittable and he's wild. Folds behind. <b>Keep distinct from Jake Mercer (#28).</b></div></div>
+      <div class="row arsenal"><div class="lbl">Arsenal</div><div class="txt">FB ~84 (64%, 12% miss) — hittable, low whiff. CB ~73 (30%, 56% miss) — the weapon, .176, 11 K. Token SL.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt">Chase the curve only if you must — better to sit the fastball.</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">Sit the fastball, especially behind (92% FB behind, .550).</div></div>
+      
+      <div class="row plat"><div class="lbl">Platoon</div><div class="txt">Both weak. Wild to your LHH (4 BB + 2 HBP, weak contact). Your RHH see more strikeouts (15 K).</div></div>
+      <div class="row notes"><div class="lbl">Notes</div><div class="txt">Low-leverage.</div></div>
+    </div>
+  </div>
+
+  <!-- LOW-LEV -->
+  <div class="tier">Low-Leverage / Mop-Up</div>
+
+  <div class="arm">
+    <div class="a-head"><span class="jersey">#7</span><span class="aname">Tucker Ramsey</span><span class="hand">RHP</span><span class="role">Free Bases</span>
+      <span class="line">10.54 ERA · 13.2 IP · 10 app · 2 HR · 7 K · 22 BB · .286 BAA</span></div>
+    <div class="a-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">Wildest arm in the set (22 BB/13.2 IP). The slider misses bats but he can't command it.</div></div>
+      <div class="row arsenal"><div class="lbl">Arsenal</div><div class="txt">FB ~85 (72%) — .225/.439, 13 BB off it. SL ~74 (33% miss but 71% balls). Token CB.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt"><b>Take.</b> Make him throw strikes. Behind, he's batting practice (1.521 OPS, 9 BB / 0 K, 91% FB).</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">Minimal — swinging early lets him off the hook.</div></div>
+      
+      <div class="row plat"><div class="lbl">Platoon</div><div class="txt">Crushed by your LHH (1.394 OPS); still walk-prone to your RHH.</div></div>
+      <div class="row notes"><div class="lbl">Notes</div><div class="txt">Pair with our run game. Pure free-bases arm.</div></div>
+    </div>
+  </div>
+
+  <div class="arm">
+    <div class="a-head"><span class="jersey">#35</span><span class="aname">Levi Quinn</span><span class="hand LHP">LHP</span><span class="role">Free Bases · Spot</span>
+      <span class="line">9.37 ERA · 16.1 IP · 8 app/3 GS · 24 K · 22 BB · 7 WP · .246 BAA</span></div>
+    <div class="a-body">
+      <div class="row profile"><div class="lbl">Profile</div><div class="txt">Wild left-hander — hardest fastball among the relievers but he can't command it (45% balls).</div></div>
+      <div class="row arsenal"><div class="lbl">Arsenal</div><div class="txt">FB ~87.5 (74%) — gets squared, .280. CB ~75 (25% miss) — real bat-misser. Token CH/SL.</div></div>
+      <div class="row out"><div class="lbl">Out</div><div class="txt"><b>Take, take, take</b> — .667 OBP when behind; he walks everyone. Don't chase the get-me-over fastball.</div></div>
+      <div class="row danger"><div class="lbl">Danger</div><div class="txt">Swinging early at a cookie fastball.</div></div>
+      
+      <div class="row plat"><div class="lbl">Platoon</div><div class="txt">Lefty-on-lefty is slightly tougher (your LHH .222) but he walks everyone regardless.</div></div>
+      <div class="row notes"><div class="lbl">Notes</div><div class="txt">Free-bases headliner with Ramsey and Shaw.</div></div>
+    </div>
+  </div>
+
+  <p class="foot" style="margin-top:18px;">
+    <b>Mop-up / insufficient sample (directional only):</b>
+    Josh Beck (#35, RHP) — 6.2 IP, gets hit, walk-prone ·
+    Ben Sutton (#4, RHP) — 2.2 IP, hard FB but tiny sample, squared up ·
+    Matt Crane (#00, RHP) — 5.0 IP, changeup-first oddity, tiny sample ·
+    Colin Maddox (#30), Samuel Webb (#26), Austin Beck (#6, 0 IP) — negligible.
+  </p>
+
+  <div class="flag">
+    <b>⚑ Data flag — Bo Dorsey (#28, RHP):</b> rostered (R/R) but <b>does not appear on the official pitching stat sheet</b>; season line unverifiable, role unconfirmed. One-game Synergy sample only (122 pitches): changeup is a bat-misser (56% miss), strong vs RHH (7 K), but a single outing — directional. Present role as unknown; treat any line as unconfirmed.
+  </div>
+
+</div>
+</body>
+</html>
