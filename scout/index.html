@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Press Box Advance Scouting — Pricing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#16243a;--ink2:#22344f;--paper:#faf8f3;--line:#d6cfc0;--gold:#e7b84b;--muted:#5d6470;--green:#1f7a3d;--danger:#b4232a;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);font-family:'Barlow',sans-serif;color:var(--ink);line-height:1.5;}
+  .wrap{max-width:680px;margin:0 auto;padding:0 16px 56px;}
+  .mast{background:var(--ink);color:var(--paper);padding:26px 20px 24px;text-align:center;}
+  .mast .kick{font-family:'Oswald',sans-serif;font-weight:500;text-transform:uppercase;letter-spacing:.22em;font-size:.7rem;color:var(--gold);}
+  .mast h1{font-family:'Oswald',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.02em;font-size:2rem;margin:7px 0 6px;line-height:1.05;}
+  .mast p{margin:0 auto;max-width:460px;font-size:1rem;opacity:.92;}
+  .lead{text-align:center;font-size:1.05rem;margin:22px 0 8px;}
+  .lead b{color:var(--ink);}
+  h2{font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:1.02rem;margin:30px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--ink);}
+  .books{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+  .book{border:1px solid var(--line);border-radius:7px;background:#fff;padding:12px 12px 13px;}
+  .book .t{font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.03em;font-size:.82rem;}
+  .book .d{font-size:.82rem;color:var(--muted);margin-top:3px;line-height:1.35;}
+  @media(max-width:520px){.books{grid-template-columns:1fr;}}
+  .val{list-style:none;margin:0;padding:0;}
+  .val li{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:.95rem;}
+  .val li:first-child{border-top:none;}
+  .val .ck{color:var(--green);font-weight:700;flex-shrink:0;}
+  .val b{color:var(--ink);}
+  .price{margin-top:14px;border:2px solid var(--ink);border-radius:10px;overflow:hidden;background:#fff;}
+  .price .hd{background:var(--ink);color:var(--paper);padding:10px 18px;font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.06em;font-size:.82rem;display:flex;justify-content:space-between;align-items:center;}
+  .price .hd .badge{background:var(--gold);color:var(--ink);padding:2px 9px;border-radius:20px;font-size:.7rem;letter-spacing:.04em;}
+  .price .body{padding:20px 18px 18px;text-align:center;}
+  .price .anchor{font-family:'Oswald',sans-serif;color:var(--muted);font-size:1.1rem;text-decoration:line-through;text-decoration-thickness:2px;}
+  .price .now{font-family:'Oswald',sans-serif;font-weight:700;font-size:3.1rem;line-height:1;margin:2px 0 0;}
+  .price .now span{font-size:1.1rem;color:var(--muted);font-weight:500;}
+  .price .terms{font-size:.92rem;color:var(--muted);margin:6px 0 0;}
+  .price .inc{text-align:left;max-width:420px;margin:16px auto 0;list-style:none;padding:0;}
+  .price .inc li{display:flex;gap:9px;padding:5px 0;font-size:.92rem;}
+  .price .inc .ck{color:var(--green);font-weight:700;}
+  .steps{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+  .step{border:1px solid var(--line);border-radius:7px;background:#fff;padding:13px 12px;}
+  .step .n{font-family:'Oswald',sans-serif;font-weight:700;color:var(--gold);font-size:1.3rem;}
+  .step .x{font-size:.86rem;margin-top:3px;line-height:1.38;}
+  @media(max-width:520px){.steps{grid-template-columns:1fr;}}
+  .cta{margin-top:26px;text-align:center;}
+  .btn{display:inline-block;background:var(--gold);color:var(--ink);font-family:'Oswald',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:1.05rem;padding:13px 34px;border-radius:7px;text-decoration:none;border:none;cursor:pointer;}
+  .btn-2{display:inline-block;background:transparent;color:var(--ink);font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.04em;font-size:.92rem;padding:11px 26px;border-radius:7px;text-decoration:none;border:2px solid var(--ink);cursor:pointer;}
+  .cta .sub{font-size:.86rem;color:var(--muted);margin-top:9px;}
+
+  /* interest form */
+  #interest{margin-top:14px;border:2px solid var(--ink);border-radius:10px;overflow:hidden;background:#fff;}
+  #interest .hd{background:var(--ink);color:var(--paper);padding:10px 18px;font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.06em;font-size:.82rem;}
+  #interest .body{padding:18px;}
+  .fld{margin-bottom:13px;}
+  .fld label{display:block;font-family:'Oswald',sans-serif;font-weight:500;text-transform:uppercase;letter-spacing:.04em;font-size:.72rem;color:var(--muted);margin-bottom:4px;}
+  .fld input,.fld select,.fld textarea{width:100%;font-family:'Barlow',sans-serif;font-size:1rem;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink);}
+  .fld textarea{resize:vertical;min-height:54px;}
+  .fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:var(--ink);}
+  .msg{padding:10px 12px;border-radius:6px;font-size:.9rem;margin-bottom:12px;display:none;}
+  .msg.err{display:block;background:#f6e2e2;color:var(--danger);}
+  .done{text-align:center;padding:10px 4px;}
+  .done .big{font-family:'Oswald',sans-serif;font-weight:700;font-size:1.4rem;color:var(--green);}
+  .done p{color:var(--muted);font-size:.95rem;margin:6px 0 0;}
+  .foot{margin-top:24px;font-size:.8rem;color:var(--muted);text-align:center;line-height:1.5;}
+  .note{font-size:.75rem;color:#a39f97;text-align:center;margin-top:26px;font-style:italic;}
+</style>
+</head>
+<!--
+  ============================================================
+  SETUP (one time) — replace the three CONFIG values in the
+  <script> at the bottom, then host this file (e.g. GitHub Pages).
+
+  1) In Supabase, run this SQL once to make the leads table and
+     allow anonymous INSERTs only (coaches can submit, but the
+     public key CANNOT read anyone's data back):
+
+     create table product_leads (
+       id uuid primary key default gen_random_uuid(),
+       created_at timestamptz default now(),
+       name text, school text, email text,
+       level text, note text
+     );
+     alter table product_leads enable row level security;
+     create policy "anon insert leads" on product_leads
+       for insert to anon with check (true);
+
+  2) Paste your Project URL + anon (public) key + table name into
+     the CONFIG block below. The anon key is safe to ship in this
+     page BECAUSE the policy above is insert-only.
+
+  3) Read submissions in the Supabase Table Editor (product_leads).
+  ============================================================
+-->
+<body>
+  <div class="mast">
+    <div class="kick">Advance Scouting · Built For Your Schedule</div>
+    <h1>Press Box Scouting</h1>
+    <p>Pro-level advance scouting packets, built from the data you already pull — so you walk into every series with a plan, not a spreadsheet.</p>
+  </div>
+
+  <div class="wrap">
+    <p class="lead">You send your Synergy exports and the team stat sheet. <b>You get back a complete, ready-to-coach packet</b> — on your phone in the dugout, on paper for your players.</p>
+
+    <div style="text-align:center;margin:6px 0 2px;">
+      <a class="btn-2" href="DEMO_Hitter_Book.html" target="_blank" rel="noopener">See a full sample packet →</a>
+    </div>
+
+    <h2>What's in every packet</h2>
+    <div class="books">
+      <div class="book"><div class="t">Hitter Book</div><div class="d">One block per hitter — how to get him out, where he hurts you, and where to position the defense.</div></div>
+      <div class="book"><div class="t">Pitcher Book</div><div class="d">Every arm by role — arsenal, the put-away pitch, count tendencies, and how to attack.</div></div>
+      <div class="book"><div class="t">Game Plan</div><div class="d">The two teams side by side — your edge, who to watch, and how to deploy your staff.</div></div>
+    </div>
+
+    <h2>Why it's worth it</h2>
+    <ul class="val">
+      <li><span class="ck">✓</span><span><b>Hours back, every week.</b> The Synergy-digging and chart-reading that eats your Sundays — done for you.</span></li>
+      <li><span class="ck">✓</span><span><b>Reads, not raw stats.</b> Each player comes with a plan in plain language your guys can act on, not a wall of numbers.</span></li>
+      <li><span class="ck">✓</span><span><b>Phone and paper.</b> Reads clean on a phone in the dugout; prints to a sharp black-and-white handout for players.</span></li>
+      <li><span class="ck">✓</span><span><b>Your data, your edge.</b> Built from your own Synergy pulls and official sheets — nothing to license, nothing shared.</span></li>
+    </ul>
+
+    <h2>Pricing</h2>
+    <div class="price">
+      <div class="hd"><span>One Program · Full Season</span><span class="badge">Founding Price</span></div>
+      <div class="body">
+        <div class="anchor">$750 / season</div>
+        <div class="now">$500<span> / season</span></div>
+        <div class="terms">Founding price for the first season — locked in as long as you stay on.</div>
+        <ul class="inc">
+          <li><span class="ck">✓</span> Every opponent on your schedule, all season</li>
+          <li><span class="ck">✓</span> All three books per opponent (Hitter · Pitcher · Game Plan)</li>
+          <li><span class="ck">✓</span> Screen + print-ready, no extra software</li>
+          <li><span class="ck">✓</span> You bring your Synergy export + stat sheet; packet comes back ready</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>How it works</h2>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div class="x">Send your Synergy exports and the opponent's stat sheet.</div></div>
+      <div class="step"><div class="n">2</div><div class="x">Your packet is built — three books, your team's matchup baked in.</div></div>
+      <div class="step"><div class="n">3</div><div class="x">Read it on your phone, print it for the team. Repeat each series.</div></div>
+    </div>
+
+    <div class="cta">
+      <button class="btn" onclick="document.getElementById('interest').scrollIntoView({behavior:'smooth'});document.getElementById('name').focus();">Claim a Founding Spot</button>
+      <div class="sub">Limited founding spots this season.</div>
+    </div>
+
+    <div id="interest">
+      <div class="hd">Tell me you're in</div>
+      <div class="body">
+        <div id="formArea">
+          <div class="msg err" id="errMsg"></div>
+          <div class="fld"><label for="name">Your name</label><input id="name" type="text" autocomplete="name"></div>
+          <div class="fld"><label for="school">School / Program</label><input id="school" type="text"></div>
+          <div class="fld"><label for="email">Email</label><input id="email" type="email" autocomplete="email"></div>
+          <div class="fld"><label for="level">How ready are you?</label>
+            <select id="level">
+              <option value="">Choose one…</option>
+              <option value="ready">Ready to start this season</option>
+              <option value="interested">Interested — send me more</option>
+              <option value="curious">Just looking for now</option>
+            </select>
+          </div>
+          <div class="fld"><label for="note">Anything you want me to know? (optional)</label><textarea id="note"></textarea></div>
+          <button class="btn" style="width:100%;" id="submitBtn" onclick="submitInterest()">Count Me In</button>
+        </div>
+        <div class="done" id="doneArea" style="display:none;">
+          <div class="big">You're on the list.</div>
+          <p>Thanks — I'll reach out personally. Talk soon.</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="foot">Built by a college head coach, for coaches. One program, one season, every opponent.</p>
+    <p class="note">Placeholder name, price, and copy — all editable. Wire the form to your Supabase project (see the setup notes at the top of this file's source).</p>
+  </div>
+
+<script>
+  // ---- CONFIG: replace these three values, then host the file ----
+  const SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
+  const LEADS_TABLE = 'product_leads';
+  // ---------------------------------------------------------------
+
+  async function submitInterest(){
+    const err = document.getElementById('errMsg');
+    err.style.display='none';
+    const name = document.getElementById('name').value.trim();
+    const school = document.getElementById('school').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const level = document.getElementById('level').value;
+    const note = document.getElementById('note').value.trim();
+
+    if(!name || !school || !email || !level){
+      err.textContent = 'Please fill in your name, school, email, and how ready you are.';
+      err.style.display='block'; return;
+    }
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'Sending…';
+
+    // If not yet configured, don't error out the coach — log and confirm locally.
+    if(SUPABASE_URL.includes('YOUR_PROJECT')){
+      console.log('Lead (demo mode, not yet wired to Supabase):', {name,school,email,level,note});
+      showDone(); return;
+    }
+    try{
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${LEADS_TABLE}`, {
+        method:'POST',
+        headers:{
+          'apikey':SUPABASE_KEY,
+          'Authorization':`Bearer ${SUPABASE_KEY}`,
+          'Content-Type':'application/json',
+          'Prefer':'return=minimal'
+        },
+        body: JSON.stringify({name, school, email, level, note})
+      });
+      if(!res.ok) throw new Error('status '+res.status);
+      showDone();
+    }catch(e){
+      console.error(e);
+      btn.disabled=false; btn.textContent='Count Me In';
+      err.textContent = 'Something went wrong sending that. Email me directly and I’ll get you set up.';
+      err.style.display='block';
+    }
+  }
+  function showDone(){
+    document.getElementById('formArea').style.display='none';
+    document.getElementById('doneArea').style.display='block';
+    document.getElementById('doneArea').scrollIntoView({behavior:'smooth',block:'center'});
+  }
+</script>
+</body>
+</html>
