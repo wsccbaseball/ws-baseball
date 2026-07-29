@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Advance Scouting · Build Packet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:wght@400;500;600;700&family=Spectral:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{--cream:#faf8f3;--cream-deep:#f2ead8;--navy:#16243a;--navy-ink:#13283f;--rule:#d8cdb4;--accent:#9a3b2e;--good:#2e5a2a;--good-bg:#e9f1e7;--attack:#2e5a2a;--avoid:#9a3b2e;}
+  *{box-sizing:border-box;}html,body{margin:0;padding:0;}
+  body{background:var(--cream);color:var(--navy-ink);font-family:'Barlow',-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;line-height:1.5;-webkit-text-size-adjust:100%;}
+  .wrap{max-width:780px;margin:0 auto;padding:0 18px 64px;}
+  header.masthead{background:var(--navy);color:var(--cream);margin:0 -18px 22px;padding:26px 18px 22px;border-bottom:4px solid var(--accent);}
+  .masthead .eyebrow{font-family:'Oswald',sans-serif;letter-spacing:.14em;text-transform:uppercase;font-size:12px;color:var(--cream-deep);opacity:.85;margin:0 0 6px;}
+  .masthead h1{font-family:'Oswald',sans-serif;font-weight:400;font-size:32px;line-height:1.02;margin:0;}
+  .masthead p.sub{margin:10px 0 0;font-size:14px;max-width:56ch;color:var(--cream-deep);}
+  section.card{background:#fff;border:1px solid var(--rule);border-radius:2px;padding:18px 16px 20px;margin:0 0 18px;}
+  .step-eyebrow{font-family:'Oswald',sans-serif;letter-spacing:.1em;text-transform:uppercase;font-size:12px;color:var(--accent);margin:0 0 2px;}
+  .step-eyebrow .num{color:var(--navy);}
+  h2.step{font-family:'Oswald',sans-serif;font-weight:400;font-size:21px;margin:0 0 4px;color:var(--navy);}
+  .hint{font-size:13.5px;color:#5d6b78;margin:0 0 14px;}
+  .filebtn{display:-webkit-box;display:-webkit-flex;display:flex;-webkit-box-align:center;-webkit-align-items:center;align-items:center;gap:12px;border:1.5px dashed var(--rule);border-radius:3px;padding:16px 14px;cursor:pointer;background:var(--cream);-webkit-tap-highlight-color:transparent;}
+  .filebtn:active{background:var(--cream-deep);}
+  .filebtn .tag{font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--cream);background:var(--navy);padding:9px 13px;border-radius:2px;white-space:nowrap;}
+  .filebtn .label{font-size:14px;color:var(--navy-ink);}
+  .filebtn input[type=file]{display:none;}
+  .triage{margin-top:6px;}
+  .frow{display:-webkit-box;display:-webkit-flex;display:flex;-webkit-box-align:center;-webkit-align-items:center;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--rule);}
+  .frow:last-child{border-bottom:none;}
+  .fname{-webkit-box-flex:1;-webkit-flex:1;flex:1;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .fname .conf{display:block;font-size:11px;color:#8a96a2;}
+  .fname .kind{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#aeb6bf;}
+  select.ftype{font-family:'Barlow',sans-serif;font-size:13px;padding:6px 8px;border:1px solid var(--rule);border-radius:2px;background:#fff;color:var(--navy);-webkit-appearance:none;appearance:none;max-width:46%;}
+  select.ftype.unknown{border-color:var(--accent);color:var(--accent);}
+  .iconbtn{border:none;background:none;font-size:18px;line-height:1;cursor:pointer;color:#8a96a2;padding:4px 6px;-webkit-tap-highlight-color:transparent;}
+  .iconbtn.view{color:var(--navy);font-size:13px;font-family:'Oswald',sans-serif;letter-spacing:.05em;text-transform:uppercase;}
+  .emptyfiles{font-size:13.5px;color:#8a96a2;font-style:italic;padding:8px 0;}
+  .inv{display:-webkit-box;display:-webkit-flex;display:flex;-webkit-flex-wrap:wrap;flex-wrap:wrap;gap:8px;margin:2px 0 12px;}
+  .chip{font-size:12px;font-family:'Oswald',sans-serif;letter-spacing:.04em;padding:6px 10px;border-radius:2px;background:var(--cream-deep);color:var(--navy);}
+  .chip b{color:var(--accent);}
+  .teampick{background:var(--cream-deep);border:1px solid var(--rule);border-radius:3px;padding:12px 14px;margin:0 0 16px;}
+  .teampick .lbl{font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:6px;}
+  .teampick select{width:100%;font-family:'Barlow',sans-serif;font-size:15px;padding:9px 10px;border:1px solid var(--rule);border-radius:2px;background:#fff;color:var(--navy);-webkit-appearance:none;appearance:none;}
+  .teampick .mine{font-size:12px;color:#5d6b78;margin:8px 0 0;}
+  .report{display:-webkit-box;display:-webkit-flex;display:flex;-webkit-box-align:center;-webkit-align-items:center;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--rule);}
+  .report:last-child{border-bottom:none;}
+  .rinfo{-webkit-box-flex:1;-webkit-flex:1;flex:1;}
+  .rname{font-family:'Oswald',sans-serif;letter-spacing:.03em;font-size:15px;color:var(--navy);}
+  .rneeds{font-size:12px;color:#8a96a2;margin-top:2px;}
+  .rneeds.miss{color:var(--accent);}
+  .rbtn{font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:10px 14px;border:none;border-radius:2px;color:var(--cream);background:var(--navy);cursor:pointer;white-space:nowrap;}
+  .rbtn[disabled]{background:#d3ccba;color:#fff;cursor:default;}
+  .paste{width:100%;min-height:84px;border:1px solid var(--rule);border-radius:3px;padding:10px;font-family:'Barlow',sans-serif;font-size:14px;resize:vertical;-webkit-appearance:none;}
+  .status{margin-top:12px;font-size:13.5px;padding:9px 12px;border-radius:2px;display:none;}
+  .status.show{display:block;}.status.work{background:#eef3f8;color:var(--navy);}.status.ok{background:var(--good-bg);color:var(--good);}.status.err{background:#f6e7e4;color:var(--accent);}
+  details.inspector{margin-top:6px;}
+  details.inspector summary{font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--navy);cursor:pointer;padding:6px 0;}
+  .outhead{display:-webkit-box;display:-webkit-flex;display:flex;-webkit-box-pack:justify;-webkit-justify-content:space-between;justify-content:space-between;-webkit-box-align:center;-webkit-align-items:center;align-items:center;margin:10px 0;gap:10px;}
+  .tabs{display:-webkit-box;display:-webkit-flex;display:flex;gap:6px;}
+  .tab{font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:7px 11px;border:1px solid var(--rule);background:#fff;color:var(--navy);border-radius:2px;cursor:pointer;}
+  .tab.active{background:var(--navy);color:var(--cream);border-color:var(--navy);}
+  .copybtn{font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:7px 12px;border:none;background:var(--accent);color:#fff;border-radius:2px;cursor:pointer;}
+  pre.out{background:var(--navy-ink);color:#e7eef5;padding:14px;border-radius:3px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.5;overflow:auto;-webkit-overflow-scrolling:touch;max-height:55vh;white-space:pre;margin:0;}
+  .pagemark{color:#8fb0cf;}
+  #bookView{position:fixed;inset:0;background:var(--cream-deep);z-index:50;overflow:auto;-webkit-overflow-scrolling:touch;display:none;}
+  .bookbar{position:-webkit-sticky;position:sticky;top:0;background:var(--navy);color:var(--cream);display:-webkit-box;display:-webkit-flex;display:flex;-webkit-box-align:center;-webkit-align-items:center;align-items:center;gap:12px;padding:10px 16px;z-index:5;}
+  .bookbar button{font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:var(--accent);color:#fff;border:none;border-radius:2px;padding:8px 12px;cursor:pointer;}
+  .bookbar .t{font-family:'Oswald',sans-serif;letter-spacing:.05em;font-size:13px;}
+  .page{max-width:780px;margin:0 auto;background:var(--cream);min-height:calc(100vh - 44px);padding-bottom:40px;}
+  .kicker{font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.42em;text-transform:uppercase;color:var(--accent);margin:0;overflow:hidden;padding:20px 22px 0;}
+  h1.title{font-family:'Oswald',sans-serif;font-weight:400;font-size:28px;line-height:1.04;margin:6px 22px 4px;color:var(--navy);}
+  .subline{font-size:13px;color:#5d6b78;border-bottom:3px solid var(--navy);padding:0 22px 14px;}
+  .bsec{font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--navy);padding:8px 22px;margin:18px 0 0;}
+  .block{margin:0 16px;padding:16px 6px;border-bottom:1px solid var(--rule);}
+  .bsec.sub{background:none;color:var(--navy);border-bottom:1px solid var(--rule);padding:10px 22px 5px;font-size:11px;letter-spacing:.1em;}
+  .bhead{display:-webkit-box;display:-webkit-flex;display:flex;-webkit-flex-wrap:wrap;flex-wrap:wrap;-webkit-box-align:baseline;-webkit-align-items:baseline;align-items:baseline;gap:8px;margin-bottom:6px;}
+  .bspot{font-family:'Oswald',sans-serif;font-size:22px;color:var(--accent);line-height:1;}
+  .bname{font-family:'Oswald',sans-serif;font-size:18px;letter-spacing:.02em;color:var(--navy);}
+  .bjersey{color:#8a96a2;font-size:13px;}
+  .btag{font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase;background:var(--cream-deep);color:var(--navy);padding:3px 8px;border-radius:2px;}
+  .btag.best{background:#f6e7e4;color:var(--accent);}
+  .bslash{-webkit-box-flex:1;-webkit-flex:1;flex:1;text-align:right;font-family:'Oswald',sans-serif;font-size:15px;color:var(--navy);min-width:120px;}
+  .line .lbl{font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-right:6px;}
+  .line.out .lbl{color:var(--attack);}.line.danger .lbl{color:var(--avoid);}
+  p.bp{margin:8px 0 0;font-size:14px;} .block b{color:var(--navy-ink);}
+  .hand-note{font-size:11.5px;color:var(--accent);margin-top:8px;font-style:italic;}
+  .miss-note{font-size:11.5px;color:var(--accent);margin-top:6px;background:#f6e7e4;padding:6px 9px;border-radius:2px;}
+  table.staff{width:calc(100% - 32px);margin:14px 16px 0;border-collapse:collapse;font-size:12px;}
+  table.staff th,table.staff td{padding:5px 6px;border-bottom:1px solid var(--rule);text-align:right;}
+  table.staff th:first-child,table.staff td:first-child,table.staff th:nth-child(2),table.staff td:nth-child(2){text-align:left;}
+  table.staff th{font-family:'Oswald',sans-serif;font-weight:400;font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--navy);background:var(--cream-deep);}
+  table.staff td.pa{font-family:'Oswald',sans-serif;color:var(--navy);}
+  table.staff tr.full td:nth-child(2){color:var(--attack);font-weight:700;}
+  .legend{font-size:11.5px;color:#7a8794;margin:6px 22px 0;}
+  footer.meth{font-size:11.5px;color:#7a8794;padding:18px 22px 0;line-height:1.6;border-top:1px solid var(--rule);margin-top:18px;}
+
+  /* ============================================================
+     §10 DOSSIER — print face. Same file, ink on white.
+     Meaning is carried by SHAPE, not colour: green/red/amber all
+     collapse to near-identical greys on a mono printer, and most
+     players print mono. The glyphs are real text characters, so
+     they survive "Background graphics: off" — the usual way a
+     B&W handout gets mangled.
+     ============================================================ */
+  @media print{
+    @page{size:Letter portrait;margin:14mm 12mm;}
+    html,body{background:#fff!important;color:#111!important;font-size:10.5pt;}
+    /* The upload UI is screen furniture — never paper. */
+    header.masthead,.panel,.uploader,#triage,#inventory,#teampick,#reports,#upStatus,#genStatus,
+    details.inspector,#backBtn,button,select,input,textarea,.tab,.iconbtn{display:none!important;}
+    /* position:fixed prints page 1 only — this is the line that makes the rest exist. */
+    #bookView{position:static!important;display:block!important;inset:auto!important;overflow:visible!important;background:#fff!important;z-index:auto!important;}
+    #page{margin:0;padding:0;}
+    .kicker{font-family:'IBM Plex Mono',monospace;font-size:8pt;letter-spacing:.22em;color:#111;padding:0 0 2mm;}
+    h1.title{font-family:'Spectral',Georgia,serif;font-weight:600;font-size:20pt;color:#111;margin:0 0 1mm;}
+    .subline{font-size:9pt;color:#333;border-bottom:1.5pt solid #111;padding:0 0 3mm;margin-bottom:4mm;}
+    /* Navy bands -> white with an ink rule. No heavy fills. */
+    .bsec{background:none!important;color:#111!important;font-family:'Spectral',Georgia,serif;font-weight:600;
+      font-size:11pt;letter-spacing:.04em;border-bottom:1pt solid #111;padding:0 0 1mm;margin:6mm 0 2mm;
+      break-after:avoid;page-break-after:avoid;}
+    .block{margin:0;padding:2.5mm 0;border-bottom:.5pt solid #bbb;break-inside:avoid;page-break-inside:avoid;}
+    .bname{font-family:'Spectral',Georgia,serif;font-weight:600;font-size:12.5pt;color:#111;}
+    .bspot,.bslash{font-family:'IBM Plex Mono',monospace;color:#111;font-size:9.5pt;}
+    .bjersey{color:#444;font-size:9pt;}
+    .btag{background:none!important;border:.5pt solid #666;color:#111!important;font-family:'IBM Plex Mono',monospace;font-size:7.5pt;padding:0 1.5mm;}
+    p.bp{font-size:10pt;margin:1.5mm 0 0;}
+    .line .lbl{color:#111!important;font-family:'IBM Plex Mono',monospace;font-size:8pt;font-weight:500;}
+    /* Shape markers — identical in colour, greyscale and pure B&W. */
+    .m-check .lbl::before{content:"\2713\00a0";}
+    .m-tri   .lbl::before{content:"\25B2\00a0";}
+    .m-arrow .lbl::before{content:"\25B8\00a0";}
+    .m-dia   .lbl::before{content:"\25C6\00a0";}
+    .m-circ  .lbl::before{content:"\25CB\00a0";}
+    .line.danger .lbl{font-weight:700;}          /* DANGER also carries weight */
+    .block b{color:#111!important;}
+    .miss-note{background:none!important;border-left:2pt solid #111;padding:1mm 0 1mm 2mm;color:#111;font-size:8.5pt;}
+    .hand-note{color:#444;font-size:8.5pt;}
+    table.staff{width:100%;margin:3mm 0 0;font-size:8.5pt;break-inside:avoid;page-break-inside:avoid;}
+    table.staff th{background:none!important;color:#111!important;font-family:'IBM Plex Mono',monospace;border-bottom:1pt solid #111;}
+    table.staff td{border-bottom:.5pt solid #ccc;font-family:'IBM Plex Mono',monospace;}
+    table.staff tr.full td:nth-child(2){color:#111!important;font-weight:700;}
+    footer.meth{color:#333;font-size:8.5pt;padding:3mm 0 0;border-top:.5pt solid #999;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead"><p class="eyebrow">Press Box · Advance Scouting</p><h1>Build the Packet</h1>
+    <p class="sub">Upload the opponent's files — plus your own stat sheet if you want the team gameplan. The tool sorts everything, figures out which team you're scouting, and builds the advance book on that opponent. Files never leave this device.</p></header>
+
+  <section class="card"><p class="step-eyebrow"><span class="num">01</span> &nbsp;Upload</p><h2 class="step">Drop in the files</h2>
+    <p class="hint">Synergy reports (hitters and pitchers), rosters, stat sheets — PDF or Excel. For a full hitter block, include each hitter's per-pitch files (vs FB / SL / CB / CH) and zone files (infield / outfield).</p>
+    <label class="filebtn"><span class="tag">Add files</span><span class="label" id="addLabel">No files yet</span>
+      <input type="file" id="files" multiple accept="application/pdf,.pdf,.xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"></label>
+    <div class="status" id="upStatus"></div></section>
+
+  <section class="card"><p class="step-eyebrow"><span class="num">02</span> &nbsp;Confirm</p><h2 class="step">What each file is</h2>
+    <p class="hint">The tool guesses; fix anything wrong or drop a stray file.</p>
+    <div class="triage" id="triage"><p class="emptyfiles">Files you add will be listed here for review.</p></div></section>
+
+  <section class="card"><p class="step-eyebrow"><span class="num">03</span> &nbsp;Stats fallback</p><h2 class="step">Counting stats — source of truth</h2>
+    <p class="hint">No clean file? Paste the cumulative table. (Parsing targets the print-version PDF stat sheet.)</p>
+    <textarea class="paste" id="statPaste" placeholder="Paste cumulative stats, then tap Use pasted stats"></textarea>
+    <label class="filebtn" style="margin-top:10px;border-style:solid;-webkit-box-pack:center;-webkit-justify-content:center;justify-content:center;"><span class="tag" id="pasteBtn">Use pasted stats</span></label></section>
+
+  <section class="card"><p class="step-eyebrow"><span class="num">04</span> &nbsp;Build</p><h2 class="step">Reports</h2>
+    <div class="inv" id="inventory"></div><div id="teampick"></div><div id="reports"></div><div class="status" id="genStatus"></div>
+    <details class="inspector"><summary>Inspect extracted text</summary>
+      <div class="outhead"><div class="tabs"><button class="tab active" id="tabRows">Rows</button><button class="tab" id="tabRaw">Raw tokens</button></div><button class="copybtn" id="copyBtn">Copy</button></div>
+      <pre class="out" id="output"><span style="color:#8a96a2;font-style:italic;">Tap “View” on any file above to read its text.</span></pre></details></section>
+</div>
+
+<div id="bookView"><div class="bookbar"><button id="backBtn">← Files</button><span class="t" id="bookTitle">Advance Book</span></div><div class="page" id="page"></div></div>
+
+<script>
+(function(){
+  "use strict";
+  if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  var TYPES={synergyHit:'Synergy — hitter report',synergyPit:'Synergy — pitcher report',roster:'Roster',stats:'Cumulative stats',unknown:'Unknown — pick one'};
+  var REPORTS=[{id:'hitbook',name:'Pre-Game Hitter Book',needs:['synergyHit','stats'],build:'hit'},
+    {id:'pitbook',name:'Opponent Pitcher Report',needs:['synergyPit','stats'],build:'pit'},
+    // The Game Plan is the ONLY file that crosses both rosters (SPEC §2), so it is the only
+    // one that deliberately opens the contamination firewall — and it needs BOTH stat sheets
+    // plus our roster to do it. Gated harder than the opponent-only books on purpose.
+    {id:'gameplan',name:'Game Plan (Us vs Opponent)',needs:['synergyPit','stats'],build:'gp',
+      extra:function(){var miss=[];if(statTeams().length<2)miss.push('our stat sheet too (2 teams)');
+        if(!rosterRows().length)miss.push('our roster with B/T');return miss;}},
+    {id:'matrix',name:'Hitter Pitch Matrix',needs:['synergyHit'],build:'soon'},
+    {id:'cards',name:'Hitter Index Cards',needs:['synergyHit','stats'],build:'soon'}];
+  var NEED_LABEL={synergyHit:'hitter reports',synergyPit:'pitcher reports',roster:'roster',stats:'stat sheet'};
+  var PITCHES=['Fastball','Sinker','Cutter','Slider','Curveball','Changeup','Splitter','Four-Seam','Unknown'];
+  var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',selectedTeam=null;
+
+  function classify(text){var t=(text||'').toLowerCase();function hits(ws){var n=0;for(var i=0;i<ws.length;i++)if(t.indexOf(ws[i])>=0)n++;return n;}
+    var common=hits(['fastball','slider','curveball','changeup','sinker','cutter','whiff','chase','synergy','heat map','spray','swing %','put away']);
+    var pit=hits([' ip ','era','k/9','bb/9','whip','velocity','velo','release','vs rhh','vs lhh','innings','pitch count','strikeouts','pitcher:']);
+    var hit=hits(['vs rhp','vs lhp','at bat','at-bat','plate appearance','exit velo','bip','hitter:']);
+    var ros=hits(['bats/throws','b/t','roster','height','weight','class','jersey','hometown',' fr ',' so ',' jr ',' sr ']);
+    var sta=hits(['avg','obp','slg','ops',' ab ',' rbi',' hr ','batting','hitting statistics','totals',' gp ',' gs ','at bats','overall statistics']);
+    if(common>=2){if(t.indexOf('hitter:')>=0)return {type:'synergyHit',conf:common};if(t.indexOf('pitcher:')>=0)return {type:'synergyPit',conf:common};return {type:(pit>hit?'synergyPit':'synergyHit'),conf:common};}
+    if(ros>=2&&ros>=sta)return {type:'roster',conf:ros};
+    if(sta>=2)return {type:'stats',conf:sta};return {type:'unknown',conf:0};}
+
+  function buildViews(items){var s=items.slice().sort(function(a,b){return b.y-a.y;}),lines=[],cur=null;
+    s.forEach(function(it){if(!cur||Math.abs(it.y-cur.y)>3){cur={y:it.y,items:[it]};lines.push(cur);}else cur.items.push(it);});
+    var rowText=lines.map(function(l){return l.items.slice().sort(function(a,b){return a.x-b.x;}).map(function(i){return i.str;}).join(' ').replace(/[ \t]+/g,' ').trim();}).filter(function(t){return t.length;}).join('\n');
+    var rawText=items.map(function(it){return 'x'+Math.round(it.x)+' y'+Math.round(it.y)+'  '+it.str;}).join('\n');return {rowText:rowText,rawText:rawText};}
+  function extractPdf(file){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){
+    pdfjsLib.getDocument({data:new Uint8Array(r.result)}).promise.then(function(pdf){var rows=[],raw=[],ch=Promise.resolve();
+      for(var p=1;p<=pdf.numPages;p++){(function(n){ch=ch.then(function(){return pdf.getPage(n).then(function(pg){return pg.getTextContent().then(function(c){
+        var items=c.items.map(function(it){return {x:it.transform[4],y:it.transform[5],str:it.str};});var v=buildViews(items);rows.push(v.rowText);raw.push('=== PAGE '+n+' ===\n'+v.rawText);});});});})(p);}
+      ch.then(function(){res({rows:rows.join('\n'),raw:raw.join('\n\n')});});}).catch(rej);};r.onerror=rej;r.readAsArrayBuffer(file);});}
+  function extractSheet(file){return new Promise(function(res,rej){if(!window.XLSX){rej();return;}var r=new FileReader();r.onload=function(){try{
+    var wb=XLSX.read(new Uint8Array(r.result),{type:'array'});res({rows:wb.SheetNames.map(function(nm){return XLSX.utils.sheet_to_csv(wb.Sheets[nm]);}).join('\n'),raw:''});}catch(e){rej(e);}};r.onerror=rej;r.readAsArrayBuffer(file);});}
+  function kindOf(name){return /\.(xlsx|xls|csv)$/i.test(name)?'sheet':'pdf';}
+
+  function numv(x){return (x==='-'||x===''||x==null)?0:(String(x).indexOf('.')>=0?parseFloat(x):parseInt(x,10));}
+  function intsOf(line){return line.split(/\s+/).filter(function(t){return /^\d+$/.test(t);}).map(Number);}
+  function keyOf(name){name=String(name).replace(/\.+$/,'').trim();var last,first;
+    if(name.indexOf(',')>=0){var p=name.split(',');last=p[0].trim();first=(p[1]||'').trim();}else{var t=name.split(/\s+/);last=t[t.length-1];first=t.slice(0,-1).join(' ');}
+    return (last+'|'+(first?first[0]:'')).toLowerCase();}
+  function d3(x){x=parseFloat(x);if(isNaN(x))return '—';return (x>=1?x.toFixed(3):x.toFixed(3).replace(/^0/,''));}
+  function coreOf(name){return String(name||'').toLowerCase().replace(/[^a-z ]/g,' ').replace(/\s+/g,' ').trim().split(' ').slice(0,2).join(' ');}
+
+  function parseSynergy(rowsText){
+    var R=rowsText.split('\n').filter(function(l){return l.indexOf('=== PAGE')<0;});var txt=R.join('\n');
+    var role=/\bHitter:/.test(txt)?'hitter':(/\bPitcher:/.test(txt)?'pitcher':'?');
+    var nm=txt.match(/(?:Hitter|Pitcher):\s*([^,]+,\s*[^\-\n]+?)\s*-/);var name=nm?nm[1].trim():'?';
+    var tm=txt.match(/(?:Hitter|Pitcher):\s*[^-]+-\s*([^,\n]+?),\s*(?:19|20)\d{2}/);var team=tm?tm[1].trim():null;
+    var sub='Overall';var rules=[[/Pitch Type \/ Velocity:\s*Fastball/,'vsFB'],[/Pitch Type \/ Velocity:\s*Slider/,'vsSL'],[/Pitch Type \/ Velocity:\s*Curveball/,'vsCB'],[/Pitch Type \/ Velocity:\s*Changeup/,'vsCH'],[/BIP Zone:[\s\S]*?Infield/,'INF'],[/BIP Zone:[\s\S]*?Outfield/,'OF'],[/Count:\s*Pitcher Ahead/,'Ahead'],[/Count:\s*Hitter Ahead/,'Behind'],[/Left\/Right:\s*LHH/,'vsLHH'],[/Left\/Right:\s*RHH/,'vsRHH']];
+    for(var i=0;i<rules.length;i++){if(rules[i][0].test(txt)){sub=rules[i][1];break;}}
+    var basic={};
+    for(var j=0;j<R.length;j++){var ln=R[j];var dec=ln.match(/\d*\.\d{3}/g);if(dec&&dec.length>=4&&ln.indexOf('AVG')<0){var ii=intsOf(ln);basic.avg=dec[dec.length-4];basic.obp=dec[dec.length-3];basic.slg=dec[dec.length-2];basic.ops=dec[dec.length-1];if(ii.length>=4){basic.bb=ii[1];basic.k=ii[3];}break;}}
+    for(var j2=0;j2<R.length;j2++){var l2=R[j2];if(/^\d+ \d+ \d+/.test(l2)&&l2.indexOf('%')<0&&l2.indexOf('Events')<0){var ii2=intsOf(l2);if(ii2.length>=11){basic.xbh=ii2[7]+ii2[8]+ii2[9];basic.hr=ii2[9];break;}}}
+    var mix={};var re=new RegExp('^(Overall|'+PITCHES.join('|')+')\\s*\\(([-\\d.]+)\\)\\s+(.*)$');
+    R.forEach(function(ln){var m=ln.match(re);if(!m)return;var pcts=(m[3].match(/(\d+)%/g)||[]).map(function(p){return parseInt(p,10);});if(pcts.length>=6)mix[m[1]]={velo:m[2],usage:pcts[0],whiff:pcts[4],chase:pcts[5]};});
+    var bip={};[['Ground Ball','gb'],['Fly Ball','fb'],['Line Drive','ld']].forEach(function(p){var mm=txt.match(new RegExp(p[0]+'\\s+\\d+\\s+(\\d+)%'));if(mm)bip[p[1]]=parseInt(mm[1],10);});
+    return {role:role,name:name,team:team,sub:sub,basic:basic,mix:mix,bip:bip};}
+
+  function parseOneStatSheet(rowsText){var R=rowsText.split('\n');var hit=[],pit=[],cat=[],m=null,team=null,fhdr=null,
+      totH=null,totP=null,record=null;
+    R.forEach(function(ln){if(!team){var tm=ln.match(/Baseball Statistics\s*-\s*(.+?)(?:\s*-\s*Official|\s*$)/);if(tm)team=tm[1].trim();}
+      if(!record){var rm=ln.match(/Record:\s*(\d+\s*-\s*\d+)/);if(rm)record=rm[1].replace(/\s+/g,'');}
+      if(/Player\s+AVG\b/.test(ln)){m='h';return;}if(/Player\s+ERA\b/.test(ln)){m='p';return;}
+      // Catching table: column order varies by sheet, so index by HEADER NAME, not position.
+      if(/Player\b.*\bFLD%/.test(ln)){m='f';fhdr=ln.replace(/^.*?Player\s+/,'').trim().split(/\s+/);return;}
+      if(/Player\s+G\s+TC\b/.test(ln)){m=null;return;}
+      // Totals rows carry no jersey number — matched separately, and they are the only
+      // legitimate source for the Game Plan's side-by-side team comparison line.
+      var tt=ln.match(/^Totals?\s*\.{2,}\s*(.*)$/);
+      if(tt){var tf=tt[1].split(/\s+/),tv=tf.map(numv);
+        if(m==='h'&&tv.length>=20)totH={avg:tf[0],ab:tv[3],hr:tv[8],slg:tf[11],bb:tv[12],hbp:tv[13],k:tv[14],gdp:tv[15],obp:tf[16],sb:tv[19]};
+        else if(m==='p'&&tv.length>=18)totP={era:tf[0],ip:tf[8],k:tv[13],bb:tv[12],hr:tv[16],baa:tf[18],hbp:tv[20]};
+        return;}
+      if(/^Total/.test(ln)||/^Opp/.test(ln))return;var mm=ln.match(/^(\d+)\s+(.+?)\.{2,}\s+(.*)$/);if(!mm)return;
+      var num=mm[1],nm=mm[2].trim(),rest=mm[3].split(/\s+/),f=rest.map(numv);
+      if(m==='h'&&f.length>=20)hit.push({num:num,name:nm,avg:rest[0],ab:f[3],h:f[5],db:f[6],hr:f[8],slg:rest[11],bb:f[12],hbp:f[13],k:f[14],gdp:f[15],obp:rest[16],sf:f[17],sh:f[18],sb:f[19]});
+      else if(m==='p'&&f.length>=18)pit.push({num:num,name:nm,era:rest[0],w:f[1],l:f[2],app:f[3],gs:f[4],sv:f[7],ip:rest[8],k:f[13],bb:f[12],hr:f[16],baa:rest[18],wp:f[19],hbp:f[20]});
+      else if(m==='f'&&fhdr){var col={};fhdr.forEach(function(h,i){col[h.toUpperCase()]=rest[i];});
+        var sba=numv(col['SBA']),csb=numv(col['CSB']);
+        if(sba||csb)cat.push({num:num,name:nm,sba:sba||0,csb:csb||0});}});
+    return {team:team,hit:hit,pit:pit,cat:cat,totH:totH,totP:totP,record:record};}
+  function statTeams(){var byTeam={},idx=0;
+    var add=function(s,fallback){var name=s.team||fallback;var t=byTeam[name]=byTeam[name]||{team:name,hit:[],pit:[],cat:[]};
+      t.hit=t.hit.concat(s.hit);t.pit=t.pit.concat(s.pit);t.cat=(t.cat||[]).concat(s.cat||[]);
+      t.totH=t.totH||s.totH;t.totP=t.totP||s.totP;t.record=t.record||s.record;};
+    files.forEach(function(f){if(f.type!=='stats')return;add(parseOneStatSheet(f.rowsText),'Sheet '+(++idx));});
+    if(pastedStats)add(parseOneStatSheet(pastedStats),'Pasted sheet');
+    return Object.keys(byTeam).map(function(k){return byTeam[k];});}
+  function opponentCore(){var core=null;files.forEach(function(f){if(core)return;if(f.type==='synergyHit'||f.type==='synergyPit'){var r=parseSynergy(f.rowsText);if(r.team)core=coreOf(r.team);}});return core;}
+  function rosterThrows(){var map={};files.forEach(function(f){if(f.type!=='roster')return;f.rowsText.split('\n').forEach(function(ln){var m=ln.match(/^(\d+)\s+.*?\b(LHP|RHP)\b/);if(m)map[m[1]]=(m[2]==='LHP'?'L':'R');});});return map;}
+  function rosterRows(){var out=[];files.forEach(function(f){if(f.type!=='roster')return;f.rowsText.split('\n').forEach(function(ln){if(/^\d+\s+\S/.test(ln))out.push(ln);});});return out;}
+  // B/T column, e.g. "R/R", "L/R", "S/R". Drives every platoon call in the Game Plan (§8-D)
+  // — and is the ONLY place our own hitters may be named (§8-B).
+  function rosterBats(){var map={};rosterRows().forEach(function(ln){var m=ln.match(/^(\d+)\s+.*?\b([LRS])\/[LR]\b/);if(m)map[m[1]]=m[2];});return map;}
+  function ourTeam(){var teams=statTeams();if(teams.length<2)return null;var opp=currentTeam();
+    return teams.filter(function(t){return !opp||t.team!==opp.team;})[0]||null;}
+  function currentTeam(){var teams=statTeams();if(!teams.length)return null;var sel=teams.filter(function(t){return t.team===selectedTeam;})[0];if(sel)return sel;
+    var oc=opponentCore();if(oc){var m=teams.filter(function(t){return coreOf(t.team)===oc;})[0];if(m){selectedTeam=m.team;return m;}}selectedTeam=teams[0].team;return teams[0];}
+  function indexByKey(arr){var m={};arr.forEach(function(r){m[keyOf(r.name)]=r;});return m;}
+  function synergyByPlayer(role){var by={};files.forEach(function(f){if(f.type!==role)return;var r=parseSynergy(f.rowsText);var k=keyOf(r.name);(by[k]=by[k]||{})[r.sub]=r;});return by;}
+
+  function fmtSlash(b){return (b&&b.avg!=null)?d3(b.avg)+'/'+d3(b.obp)+'/'+d3(b.slg):null;}
+
+  function assembleHitters(){
+    var team=currentTeam()||{hit:[]};var idx=indexByKey(team.hit);var rep=synergyByPlayer('synergyHit');var out=[];
+    var maxSlg=0;team.hit.forEach(function(s){var v=parseFloat(s.slg)||0;if(v>maxSlg)maxSlg=v;});
+    Object.keys(rep).forEach(function(k){var r=rep[k],cs=idx[k]||{},ov=r.Overall||{mix:{},bip:{}};
+      var nm=cs.name||r[Object.keys(r)[0]].name,last,first;
+      if((cs.name||'').indexOf(',')>=0){last=cs.name.split(',')[0];first=(cs.name.split(',')[1]||'').trim();}
+      else if(nm.indexOf(',')>=0){last=nm.split(',')[0].trim();first=(nm.split(',')[1]||'').trim();}
+      else{var p=nm.split(/\s+/);last=p[p.length-1];first=p.slice(0,-1).join(' ');}
+      var pa=(cs.ab||0)+(cs.bb||0)+(cs.hbp||0)+(cs.sf||0)+(cs.sh||0);
+      var mix=[];[['Fastball','vsFB'],['Slider','vsSL'],['Curveball','vsCB'],['Changeup','vsCH']].forEach(function(pr){
+        var o=ov.mix[pr[0]]||{},rep2=r[pr[1]]||{},b=rep2.basic||{};
+        if(o.usage!=null||b.slg!=null)mix.push({p:pr[0],usage:o.usage,velo:o.velo,whiff:o.whiff,chase:o.chase,
+          avg:b.avg!=null?parseFloat(b.avg):null,obp:b.obp!=null?parseFloat(b.obp):null,slg:b.slg!=null?parseFloat(b.slg):null,gb:(rep2.bip||{}).gb});});
+      var want=['Overall','vsFB','vsSL','vsCB','vsCH','INF','OF'];var missing=want.filter(function(s){return !r[s];});
+      var mySlg=parseFloat(cs.slg)||0;
+      out.push({last:(last||'').toUpperCase(),first:first||'',jersey:cs.num||'?',bats:null,
+        slash:(cs.avg!=null?d3(cs.avg)+' / '+d3(cs.obp)+' / '+d3(cs.slg):'—'),
+        counts:{hr:cs.hr||0,db:cs.db||0,k:cs.k||0,bb:cs.bb||0,sb:cs.sb||0,sh:cs.sh||0,gdp:(cs.gdp==null?null:cs.gdp)},
+        chase:(ov.mix.Overall||{}).chase||0,obp:parseFloat(cs.obp)||0,avg:parseFloat(cs.avg)||0,
+        teamSlgLeader:(mySlg>0&&mySlg>=maxSlg),
+        mix:mix,zones:{infSlash:fmtSlash((r.INF||{}).basic),ofSlash:fmtSlash((r.OF||{}).basic),ofXBH:((r.OF||{}).basic||{}).xbh,gb:(ov.bip||{}).gb},
+        pa:pa,missing:missing});});
+    return out.sort(function(a,b){return b.pa-a.pa;});}
+
+  function assemblePitchers(){
+    var team=currentTeam()||{pit:[]};var idx=indexByKey(team.pit);var rep=synergyByPlayer('synergyPit');var thr=rosterThrows();var out=[];
+    Object.keys(rep).forEach(function(k){var r=rep[k],cs=idx[k]||{},ov=r.Overall||{mix:{}};
+      var nm=cs.name||r[Object.keys(r)[0]].name,last,first;
+      if((cs.name||'').indexOf(' ')>=0){var p=cs.name.split(/\s+/);last=p[p.length-1];first=p.slice(0,-1).join(' ');}else if(nm.indexOf(',')>=0){last=nm.split(',')[0].trim();first=(nm.split(',')[1]||'').trim();}else last=nm;
+      var ars=[];['Fastball','Sinker','Cutter','Slider','Curveball','Changeup'].forEach(function(p){var o=ov.mix[p];if(o)ars.push({p:p,velo:o.velo,usage:o.usage,miss:o.whiff});});
+      var role='';
+      out.push({role:role,last:(last||'').toUpperCase(),first:first||'',jersey:cs.num||'?',throws:thr[cs.num]||'?',
+        line:(cs.era!=null?cs.w+'–'+cs.l+', '+cs.era+' · '+cs.ip+' IP · '+cs.k+' K / '+cs.bb+' BB · '+cs.baa:'—'),
+        counts:{hr:cs.hr||0,hbp:cs.hbp||0,wp:cs.wp||0,app:cs.app||0,gs:cs.gs||0,sv:cs.sv||0,ipRaw:cs.ip,era:cs.era},arsenal:ars,
+        ahead:(r.Ahead||{}).basic,behind:(r.Behind||{}).basic,behindFB:((r.Behind||{}).mix||{}).Fastball,fbOverall:((ov.mix||{}).Fastball||{}).usage,lhh:(r.vsLHH||{}).basic,rhh:(r.vsRHH||{}).basic});});
+    return out;}
+
+  // ---------- enriched hitter block ----------
+  function ss(m){return d3(m.avg)+'/'+d3(m.obp)+'/'+d3(m.slg);}
+  function noXBH(m){return Math.abs(m.slg-m.avg)<0.005;}
+  function epithet(h){if(h.teamSlgLeader)return {t:'BEST BAT',cls:'best'};
+    if(h.chase>=37&&(h.obp-h.avg)<.07)return {t:'THE CHASER',cls:''};
+    if(h.counts.sb>=20)return {t:'SPEED',cls:''};
+    if(h.avg<.220&&h.counts.bb>=15)return {t:'PURE OBP',cls:''};
+    if(h.counts.hr>=10)return {t:'POWER',cls:''};return {t:'HITTER',cls:''};}
+  // SPEC §7: a defining overall-GB rate is a Profile trait, never a Defense line.
+  // Overall GB% = GB / all BIP (from the Synergy overall report) — not "% GB on infield contact" (§8-J).
+  var GB_HEAVY=55, GB_AIR=32;
+  function battedBallTrait(h){var g=h.zones?h.zones.gb:null;if(g==null)return '';
+    if(g>=GB_HEAVY)return 'Extreme ground-ball bat ('+g+'% GB) — the contact stays on the ground. ';
+    if(g<=GB_AIR)return 'Looks to lift ('+g+'% GB) — a fly-ball profile. ';
+    return '';}
+  function profile(h){var disc=h.chase>=37?'A free-swinger — '+h.chase+'% chase, an OBP that barely clears his average. You don\u2019t have to throw him strikes; make him chase.':(h.chase&&h.chase<=25?'Disciplined, low-chase ('+h.chase+'%) — he won\u2019t expand, so the out has to come in the zone.':'');
+    return (disc?disc+' ':'')+battedBallTrait(h)+'<b>'+h.counts.hr+' HR, '+h.counts.db+' 2B, '+h.counts.k+' K, '+h.counts.bb+' BB, '+h.counts.sb+' SB.</b>';}
+  function hasSlg(h){return h.mix.some(function(m){return m.slg!=null;});}
+  function outLine(h){if(!hasSlg(h))return 'Per-pitch slash data not uploaded — add the vs-FB/SL/CB/CH files for the out read.';
+    var weak=h.mix.filter(function(m){return m.slg!=null&&m.slg<.350;});
+    if(!weak.length)return 'No soft-contact weakness in the data — every pitch does damage. Change eye level and pitch around the count.';
+    var parts=weak.map(function(m){return '<b>'+m.p+'</b> ('+ss(m)+(noXBH(m)?', no extra-base hit':'')+(m.chase!=null?', '+m.chase+'% chase':'')+(m.whiff!=null?' / '+m.whiff+'% miss':'')+(m.gb?', '+m.gb+'% GB':'')+')';});
+    var lead=(weak.length===1)?weak[0].p+' — and only the '+weak[0].p.toLowerCase()+': ':'';
+    return lead+parts.join(' and ')+'. Expand the zone; he gets himself out.';}
+  function dangerLine(h){if(!hasSlg(h))return 'Damage read needs the per-pitch files. Don\u2019t groove the fastball.';
+    var dmg=h.mix.filter(function(m){return m.slg!=null&&m.slg>=.450;});
+    if(!dmg.length)return 'Spreads contact — no single damage pitch. Change eye level, work the count.';
+    var parts=dmg.map(function(m){var s='<b>'+m.p+'</b> ('+ss(m)+')';
+      if(m.whiff!=null&&m.whiff<=8)s+=' — and he barely misses it ('+m.whiff+'%)';
+      else if(m.p!=='Fastball'&&m.chase!=null&&m.chase>=25)s+=' — he chases it ('+m.chase+'%) but slugs it anyway, not the soft pitch it looks like';
+      return s;});
+    return 'Don\u2019t groove it: '+parts.join('; ')+'. Keep it off the plate.';}
+  // SPEC §6 / §8-I: this line tells fielders WHERE TO STAND. Never a ground-ball percentage.
+  // Fails closed — no spray pages, no positioning read. Never substitute a number for a missing input.
+  function slgOfSlash(s){if(!s)return null;var p=String(s).split('/');return p.length>=3?(parseFloat(p[2])||0):null;}
+  function defenseLine(h){var z=h.zones,hasOF=!!z.ofSlash,hasINF=!!z.infSlash,parts=[];
+    if(!hasOF&&!hasINF)return 'Positioning pending — needs vs Infielders / vs Outfielders.';
+    if(hasOF){var oslg=slgOfSlash(z.ofSlash);
+      if(oslg!=null&&oslg>=.700)parts.push('Real carry in the air ('+z.ofSlash+' on outfield contact) — <b>play the OF deep</b>');
+      else if(z.ofXBH===0)parts.push('No extra-base damage to the outfield ('+z.ofSlash+') — <b>OF standard depth</b>, play the gaps honest');
+      else parts.push('Outfield contact '+z.ofSlash+' — <b>OF honest depth</b>, play the gaps');}
+    else parts.push('OF depth pending — needs vs Outfielders');
+    if(hasINF){
+      var g=z.gb,dp=(h.counts&&h.counts.gdp!=null)?h.counts.gdp:null;
+      if(g!=null&&g>=GB_HEAVY){
+        if(dp!=null&&dp>=4)parts.push('heavy ground-ball lean ('+g+'% GB) and they turn ('+dp+' GIDP) — <b>infield at DP depth</b> with a runner on');
+        else if(dp!=null&&dp<=1)parts.push('hits it on the ground ('+g+'% GB) but rarely gets doubled up ('+dp+' GIDP) — he beats them out or finds the hole; play the infield honest, not deep');
+        else parts.push('heavy ground-ball lean ('+g+'% GB) — <b>infield at DP depth</b> with a runner on'+(dp==null?' (GIDP not on the sheet — confirm)':''));}
+      else if(g!=null&&g<=GB_AIR)parts.push('gets it off the ground ('+g+'% GB) — infield honest, no DP shade');
+      else if(dp!=null&&dp>=4)parts.push('middling ground-ball rate but '+dp+' GIDP — the double play is there; DP depth with a runner on');
+      else parts.push('balanced off the bat — infield straight up');}
+    else parts.push('IF alignment pending — needs vs Infielders');
+    return parts.join('; ')+'. Pull side not charted — confirm vs the spray chart before shading.';}
+  function hitterBlock(h,rank){var ep=epithet(h);
+    var html='<div class="block"><div class="bhead"><span class="bspot">'+rank+'</span><span class="bname">'+h.last+'</span><span class="bjersey">#'+h.jersey+' · '+h.first+'</span><span class="btag '+ep.cls+'">'+ep.t+'</span><span class="bslash">'+h.slash+'</span></div>';
+    html+='<p class="bp line m-circ"><span class="lbl">Profile</span>'+profile(h)+'</p>';
+    html+='<p class="bp line out m-check"><span class="lbl">Out</span>'+outLine(h)+'</p>';
+    html+='<p class="bp line danger m-tri"><span class="lbl">Danger</span>'+dangerLine(h)+'</p>';
+    if(h.counts.sb>=10)html+='<p class="bp line m-arrow"><span class="lbl">Run</span>'+h.counts.sb+' SB — he\u2019ll go. Hold him, vary the look; a walk is a double waiting to happen.</p>';
+    if(h.counts.sh>=3)html+='<p class="bp line m-arrow"><span class="lbl">Bunt</span>Real — '+h.counts.sh+' sacrifices; he\u2019ll drop one off the fastball. Corners alert in fastball counts.</p>';
+    html+='<p class="bp line m-dia"><span class="lbl">Defense</span>'+defenseLine(h)+'</p>';
+    if(h.missing&&h.missing.length){var lbl={Overall:'overall',vsFB:'vs FB',vsSL:'vs SL',vsCB:'vs CB',vsCH:'vs CH',INF:'infield zone',OF:'outfield zone'};
+      html+='<p class="miss-note">⚠ Missing files: '+h.missing.map(function(s){return lbl[s];}).join(', ')+' — that detail is limited until they\u2019re added.</p>';}
+    html+='<p class="hand-note">Bats/throws and lineup spot aren\u2019t in the files (coach-supplied); strategic cross-lineup notes stay yours.</p>';
+    return html+'</div>';}
+
+  // Measures the behind-count fastball spike against the arm's own overall usage.
+  // No spike is itself the read (§8-L): that's the arm that doesn't tip.
+  var FB_SPIKE=10, FB_FLAT=3;
+  function fbShift(p){
+    if(!p.behindFB||p.behindFB.usage==null)return '. Work the count';
+    var b=p.behindFB.usage,o=p.fbOverall;
+    if(o==null)return ', '+b+'% fastball behind (overall usage not parsed — spike unconfirmed). Work the count';
+    var d=b-o;
+    if(d>=FB_SPIKE)return ' and the fastball usage jumps to '+b+'% (from '+o+'% overall) — sit dead-red when he falls behind';
+    if(d<=FB_FLAT)return ', and he does <b>not</b> tip — fastball usage holds at '+b+'% (vs '+o+'% overall). Don\u2019t assume the heater is coming';
+    return ', fastball usage '+b+'% behind vs '+o+'% overall — a mild lean. Work the count';}
+  // ---------- §8-L: staff collapse baseline ----------
+  // Most staffs fold behind the same way. Cover that once at staff level; keep a per-arm
+  // By Count row ONLY for arms that break the pattern. The exceptions are the signal.
+  function median(a){if(!a.length)return null;var s=a.slice().sort(function(x,y){return x-y;});var m=Math.floor(s.length/2);
+    return s.length%2?s[m]:(s[m-1]+s[m])/2;}
+  function fbDelta(p){if(!p.behindFB||p.behindFB.usage==null||p.fbOverall==null)return null;return p.behindFB.usage-p.fbOverall;}
+  function behindOps(p){var v=p.behind&&p.behind.ops!=null?parseFloat(p.behind.ops):NaN;return isNaN(v)?null:v;}
+  function staffBaseline(P){
+    var d=[],o=[],fbB=[],fbO=[],sl=[];
+    P.forEach(function(p){var x=fbDelta(p);if(x!=null){d.push(x);fbB.push(p.behindFB.usage);fbO.push(p.fbOverall);}
+      var y=behindOps(p);if(y!=null)o.push(y);
+      if(p.behind&&p.behind.avg!=null)sl.push(p.behind);});
+    return {n:P.length,medDelta:median(d),medOps:median(o),medFbBehind:median(fbB),medFbOverall:median(fbO),
+      sample:d.length,opsSample:o.length};}
+  // An arm deviates only if it BREAKS the pattern — doesn't tip (usage holds flat while the
+  // staff spikes), or doesn't collapse (behind-OPS well under the staff median). An arm that
+  // spikes harder than the median is still the same read, so it stays in the staff callout.
+  var OPS_GAP=.150;
+  function deviates(p,base){
+    if(!base)return true;
+    var d=fbDelta(p),o=behindOps(p);
+    var staffSpikes=(base.medDelta!=null&&base.medDelta>=FB_SPIKE);
+    if(d!=null&&staffSpikes&&d<=FB_FLAT)return true;
+    if(o!=null&&base.medOps!=null&&o<=base.medOps-OPS_GAP)return true;
+    return false;}
+  function staffCountCallout(base){
+    if(!base||base.sample<3||base.medDelta==null)return '';
+    if(base.medDelta<FB_SPIKE)return '<div class="block"><p class="bp line m-arrow"><span class="lbl">By the count</span>No staff-wide tell — fastball usage holds roughly steady behind in the count across this group (median '+Math.round(base.medFbBehind)+'% behind vs '+Math.round(base.medFbOverall)+'% overall). Don\u2019t assume the heater when they fall behind; read each arm.</p></div>';
+    return '<div class="block"><p class="bp line m-arrow"><span class="lbl">By the count</span>Staff-wide pattern — when they fall behind, fastball usage climbs to a median <b>'+Math.round(base.medFbBehind)+'%</b> (from '+Math.round(base.medFbOverall)+'% overall)'+(base.medOps!=null?' and the slash balloons (median '+d3(base.medOps)+' OPS behind)':'')+'. <b>Get into hitter\u2019s counts and sit dead-red.</b> Arms that break this pattern carry their own By Count row below — those are the ones to read.</p></div>';}
+
+  // ---------- §6 / §8-E: leverage tiers ----------
+  // Order the staff by who actually decides games, not by raw appearance count.
+  // Bulk-innings starters first; a 12-IP mop-up man never headlines (§8-E).
+  var TIERS=[{k:'SP',label:'Starters',badge:'STARTER'},
+             {k:'HL',label:'High-Leverage Relief',badge:'HIGH LEV'},
+             {k:'MS',label:'Middle / Swing Relief',badge:'MIDDLE'},
+             {k:'LL',label:'Low-Leverage / Mop-Up',badge:'LOW LEV'},
+             {k:'FN',label:'Insufficient sample',badge:'SMALL'}];
+  // Baseball IP notation: .1 = 1/3, .2 = 2/3 — decimal math on it is wrong.
+  function ipNum(x){var v=parseFloat(x);if(isNaN(v))return 0;var w=Math.floor(v),f=Math.round((v-w)*10);
+    return w+(f===1?1/3:(f===2?2/3:0));}
+  function pctile(a,q){if(!a.length)return null;var s=a.slice().sort(function(x,y){return x-y;});
+    var i=Math.min(s.length-1,Math.max(0,Math.round((s.length-1)*q)));return s[i];}
+  function assignTiers(P){
+    P.forEach(function(p){p.ip=ipNum(p.counts.ipRaw);});
+    var ipMedAll=pctile(P.map(function(p){return p.ip;}),.5);
+    // A rotation arm needs starts AND bulk innings. Raw GS alone promotes a setup man
+    // who spot-started twice; the IP floor and the start ratio are what keep him out.
+    var isSP=function(p){return p.counts.gs>=3&&p.counts.app>0&&(p.counts.gs/p.counts.app)>=.25
+      &&(ipMedAll==null||p.ip>=ipMedAll);};
+    var rel=P.filter(function(p){return !isSP(p)&&p.ip>=3;});
+    var savers=rel.filter(function(p){return p.counts.sv>=1;});
+    var appHi=pctile(rel.map(function(p){return p.counts.app;}),.75);
+    var ipMed=pctile(rel.map(function(p){return p.ip;}),.5);
+    P.forEach(function(p){
+      if(p.ip<3&&p.counts.app<=3){p.tier='FN';}
+      else if(isSP(p)){p.tier='SP';}
+      // Saves are the cleanest leverage signal there is. Only when a staff records
+      // almost none do we fall back to workload to find the late-inning arms.
+      else if(p.counts.sv>=1){p.tier='HL';}
+      else if(savers.length<2&&appHi!=null&&p.counts.app>=appHi&&ipMed!=null&&p.ip>=ipMed){p.tier='HL';}
+      // Mop-up is a USAGE inference, not a quality grade: an arm with light innings AND
+      // a run-prevention line that bad is not being brought into a tie game.
+      else if(ipMed!=null&&(p.ip<ipMed*.5||(p.ip<ipMed&&parseFloat(p.counts.era)>=8))){p.tier='LL';}
+      else{p.tier='MS';}
+      var t=TIERS.filter(function(x){return x.k===p.tier;})[0];p.role=t?t.badge:'';});
+    // Within a tier, heaviest workload first — that's the rotation/leverage order.
+    var order={};TIERS.forEach(function(t,i){order[t.k]=i;});
+    return P.slice().sort(function(a,b){return order[a.tier]-order[b.tier]||b.ip-a.ip||b.counts.app-a.counts.app;});}
+
+  // ---------- Game Plan (SPEC §6) ----------
+  // The only file that crosses both rosters, and therefore the only one where our own
+  // hitters may be named (§8-B). Ordered by LEVERAGE, not split size (§8-E).
+  function opsOf(b){if(!b)return null;var v=parseFloat(b.ops);if(!isNaN(v))return v;
+    var o=parseFloat(b.obp),s=parseFloat(b.slg);return (isNaN(o)||isNaN(s))?null:o+s;}
+  function platoonEdge(p){var l=opsOf(p.lhh),r=opsOf(p.rhh);
+    if(l==null||r==null)return {tag:null,txt:'Platoon split not in the files — no stack call.'};
+    var d=l-r;
+    if(d>=.150)return {tag:'STACK LHH',txt:'Left-handed bats have done the damage ('+d3(l)+' vs '+d3(r)+' OPS).'};
+    if(d<=-.150)return {tag:'STACK RHH',txt:'Right-handed bats have done the damage ('+d3(r)+' vs '+d3(l)+' OPS).'};
+    return {tag:null,txt:'Handles both hands ('+d3(l)+' / '+d3(r)+') — attack him by count and pitch type, not by stack.'};}
+  // Switch hitters are deliberately excluded from BOTH stacks: they bat opposite the
+  // pitcher's hand every time, so they are never part of a stack call — they're already
+  // in the favourable box. Listing one under "stack LHH" against a LHP is just wrong.
+  function ourBats(us,bats){var L=[],R=[],S=[];(us?us.hit:[]).forEach(function(h){var b=bats[h.num];if(!b)return;
+    var e={name:h.name.split(',')[0],slg:parseFloat(h.slg)||0,hr:h.hr||0};
+    if(b==='S')S.push(e);else (b==='L'?L:R).push(e);});
+    var by=function(a){return a.sort(function(x,y){return y.slg-x.slg;}).slice(0,3);};
+    return {L:by(L),R:by(R),S:by(S)};}
+  // Standalone sentence version of the fastball-usage delta, for the Game Plan table.
+  function fbNote(p){if(!p.behindFB||p.behindFB.usage==null||p.fbOverall==null)return '';
+    var b=p.behindFB.usage,o=p.fbOverall,d=b-o;
+    if(d>=FB_SPIKE)return 'Fastball usage jumps to '+b+'% behind (from '+o+'%) — sit dead-red once he falls behind.';
+    if(d<=FB_FLAT)return 'He does <b>not</b> tip behind ('+b+'% vs '+o+'%) — don\u2019t sit fastball just because he\u2019s behind.';
+    return '';}
+  function cmpLine(t){if(!t||!t.totH)return null;var h=t.totH,p=t.totP;
+    return (t.record?t.record+' · ':'')+h.avg+' / '+h.obp+' / '+h.slg+' · '+h.hr+' HR · '+h.bb+' BB · '+h.hbp+' HBP · '+h.sb+' SB'+(p?' · '+p.era+' ERA':'');}
+  function watchNames(opp){
+    // §6: production (OBP engine + SLG damage) x volume, capped at 4. Not a pure power list.
+    var H=opp.hit.filter(function(h){return (h.ab||0)>=25;}).map(function(h){
+      var pa=(h.ab||0)+(h.bb||0)+(h.hbp||0)+(h.sf||0)+(h.sh||0);
+      return {name:h.name.split(',')[0],num:h.num,obp:parseFloat(h.obp)||0,slg:parseFloat(h.slg)||0,hr:h.hr||0,pa:pa};});
+    if(!H.length)return [];
+    var byObp=H.slice().sort(function(a,b){return b.obp-a.obp;}),bySlg=H.slice().sort(function(a,b){return b.slg-a.slg;});
+    var pick=[],seen={};
+    var take=function(x,why){if(!x||seen[x.num]||pick.length>=4)return;seen[x.num]=1;pick.push({p:x,why:why});};
+    take(byObp[0],'never gives an at-bat away');take(bySlg[0],'the damage bat');
+    take(byObp[1],'second on-base engine');take(bySlg[1],'punishes a mistake');
+    // §6 caps the box at ~4 — if overlap left it short, fill on everyday volume.
+    H.slice().sort(function(a,b){return b.pa-a.pa;}).forEach(function(x){take(x,'everyday volume');});
+    var lowPower=bySlg[0]&&bySlg[0].hr<=5;
+    return {list:pick,lowPower:lowPower};}
+  function buildGamePlan(opp,us,P,base){
+    var bats=rosterBats(),mine=ourBats(us,bats),html='';
+    var oppName=opp.team||'Opponent',usName=us&&us.team?us.team:'Us';
+    // Same categories both sides, or it isn't a comparison (§6).
+    var cu=cmpLine(us),co=cmpLine(opp);
+    html+='<div class="bsec">The matchup</div><div class="block">';
+    html+='<p class="bp line m-circ"><span class="lbl">'+usName+'</span>'+(cu||'Our totals row not found on the sheet — comparison line unavailable.')+'</p>';
+    html+='<p class="bp line m-circ"><span class="lbl">'+oppName+'</span>'+(co||'Their totals row not found on the sheet — comparison line unavailable.')+'</p></div>';
+    // §8-H keynote is genuine editorial synthesis across the whole packet — the one place
+    // a template cannot do the job. Left as an explicit slot rather than faked.
+    html+='<div class="bsec">Series keynote</div><div class="block"><p class="bp line m-dia"><span class="lbl">Pending</span>The four-beat keynote (who they are · what they do well · what we take advantage of · our focus) is a synthesis read across both books — write it once the two opponent files are built.</p></div>';
+    html+='<div class="bsec">When we hit</div>';
+    var tiers=[{k:'SP',l:'Starters — these carry the series'},{k:'HL',l:'High-leverage relief — late and close'},{k:'MS',l:'Middle / swing — reference'}];
+    tiers.forEach(function(t){var grp=P.filter(function(p){return p.tier===t.k;});if(!grp.length)return;
+      html+='<div class="bsec sub">'+t.l+'</div><div class="block">';
+      grp.forEach(function(p){var e=platoonEdge(p),parts=[];
+        if(e.tag)parts.push('<b>'+e.tag+'.</b>');
+        parts.push(e.txt);
+        if(e.tag==='STACK LHH'&&mine.L.length)parts.push('Get '+mine.L.map(function(x){return x.name;}).join(', ')+' to the plate.');
+        if(e.tag==='STACK RHH'&&mine.R.length)parts.push('Our right-handed bats \u2014 '+mine.R.map(function(x){return x.name;}).join(', ')+'.');
+        var fb=fbNote(p);if(fb)parts.push(fb);
+        html+='<p class="bp line '+(e.tag?'out m-check':'m-arrow')+'"><span class="lbl">'+p.last+' #'+p.jersey+'</span>'+parts.join(' ')+'</p>';});
+      html+='</div>';});
+    if(mine.S&&mine.S.length){var sn=mine.S.map(function(x){return x.name;});
+      html+='<div class="block"><p class="bp line m-circ"><span class="lbl">Switch bats</span>'+sn.join(', ')+(sn.length>1?' bat':' bats')+' opposite whoever is on the mound \u2014 outside every stack call above, and in the favourable box all series.</p></div>';}
+    // §8-K: catcher SBA/CSB is bases ALLOWED — our opportunity, never their offense.
+    var cat=(opp.cat||[]).reduce(function(a,c){a.sba+=c.sba;a.csb+=c.csb;return a;},{sba:0,csb:0});
+    if(cat.sba+cat.csb>0){var att=cat.sba+cat.csb,pct=Math.round(cat.sba/att*100);
+      html+='<div class="bsec">Run on their catchers</div><div class="block"><p class="bp line '+(pct>=75?'out m-check':'m-arrow')+'"><span class="lbl">Their catching</span>Opponents ran <b>'+cat.sba+'-for-'+att+' ('+pct+'%)</b> against them'+(pct>=75?' — the green light is on. Get into scoring position and pressure them.':' — pick your spots; they have thrown people out.')+'</p></div>';}
+    html+='<div class="bsec">When we pitch</div><div class="block">';
+    var oppSB=opp.totH?opp.totH.sb:null;
+    if(oppSB!=null)html+='<p class="bp line m-arrow"><span class="lbl">Their run game</span>'+oppSB+' stolen bases as a team'+(oppSB>=60?' — a real weapon. Vary times, slide-step, hold the lead runner.':(oppSB<=30?' — the steal is not their identity; the walk and the single are. Don\u2019t over-rotate to it.':' — moderate. Hold the lead runner and vary times.'))+'</p>';
+    var teamGdp=opp.totH?opp.totH.gdp:null;
+    var dpMen=opp.hit.filter(function(h){return (h.gdp||0)>=3;}).sort(function(a,b){return b.gdp-a.gdp;}).slice(0,3);
+    if(teamGdp!=null||dpMen.length)html+='<p class="bp line m-dia"><span class="lbl">Setting up the DP</span>'+(teamGdp!=null?teamGdp+' GIDP as a team':'Double plays available')+(dpMen.length?', led by '+dpMen.map(function(h){return h.name.split(',')[0]+' ('+h.gdp+')';}).join(', '):'')+'. When they reach, pitch down and trust the infield to turn two.</p>';
+    html+='</div>';
+    var w=watchNames(opp);
+    if(w.list&&w.list.length){html+='<div class="bsec">Watch names — don\u2019t give in</div><div class="block">';
+      if(w.lowPower)html+='<p class="bp line m-circ"><span class="lbl">Note</span>Low-homer team — this is an on-base / don\u2019t-give-in list, not a power list.</p>';
+      w.list.forEach(function(x){html+='<p class="bp line danger m-tri"><span class="lbl">'+x.p.name+' #'+x.p.num+'</span>'+d3(x.p.obp)+' OBP / '+d3(x.p.slg)+' SLG'+(x.p.hr?', '+x.p.hr+' HR':'')+' — '+x.why+'. Execute down and live with the walk.</p>';});
+      html+='</div>';}
+    return html;}
+
+  function pitcherBlock(p,base){var ars=p.arsenal.map(function(a){return a.p+' '+a.velo+' ('+a.usage+'%, '+a.miss+'% miss)';}).join(' · ')||'—';
+    var html='<div class="block"><div class="bhead"><span class="bspot">'+p.role.charAt(0)+'</span><span class="bname">'+p.last+'</span><span class="bjersey">#'+p.jersey+' · '+p.first+' · '+(p.throws==='?'?'?HP':p.throws+'HP')+'</span><span class="btag">'+p.role+'</span><span class="bslash">'+p.line+'</span></div>';
+    html+='<p class="bp line m-circ"><span class="lbl">Arsenal</span>'+ars+'.</p>';
+    // SPEC §8-C: 3-2 sits in Behind, so BB-when-ahead is structurally 0 and BB-when-behind
+    // is just the season walk total. Only the slash and the fastball-usage spike compare
+    // like-for-like between buckets — print those, never the K/BB pairings.
+    // The "spike" is a DELTA vs his overall usage, measured — never assumed.
+    if(p.ahead)html+='<p class="bp line out m-check"><span class="lbl">Out</span>Ahead — '+p.ahead.avg+'/'+p.ahead.obp+'. Don\u2019t get to two strikes cheap.</p>';
+    if(p.behind&&deviates(p,base))html+='<p class="bp line m-arrow"><span class="lbl">By count</span><b>Breaks the staff pattern.</b> Behind he\u2019s '+p.behind.avg+'/'+p.behind.obp+fbShift(p)+'.</p>';
+    if(p.lhh&&p.rhh){var stack=parseFloat(p.lhh.ops)>parseFloat(p.rhh.ops)?'LHH':'RHH';html+='<p class="bp line m-circ"><span class="lbl">Platoon</span><strong>Stack '+stack+'.</strong> vs LHH '+p.lhh.avg+'/'+p.lhh.obp+'/'+p.lhh.slg+'; vs RHH '+p.rhh.avg+'/'+p.rhh.obp+'/'+p.rhh.slg+'.</p>';}
+    html+='<p class="bp line m-dia"><span class="lbl">Notes</span>'+p.counts.hbp+' HBP / '+p.counts.wp+' WP — a free base shows up; run game live.</p>';return html+'</div>';}
+
+  function staffTable(hitters,hitArr){var rows=hitArr.map(function(s){return {pa:(s.ab||0)+(s.bb||0)+(s.hbp||0)+(s.sf||0)+(s.sh||0),s:s,full:hitters.some(function(h){return h.jersey===s.num;})};});
+    rows.sort(function(a,b){return b.pa-a.pa;});var h='<table class="staff"><tr><th>PA</th><th>Hitter</th><th>AVG</th><th>OBP</th><th>SLG</th><th>HR</th><th>AB</th><th>BB</th><th>K</th><th>SB</th></tr>';
+    rows.forEach(function(r){var s=r.s;h+='<tr class="'+(r.full?'full':'')+'"><td class="pa">'+r.pa+'</td><td>'+s.name+(r.full?' ●':'')+'</td><td>'+d3(s.avg)+'</td><td>'+d3(s.obp)+'</td><td>'+d3(s.slg)+'</td><td>'+s.hr+'</td><td>'+s.ab+'</td><td>'+s.bb+'</td><td>'+s.k+'</td><td>'+s.sb+'</td></tr>';});
+    return h+'</table><p class="legend">Sorted by plate appearances (PA = AB+BB+HBP+SF+SH). ● = full Synergy detail uploaded.</p>';}
+
+  function buildBook(kind){var team=currentTeam();var opp=(team&&team.team)||'Opponent';
+    var html='<p class="kicker">ADVANCE SCOUT · 2026 · PRE-GAME</p><h1 class="title">'+opp.toUpperCase()+' — ADVANCE BOOK</h1><div class="subline">Generated from your uploads · counting stats from the official sheet, reads from Synergy.</div>';
+    if(kind==='hit'){var H=assembleHitters();html+='<div class="bsec">Hitters — by plate appearances</div>';if(team&&team.hit.length)html+=staffTable(H,team.hit);H.forEach(function(h,i){html+=hitterBlock(h,i+1);});if(!H.length)html+='<div class="block">No hitter reports parsed for '+opp+'. Check the Synergy hitter files and the Scouting team.</div>';document.getElementById('bookTitle').textContent=opp+' · Hitter Book';}
+    else if(kind==='gp'){var us=ourTeam();var Pg=assignTiers(assemblePitchers());var bg=staffBaseline(Pg.filter(function(p){return p.tier!=='FN';}));
+      html=html.replace('ADVANCE SCOUT · 2026 · PRE-GAME','GAME PLAN · 2026 · SERIES')
+        .replace(opp.toUpperCase()+' — ADVANCE BOOK',((us&&us.team?us.team:'US')+' vs '+opp).toUpperCase())
+        .replace('Generated from your uploads · counting stats from the official sheet, reads from Synergy.','The only file that crosses both rosters. Counting stats from each team\u2019s official sheet; reads from Synergy.');
+      html+=buildGamePlan(team,us,Pg,bg);
+      document.getElementById('bookTitle').textContent=opp+' · Game Plan';}
+    else{var P0=assemblePitchers();var P=assignTiers(P0);var base=staffBaseline(P.filter(function(p){return p.tier!=='FN';}));
+      html+=staffCountCallout(base);
+      TIERS.forEach(function(t){var grp=P.filter(function(p){return p.tier===t.k;});if(!grp.length)return;
+        if(t.k==='FN'){html+='<footer class="meth">Insufficient sample (tiny workload — directional only): '+grp.map(function(p){return p.last+' #'+p.jersey+(p.counts.ipRaw?' ('+p.counts.ipRaw+' IP)':'');}).join(' · ')+'.</footer>';return;}
+        html+='<div class="bsec">'+t.label+'</div>';grp.forEach(function(p){html+=pitcherBlock(p,base);});});
+      if(!P.length)html+='<div class="block">No pitcher reports parsed for '+opp+'.</div>';document.getElementById('bookTitle').textContent=opp+' · Pitcher Report';}
+    html+=(kind==='gp'
+      ? '<footer class="meth">Crosses both rosters by design — the only file that does. Counting stats from each team\u2019s official sheet; PA = AB+BB+HBP+SF+SH. Catcher SBA/CSB is bases allowed (our opportunity), not their offense. Arms ordered by leverage, not split size. Bats/throws taken from the roster as provided — verify before game-planning. The series keynote is coach-written.</footer>'
+      : '<footer class="meth">Scoped to '+opp+'. Counting stats from the official sheet; PA = AB+BB+HBP+SF+SH. Pitch reads from Synergy. Rates are stable; subsample slashes are directional. Bats/throws, lineup order, and the strategic overview are coach-supplied. Other teams\u2019 stat sheets are held for the team gameplan.</footer>');
+    document.getElementById('page').innerHTML=html;document.getElementById('bookView').style.display='block';window.scrollTo(0,0);}
+  document.getElementById('backBtn').addEventListener('click',function(){document.getElementById('bookView').style.display='none';});
+
+  var upStatus=document.getElementById('upStatus'),triage=document.getElementById('triage'),inventory=document.getElementById('inventory'),teampick=document.getElementById('teampick'),reportsEl=document.getElementById('reports'),genStatus=document.getElementById('genStatus'),output=document.getElementById('output');
+  function setStatus(el,k,m){el.className='status show '+k;el.textContent=m;}
+  function countType(t){return files.filter(function(f){return f.type===t;}).length;}
+  function present(){return {synergyHit:countType('synergyHit'),synergyPit:countType('synergyPit'),roster:countType('roster'),stats:countType('stats')+(pastedStats?1:0)};}
+  function renderTriage(){if(!files.length){triage.innerHTML='<p class="emptyfiles">Files you add will be listed here for review.</p>';renderReports();return;}
+    triage.innerHTML='';files.forEach(function(f){var row=document.createElement('div');row.className='frow';
+      var name=document.createElement('div');name.className='fname';name.innerHTML=f.name+'<span class="kind">'+(f.kind==='sheet'?'Excel':'PDF')+'</span><span class="conf">'+(f.type==='unknown'?'couldn\u2019t identify':'detected · '+f.conf)+'</span>';
+      var sel=document.createElement('select');sel.className='ftype'+(f.type==='unknown'?' unknown':'');Object.keys(TYPES).forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=TYPES[k];if(k===f.type)o.selected=true;sel.appendChild(o);});
+      sel.addEventListener('change',function(){f.type=sel.value;sel.className='ftype'+(f.type==='unknown'?' unknown':'');renderReports();});
+      var view=document.createElement('button');view.className='iconbtn view';view.textContent='View';view.addEventListener('click',function(){inspect.rows=f.rowsText;inspect.raw=f.rawText;renderInspect();document.querySelector('details.inspector').open=true;});
+      var del=document.createElement('button');del.className='iconbtn';del.innerHTML='&times;';del.addEventListener('click',function(){files=files.filter(function(x){return x.id!==f.id;});renderTriage();});
+      row.appendChild(name);row.appendChild(sel);row.appendChild(view);row.appendChild(del);triage.appendChild(row);});renderReports();}
+  function renderTeamPicker(){var teams=statTeams();if(teams.length<=0){teampick.innerHTML='';return;}var cur=currentTeam();
+    var opts=teams.map(function(t){return '<option value="'+t.team.replace(/"/g,'')+'"'+(t.team===cur.team?' selected':'')+'>'+t.team+' ('+t.hit.length+' batters)</option>';}).join('');
+    var others=teams.filter(function(t){return t.team!==cur.team;}).map(function(t){return t.team;});
+    teampick.innerHTML='<div class="teampick"><span class="lbl">Scouting — team this report is about</span><select id="teamSel">'+opts+'</select>'+(others.length?'<p class="mine">Held aside for the gameplan: '+others.join(', ')+'</p>':'')+'</div>';
+    document.getElementById('teamSel').addEventListener('change',function(){selectedTeam=this.value;renderReports();});}
+  function renderReports(){var p=present();inventory.innerHTML='<span class="chip"><b>'+p.synergyHit+'</b> hitter</span><span class="chip"><b>'+p.synergyPit+'</b> pitcher</span><span class="chip"><b>'+p.roster+'</b> roster</span><span class="chip"><b>'+p.stats+'</b> stats</span>';
+    renderTeamPicker();reportsEl.innerHTML='';
+    REPORTS.forEach(function(r){var missing=r.needs.filter(function(n){return p[n]<=0;}).map(function(n){return NEED_LABEL[n];});
+      if(r.extra)missing=missing.concat(r.extra());
+      var ready=missing.length===0;var div=document.createElement('div');div.className='report';
+      var info=document.createElement('div');info.className='rinfo';info.innerHTML='<div class="rname">'+r.name+'</div>'+(ready?'<div class="rneeds">ready to build</div>':'<div class="rneeds miss">needs '+missing.join(' + ')+'</div>');
+      var btn=document.createElement('button');btn.className='rbtn';btn.textContent='Build';btn.disabled=!ready;
+      btn.addEventListener('click',function(){if(r.build==='soon'){setStatus(genStatus,'work','“'+r.name+'” comes online in the visuals pass — next up.');return;}try{buildBook(r.build);}catch(e){setStatus(genStatus,'err','Build hit a snag: '+e.message+'. Use View on a file to check its text.');}});
+      div.appendChild(info);div.appendChild(btn);reportsEl.appendChild(div);});}
+  function renderInspect(){var text=(mode==='rows')?inspect.rows:inspect.raw;if(!text){output.innerHTML='<span style="color:#8a96a2;font-style:italic;">Tap “View” on any file above.</span>';return;}
+    var safe=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');safe=safe.replace(/(^|\n)(=== (PAGE \d+|SHEET [^\n]+) ===)/g,'$1<span class="pagemark">$2</span>');output.innerHTML=safe;}
+  document.getElementById('tabRows').addEventListener('click',function(){mode='rows';this.className='tab active';document.getElementById('tabRaw').className='tab';renderInspect();});
+  document.getElementById('tabRaw').addEventListener('click',function(){mode='raw';this.className='tab active';document.getElementById('tabRows').className='tab';renderInspect();});
+  document.getElementById('copyBtn').addEventListener('click',function(){var text=(mode==='rows')?inspect.rows:inspect.raw;if(!text)return;var btn=this,old=btn.textContent;var done=function(){btn.textContent='Copied';setTimeout(function(){btn.textContent=old;},1400);};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(done,fb);else fb();function fb(){var ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){}document.body.removeChild(ta);}});
+  document.getElementById('files').addEventListener('change',function(e){var chosen=Array.prototype.slice.call(e.target.files);if(!chosen.length)return;setStatus(upStatus,'work','Reading '+chosen.length+' file'+(chosen.length===1?'':'s')+'…');
+    var q=chosen.reduce(function(ch,file){return ch.then(function(){var kind=kindOf(file.name);var pr=(kind==='sheet')?extractSheet(file):extractPdf(file);return pr.then(function(res){var c=classify(res.rows);files.push({id:nextId++,name:file.name,kind:kind,type:c.type,conf:c.conf,rowsText:res.rows,rawText:res.raw});}).catch(function(){files.push({id:nextId++,name:file.name,kind:kind,type:'unknown',conf:0,rowsText:'',rawText:'(could not read this file)'});});});},Promise.resolve());
+    q.then(function(){selectedTeam=null;renderTriage();var u=countType('unknown');document.getElementById('addLabel').textContent=files.length+' file'+(files.length===1?'':'s')+' loaded';if(u)setStatus(upStatus,'err','Loaded — '+u+' couldn\u2019t be identified. Set the type below.');else setStatus(upStatus,'ok','Loaded and sorted. Confirm the Scouting team, then Build.');e.target.value='';});});
+  document.getElementById('pasteBtn').addEventListener('click',function(){var v=document.getElementById('statPaste').value;if(!v.trim())return;pastedStats=v.replace(/\r/g,'');selectedTeam=null;renderReports();setStatus(genStatus,'ok','Pasted stats saved.');});
+  renderTriage();
+})();
+</script>
+</body>
+</html>
