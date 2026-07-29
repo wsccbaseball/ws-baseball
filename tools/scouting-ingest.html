@@ -394,7 +394,7 @@
     html+='<p class="bp line m-dia"><span class="lbl">Defense</span>'+defenseLine(h)+'</p>';
     if(h.missing&&h.missing.length){var lbl={Overall:'overall',vsFB:'vs FB',vsSL:'vs SL',vsCB:'vs CB',vsCH:'vs CH',INF:'infield zone',OF:'outfield zone'};
       html+='<p class="miss-note">⚠ Missing files: '+h.missing.map(function(s){return lbl[s];}).join(', ')+' — that detail is limited until they\u2019re added.</p>';}
-    html+='<p class="hand-note">'+(bt?'B/T from the roster; lineup spot is coach-supplied':'Bats/throws and lineup spot aren\u2019t in the files (coach-supplied)')+' — strategic cross-lineup notes stay yours.</p>';
+    if(!bt)html+='<p class="hand-note">Bats/throws and lineup spot aren\u2019t in the files (coach-supplied) — strategic cross-lineup notes stay yours.</p>';
     return html+'</div>';}
 
   // Measures the behind-count fastball spike against the arm's own overall usage.
@@ -600,7 +600,7 @@
       if(!P.length)html+='<div class="block">No pitcher reports parsed for '+opp+'.</div>';document.getElementById('bookTitle').textContent=opp+' · Pitcher Report';}
     html+=(kind==='gp'
       ? '<footer class="meth">Crosses both rosters by design — the only file that does. Counting stats from each team\u2019s official sheet; PA = AB+BB+HBP+SF+SH. Catcher SBA/CSB is bases allowed (our opportunity), not their offense. Arms ordered by leverage, not split size. Bats/throws taken from the roster as provided — verify before game-planning. The series keynote is coach-written.</footer>'
-      : '<footer class="meth">Scoped to '+opp+'. Counting stats from the official sheet; PA = AB+BB+HBP+SF+SH. Pitch reads from Synergy. Rates are stable; subsample slashes are directional. Bats/throws, lineup order, and the strategic overview are coach-supplied. Other teams\u2019 stat sheets are held for the team gameplan.</footer>');
+      : '<footer class="meth">Scoped to '+opp+'. Counting stats from the official sheet; PA = AB+BB+HBP+SF+SH. Pitch reads from Synergy. Rates are stable; subsample slashes are directional. Lineup order and the strategic overview are coach-supplied; bats/throws come from the roster when uploaded. Other teams\u2019 stat sheets are held for the team gameplan.</footer>');
     document.getElementById('page').innerHTML=html;document.getElementById('bookView').style.display='block';window.scrollTo(0,0);}
   document.getElementById('backBtn').addEventListener('click',function(){document.getElementById('bookView').style.display='none';});
 
