@@ -80,6 +80,7 @@
   .bspot{font-family:'Oswald',sans-serif;font-size:22px;color:var(--accent);line-height:1;}
   .bname{font-family:'Oswald',sans-serif;font-size:18px;letter-spacing:.02em;color:var(--navy);}
   .bjersey{color:#8a96a2;font-size:13px;}
+  .bhand{font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.06em;color:var(--navy);border:1px solid var(--rule);border-radius:2px;padding:1px 6px;white-space:nowrap;}
   .btag{font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase;background:var(--cream-deep);color:var(--navy);padding:3px 8px;border-radius:2px;}
   .btag.best{background:#f6e7e4;color:var(--accent);}
   .bslash{-webkit-box-flex:1;-webkit-flex:1;flex:1;text-align:right;font-family:'Oswald',sans-serif;font-size:15px;color:var(--navy);min-width:120px;}
@@ -125,6 +126,7 @@
     .bname{font-family:'Spectral',Georgia,serif;font-weight:600;font-size:12.5pt;color:#111;}
     .bspot,.bslash{font-family:'IBM Plex Mono',monospace;color:#111;font-size:9.5pt;}
     .bjersey{color:#444;font-size:9pt;}
+    .bhand{font-family:'IBM Plex Mono',monospace;color:#111!important;border:.5pt solid #666;font-size:7.5pt;padding:0 1.5mm;}
     .btag{background:none!important;border:.5pt solid #666;color:#111!important;font-family:'IBM Plex Mono',monospace;font-size:7.5pt;padding:0 1.5mm;}
     p.bp{font-size:10pt;margin:1.5mm 0 0;}
     .line .lbl{color:#111!important;font-family:'IBM Plex Mono',monospace;font-size:8pt;font-weight:500;}
@@ -273,9 +275,16 @@
   function opponentCore(){var core=null;files.forEach(function(f){if(core)return;if(f.type==='synergyHit'||f.type==='synergyPit'){var r=parseSynergy(f.rowsText);if(r.team)core=coreOf(r.team);}});return core;}
   function rosterThrows(){var map={};files.forEach(function(f){if(f.type!=='roster')return;f.rowsText.split('\n').forEach(function(ln){var m=ln.match(/^(\d+)\s+.*?\b(LHP|RHP)\b/);if(m)map[m[1]]=(m[2]==='LHP'?'L':'R');});});return map;}
   function rosterRows(){var out=[];files.forEach(function(f){if(f.type!=='roster')return;f.rowsText.split('\n').forEach(function(ln){if(/^\d+\s+\S/.test(ln))out.push(ln);});});return out;}
-  // B/T column, e.g. "R/R", "L/R", "S/R". Drives every platoon call in the Game Plan (§8-D)
-  // — and is the ONLY place our own hitters may be named (§8-B).
-  function rosterBats(){var map={};rosterRows().forEach(function(ln){var m=ln.match(/^(\d+)\s+.*?\b([LRS])\/[LR]\b/);if(m)map[m[1]]=m[2];});return map;}
+  // B/T column, e.g. "R/R", "L/R", "S/R". Bats = first char, throws = second, keyed by jersey.
+  // Single parse of the column; suppressed (absent) when the player isn't on the uploaded
+  // roster — handedness is NEVER guessed or defaulted (SPEC).
+  function rosterBT(){var map={};rosterRows().forEach(function(ln){var m=ln.match(/^(\d+)\s+.*?\b([LRS])\/([LR])\b/);if(m)map[m[1]]={b:m[2],t:m[3]};});return map;}
+  // Bats-only view. Drives every platoon call in the Game Plan (§8-D) — and is the ONLY
+  // place our own hitters may be named (§8-B). Thin wrapper so rosterBT() stays the one parse.
+  function rosterBats(){var bt=rosterBT(),map={};Object.keys(bt).forEach(function(j){map[j]=bt[j].b;});return map;}
+  // Header B/T label — full pair when both known, one side when only one is, '' when neither.
+  // Never fills a missing side with a guess; an empty return means "don't show the chip".
+  function btLabel(b,t){if(b&&t)return b+'/'+t;if(t)return '\u2013/'+t;if(b)return b+'/\u2013';return '';}
   function ourTeam(){var teams=statTeams();if(teams.length<2)return null;var opp=currentTeam();
     return teams.filter(function(t){return !opp||t.team!==opp.team;})[0]||null;}
   function currentTeam(){var teams=statTeams();if(!teams.length)return null;var sel=teams.filter(function(t){return t.team===selectedTeam;})[0];if(sel)return sel;
@@ -286,7 +295,7 @@
   function fmtSlash(b){return (b&&b.avg!=null)?d3(b.avg)+'/'+d3(b.obp)+'/'+d3(b.slg):null;}
 
   function assembleHitters(){
-    var team=currentTeam()||{hit:[]};var idx=indexByKey(team.hit);var rep=synergyByPlayer('synergyHit');var out=[];
+    var team=currentTeam()||{hit:[]};var idx=indexByKey(team.hit);var rep=synergyByPlayer('synergyHit');var bt=rosterBT();var out=[];
     var maxSlg=0;team.hit.forEach(function(s){var v=parseFloat(s.slg)||0;if(v>maxSlg)maxSlg=v;});
     Object.keys(rep).forEach(function(k){var r=rep[k],cs=idx[k]||{},ov=r.Overall||{mix:{},bip:{}};
       var nm=cs.name||r[Object.keys(r)[0]].name,last,first;
@@ -300,7 +309,7 @@
           avg:b.avg!=null?parseFloat(b.avg):null,obp:b.obp!=null?parseFloat(b.obp):null,slg:b.slg!=null?parseFloat(b.slg):null,gb:(rep2.bip||{}).gb});});
       var want=['Overall','vsFB','vsSL','vsCB','vsCH','INF','OF'];var missing=want.filter(function(s){return !r[s];});
       var mySlg=parseFloat(cs.slg)||0;
-      out.push({last:(last||'').toUpperCase(),first:first||'',jersey:cs.num||'?',bats:null,
+      out.push({last:(last||'').toUpperCase(),first:first||'',jersey:cs.num||'?',bats:(bt[cs.num]||{}).b||null,throws:(bt[cs.num]||{}).t||null,
         slash:(cs.avg!=null?d3(cs.avg)+' / '+d3(cs.obp)+' / '+d3(cs.slg):'—'),
         counts:{hr:cs.hr||0,db:cs.db||0,k:cs.k||0,bb:cs.bb||0,sb:cs.sb||0,sh:cs.sh||0,gdp:(cs.gdp==null?null:cs.gdp)},
         chase:(ov.mix.Overall||{}).chase||0,obp:parseFloat(cs.obp)||0,avg:parseFloat(cs.avg)||0,
@@ -310,13 +319,13 @@
     return out.sort(function(a,b){return b.pa-a.pa;});}
 
   function assemblePitchers(){
-    var team=currentTeam()||{pit:[]};var idx=indexByKey(team.pit);var rep=synergyByPlayer('synergyPit');var thr=rosterThrows();var out=[];
+    var team=currentTeam()||{pit:[]};var idx=indexByKey(team.pit);var rep=synergyByPlayer('synergyPit');var thr=rosterThrows();var bt=rosterBT();var out=[];
     Object.keys(rep).forEach(function(k){var r=rep[k],cs=idx[k]||{},ov=r.Overall||{mix:{}};
       var nm=cs.name||r[Object.keys(r)[0]].name,last,first;
       if((cs.name||'').indexOf(' ')>=0){var p=cs.name.split(/\s+/);last=p[p.length-1];first=p.slice(0,-1).join(' ');}else if(nm.indexOf(',')>=0){last=nm.split(',')[0].trim();first=(nm.split(',')[1]||'').trim();}else last=nm;
       var ars=[];['Fastball','Sinker','Cutter','Slider','Curveball','Changeup'].forEach(function(p){var o=ov.mix[p];if(o)ars.push({p:p,velo:o.velo,usage:o.usage,miss:o.whiff});});
       var role='';
-      out.push({role:role,last:(last||'').toUpperCase(),first:first||'',jersey:cs.num||'?',throws:thr[cs.num]||'?',
+      out.push({role:role,last:(last||'').toUpperCase(),first:first||'',jersey:cs.num||'?',throws:thr[cs.num]||(bt[cs.num]||{}).t||'?',bats:(bt[cs.num]||{}).b||null,
         line:(cs.era!=null?cs.w+'–'+cs.l+', '+cs.era+' · '+cs.ip+' IP · '+cs.k+' K / '+cs.bb+' BB · '+cs.baa:'—'),
         counts:{hr:cs.hr||0,hbp:cs.hbp||0,wp:cs.wp||0,app:cs.app||0,gs:cs.gs||0,sv:cs.sv||0,ipRaw:cs.ip,era:cs.era},arsenal:ars,
         ahead:(r.Ahead||{}).basic,behind:(r.Behind||{}).basic,behindFB:((r.Behind||{}).mix||{}).Fastball,fbOverall:((ov.mix||{}).Fastball||{}).usage,lhh:(r.vsLHH||{}).basic,rhh:(r.vsRHH||{}).basic});});
@@ -375,8 +384,8 @@
       else parts.push('balanced off the bat — infield straight up');}
     else parts.push('IF alignment pending — needs vs Infielders');
     return parts.join('; ')+'. Pull side not charted — confirm vs the spray chart before shading.';}
-  function hitterBlock(h,rank){var ep=epithet(h);
-    var html='<div class="block"><div class="bhead"><span class="bspot">'+rank+'</span><span class="bname">'+h.last+'</span><span class="bjersey">#'+h.jersey+' · '+h.first+'</span><span class="btag '+ep.cls+'">'+ep.t+'</span><span class="bslash">'+h.slash+'</span></div>';
+  function hitterBlock(h,rank){var ep=epithet(h);var bt=btLabel(h.bats,h.throws);
+    var html='<div class="block"><div class="bhead"><span class="bspot">'+rank+'</span><span class="bname">'+h.last+'</span><span class="bjersey">#'+h.jersey+' · '+h.first+'</span>'+(bt?'<span class="bhand">'+bt+'</span>':'')+'<span class="btag '+ep.cls+'">'+ep.t+'</span><span class="bslash">'+h.slash+'</span></div>';
     html+='<p class="bp line m-circ"><span class="lbl">Profile</span>'+profile(h)+'</p>';
     html+='<p class="bp line out m-check"><span class="lbl">Out</span>'+outLine(h)+'</p>';
     html+='<p class="bp line danger m-tri"><span class="lbl">Danger</span>'+dangerLine(h)+'</p>';
@@ -385,7 +394,7 @@
     html+='<p class="bp line m-dia"><span class="lbl">Defense</span>'+defenseLine(h)+'</p>';
     if(h.missing&&h.missing.length){var lbl={Overall:'overall',vsFB:'vs FB',vsSL:'vs SL',vsCB:'vs CB',vsCH:'vs CH',INF:'infield zone',OF:'outfield zone'};
       html+='<p class="miss-note">⚠ Missing files: '+h.missing.map(function(s){return lbl[s];}).join(', ')+' — that detail is limited until they\u2019re added.</p>';}
-    html+='<p class="hand-note">Bats/throws and lineup spot aren\u2019t in the files (coach-supplied); strategic cross-lineup notes stay yours.</p>';
+    html+='<p class="hand-note">'+(bt?'B/T from the roster; lineup spot is coach-supplied':'Bats/throws and lineup spot aren\u2019t in the files (coach-supplied)')+' — strategic cross-lineup notes stay yours.</p>';
     return html+'</div>';}
 
   // Measures the behind-count fastball spike against the arm's own overall usage.
@@ -555,7 +564,10 @@
     return html;}
 
   function pitcherBlock(p,base){var ars=p.arsenal.map(function(a){return a.p+' '+a.velo+' ('+a.usage+'%, '+a.miss+'% miss)';}).join(' · ')||'—';
-    var html='<div class="block"><div class="bhead"><span class="bspot">'+p.role.charAt(0)+'</span><span class="bname">'+p.last+'</span><span class="bjersey">#'+p.jersey+' · '+p.first+' · '+(p.throws==='?'?'?HP':p.throws+'HP')+'</span><span class="btag">'+p.role+'</span><span class="bslash">'+p.line+'</span></div>';
+    // Throwing hand leads the pitcher read (RHP/LHP). Bats side is only surfaced when it's
+    // non-obvious — a switch hitter or a bat opposite the throwing hand, i.e. the two-way tell.
+    var batFlag=(p.bats&&(p.bats==='S'||(p.throws!=='?'&&p.bats!==p.throws)))?'<span class="bhand">bats '+p.bats+'</span>':'';
+    var html='<div class="block"><div class="bhead"><span class="bspot">'+p.role.charAt(0)+'</span><span class="bname">'+p.last+'</span><span class="bjersey">#'+p.jersey+' · '+p.first+' · '+(p.throws==='?'?'?HP':p.throws+'HP')+'</span>'+batFlag+'<span class="btag">'+p.role+'</span><span class="bslash">'+p.line+'</span></div>';
     html+='<p class="bp line m-circ"><span class="lbl">Arsenal</span>'+ars+'.</p>';
     // SPEC §8-C: 3-2 sits in Behind, so BB-when-ahead is structurally 0 and BB-when-behind
     // is just the season walk total. Only the slash and the fastball-usage spike compare
