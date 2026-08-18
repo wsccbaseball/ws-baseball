@@ -1017,6 +1017,7 @@ function buildTrendTable(){
 async function boot(){
   try{
     setProgress(5,'Loading season stats...');
+    if(/-spring$/.test(CURRENT_SEASON)){
     try{
       var edgeRes=await fetch(SUPABASE_URL+'/functions/v1/fetch-boxscore?url=season-stats',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
       var edgeData=await edgeRes.json();
@@ -1028,6 +1029,7 @@ async function boot(){
         });
       }
     }catch(e){console.warn('Season stats unavailable',e);}
+    }
     setProgress(20,'Loading games...');
     gamesMeta=await supaFetch('games?select=game_id,display_name,date,season,game_type&order=date.asc,display_name.asc');
     gamesMeta=gamesMeta.filter(function(g){
