@@ -305,6 +305,9 @@ var RE24=[[0.544,0.941,1.170,1.556,1.321,1.743,1.978,2.395],[0.291,0.587,0.700,1
 var COUNT_RE={'0-0':0.444,'1-0':0.562,'2-0':0.628,'3-0':0.765,'0-1':0.306,'1-1':0.380,'2-1':0.437,'3-1':0.622,'0-2':0.191,'1-2':0.250,'2-2':0.305,'3-2':0.456};
 var allPitches=[], seasonStats={batting:[]}, gamesMeta=[], tableData=[];
 var sortCol='woba', sortAsc=false, selectedPlayer=null;
+var _qs=new URLSearchParams(location.search);
+var CURRENT_SEASON=_qs.get('season')||'2026-spring';
+var INCLUDE_INTERSQUAD=_qs.get('intersquad')==='1';
 
 var PITCH_COLORS={
   'Fastball':'#e63946','Four-Seam':'#e63946','FourSeamFastBall':'#e63946',
@@ -672,7 +675,12 @@ async function boot(){
     var edgeRes=await fetch(SUPABASE_URL+'/functions/v1/fetch-boxscore?url=season-stats',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
     var edgeData=await edgeRes.json();if(edgeData.batting)seasonStats=edgeData;
     setProgress(20,'Loading games...');
-    gamesMeta=await supaFetch('games?select=game_id,display_name,date&order=date.asc,display_name.asc');
+    gamesMeta=await supaFetch('games?select=game_id,display_name,date,season,game_type&order=date.asc,display_name.asc');
+    gamesMeta=gamesMeta.filter(function(g){
+      if((g.season||'')!==CURRENT_SEASON)return false;
+      if(!INCLUDE_INTERSQUAD&&(g.game_type||'game')!=='game')return false;
+      return true;
+    });
     populateGameFilter();
     setProgress(30,'Loading pitch data...');
     allPitches=[];
@@ -772,7 +780,7 @@ boot();
 // ── Main Tab Switching ────────────────────────────────────────
 function switchMainTab(tab){
   document.querySelectorAll('.main-tab').forEach(function(t){t.classList.remove('active');});
-  document.querySelector('.main-tab[onclick="switchMainTab(\''+tab+'\')"]').classList.add('active');
+  document.querySelector('.main-tab[onclick="switchMainTab(\'' + tab + '\')"]').classList.add('active');
   document.getElementById('tab-leaderboard').style.display = tab==='leaderboard'?'block':'none';
   document.getElementById('tab-visuals').style.display     = tab==='visuals'?'block':'none';
 }
@@ -863,6 +871,13 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
     return (r.PitchCall||'').trim()==='InPlay';
   });
 
+  // Plate — hardcoded TrackMan constants
+  // Back tip at Y≈0, front edge at Y≈1.7, width 17" = 0.708ft each side
+  var PLATE_FRONT    = 1.70;   // front edge (toward pitcher)
+  var PLATE_HALF     = 0.708;  // half-width (17"/2)
+  var PLATE_BACK     = 0.0;    // back tip (catcher side)
+  var PLATE_SHOULDER = 0.71;   // where rectangle meets the angled sides (~8.5" up from tip)
+
   // Coordinate range:
   // X always symmetric around 0 (plate center) — prevents false "outside" appearance
   // Y auto-scales from data but always anchors front-of-plate (0) near bottom quarter
@@ -881,11 +896,6 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
   var xHalf = 2.0;
   var X_MIN = -xHalf, X_MAX = xHalf;
 
-  // Y: auto-scale from data, but always include 0 (front of plate) near the bottom
-  var yDataMin = hasData ? Math.min.apply(null,ys) : -0.3;
-  var yDataMax = hasData ? Math.max.apply(null,ys) :  2.0;
-  var yPad = Math.max((yDataMax - yDataMin) * 0.15, 0.2);
-  // Ensure 0 (front of plate) is always visible, with at least 0.4ft below it for the plate shape
   // Y fixed range matching TrackMan reference: -0.3 to 4.5
   // Back tip at ~0, front edge at ~1.7, contact out front up to ~4
   var Y_MIN = -0.3;
@@ -911,18 +921,7 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
   ctx.beginPath(); ctx.moveTo(toCanvasX(0),PAD_T); ctx.lineTo(toCanvasX(0),PAD_T+GH); ctx.stroke();
   ctx.setLineDash([]);
 
-  // Front-of-plate dashed reference line (drawn after plate so it appears on top)
-  ctx.strokeStyle='rgba(255,220,100,0.5)'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
-  ctx.beginPath(); ctx.moveTo(PAD_L,toCanvasY(PLATE_FRONT)); ctx.lineTo(PAD_L+GW,toCanvasY(PLATE_FRONT)); ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Plate — hardcoded TrackMan constants
-  // Back tip at Y≈0, front edge at Y≈1.7, width 17" = 0.708ft each side
-  var PLATE_FRONT    = 1.70;   // front edge (toward pitcher)
-  var PLATE_HALF     = 0.708;  // half-width (17"/2)
-  var PLATE_BACK     = 0.0;    // back tip (catcher side)
-  var PLATE_SHOULDER = 0.71;   // where rectangle meets the angled sides (~8.5" up from tip)
-
+  // Plate outline
   ctx.fillStyle='rgba(255,255,255,0.10)';
   ctx.strokeStyle='rgba(255,255,255,0.90)'; ctx.lineWidth=1.5;
   ctx.setLineDash([]);
@@ -933,6 +932,11 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
   ctx.lineTo(toCanvasX(0),           toCanvasY(PLATE_BACK));     // back tip
   ctx.lineTo(toCanvasX(-PLATE_HALF), toCanvasY(PLATE_SHOULDER)); // shoulder-left
   ctx.closePath(); ctx.fill(); ctx.stroke();
+
+  // Front-of-plate dashed reference line
+  ctx.strokeStyle='rgba(255,220,100,0.5)'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(PAD_L,toCanvasY(PLATE_FRONT)); ctx.lineTo(PAD_L+GW,toCanvasY(PLATE_FRONT)); ctx.stroke();
+  ctx.setLineDash([]);
 
   // Axis labels
   ctx.fillStyle='rgba(255,255,255,0.55)';
