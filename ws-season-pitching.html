@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -198,104 +197,102 @@ canvas{display:block;border-radius:4px}
       <div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div>
     </div>
 
-```
-<!-- Season Stats — hidden when game filter active -->
-<div class="stat-section" id="seasonStatsSection">
-  <span class="stat-section-label">Season Stats</span>
-  <div class="stat-row">
-    <div class="stat-box"><span class="stat-val hi" id="sTBF">&#8212;</span><span class="stat-lbl">IP</span></div>
-    <div class="stat-box"><span class="stat-val hi" id="sWOBA">&#8212;</span><span class="stat-lbl">wOBA</span></div>
-    <div class="stat-box"><span class="stat-val" id="sKPct">&#8212;</span><span class="stat-lbl">K%</span></div>
-    <div class="stat-box"><span class="stat-val" id="sBBPct">&#8212;</span><span class="stat-lbl">BB%</span></div>
-    <div class="stat-box"><span class="stat-val hi" id="sERA">&#8212;</span><span class="stat-lbl">ERA</span></div>
-    <div class="stat-box"><span class="stat-val hi" id="sFIP">&#8212;</span><span class="stat-lbl">FIP</span></div>
-    <div class="stat-box"><span class="stat-val hi" id="sGS">&#8212;</span><span class="stat-lbl">Avg GS</span></div>
-  </div>
-</div>
-
-<!-- Stuff -->
-<div class="stat-section">
-  <span class="stat-section-label">Stuff &middot; TrackMan</span>
-  <div class="stat-row">
-    <div class="stat-box"><span class="stat-val hi" id="tMaxVelo">&#8212;</span><span class="stat-lbl">Max Velo</span></div>
-    <div class="stat-box"><span class="stat-val" id="tCSW">&#8212;</span><span class="stat-lbl">CSW%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tSwStr">&#8212;</span><span class="stat-lbl">SwStr%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tChase">&#8212;</span><span class="stat-lbl">Chase%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tPutAway">&#8212;</span><span class="stat-lbl">Put Away%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tFPS">&#8212;</span><span class="stat-lbl">FPS%</span></div>
-  </div>
-</div>
-
-<!-- Contact Quality Against -->
-<div class="stat-section">
-  <span class="stat-section-label">Contact Quality Against &middot; TrackMan</span>
-  <div class="stat-row">
-    <div class="stat-box"><span class="stat-val" id="tHard">&#8212;</span><span class="stat-lbl">Hard%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tSolid">&#8212;</span><span class="stat-lbl">Solid%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tGB2">&#8212;</span><span class="stat-lbl">GB%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tFB">&#8212;</span><span class="stat-lbl">FB%</span></div>
-    <div class="stat-box"><span class="stat-val" id="tMaxEV">&#8212;</span><span class="stat-lbl">Max EV</span></div>
-    <div class="stat-box"><span class="stat-val" id="tAvgEV">&#8212;</span><span class="stat-lbl">Best Speed</span></div>
-  </div>
-</div>
-
-<!-- Zone Heat Maps -->
-<div class="hmap-section">
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-    <div>
-      <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Fastball Location</div>
-      <canvas id="zmapWoba" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+    <!-- Season Stats — hidden when game filter active -->
+    <div class="stat-section" id="seasonStatsSection">
+      <span class="stat-section-label">Season Stats</span>
+      <div class="stat-row">
+        <div class="stat-box"><span class="stat-val hi" id="sTBF">&#8212;</span><span class="stat-lbl">IP</span></div>
+        <div class="stat-box"><span class="stat-val hi" id="sWOBA">&#8212;</span><span class="stat-lbl">wOBA</span></div>
+        <div class="stat-box"><span class="stat-val" id="sKPct">&#8212;</span><span class="stat-lbl">K%</span></div>
+        <div class="stat-box"><span class="stat-val" id="sBBPct">&#8212;</span><span class="stat-lbl">BB%</span></div>
+        <div class="stat-box"><span class="stat-val hi" id="sERA">&#8212;</span><span class="stat-lbl">ERA</span></div>
+        <div class="stat-box"><span class="stat-val hi" id="sFIP">&#8212;</span><span class="stat-lbl">FIP</span></div>
+        <div class="stat-box"><span class="stat-val hi" id="sGS">&#8212;</span><span class="stat-lbl">Avg GS</span></div>
+      </div>
     </div>
-    <div>
-      <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px" id="zmapBreakLabel">Breaking Ball Location</div>
-      <canvas id="zmapHard" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-    </div>
-    <div>
-      <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">SwStr Locations</div>
-      <canvas id="zmapWhiff" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-    </div>
-    <div>
-      <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Hard Hit Locations</div>
-      <canvas id="zmapSwStr" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
-    </div>
-  </div>
-  <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View &middot; looking toward the pitcher</div>
-</div>
 
-<!-- Pitch Arsenal -->
-<div class="pitch-section">
-  <span class="stat-section-label" style="display:block;margin-bottom:4px">Pitch Arsenal</span>
-  <table class="pitch-table">
-    <thead><tr>
-      <th style="text-align:left">Pitch</th>
-      <th>Usage</th><th>Velo</th><th>Max</th><th>iVB</th><th>HB</th>
-      <th>Spin</th><th>VAA</th><th>RelH</th><th>Ext</th>
-      <th>SwStr%</th><th>Chase%</th><th>Str%</th><th>Hard%</th>
-    </tr></thead>
-    <tbody id="pitchTableBody"></tbody>
-  </table>
-</div>
+    <!-- Stuff -->
+    <div class="stat-section">
+      <span class="stat-section-label">Stuff &middot; TrackMan</span>
+      <div class="stat-row">
+        <div class="stat-box"><span class="stat-val hi" id="tMaxVelo">&#8212;</span><span class="stat-lbl">Max Velo</span></div>
+        <div class="stat-box"><span class="stat-val" id="tCSW">&#8212;</span><span class="stat-lbl">CSW%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tSwStr">&#8212;</span><span class="stat-lbl">SwStr%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tChase">&#8212;</span><span class="stat-lbl">Chase%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tPutAway">&#8212;</span><span class="stat-lbl">Put Away%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tFPS">&#8212;</span><span class="stat-lbl">FPS%</span></div>
+      </div>
+    </div>
 
-<!-- Results by Pitch Type -->
-<div class="pitch-section" style="border-top:2px solid #1a3a5c;padding-top:0">
-  <div style="font-family:'Anton',sans-serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;background:#1a3a5c;color:#fff;padding:3px 6px;margin:0 -6px 4px;display:block">Results by Pitch Type</div>
-  <table class="pitch-table">
-    <thead><tr>
-      <th style="text-align:left">Pitch</th>
-      <th>AB</th><th>AVG</th><th>SLG</th><th>ISO</th>
-      <th>Whf%</th><th>GB%</th><th>Brl%</th><th>wOBA</th>
-    </tr></thead>
-    <tbody id="execTableBody"></tbody>
-  </table>
-</div>
+    <!-- Contact Quality Against -->
+    <div class="stat-section">
+      <span class="stat-section-label">Contact Quality Against &middot; TrackMan</span>
+      <div class="stat-row">
+        <div class="stat-box"><span class="stat-val" id="tHard">&#8212;</span><span class="stat-lbl">Hard%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tSolid">&#8212;</span><span class="stat-lbl">Solid%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tGB2">&#8212;</span><span class="stat-lbl">GB%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tFB">&#8212;</span><span class="stat-lbl">FB%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tMaxEV">&#8212;</span><span class="stat-lbl">Max EV</span></div>
+        <div class="stat-box"><span class="stat-val" id="tAvgEV">&#8212;</span><span class="stat-lbl">Best Speed</span></div>
+      </div>
+    </div>
 
-<div class="card-footer">
-  <div>&#9918; Walters State CC &middot; 2026</div>
-  <div>Data: TrackMan</div>
-  <div id="footR">wsccbaseball.github.io</div>
-</div>
-<button class="save-btn" onclick="saveCard()">&#128229; SAVE CARD IMAGE</button>
-```
+    <!-- Zone Heat Maps -->
+    <div class="hmap-section">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div>
+          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Fastball Location</div>
+          <canvas id="zmapWoba" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+        </div>
+        <div>
+          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px" id="zmapBreakLabel">Breaking Ball Location</div>
+          <canvas id="zmapHard" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+        </div>
+        <div>
+          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">SwStr Locations</div>
+          <canvas id="zmapWhiff" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+        </div>
+        <div>
+          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">Hard Hit Locations</div>
+          <canvas id="zmapSwStr" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
+        </div>
+      </div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View &middot; looking toward the pitcher</div>
+    </div>
+
+    <!-- Pitch Arsenal -->
+    <div class="pitch-section">
+      <span class="stat-section-label" style="display:block;margin-bottom:4px">Pitch Arsenal</span>
+      <table class="pitch-table">
+        <thead><tr>
+          <th style="text-align:left">Pitch</th>
+          <th>Usage</th><th>Velo</th><th>Max</th><th>iVB</th><th>HB</th>
+          <th>Spin</th><th>VAA</th><th>RelH</th><th>Ext</th>
+          <th>SwStr%</th><th>Chase%</th><th>Str%</th><th>Hard%</th>
+        </tr></thead>
+        <tbody id="pitchTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Results by Pitch Type -->
+    <div class="pitch-section" style="border-top:2px solid #1a3a5c;padding-top:0">
+      <div style="font-family:'Anton',sans-serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;background:#1a3a5c;color:#fff;padding:3px 6px;margin:0 -6px 4px;display:block">Results by Pitch Type</div>
+      <table class="pitch-table">
+        <thead><tr>
+          <th style="text-align:left">Pitch</th>
+          <th>AB</th><th>AVG</th><th>SLG</th><th>ISO</th>
+          <th>Whf%</th><th>GB%</th><th>Brl%</th><th>wOBA</th>
+        </tr></thead>
+        <tbody id="execTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card-footer">
+      <div>&#9918; Walters State CC &middot; 2026</div>
+      <div>Data: TrackMan</div>
+      <div id="footR">wsccbaseball.github.io</div>
+    </div>
+    <button class="save-btn" onclick="saveCard()">&#128229; SAVE CARD IMAGE</button>
 
   </div>
 </div>
@@ -319,6 +316,8 @@ var allPitches=[], gamesMeta=[], tableData=[];
 var sortCol='tbf', sortAsc=false, selectedPitcher=null;
 var seasonPitching={};
 var FIP_CONSTANT=5.49;
+var CURRENT_SEASON='2026-spring';
+var INCLUDE_INTERSQUAD=false;
 
 var PITCH_COLORS={
   'Fastball':'#e63946','Four-Seam':'#e63946','FourSeamFastBall':'#e63946',
@@ -1029,7 +1028,12 @@ async function boot(){
       }
     }catch(e){console.warn('Season stats unavailable',e);}
     setProgress(20,'Loading games...');
-    gamesMeta=await supaFetch('games?select=game_id,display_name,date&order=date.asc,display_name.asc');
+    gamesMeta=await supaFetch('games?select=game_id,display_name,date,season,game_type&order=date.asc,display_name.asc');
+    gamesMeta=gamesMeta.filter(function(g){
+      if((g.season||'')!==CURRENT_SEASON)return false;
+      if(!INCLUDE_INTERSQUAD&&(g.game_type||'game')!=='game')return false;
+      return true;
+    });
     populateGameFilter();
     setProgress(30,'Loading pitch data...');
     allPitches=[];
