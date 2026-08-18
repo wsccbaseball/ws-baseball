@@ -672,8 +672,12 @@ function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 async function boot(){
   try{
     setProgress(5,'Loading season stats...');
-    var edgeRes=await fetch(SUPABASE_URL+'/functions/v1/fetch-boxscore?url=season-stats',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
-    var edgeData=await edgeRes.json();if(edgeData.batting)seasonStats=edgeData;
+    if(/-spring$/.test(CURRENT_SEASON)){
+      try{
+        var edgeRes=await fetch(SUPABASE_URL+'/functions/v1/fetch-boxscore?url=season-stats',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
+        var edgeData=await edgeRes.json();if(edgeData.batting)seasonStats=edgeData;
+      }catch(e){console.warn('Season stats unavailable',e);}
+    }
     setProgress(20,'Loading games...');
     gamesMeta=await supaFetch('games?select=game_id,display_name,date,season,game_type&order=date.asc,display_name.asc');
     gamesMeta=gamesMeta.filter(function(g){
@@ -746,7 +750,7 @@ function onFilterChange(){
 }
 function renderTable(){
   var selectedPlayers=getSelectedPlayers();
-  var data=tableData.filter(function(p){return p.pa>0&&(!selectedPlayers.length||selectedPlayers.includes(p.name));});
+  var data=tableData.filter(function(p){return (p.pa>0||p.totalPitches>0)&&(!selectedPlayers.length||selectedPlayers.includes(p.name));});
   data.sort(function(a,b){var av=a[sortCol]||0,bv=b[sortCol]||0;if(typeof av==='string')return sortAsc?av.localeCompare(bv):bv.localeCompare(av);return sortAsc?av-bv:bv-av;});
   document.getElementById('filterCount').textContent=data.length+' players';
   var tbody=document.getElementById('tableBody');tbody.innerHTML='';
