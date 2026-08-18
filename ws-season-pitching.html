@@ -316,8 +316,9 @@ var allPitches=[], gamesMeta=[], tableData=[];
 var sortCol='tbf', sortAsc=false, selectedPitcher=null;
 var seasonPitching={};
 var FIP_CONSTANT=5.49;
-var CURRENT_SEASON='2026-spring';
-var INCLUDE_INTERSQUAD=false;
+var _qs=new URLSearchParams(location.search);
+var CURRENT_SEASON=_qs.get('season')||'2026-spring';
+var INCLUDE_INTERSQUAD=_qs.get('intersquad')==='1';
 
 var PITCH_COLORS={
   'Fastball':'#e63946','Four-Seam':'#e63946','FourSeamFastBall':'#e63946',
