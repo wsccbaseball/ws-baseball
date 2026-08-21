@@ -262,7 +262,7 @@ function hitterRows(rows){
   var by={};
   rows.forEach(function(r){var n=G(r,'batter')||'Unknown';(by[n]=by[n]||[]).push(r);});
   return Object.keys(by).map(function(n){
-    var rs=by[n],pa=0,sw=0,wh=0,oz=0,ozs=0,iz=0,izs=0,hard=0,bbe=0,bb=null;
+    var rs=by[n],pa=0,sw=0,wh=0,oz=0,ozs=0,iz=0,izs=0,hard=0,bbe=0,evs=[];
     var H=0,AB=0,BB=0,HBP=0,K=0,d2=0,d3=0,HR=0;
     rs.forEach(function(r){
       var c=G(r,'call'), z=inZone(r);
@@ -273,9 +273,8 @@ function hitterRows(rows){
       if(z===false){oz++;if(isSwing(c))ozs++;}
       var ev=num(G(r,'ev')), la=num(G(r,'la'));
       if(ev!==null){
-        bbe++;
+        bbe++;evs.push(ev);
         if(ev>=95)hard++;
-        if(!bb||ev>bb.ev)bb={ev:ev,la:la};
       }
       var kb=G(r,'korbb'), pr=G(r,'result');
       if(kb==='Strikeout'){K++;AB++;}
@@ -297,12 +296,15 @@ function hitterRows(rows){
     if(BB)parts.push((BB>1?BB+' ':'')+'BB');
     if(HBP)parts.push((HBP>1?HBP+' ':'')+'HBP');
     if(K)parts.push((K>1?K+' ':'')+'K');
-    var bin=function(la){if(la===null||la===undefined)return '';return la<10?'GB':la<25?'LD':la<50?'FB':'PU';};
+    /* Zone minus chase: swings at strikes less swings at balls, in points.
+       Both halves are pitch-level, so it holds up on a single game. */
+    var zo=(iz&&oz)?((100*izs/iz)-(100*ozs/oz)):null;
     return {name:n,pa:pa,sw:[sw,rs.length],wh:[wh,sw],ch:[ozs,oz],iz:[izs,iz],
+            zo:zo,zoOK:(iz>=5&&oz>=6),
             hh:[hard,bbe],
+            mev:evs.length?Math.max.apply(null,evs):null,
             ppa:pa?rs.length/pa:null,
-            res:parts.join(', '),
-            best:bb?(Math.round(bb.ev)+' mph '+bin(bb.la)):''};
+            res:parts.join(', ')};
   }).sort(function(a,b){return b.pa-a.pa;});
 }
 
@@ -324,6 +326,16 @@ function xlRate(cell,pair,good,bad,invert,dim,minD){
   var g=invert?(p<=good):(p>=good);
   var b=invert?(p>=bad):(p<=bad);
   cell.fill=fillOf(g?XC.grn:(b?XC.red:XC.yel));
+}
+function xlSigned(cell,v,good,bad,dim,ok){
+  cell.border=boxB();
+  cell.alignment={horizontal:'center',vertical:'middle'};
+  if(v===null||v===undefined){cell.value='\u2014';cell.font={name:'Arial',size:10,color:{argb:XC.gray}};return;}
+  cell.value=Math.round(v);
+  cell.numFmt='+0;-0;0';
+  cell.font={name:'Arial',size:10,color:{argb:dim?XC.gray:XC.ink}};
+  if(dim||!ok)return;
+  cell.fill=fillOf(v>=good?XC.grn:(v<=bad?XC.red:XC.yel));
 }
 function xlNum(cell,v,good,bad,dim){
   cell.border=boxB();
@@ -404,7 +416,7 @@ async function buildWorkbookBuffer(P,H){
 
   r++;
   band('HITTING');
-  head(['HITTER','PA','Pitches / PA','Swings','Swing & Miss','Chases','Swings in Zone','Hard Hit','Results','Best Ball']);
+  head(['HITTER','PA','Pitches / PA','Swings','Swing & Miss','Chases','Swings in Zone','Zone - Chase','Hard Hit','Max Exit Velo','Results']);
   H.forEach(function(d){
     var dim=d.pa<3;
     xlPlain(ws.getCell(r,1),d.name,dim,true);
@@ -414,9 +426,10 @@ async function buildWorkbookBuffer(P,H){
     xlRate(ws.getCell(r,5),d.wh,20,30,true,dim,6);
     xlRate(ws.getCell(r,6),d.ch,20,30,true,dim,6);
     xlRate(ws.getCell(r,7),d.iz,65,45,false,dim,5);
-    xlRate(ws.getCell(r,8),d.hh,35,20,false,dim,4);
-    xlPlain(ws.getCell(r,9),d.res,dim,true);
-    xlPlain(ws.getCell(r,10),d.best,dim,true);
+    xlSigned(ws.getCell(r,8),d.zo,30,15,dim,d.zoOK);
+    xlRate(ws.getCell(r,9),d.hh,35,20,false,dim,4);
+    xlPlain(ws.getCell(r,10),d.mev,dim,false,1);
+    xlPlain(ws.getCell(r,11),d.res,dim,true);
     r++;
   });
 
