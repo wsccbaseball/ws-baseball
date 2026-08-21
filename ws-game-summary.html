@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>WS Full Game Summary</title>
 <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Anton&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{max-width:100vw;overflow-x:hidden}
@@ -28,7 +29,7 @@ body{font-family:'Barlow Condensed',sans-serif;background:#f2ead8;min-height:100
 #out-screen{padding:10px 10px 80px}
 pre.readout{background:#fffdf7;border:1px solid #ddd5bc;border-radius:4px;padding:10px 8px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;line-height:1.45;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:pre;color:#1a1a2e}
 .no-data{text-align:center;padding:40px;color:#9b8c74;font-family:'Barlow',sans-serif;font-size:.9rem}
-.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#1a3a5c;padding:10px 14px;display:flex;gap:8px;z-index:20}
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#1a3a5c;padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px;z-index:20}
 .gen-btn{flex:1;padding:11px;background:#fff;border:none;font-family:'Anton',sans-serif;font-size:.9rem;letter-spacing:.08em;color:#1a3a5c;cursor:pointer;border-radius:6px}
 .gen-btn:disabled{background:rgba(255,255,255,.3);color:rgba(255,255,255,.5);cursor:not-allowed}
 </style>
@@ -87,16 +88,17 @@ pre.readout{background:#fffdf7;border:1px solid #ddd5bc;border-radius:4px;paddin
 </div>
 
 <div class="bottom-bar" id="bottomBar" style="display:none">
-  <button class="gen-btn" id="buildBtn" onclick="buildSummary()">Build Summary &rarr;</button>
-  <button class="gen-btn" id="copyBtn" disabled onclick="copyOut()" style="flex:0 0 88px">Copy</button>
-  <button class="gen-btn" id="saveBtn" disabled onclick="saveOut()" style="flex:0 0 88px">Save</button>
+  <button class="gen-btn" id="buildBtn" onclick="buildSummary()" style="flex:1 1 100%">Build Summary &rarr;</button>
+  <button class="gen-btn" id="copyBtn" disabled onclick="copyOut()">Copy</button>
+  <button class="gen-btn" id="saveBtn" disabled onclick="saveOut()">Save .txt</button>
+  <button class="gen-btn" id="xlsxBtn" disabled onclick="saveExcel()">Excel</button>
 </div>
 
 <script>
 var SUPABASE_URL='https://mghrapwhvihpwgqryail.supabase.co';
 var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
 
-var allGamesMeta=[], gamesMeta=[], LASTTEXT='';
+var allGamesMeta=[], gamesMeta=[], LASTTEXT='', LASTROWS=null, LASTGAME=null, LASTSCOPE='wal';
 var _qs=new URLSearchParams(location.search);
 var CURRENT_SEASON=_qs.get('season')||'2026-spring';
 var GAME_TYPE_MODE=_qs.get('type')||(_qs.get('intersquad')==='1'?'all':'game');
@@ -354,6 +356,227 @@ function buildText(game,rows,scope){
   return L.join('\n');
 }
 
+
+/* ---------- Excel export (coach one-pager) ---------- */
+var PITCH_ABBREV={'Fastball':'FB','Sinker':'SI','Curveball':'CB','Slider':'SL',
+  'Cutter':'CT','ChangeUp':'CH','Splitter':'SP','Knuckleball':'KN'};
+function abbr(p){return PITCH_ABBREV[p]||String(p).slice(0,2).toUpperCase();}
+
+var XC={navy:'FF1A3A5C',hdr:'FFDDE5EE',grn:'FFD6EFD8',yel:'FFFFF2CC',red:'FFF8D7DA',
+        ink:'FF1A1A2E',gray:'FF999999',mute:'FF6B5F47'};
+function box(){var t={style:'thin',color:{argb:'FFC9BFA6'}};return{top:t,left:t,right:t,bottom:t};}
+function fillOf(c){return{type:'pattern',pattern:'solid',fgColor:{argb:c}};}
+
+function pitcherRows(rows){
+  var by={};
+  rows.forEach(function(r){var n=G(r,'pitcher')||'Unknown';(by[n]=by[n]||[]).push(r);});
+  return Object.keys(by).map(function(n){
+    var rs=by[n], np=rs.length;
+    var fp=rs.filter(function(r){return num(G(r,'pofpa'))===1;});
+    var st=0,wh=0,fps=0;
+    var oz=[],ozs=0,bbe=[],hard=0,velos=[],fbv=[],byT={};
+    rs.forEach(function(r){
+      var c=G(r,'call'), iz=inZone(r);
+      if(isStrike(c))st++;
+      if(isWhiff(c))wh++;
+      if(iz===false){oz.push(r);if(isSwing(c))ozs++;}
+      var ev=num(G(r,'ev'));
+      if(ev!==null){bbe.push(ev);if(ev>=95)hard++;}
+      var v=num(G(r,'velo'));
+      if(v!==null)velos.push(v);
+      var p=PT(r);
+      if(p!=='Untracked'){
+        (byT[p]=byT[p]||[]).push(r);
+        if((p==='Fastball'||p==='Sinker')&&v!==null)fbv.push(v);
+      }
+    });
+    fp.forEach(function(r){if(isStrike(G(r,'call')))fps++;});
+    var best='', keys=Object.keys(byT);
+    var cands=keys.filter(function(k){return byT[k].length>=3;});
+    function wr(k){return byT[k].filter(function(r){return isWhiff(G(r,'call'));}).length/byT[k].length;}
+    function sr(k){return byT[k].filter(function(r){return isStrike(G(r,'call'));}).length/byT[k].length;}
+    if(cands.length){
+      var b=cands.sort(function(a,c){return wr(c)-wr(a)||byT[c].length-byT[a].length;})[0];
+      if(wr(b)>0)best=abbr(b)+' '+Math.round(wr(b)*100)+'% miss';
+    }
+    if(!best&&keys.length){
+      var t=keys.sort(function(a,c){return byT[c].length-byT[a].length;})[0];
+      best=abbr(t)+' '+Math.round(sr(t)*100)+'% strikes';
+    }
+    return {name:n,np:np,bf:fp.length,st:[st,np],fps:[fps,fp.length],wh:[wh,np],
+            ch:[ozs,oz.length],hh:[hard,bbe.length],
+            top:velos.length?Math.max.apply(null,velos):null,
+            fb:fbv.length?avg(fbv):null,best:best};
+  }).sort(function(a,b){return b.np-a.np;});
+}
+
+function hitterRows(rows){
+  var by={};
+  rows.forEach(function(r){var n=G(r,'batter')||'Unknown';(by[n]=by[n]||[]).push(r);});
+  return Object.keys(by).map(function(n){
+    var rs=by[n],pa=0,sw=0,wh=0,oz=0,ozs=0,iz=0,izs=0,evs=[],hard=0,gb=0,bbe=0,bb=null;
+    rs.forEach(function(r){
+      var c=G(r,'call'), z=inZone(r);
+      if(num(G(r,'pofpa'))===1)pa++;
+      if(isSwing(c))sw++;
+      if(isWhiff(c))wh++;
+      if(z===true){iz++;if(isSwing(c))izs++;}
+      if(z===false){oz++;if(isSwing(c))ozs++;}
+      var ev=num(G(r,'ev')), la=num(G(r,'la'));
+      if(ev!==null){
+        bbe++;evs.push(ev);
+        if(ev>=95)hard++;
+        if(la!==null&&la<10)gb++;
+        if(!bb||ev>bb.ev)bb={ev:ev,la:la};
+      }
+    });
+    var bin=function(la){if(la===null||la===undefined)return '';return la<10?'GB':la<25?'LD':la<50?'FB':'PU';};
+    return {name:n,pa:pa,sw:[sw,rs.length],wh:[wh,sw],ch:[ozs,oz],iz:[izs,iz],
+            hh:[hard,bbe],aev:evs.length?avg(evs):null,
+            mev:evs.length?Math.max.apply(null,evs):null,gb:[gb,bbe],
+            best:bb?(Math.round(bb.ev)+' mph '+bin(bb.la)):''};
+  }).sort(function(a,b){return b.pa-a.pa;});
+}
+
+function xlRate(cell,pair,good,bad,invert,dim,minD){
+  var n=pair[0], d=pair[1];
+  cell.border=box();
+  cell.alignment={horizontal:'center',vertical:'middle'};
+  if(!d){cell.value='\u2014';cell.font={name:'Arial',size:10,color:{argb:XC.gray}};return;}
+  var p=100*n/d;
+  cell.value=Math.round(p)+'% ('+n+'/'+d+')';
+  cell.font={name:'Arial',size:10,color:{argb:dim?XC.gray:XC.ink}};
+  /* Too few chances to judge: print the number, withhold the verdict. */
+  if(dim||d<(minD||1))return;
+  var good_=invert?(p<=good):(p>=good);
+  var bad_=invert?(p>=bad):(p<=bad);
+  cell.fill=fillOf(good_?XC.grn:(bad_?XC.red:XC.yel));
+}
+function xlPlain(cell,v,dim,left,dec){
+  if(v===null||v===undefined||v==='')v='\u2014';
+  else if(dec!==undefined&&dec!==null&&typeof v==='number')v=Math.round(v*Math.pow(10,dec))/Math.pow(10,dec);
+  cell.value=v;
+  cell.border=box();
+  cell.font={name:'Arial',size:10,bold:!!left,color:{argb:dim?XC.gray:XC.ink}};
+  cell.alignment={horizontal:left?'left':'center',vertical:'middle'};
+}
+
+async function saveExcel(){
+  if(!LASTROWS){return;}
+  var btn=document.getElementById('xlsxBtn'), orig=btn.textContent;
+  btn.disabled=true;btn.textContent='...';
+  try{
+    buildNorm(LASTROWS[0]);
+    var mine=function(t){return /wal/i.test(t||'');};
+    var scope=LASTSCOPE;
+    var pR=LASTROWS.filter(function(r){var t=G(r,'pTeam');return scope==='all'?true:(scope==='wal'?mine(t):!mine(t));});
+    var bR=LASTROWS.filter(function(r){var t=G(r,'bTeam');return scope==='all'?true:(scope==='wal'?mine(t):!mine(t));});
+    var P=pitcherRows(pR), H=hitterRows(bR);
+
+    var wb=new ExcelJS.Workbook();
+    var ws=wb.addWorksheet('Game Report');
+    var NC=11;
+    ws.columns=[{width:20},{width:8},{width:8},{width:13},{width:13},{width:13},
+                {width:13},{width:13},{width:9},{width:9},{width:16}];
+
+    ws.mergeCells(1,1,1,NC);
+    var t=ws.getCell(1,1);
+    t.value=(gameLabel(LASTGAME)||'').toUpperCase();
+    t.font={name:'Arial',bold:true,size:16,color:{argb:XC.navy}};
+    t.alignment={horizontal:'left',vertical:'middle'};
+    ws.getRow(1).height=24;
+
+    ws.mergeCells(2,1,2,NC);
+    var sub=ws.getCell(2,1);
+    sub.value='Walters State  \u00b7  '+(LASTGAME.date||'').slice(0,10)+'  \u00b7  '+LASTROWS.length+' pitches  \u00b7  TrackMan';
+    sub.font={name:'Arial',size:9,color:{argb:XC.mute}};
+
+    var r=4;
+    function band(text){
+      ws.mergeCells(r,1,r,NC);
+      var c=ws.getCell(r,1);
+      c.value=text;c.fill=fillOf(XC.navy);
+      c.font={name:'Arial',bold:true,size:11,color:{argb:'FFFFFFFF'}};
+      c.alignment={horizontal:'left',vertical:'middle'};
+      ws.getRow(r).height=20;r++;
+    }
+    function head(list){
+      list.forEach(function(h,i){
+        var c=ws.getCell(r,i+1);
+        c.value=h;c.fill=fillOf(XC.hdr);
+        c.font={name:'Arial',bold:true,size:9,color:{argb:XC.navy}};
+        c.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+        c.border=box();
+      });
+      ws.getRow(r).height=28;r++;
+    }
+
+    band('PITCHING');
+    head(['PITCHER','Pitches','Batters','Strikes','1st Pitch Strikes','Swing & Miss','Chases','Hard Hit','Top Velo','FB Velo','Best Pitch']);
+    P.forEach(function(d){
+      var dim=d.np<10;
+      xlPlain(ws.getCell(r,1),d.name,dim,true);
+      xlPlain(ws.getCell(r,2),d.np,dim);
+      xlPlain(ws.getCell(r,3),d.bf,dim);
+      xlRate(ws.getCell(r,4),d.st,65,55,false,dim,1);
+      xlRate(ws.getCell(r,5),d.fps,60,50,false,dim,4);
+      xlRate(ws.getCell(r,6),d.wh,12,7,false,dim,10);
+      xlRate(ws.getCell(r,7),d.ch,30,20,false,dim,6);
+      xlRate(ws.getCell(r,8),d.hh,25,35,true,dim,4);
+      xlPlain(ws.getCell(r,9),d.top,dim,false,1);
+      xlPlain(ws.getCell(r,10),d.fb,dim,false,1);
+      xlPlain(ws.getCell(r,11),d.best,dim,true);
+      r++;
+    });
+
+    r++;
+    band('HITTING');
+    head(['HITTER','PA','Swings','Swing & Miss','Chases','Swings in Zone','Hard Hit','Avg Exit Velo','Max Exit Velo','Ground Balls','Best Ball']);
+    H.forEach(function(d){
+      var dim=d.pa<3;
+      xlPlain(ws.getCell(r,1),d.name,dim,true);
+      xlPlain(ws.getCell(r,2),d.pa,dim);
+      xlRate(ws.getCell(r,3),d.sw,999,-1,false,true,1);
+      xlRate(ws.getCell(r,4),d.wh,20,30,true,dim,6);
+      xlRate(ws.getCell(r,5),d.ch,20,30,true,dim,6);
+      xlRate(ws.getCell(r,6),d.iz,65,45,false,dim,5);
+      xlRate(ws.getCell(r,7),d.hh,35,20,false,dim,4);
+      xlPlain(ws.getCell(r,8),d.aev,dim,false,1);
+      xlPlain(ws.getCell(r,9),d.mev,dim,false,1);
+      xlRate(ws.getCell(r,10),d.gb,999,-1,false,true,1);
+      xlPlain(ws.getCell(r,11),d.best,dim,true);
+      r++;
+    });
+
+    r++;
+    [['  GOOD  ',XC.grn],['  OK  ',XC.yel],['  NEEDS WORK  ',XC.red]].forEach(function(pair,i){
+      var c=ws.getCell(r,1+i*2);
+      c.value=pair[0];c.fill=fillOf(pair[1]);
+      c.font={name:'Arial',size:9,bold:true};
+      c.alignment={horizontal:'center',vertical:'middle'};c.border=box();
+    });
+    r++;
+    ws.mergeCells(r,1,r,NC);
+    var note=ws.getCell(r,1);
+    note.value='Percentages show the count behind them. Uncolored cells had too few chances to judge. Gray rows are small samples (under 10 pitches / 3 PA). Pitch types from '+(TAGSRC==='tagged'?'live tags':'TrackMan auto-classification')+'.';
+    note.font={name:'Arial',size:8,italic:true,color:{argb:XC.mute}};
+
+    ws.views=[{state:'frozen',xSplit:1}];
+    ws.pageSetup={orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:1,horizontalCentered:true};
+
+    var buf=await wb.xlsx.writeBuffer();
+    var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=(gameLabel(LASTGAME)||LASTGAME.game_id).replace(/[^A-Za-z0-9]+/g,'_')+'_Report.xlsx';
+    a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);},2000);
+  }catch(e){
+    alert('Excel export failed: '+e.message);
+  }
+  btn.textContent=orig;btn.disabled=false;
+}
+
 /* ---------- wiring ---------- */
 function seasonLabel(s){
   var m=String(s).match(/^(\d{4})-(\w+)$/);
@@ -423,6 +646,7 @@ async function buildSummary(){
     document.getElementById('out').textContent=LASTTEXT;
     document.getElementById('copyBtn').disabled=false;
     document.getElementById('saveBtn').disabled=false;
+    document.getElementById('xlsxBtn').disabled=false;
     window.scrollTo(0,0);
   }catch(e){
     document.getElementById('out').textContent='Load failed: '+e.message;
