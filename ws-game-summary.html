@@ -571,6 +571,11 @@ function setMsg(t){var e=document.getElementById('filterCount');if(e)e.textConte
 
 async function prepareExcel(){
   XLBLOB=null;
+  if(!LASTROWS||!LASTROWS.length){
+    document.getElementById('xlsxBtn').disabled=true;
+    setMsg('No pitch rows loaded - build the summary first');
+    return;
+  }
   var btn=document.getElementById('xlsxBtn');
   btn.disabled=true;
   if(typeof ExcelJS==='undefined'){
@@ -680,7 +685,8 @@ async function buildSummary(){
   btn.disabled=true;btn.textContent='Loading...';
   try{
     var rows=await supaFetch('pitches?GameID=eq.'+encodeURIComponent(id));
-    LASTTEXT=buildText(game,rows,document.getElementById('teamSel').value);
+    LASTROWS=rows; LASTGAME=game; LASTSCOPE=document.getElementById('teamSel').value;
+    LASTTEXT=buildText(game,rows,LASTSCOPE);
     document.getElementById('out').textContent=LASTTEXT;
     document.getElementById('copyBtn').disabled=false;
     document.getElementById('saveBtn').disabled=false;
