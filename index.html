@@ -254,6 +254,22 @@ letter-spacing: 2px;
   <!-- Game Reports -->
   <div class="section"><div class="section-label">Game Reports</div></div>
   <div class="tool-list">
+    <a href="ws-game-summary.html" class="tool-card">
+      <div class="tool-icon">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M6 3 H18 L23 8 V25 H6 Z" stroke="#1a1a1a" stroke-width="1.7" stroke-linejoin="round" fill="none"/>
+          <path d="M18 3 V8 H23" stroke="#1a1a1a" stroke-width="1.3" stroke-linejoin="round" fill="none"/>
+          <line x1="10" y1="13" x2="19" y2="13" stroke="#1a1a1a" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="10" y1="17" x2="19" y2="17" stroke="#1a1a1a" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="10" y1="21" x2="15" y2="21" stroke="#1a1a1a" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="tool-info">
+        <div class="tool-name">Full Game Summary</div>
+        <div class="tool-desc">Every pitcher &amp; hitter from one game as a copyable text readout</div>
+      </div>
+      <span class="tool-badge">Live</span>
+    </a>
     <a href="pitcher-report.html" class="tool-card">
       <div class="tool-icon">
         <svg width="30" height="30" viewBox="0 0 52 52" fill="none">
@@ -437,28 +453,52 @@ var SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
 
 async function loadStats() {
-  try {
-    var r1 = await fetch(SUPABASE_URL + '/rest/v1/pitches?select=id&limit=1',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY,
-        'Prefer': 'count=exact', 'Range': '0-0' } });
-    var count = r1.headers.get('content-range');
-    if (count) {
-      var total = count.split('/')[1];
-      document.getElementById('dbPitches').textContent = parseInt(total).toLocaleString();
+  var HEAD = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+
+  // Exact row counts come from the content-range header, not the body,
+  // so they are not capped by PostgREST's 1000-row default.
+  async function exactCount(path) {
+    var r = await fetch(SUPABASE_URL + '/rest/v1/' + path,
+      { headers: Object.assign({ 'Prefer': 'count=exact', 'Range': '0-0' }, HEAD) });
+    var cr = r.headers.get('content-range');
+    return cr ? parseInt(cr.split('/')[1]) : null;
+  }
+
+  // Distinct pitchers needs the actual names, so page through them.
+  async function allRows(path) {
+    var rows = [], from = 0;
+    while (true) {
+      var sep = path.indexOf('?') > -1 ? '&' : '?';
+      var r = await fetch(SUPABASE_URL + '/rest/v1/' + path + sep + 'limit=1000&offset=' + from,
+        { headers: HEAD });
+      var d = await r.json();
+      if (!Array.isArray(d) || !d.length) break;
+      rows = rows.concat(d);
+      if (d.length < 1000) break;
+      from += 1000;
     }
-    var r2 = await fetch(SUPABASE_URL + '/rest/v1/games?select=game_id',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
-    var games = await r2.json();
-    document.getElementById('dbGames').textContent = games.length;
-    var r3 = await fetch(SUPABASE_URL + '/rest/v1/pitches?select=Pitcher&PitcherTeam=eq.Wal_Sen',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
-    var pitchers = await r3.json();
-    var unique = new Set(pitchers.map(function(p) { return p.Pitcher; }));
+    return rows;
+  }
+
+  try {
+    var pitches = await exactCount('pitches?select=id&limit=1');
+    if (pitches !== null) document.getElementById('dbPitches').textContent = pitches.toLocaleString();
+  } catch (e) {}
+
+  try {
+    var games = await exactCount('games?select=game_id&limit=1');
+    if (games !== null) document.getElementById('dbGames').textContent = games;
+  } catch (e) {}
+
+  try {
+    var rows = await allRows('pitches?select=Pitcher&PitcherTeam=eq.Wal_Sen');
+    var unique = new Set(rows.map(function (p) { return p.Pitcher; }).filter(Boolean));
     document.getElementById('dbPitchers').textContent = unique.size;
-  } catch(e) {}
+  } catch (e) {}
 }
 
 loadStats();
+
 </script>
 
 </body>
