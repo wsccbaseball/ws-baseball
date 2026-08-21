@@ -262,7 +262,8 @@ function hitterRows(rows){
   var by={};
   rows.forEach(function(r){var n=G(r,'batter')||'Unknown';(by[n]=by[n]||[]).push(r);});
   return Object.keys(by).map(function(n){
-    var rs=by[n],pa=0,sw=0,wh=0,oz=0,ozs=0,iz=0,izs=0,evs=[],hard=0,gb=0,bbe=0,bb=null;
+    var rs=by[n],pa=0,sw=0,wh=0,oz=0,ozs=0,iz=0,izs=0,hard=0,bbe=0,bb=null;
+    var H=0,AB=0,BB=0,HBP=0,K=0,d2=0,d3=0,HR=0;
     rs.forEach(function(r){
       var c=G(r,'call'), z=inZone(r);
       if(num(G(r,'pofpa'))===1)pa++;
@@ -272,16 +273,35 @@ function hitterRows(rows){
       if(z===false){oz++;if(isSwing(c))ozs++;}
       var ev=num(G(r,'ev')), la=num(G(r,'la'));
       if(ev!==null){
-        bbe++;evs.push(ev);
+        bbe++;
         if(ev>=95)hard++;
-        if(la!==null&&la<10)gb++;
         if(!bb||ev>bb.ev)bb={ev:ev,la:la};
       }
+      var kb=G(r,'korbb'), pr=G(r,'result');
+      if(kb==='Strikeout'){K++;AB++;}
+      else if(kb==='Walk')BB++;
+      if(c==='HitByPitch')HBP++;
+      if(pr&&pr!=='Undefined'){
+        AB++;
+        if(pr==='Single')H++;
+        else if(pr==='Double'){H++;d2++;}
+        else if(pr==='Triple'){H++;d3++;}
+        else if(pr==='HomeRun'||pr==='Home Run'){H++;HR++;}
+      }
     });
+    var parts=[];
+    if(AB>0)parts.push(H+'-'+AB);
+    if(HR)parts.push((HR>1?HR+' ':'')+'HR');
+    if(d3)parts.push((d3>1?d3+' ':'')+'3B');
+    if(d2)parts.push((d2>1?d2+' ':'')+'2B');
+    if(BB)parts.push((BB>1?BB+' ':'')+'BB');
+    if(HBP)parts.push((HBP>1?HBP+' ':'')+'HBP');
+    if(K)parts.push((K>1?K+' ':'')+'K');
     var bin=function(la){if(la===null||la===undefined)return '';return la<10?'GB':la<25?'LD':la<50?'FB':'PU';};
     return {name:n,pa:pa,sw:[sw,rs.length],wh:[wh,sw],ch:[ozs,oz],iz:[izs,iz],
-            hh:[hard,bbe],aev:evs.length?avg(evs):null,
-            mev:evs.length?Math.max.apply(null,evs):null,gb:[gb,bbe],
+            hh:[hard,bbe],
+            ppa:pa?rs.length/pa:null,
+            res:parts.join(', '),
             best:bb?(Math.round(bb.ev)+' mph '+bin(bb.la)):''};
   }).sort(function(a,b){return b.pa-a.pa;});
 }
@@ -305,6 +325,16 @@ function xlRate(cell,pair,good,bad,invert,dim,minD){
   var b=invert?(p>=bad):(p<=bad);
   cell.fill=fillOf(g?XC.grn:(b?XC.red:XC.yel));
 }
+function xlNum(cell,v,good,bad,dim){
+  cell.border=boxB();
+  cell.alignment={horizontal:'center',vertical:'middle'};
+  if(v===null||v===undefined){cell.value='\u2014';cell.font={name:'Arial',size:10,color:{argb:XC.gray}};return;}
+  cell.value=Math.round(v*10)/10;
+  cell.numFmt='0.0';
+  cell.font={name:'Arial',size:10,color:{argb:dim?XC.gray:XC.ink}};
+  if(dim)return;
+  cell.fill=fillOf(v>=good?XC.grn:(v<=bad?XC.red:XC.yel));
+}
 function xlPlain(cell,v,dim,left,dec){
   if(v===null||v===undefined||v==='')v='\u2014';
   else if(dec!==undefined&&dec!==null&&typeof v==='number')v=Math.round(v*Math.pow(10,dec))/Math.pow(10,dec);
@@ -318,8 +348,8 @@ async function buildWorkbookBuffer(P,H){
   var wb=new ExcelJS.Workbook();
   var ws=wb.addWorksheet('Game Report');
   var NC=11;
-  ws.columns=[{width:22},{width:8},{width:8},{width:13},{width:13},{width:13},
-              {width:13},{width:13},{width:9},{width:9},{width:16}];
+  ws.columns=[{width:22},{width:8},{width:11},{width:13},{width:13},{width:13},
+              {width:13},{width:13},{width:14},{width:14},{width:16}];
 
   ws.mergeCells(1,1,1,NC);
   var t=ws.getCell(1,1);
@@ -374,20 +404,19 @@ async function buildWorkbookBuffer(P,H){
 
   r++;
   band('HITTING');
-  head(['HITTER','PA','Swings','Swing & Miss','Chases','Swings in Zone','Hard Hit','Avg Exit Velo','Max Exit Velo','Ground Balls','Best Ball']);
+  head(['HITTER','PA','Pitches / PA','Swings','Swing & Miss','Chases','Swings in Zone','Hard Hit','Results','Best Ball']);
   H.forEach(function(d){
     var dim=d.pa<3;
     xlPlain(ws.getCell(r,1),d.name,dim,true);
     xlPlain(ws.getCell(r,2),d.pa,dim);
-    xlRate(ws.getCell(r,3),d.sw,999,-1,false,true,1);
-    xlRate(ws.getCell(r,4),d.wh,20,30,true,dim,6);
-    xlRate(ws.getCell(r,5),d.ch,20,30,true,dim,6);
-    xlRate(ws.getCell(r,6),d.iz,65,45,false,dim,5);
-    xlRate(ws.getCell(r,7),d.hh,35,20,false,dim,4);
-    xlPlain(ws.getCell(r,8),d.aev,dim,false,1);
-    xlPlain(ws.getCell(r,9),d.mev,dim,false,1);
-    xlRate(ws.getCell(r,10),d.gb,999,-1,false,true,1);
-    xlPlain(ws.getCell(r,11),d.best,dim,true);
+    xlNum(ws.getCell(r,3),d.ppa,4.0,3.0,dim);
+    xlRate(ws.getCell(r,4),d.sw,999,-1,false,true,1);
+    xlRate(ws.getCell(r,5),d.wh,20,30,true,dim,6);
+    xlRate(ws.getCell(r,6),d.ch,20,30,true,dim,6);
+    xlRate(ws.getCell(r,7),d.iz,65,45,false,dim,5);
+    xlRate(ws.getCell(r,8),d.hh,35,20,false,dim,4);
+    xlPlain(ws.getCell(r,9),d.res,dim,true);
+    xlPlain(ws.getCell(r,10),d.best,dim,true);
     r++;
   });
 
