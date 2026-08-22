@@ -300,7 +300,7 @@ function hitterRows(rows){
        Both halves are pitch-level, so it holds up on a single game. */
     var zo=(iz&&oz)?((100*izs/iz)-(100*ozs/oz)):null;
     return {name:n,pa:pa,sw:[sw,rs.length],wh:[wh,sw],ch:[ozs,oz],iz:[izs,iz],
-            zo:zo,zoOK:(iz>=5&&oz>=6),
+            zo:zo,zoOK:(iz>=3&&oz>=4),
             hh:[hard,bbe],
             mev:evs.length?Math.max.apply(null,evs):null,
             ppa:pa?rs.length/pa:null,
@@ -416,17 +416,17 @@ async function buildWorkbookBuffer(P,H){
 
   r++;
   band('HITTING');
-  head(['HITTER','PA','Pitches / PA','Swings','Swing & Miss','Chases','Swings in Zone','Zone - Chase','Hard Hit','Max Exit Velo','Results']);
+  head(['HITTER','PA','Pitches / PA','Swings','Swing & Miss','Chases','Swings in Zone','Zone - Chase (game)','Hard Hit','Max Exit Velo','Results']);
   H.forEach(function(d){
-    var dim=d.pa<3;
+    var dim=d.pa<2;
     xlPlain(ws.getCell(r,1),d.name,dim,true);
     xlPlain(ws.getCell(r,2),d.pa,dim);
     xlNum(ws.getCell(r,3),d.ppa,4.0,3.0,dim);
     xlRate(ws.getCell(r,4),d.sw,999,-1,false,true,1);
     xlRate(ws.getCell(r,5),d.wh,20,30,true,dim,6);
     xlRate(ws.getCell(r,6),d.ch,20,30,true,dim,6);
-    xlRate(ws.getCell(r,7),d.iz,65,45,false,dim,5);
-    xlSigned(ws.getCell(r,8),d.zo,30,15,dim,d.zoOK);
+    xlRate(ws.getCell(r,7),d.iz,999,-1,false,true,1);
+    xlSigned(ws.getCell(r,8),d.zo,50,20,dim,d.zoOK);   // game-level band, not the season ZO% scale
     xlRate(ws.getCell(r,9),d.hh,35,20,false,dim,4);
     xlPlain(ws.getCell(r,10),d.mev,dim,false,1);
     xlPlain(ws.getCell(r,11),d.res,dim,true);
@@ -443,7 +443,7 @@ async function buildWorkbookBuffer(P,H){
   r++;
   ws.mergeCells(r,1,r,NC);
   var note=ws.getCell(r,1);
-  note.value='Percentages show the count behind them. Uncolored cells had too few chances to judge. Gray rows are small samples (under 10 pitches / 3 PA). Pitch types from '+(TAGSRC==='tagged'?'live tags':'TrackMan auto-classification')+'.';
+  note.value='Percentages show the count behind them. Uncolored cells had too few chances to judge. Gray rows are small samples (under 10 pitches / 2 PA). Zone - Chase is banded for one game (green +50, red +20) and does not match the season ZO% scale. Pitch types from '+(TAGSRC==='tagged'?'live tags':'TrackMan auto-classification')+'.';
   note.font={name:'Arial',size:8,italic:true,color:{argb:XC.mute}};
   if(anyFlag){
     r++;
