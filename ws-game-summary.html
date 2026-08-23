@@ -26,6 +26,17 @@ body{font-family:'Barlow Condensed',sans-serif;background:#f2ead8;min-height:100
 .fg label{font-family:'Anton',sans-serif;font-size:.58rem;color:#6b5f47;text-transform:uppercase;letter-spacing:.08em}
 .fg select{height:32px;background:#fff;border:1px solid #ddd5bc;border-radius:3px;padding:0 6px;font-family:'Barlow Condensed',sans-serif;font-size:.85rem;color:#1a1a2e;max-width:100%}
 .filter-count{font-family:'Barlow',sans-serif;font-size:.72rem;color:#6b5f47;align-self:flex-end;padding-bottom:6px;white-space:nowrap}
+.dd-wrap{position:relative;width:100%}
+.dd-trigger{background:#fff;border:1px solid #ddd5bc;border-radius:3px;padding:5px 28px 5px 8px;font-family:'Barlow Condensed',sans-serif;font-size:.85rem;color:#1a1a2e;cursor:pointer;height:32px;display:flex;align-items:center;justify-content:space-between;user-select:none;white-space:nowrap;overflow:hidden}
+.dd-trigger span:first-child{overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.dd-arrow{font-size:.65rem;color:#9b8c74;flex-shrink:0;margin-left:4px;transition:transform .2s}
+.dd-wrap.open .dd-arrow{transform:rotate(180deg)}
+.dd-menu{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #ddd5bc;border-top:none;border-radius:0 0 4px 4px;z-index:50;max-height:240px;overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:0 4px 12px rgba(0,0,0,.12)}
+.dd-wrap.open .dd-menu{display:block}
+.dd-item{display:flex;align-items:center;gap:8px;padding:8px 10px;font-family:'Barlow Condensed',sans-serif;font-size:.85rem;color:#1a1a2e;cursor:pointer;border-bottom:1px solid #f0e8d8}
+.dd-item:last-child{border-bottom:none}
+.dd-item.checked{background:#eef4fc}
+.dd-item input[type=checkbox]{width:15px;height:15px;accent-color:#1a3a5c;flex-shrink:0}
 #out-screen{padding:16px 12px 120px}
 .panel{background:#fffdf7;border:1px solid #ddd5bc;border-radius:4px;padding:16px 14px;max-width:520px;margin:0 auto}
 .panel h2{font-family:'Anton',sans-serif;font-size:.95rem;letter-spacing:.06em;text-transform:uppercase;color:#1a3a5c;margin-bottom:10px}
@@ -37,6 +48,24 @@ body{font-family:'Barlow Condensed',sans-serif;background:#f2ead8;min-height:100
 .flagbox .fh{font-family:'Anton',sans-serif;font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:#b05000}
 .flagbox .fl{font-family:'Barlow',sans-serif;font-size:.8rem;color:#6b5f47;margin-top:3px;line-height:1.4}
 .idle{text-align:center;padding:40px 20px;color:#9b8c74;font-family:'Barlow',sans-serif;font-size:.9rem}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;background:#fffdf7;border:1px solid #ddd5bc;border-radius:4px;margin-bottom:14px}
+table.rep{width:100%;border-collapse:collapse;font-family:'Barlow Condensed',sans-serif;min-width:940px}
+table.rep thead tr{background:#1a3a5c}
+table.rep th{color:#fff;font-size:.62rem;font-weight:700;padding:7px 5px;text-align:center;border-right:1px solid rgba(255,255,255,.12);line-height:1.15}
+table.rep th:first-child{text-align:left;position:sticky;left:0;z-index:2;background:#1a3a5c;min-width:124px}
+table.rep td{padding:6px 5px;text-align:center;font-size:.82rem;color:#1a1a2e;border-bottom:1px solid #e8e0d0;border-right:1px solid #ede6d8;white-space:nowrap}
+table.rep td:first-child{text-align:left;font-weight:700;position:sticky;left:0;z-index:1;background:#fffdf7;border-right:2px solid #c5b88a}
+table.rep td.g{background:#d6efd8}
+table.rep td.y{background:#fff2cc}
+table.rep td.r{background:#f8d7da}
+table.rep td.dim{color:#9b8c74}
+.rep-band{background:#1a3a5c;color:#fff;font-family:'Anton',sans-serif;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;padding:7px 12px;border-radius:3px 3px 0 0}
+.rep-title{font-family:'Abril Fatface',serif;font-size:1.15rem;color:#1a1a2e;margin:4px 0 2px}
+.rep-sub{font-family:'Barlow',sans-serif;font-size:.76rem;color:#6b5f47;margin-bottom:12px}
+.rep-legend{display:flex;gap:14px;flex-wrap:wrap;font-family:'Barlow Condensed',sans-serif;font-size:.76rem;color:#5a4a38;margin:2px 0 8px}
+.rep-legend span{display:flex;align-items:center;gap:5px}
+.rep-sw{width:13px;height:13px;border:1px solid #c9bfa6;border-radius:2px}
+.rep-note{font-family:'Barlow',sans-serif;font-size:.72rem;font-style:italic;color:#8a7a58;line-height:1.45;margin-bottom:10px}
 .bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#1a3a5c;padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px;z-index:20}
 .gen-btn{flex:1 1 100%;padding:12px;background:#fff;border:none;font-family:'Anton',sans-serif;font-size:.9rem;letter-spacing:.08em;color:#1a3a5c;cursor:pointer;border-radius:6px}
 .gen-btn:disabled{background:rgba(255,255,255,.3);color:rgba(255,255,255,.5);cursor:not-allowed}
@@ -69,9 +98,12 @@ body{font-family:'Barlow Condensed',sans-serif;background:#f2ead8;min-height:100
         <option value="all">All</option>
       </select>
     </div>
-    <div class="fg" style="flex:3;min-width:170px">
-      <label>Game</label>
-      <select id="gameSel"></select>
+    <div class="fg" style="flex:3;min-width:180px;position:relative">
+      <label>Game(s) <span style="font-weight:400;opacity:.6;font-size:.55rem">blank = all shown</span></label>
+      <div class="dd-wrap" id="gameDD">
+        <div class="dd-trigger" onclick="toggleDD('gameDD')"><span id="gameDDLabel">All games</span><span class="dd-arrow">&#9660;</span></div>
+        <div class="dd-menu" id="gameDDMenu"></div>
+      </div>
     </div>
     <div class="fg" style="min-width:120px">
       <label>Players</label>
@@ -92,19 +124,7 @@ body{font-family:'Barlow Condensed',sans-serif;background:#f2ead8;min-height:100
   </div>
   <div id="out-screen">
     <div class="idle" id="idle">Pick a game and tap Build Report.</div>
-    <div class="panel" id="panel" style="display:none">
-      <h2 id="pTitle">Report</h2>
-      <div class="line"><span>Pitches</span><b id="pPitches">&mdash;</b></div>
-      <div class="line"><span>Pitchers</span><b id="pPitchers">&mdash;</b></div>
-      <div class="line"><span>Hitters</span><b id="pHitters">&mdash;</b></div>
-      <div class="line"><span>Top velo</span><b id="pVelo">&mdash;</b></div>
-      <div class="line"><span>Top exit velo</span><b id="pEV">&mdash;</b></div>
-      <div class="flagbox" id="flagBox" style="display:none">
-        <div class="fh">Check pitcher attribution</div>
-        <div class="fl" id="flagList"></div>
-      </div>
-      <div class="hint">One landscape page. Green / yellow / red does the reading for you.</div>
-    </div>
+    <div id="report" style="display:none"></div>
   </div>
 </div>
 
@@ -308,52 +328,143 @@ function hitterRows(rows){
   }).sort(function(a,b){return b.pa-a.pa;});
 }
 
-/* ---------- Excel ---------- */
+/* ---------- shared cell descriptors ----------
+   Thresholds live here only. The on-page table and the workbook both render
+   from these, so the two can never disagree about what counts as red. */
 var XC={navy:'FF1A3A5C',hdr:'FFDDE5EE',grn:'FFD6EFD8',yel:'FFFFF2CC',red:'FFF8D7DA',
         ink:'FF1A1A2E',gray:'FF999999',mute:'FF6B5F47'};
+var FILLARGB={g:XC.grn,y:XC.yel,r:XC.red};
+
+function dRate(pair,good,bad,invert,dim,minD,neutral){
+  var n=pair[0], d=pair[1];
+  if(!d)return{v:'\u2014',c:null,dim:true};
+  var p=100*n/d, txt=Math.round(p)+'% ('+n+'/'+d+')';
+  /* neutral = informational column. dim / thin denominator = withhold the verdict. */
+  if(neutral||dim||d<(minD||1))return{v:txt,c:null,dim:dim};
+  var g=invert?(p<=good):(p>=good), b=invert?(p>=bad):(p<=bad);
+  return{v:txt,c:g?'g':(b?'r':'y'),dim:false};
+}
+function dNum(v,good,bad,dim){
+  if(v===null||v===undefined)return{v:'\u2014',c:null,dim:true};
+  var val=Math.round(v*10)/10;
+  return{v:val,fmt:'0.0',c:dim?null:(v>=good?'g':(v<=bad?'r':'y')),dim:dim};
+}
+function dSigned(v,good,bad,dim,ok){
+  if(v===null||v===undefined)return{v:'\u2014',c:null,dim:true};
+  var val=Math.round(v);
+  return{v:val,fmt:'+0;-0;0',c:(dim||!ok)?null:(val>=good?'g':(val<=bad?'r':'y')),dim:dim};
+}
+function dText(v,dim){return{v:(v===null||v===undefined||v==='')?'\u2014':v,c:null,dim:dim,left:true};}
+function dPlain(v,dim,dec){
+  if(v===null||v===undefined||v==='')return{v:'\u2014',c:null,dim:true};
+  if(typeof v==='number'&&dec!==undefined)v=Math.round(v*Math.pow(10,dec))/Math.pow(10,dec);
+  return{v:v,c:null,dim:dim};
+}
+
+var PHEAD=['PITCHER','Pitches','Batters','Strikes','1st Pitch Strikes','Swing & Miss','Chases','Hard Hit','Top Velo','FB Velo','Best Pitch'];
+function pitchCells(d){
+  var dim=d.np<10;
+  return[dText(d.name+(d.flag?'  (!)':''),dim),
+         dPlain(d.np,dim),dPlain(d.bf,dim),
+         dRate(d.st,65,55,false,dim,1),
+         dRate(d.fps,60,50,false,dim,4),
+         dRate(d.wh,12,7,false,dim,10),
+         dRate(d.ch,30,20,false,dim,6),
+         dRate(d.hh,25,35,true,dim,4),
+         dPlain(d.top,dim,1),dPlain(d.fb,dim,1),
+         dText(d.best,dim)];
+}
+function hhead(){
+  return['HITTER','PA','Pitches / PA','Swings','Swing & Miss','Chases','Swings in Zone',
+         'Zone - Chase ('+zoBand()[2]+')','Hard Hit','Max Exit Velo','Results'];
+}
+/* One intersquad is noisy enough that +50 is the honest green line. Pooling
+   games tightens the distribution, so the band walks toward the season ZO%
+   scale (+5 / 0) as more games are selected. */
+function zoBand(){
+  var n=SEL_GAMES||1;
+  if(n>=4)return[5,0,'season'];
+  if(n>=2)return[30,10,n+' games'];
+  return[50,20,'game'];
+}
+var SEL_GAMES=1;
+function hitCells(d){
+  var dim=d.pa<2;
+  var zb=zoBand();
+  return[dText(d.name,dim),
+         dPlain(d.pa,dim),
+         dNum(d.ppa,4.0,3.0,dim),
+         dRate(d.sw,0,0,false,dim,1,true),
+         dRate(d.wh,20,30,true,dim,6),
+         dRate(d.ch,20,30,true,dim,6),
+         dRate(d.iz,0,0,false,dim,1,true),
+         dSigned(d.zo,zb[0],zb[1],dim,d.zoOK),
+         dRate(d.hh,35,20,false,dim,4),
+         dPlain(d.mev,dim,1),
+         dText(d.res,dim)];
+}
+function noteText(){
+  return'Percentages show the count behind them. Uncolored cells had too few chances to judge. '+
+        'Gray rows are small samples (under 10 pitches / 2 PA). Zone - Chase band: green +'+zoBand()[0]+
+        ', red +'+zoBand()[1]+' (scaled to '+(SEL_GAMES||1)+' game'+((SEL_GAMES||1)>1?'s':'')+'). Pitch types from '+
+        (TAGSRC==='tagged'?'live tags':'TrackMan auto-classification')+'.';
+}
+function flagNote(){
+  return'(!) Release height varies more than one arm slot allows - these pitches may be logged under the wrong pitcher.';
+}
+
+/* ---------- on-page table ---------- */
+function esc(x){return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function showCell(c){
+  if(c.fmt==='0.0')return Number(c.v).toFixed(1);
+  if(c.fmt==='+0;-0;0')return(c.v>0?'+':'')+c.v;
+  return esc(c.v);
+}
+function renderTableHTML(head,rows,cellFn){
+  var h='<div class="table-wrap"><table class="rep"><thead><tr>';
+  head.forEach(function(t){h+='<th>'+esc(t)+'</th>';});
+  h+='</tr></thead><tbody>';
+  rows.forEach(function(d){
+    h+='<tr>';
+    cellFn(d).forEach(function(c){
+      var cls=[];
+      if(c.c)cls.push(c.c);
+      if(c.dim)cls.push('dim');
+      h+='<td'+(cls.length?' class="'+cls.join(' ')+'"':'')+'>'+showCell(c)+'</td>';
+    });
+    h+='</tr>';
+  });
+  return h+'</tbody></table></div>';
+}
+function renderPreview(P,H,game,nPitches){
+  var anyFlag=P.some(function(d){return d.flag;});
+  var h='<div class="rep-title">'+esc(gameLabel(game))+'</div>'+
+        '<div class="rep-sub">Walters State &middot; '+esc(String(game.date||'').slice(0,10))+
+        ' &middot; '+nPitches+' pitches &middot; TrackMan</div>'+
+        '<div class="rep-legend">'+
+        '<span><i class="rep-sw" style="background:#d6efd8"></i>Good</span>'+
+        '<span><i class="rep-sw" style="background:#fff2cc"></i>OK</span>'+
+        '<span><i class="rep-sw" style="background:#f8d7da"></i>Needs work</span></div>'+
+        '<div class="rep-band">Pitching ('+P.length+')</div>'+
+        renderTableHTML(PHEAD,P,pitchCells)+
+        '<div class="rep-band">Hitting ('+H.length+')</div>'+
+        renderTableHTML(hhead(),H,hitCells)+
+        '<div class="rep-note">'+esc(noteText())+(anyFlag?' '+esc(flagNote()):'')+'</div>';
+  document.getElementById('report').innerHTML=h;
+  document.getElementById('report').style.display='block';
+  document.getElementById('idle').style.display='none';
+}
+
+/* ---------- Excel ---------- */
 function boxB(){var t={style:'thin',color:{argb:'FFC9BFA6'}};return{top:t,left:t,right:t,bottom:t};}
 function fillOf(c){return{type:'pattern',pattern:'solid',fgColor:{argb:c}};}
-function xlRate(cell,pair,good,bad,invert,dim,minD){
-  var n=pair[0], d=pair[1];
+function writeCell(cell,c){
+  cell.value=c.v;
+  if(c.fmt)cell.numFmt=c.fmt;
   cell.border=boxB();
-  cell.alignment={horizontal:'center',vertical:'middle'};
-  if(!d){cell.value='\u2014';cell.font={name:'Arial',size:10,color:{argb:XC.gray}};return;}
-  var p=100*n/d;
-  cell.value=Math.round(p)+'% ('+n+'/'+d+')';
-  cell.font={name:'Arial',size:10,color:{argb:dim?XC.gray:XC.ink}};
-  /* Too few chances to judge: print the number, withhold the verdict. */
-  if(dim||d<(minD||1))return;
-  var g=invert?(p<=good):(p>=good);
-  var b=invert?(p>=bad):(p<=bad);
-  cell.fill=fillOf(g?XC.grn:(b?XC.red:XC.yel));
-}
-function xlSigned(cell,v,good,bad,dim,ok){
-  cell.border=boxB();
-  cell.alignment={horizontal:'center',vertical:'middle'};
-  if(v===null||v===undefined){cell.value='\u2014';cell.font={name:'Arial',size:10,color:{argb:XC.gray}};return;}
-  cell.value=Math.round(v);
-  cell.numFmt='+0;-0;0';
-  cell.font={name:'Arial',size:10,color:{argb:dim?XC.gray:XC.ink}};
-  if(dim||!ok)return;
-  cell.fill=fillOf(v>=good?XC.grn:(v<=bad?XC.red:XC.yel));
-}
-function xlNum(cell,v,good,bad,dim){
-  cell.border=boxB();
-  cell.alignment={horizontal:'center',vertical:'middle'};
-  if(v===null||v===undefined){cell.value='\u2014';cell.font={name:'Arial',size:10,color:{argb:XC.gray}};return;}
-  cell.value=Math.round(v*10)/10;
-  cell.numFmt='0.0';
-  cell.font={name:'Arial',size:10,color:{argb:dim?XC.gray:XC.ink}};
-  if(dim)return;
-  cell.fill=fillOf(v>=good?XC.grn:(v<=bad?XC.red:XC.yel));
-}
-function xlPlain(cell,v,dim,left,dec){
-  if(v===null||v===undefined||v==='')v='\u2014';
-  else if(dec!==undefined&&dec!==null&&typeof v==='number')v=Math.round(v*Math.pow(10,dec))/Math.pow(10,dec);
-  cell.value=v;
-  cell.border=boxB();
-  cell.font={name:'Arial',size:10,bold:!!left,color:{argb:dim?XC.gray:XC.ink}};
-  cell.alignment={horizontal:left?'left':'center',vertical:'middle'};
+  cell.font={name:'Arial',size:10,bold:!!c.left,color:{argb:c.dim?XC.gray:XC.ink}};
+  cell.alignment={horizontal:c.left?'left':'center',vertical:'middle'};
+  if(c.c)cell.fill=fillOf(FILLARGB[c.c]);
 }
 
 async function buildWorkbookBuffer(P,H){
@@ -375,7 +486,7 @@ async function buildWorkbookBuffer(P,H){
   sub.value='Walters State  \u00b7  '+String(LASTGAME.date||'').slice(0,10)+'  \u00b7  '+LASTROWS.length+' pitches  \u00b7  TrackMan';
   sub.font={name:'Arial',size:9,color:{argb:XC.mute}};
 
-  var r=4, anyFlag=false;
+  var r=4;
   function band(text){
     ws.mergeCells(r,1,r,NC);
     var c=ws.getCell(r,1);
@@ -394,44 +505,16 @@ async function buildWorkbookBuffer(P,H){
     });
     ws.getRow(r).height=28;r++;
   }
+  function body(rows,cellFn){
+    rows.forEach(function(d){
+      cellFn(d).forEach(function(c,i){writeCell(ws.getCell(r,i+1),c);});
+      r++;
+    });
+  }
 
-  band('PITCHING');
-  head(['PITCHER','Pitches','Batters','Strikes','1st Pitch Strikes','Swing & Miss','Chases','Hard Hit','Top Velo','FB Velo','Best Pitch']);
-  P.forEach(function(d){
-    var dim=d.np<10;
-    if(d.flag)anyFlag=true;
-    xlPlain(ws.getCell(r,1),d.name+(d.flag?'  (!)':''),dim,true);
-    xlPlain(ws.getCell(r,2),d.np,dim);
-    xlPlain(ws.getCell(r,3),d.bf,dim);
-    xlRate(ws.getCell(r,4),d.st,65,55,false,dim,1);
-    xlRate(ws.getCell(r,5),d.fps,60,50,false,dim,4);
-    xlRate(ws.getCell(r,6),d.wh,12,7,false,dim,10);
-    xlRate(ws.getCell(r,7),d.ch,30,20,false,dim,6);
-    xlRate(ws.getCell(r,8),d.hh,25,35,true,dim,4);
-    xlPlain(ws.getCell(r,9),d.top,dim,false,1);
-    xlPlain(ws.getCell(r,10),d.fb,dim,false,1);
-    xlPlain(ws.getCell(r,11),d.best,dim,true);
-    r++;
-  });
-
+  band('PITCHING'); head(PHEAD); body(P,pitchCells);
   r++;
-  band('HITTING');
-  head(['HITTER','PA','Pitches / PA','Swings','Swing & Miss','Chases','Swings in Zone','Zone - Chase (game)','Hard Hit','Max Exit Velo','Results']);
-  H.forEach(function(d){
-    var dim=d.pa<2;
-    xlPlain(ws.getCell(r,1),d.name,dim,true);
-    xlPlain(ws.getCell(r,2),d.pa,dim);
-    xlNum(ws.getCell(r,3),d.ppa,4.0,3.0,dim);
-    xlRate(ws.getCell(r,4),d.sw,999,-1,false,true,1);
-    xlRate(ws.getCell(r,5),d.wh,20,30,true,dim,6);
-    xlRate(ws.getCell(r,6),d.ch,20,30,true,dim,6);
-    xlRate(ws.getCell(r,7),d.iz,999,-1,false,true,1);
-    xlSigned(ws.getCell(r,8),d.zo,50,20,dim,d.zoOK);   // game-level band, not the season ZO% scale
-    xlRate(ws.getCell(r,9),d.hh,35,20,false,dim,4);
-    xlPlain(ws.getCell(r,10),d.mev,dim,false,1);
-    xlPlain(ws.getCell(r,11),d.res,dim,true);
-    r++;
-  });
+  band('HITTING');  head(hhead()); body(H,hitCells);
 
   r++;
   [['  GOOD  ',XC.grn],['  OK  ',XC.yel],['  NEEDS WORK  ',XC.red]].forEach(function(pair,i){
@@ -443,13 +526,13 @@ async function buildWorkbookBuffer(P,H){
   r++;
   ws.mergeCells(r,1,r,NC);
   var note=ws.getCell(r,1);
-  note.value='Percentages show the count behind them. Uncolored cells had too few chances to judge. Gray rows are small samples (under 10 pitches / 2 PA). Zone - Chase is banded for one game (green +50, red +20) and does not match the season ZO% scale. Pitch types from '+(TAGSRC==='tagged'?'live tags':'TrackMan auto-classification')+'.';
+  note.value=noteText();
   note.font={name:'Arial',size:8,italic:true,color:{argb:XC.mute}};
-  if(anyFlag){
+  if(P.some(function(d){return d.flag;})){
     r++;
     ws.mergeCells(r,1,r,NC);
     var fn=ws.getCell(r,1);
-    fn.value='(!) Release height varies more than one arm slot allows - these pitches may be logged under the wrong pitcher.';
+    fn.value=flagNote();
     fn.font={name:'Arial',size:8,italic:true,color:{argb:'FFB05000'}};
   }
 
@@ -461,20 +544,26 @@ async function buildWorkbookBuffer(P,H){
 /* The workbook is built when the report is built, not on the save press:
    iOS Safari cancels a download that starts after an await. */
 async function buildReport(){
-  var id=document.getElementById('gameSel').value;
-  if(!id)return;
-  var game=gamesMeta.filter(function(g){return g.game_id===id;})[0];
-  if(!game){setMsg('Game not found');return;}
+  var ids=getSelectedGames();
+  if(!ids.length)ids=gamesMeta.map(function(g){return g.game_id;});
+  if(!ids.length)return;
+  var picked=gamesMeta.filter(function(g){return ids.indexOf(g.game_id)>-1;});
+  if(!picked.length){setMsg('No games matched');return;}
   TAGSRC=document.getElementById('tagSel').value;
-  var btn=document.getElementById('buildBtn'), orig=btn.textContent;
+  var btn=document.getElementById('buildBtn'), orig='Build Report \u2192';
   var xbtn=document.getElementById('xlsxBtn');
-  btn.disabled=true;btn.textContent='Loading...';
-  xbtn.disabled=true;XLBLOB=null;
+  btn.disabled=true;xbtn.disabled=true;XLBLOB=null;
   try{
     if(typeof ExcelJS==='undefined')throw new Error('ExcelJS did not load - check connection or content blocker');
-    var rows=await supaFetch('pitches?GameID=eq.'+encodeURIComponent(id));
-    if(!rows.length)throw new Error('No pitches found for this game');
-    LASTROWS=rows;LASTGAME=game;LASTSCOPE=document.getElementById('teamSel').value;
+    var rows=[];
+    for(var i=0;i<picked.length;i++){
+      btn.textContent='Loading '+(i+1)+' of '+picked.length+'...';
+      var part=await supaFetch('pitches?GameID=eq.'+encodeURIComponent(picked[i].game_id));
+      rows=rows.concat(part);
+    }
+    if(!rows.length)throw new Error('No pitches found for the selected game(s)');
+    SEL_GAMES=picked.length;
+    LASTROWS=rows;LASTGAME=pooledGame(picked);LASTSCOPE=document.getElementById('teamSel').value;
     buildNorm(rows[0]);
     var mine=function(t){return /wal/i.test(t||'');};
     var sc=LASTSCOPE;
@@ -485,39 +574,32 @@ async function buildReport(){
     btn.textContent='Building...';
     var buf=await buildWorkbookBuffer(P,H);
     XLBLOB=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-    XLNAME=(gameLabel(game)||game.game_id).replace(/[^A-Za-z0-9]+/g,'_').slice(0,60)+'_Report.xlsx';
+    XLNAME=(gameLabel(LASTGAME)||'Game').replace(/[^A-Za-z0-9]+/g,'_').slice(0,60)+'_Report.xlsx';
 
-    var topV=null,topE=null;
-    pR.forEach(function(r){var v=num(G(r,'velo'));if(v!==null&&(!topV||v>topV.v))topV={v:v,n:G(r,'pitcher')};});
-    bR.forEach(function(r){var v=num(G(r,'ev'));if(v!==null&&(!topE||v>topE.v))topE={v:v,n:G(r,'batter')};});
-
-    document.getElementById('idle').style.display='none';
-    document.getElementById('panel').style.display='block';
-    document.getElementById('pTitle').textContent=gameLabel(game);
-    document.getElementById('pPitches').textContent=rows.length;
-    document.getElementById('pPitchers').textContent=P.length;
-    document.getElementById('pHitters').textContent=H.length;
-    document.getElementById('pVelo').textContent=topV?(topV.v.toFixed(1)+'  '+topV.n):'\u2014';
-    document.getElementById('pEV').textContent=topE?(topE.v.toFixed(1)+'  '+topE.n):'\u2014';
-
-    var flagged=P.filter(function(d){return d.flag;});
-    var fb=document.getElementById('flagBox');
-    if(flagged.length){
-      fb.style.display='block';
-      document.getElementById('flagList').textContent=flagged.map(function(d){return d.name+' ('+d.flag+')';}).join(' \u00b7 ')+
-        ' \u2014 release height varies more than one arm slot allows.';
-    }else{fb.style.display='none';}
+    renderPreview(P,H,LASTGAME,rows.length);
 
     xbtn.disabled=false;
-    setMsg(rows.length+' pitches loaded');
+    setMsg(rows.length+' pitches \u00b7 '+picked.length+' game'+(picked.length>1?'s':''));
     window.scrollTo(0,0);
   }catch(e){
     setMsg(e.message);
     document.getElementById('idle').style.display='block';
     document.getElementById('idle').textContent=e.message;
-    document.getElementById('panel').style.display='none';
+    document.getElementById('report').style.display='none';
   }
   btn.textContent=orig;btn.disabled=false;
+}
+
+/* A pooled selection still needs one label and one date for the header. */
+function pooledGame(picked){
+  if(picked.length===1)return picked[0];
+  var dates=picked.map(function(g){return String(g.date||'').slice(0,10);}).filter(Boolean).sort();
+  var lo=dates[0]||'', hi=dates[dates.length-1]||'';
+  var span=(lo===hi)?lo:(lo+' to '+hi);
+  return{game_id:picked.map(function(g){return g.game_id;}).join(','),
+         date:lo,
+         display_name:picked.length+' Games \u00b7 '+span,
+         season:picked[0].season,game_type:picked[0].game_type};
 }
 
 function downloadBlob(blob,name){
@@ -579,18 +661,51 @@ function filterSeasonGames(){
     return true;
   });
 }
+function toggleDD(id){
+  var el=document.getElementById(id);
+  var open=el.classList.contains('open');
+  var all=document.querySelectorAll('.dd-wrap.open');
+  for(var i=0;i<all.length;i++)all[i].classList.remove('open');
+  if(!open)el.classList.add('open');
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest||!e.target.closest('.dd-wrap')){
+    var all=document.querySelectorAll('.dd-wrap.open');
+    for(var i=0;i<all.length;i++)all[i].classList.remove('open');
+  }
+});
+function getSelectedGames(){
+  var cbs=document.querySelectorAll('#gameDDMenu input[type=checkbox]:checked');
+  return Array.prototype.map.call(cbs,function(cb){return cb.value;});
+}
+function updateGameLabel(){
+  var n=getSelectedGames().length;
+  document.getElementById('gameDDLabel').textContent=
+    n===0?('All games ('+gamesMeta.length+')'):(n+' game'+(n>1?'s':'')+' selected');
+  XLBLOB=null;
+  document.getElementById('xlsxBtn').disabled=true;
+}
 function populateGameSel(){
-  gamesMeta=filterSeasonGames();
-  var sel=document.getElementById('gameSel');
-  sel.innerHTML='';
-  gamesMeta.slice().sort(function(a,b){return(b.date||'')<(a.date||'')?-1:1;}).forEach(function(g){
-    var o=document.createElement('option');o.value=g.game_id;o.textContent=gameLabel(g);sel.appendChild(o);
+  gamesMeta=filterSeasonGames().slice().sort(function(a,b){return(b.date||'')<(a.date||'')?-1:1;});
+  var menu=document.getElementById('gameDDMenu');
+  menu.innerHTML='';
+  gamesMeta.forEach(function(g){
+    var item=document.createElement('div');item.className='dd-item';
+    var cb=document.createElement('input');cb.type='checkbox';cb.value=g.game_id;
+    cb.addEventListener('change',function(){
+      item.classList.toggle('checked',cb.checked);updateGameLabel();
+    });
+    item.appendChild(cb);
+    var lbl=document.createElement('span');lbl.textContent=gameLabel(g);
+    item.appendChild(lbl);
+    item.addEventListener('click',function(e){
+      if(e.target!==cb){cb.checked=!cb.checked;item.classList.toggle('checked',cb.checked);updateGameLabel();}
+    });
+    menu.appendChild(item);
   });
   setMsg(gamesMeta.length+' games');
   document.getElementById('buildBtn').disabled=!gamesMeta.length;
-  if(!gamesMeta.length){
-    var o=document.createElement('option');o.textContent='No games match';sel.appendChild(o);
-  }
+  updateGameLabel();
 }
 function onSeasonChange(){
   CURRENT_SEASON=document.getElementById('seasonSel').value;
