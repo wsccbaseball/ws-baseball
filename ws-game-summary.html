@@ -271,10 +271,24 @@ function pitcherRows(rows){
       var sd=Math.sqrt(avg(relh.map(function(x){return (x-m)*(x-m);})));
       if(sd>0.5)flag=Math.min.apply(null,relh).toFixed(2)+'-'+Math.max.apply(null,relh).toFixed(2)+' ft';
     }
+    /* A slow fastball with run gets auto-classified as a changeup, so filtering
+       on the Fastball/Sinker label leaves this blank for exactly the pitchers
+       who need watching. Fall back to the fastest pitch type he actually threw. */
+    var fbAvg=fbv.length?avg(fbv):null;
+    if(fbAvg===null){
+      var bestGrp=null;
+      keys.forEach(function(k){
+        var vs=byT[k].map(function(r){return num(G(r,'velo'));}).filter(function(x){return x!==null;});
+        if(vs.length<3)return;
+        var a=avg(vs);
+        if(!bestGrp||a>bestGrp.a)bestGrp={a:a,k:k};
+      });
+      if(bestGrp)fbAvg=bestGrp.a;
+    }
     return {name:n,np:np,bf:fp.length,st:[st,np],fps:[fps,fp.length],wh:[wh,np],
             ch:[ozs,oz.length],hh:[hard,bbe.length],
             top:velos.length?Math.max.apply(null,velos):null,
-            fb:fbv.length?avg(fbv):null,best:best,flag:flag};
+            fb:fbAvg,best:best,flag:flag};
   }).sort(function(a,b){return b.np-a.np;});
 }
 
@@ -405,6 +419,7 @@ function hitCells(d){
 }
 function noteText(){
   return'Percentages show the count behind them. Uncolored cells had too few chances to judge. '+
+        'FB Velo falls back to the fastest pitch type when no fastball is classified. '+
         'Gray rows are small samples (under 10 pitches / 2 PA). Zone - Chase band: green +'+zoBand()[0]+
         ', red +'+zoBand()[1]+' (scaled to '+(SEL_GAMES||1)+' game'+((SEL_GAMES||1)>1?'s':'')+'). Pitch types from '+
         (TAGSRC==='tagged'?'live tags':'TrackMan auto-classification')+'.';
