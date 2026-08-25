@@ -373,6 +373,18 @@ async function supaFetch(path){
 }
 function setProgress(pct,msg){document.getElementById('progressFill').style.width=pct+'%';document.getElementById('loadMsg').textContent=msg;}
 
+// Reads the first key that actually exists on a box-score row, trying a few
+// naming variants. Returns null when none are present — that's different from
+// a present-but-zero value, and the difference matters for wOBA. A dash (the
+// stat page's zero) parses to 0, which is correct.
+function bsField(o,keys){
+  for(var i=0;i<keys.length;i++){
+    var v=o[keys[i]];
+    if(v!==undefined&&v!==null&&String(v).trim()!=='')return parseInt(v)||0;
+  }
+  return null;
+}
+
 function computePitcherProfile(name, rows){
   var parts=name.split(','),lastName=(parts[0]||'').trim();
   var displayName=parts.length>1?(parts[1]||'').trim()+' '+parts[0].trim():name;
@@ -473,6 +485,10 @@ function computePitcherProfile(name, rows){
 
   var bs=seasonPitching[displayName.toLowerCase()]||seasonPitching[lastName.toLowerCase()]||seasonPitching[lastName]||null;
   var fip=null,era=null,ipDisplay='--',avgWegs=null;
+  // Full-season K%/BB%/wOBA from the box score. The kPct/bbPct/wobaAgainst
+  // returned below are TrackMan-only and cover just the tracked games; these
+  // cover every game. All three stay null when the box score can't supply them.
+  var bsKPct=null,bsBBPct=null,bsPA=null,bsWOBA=null;
   if(bs&&bs.ip){
     var ipRaw=String(bs.ip).trim();
     var ipParts=ipRaw.split('.');
@@ -485,6 +501,23 @@ function computePitcherProfile(name, rows){
       fip=((13*bsHR+3*(bsBBval+bsHBP)-2*bsK)/ipDec)+FIP_CONSTANT;
       era=(bsER*9)/ipDec;
     }
+    // Batters faced. Preferred: AB + BB + HBP + SF + SH when the box score
+    // supplies at-bats. Fallback: outs recorded + hits + walks + HBP, the
+    // standard BF estimator — lands within ~1 PA on this staff's data.
+    var bsAB=parseInt(bs.ab)||0;
+    var bsSFA=parseInt(bs.sfa||bs.sf)||0;
+    var bsSHA=parseInt(bs.sha||bs.sh)||0;
+    bsPA=bsAB>0?(bsAB+bsBBval+bsHBP+bsSFA+bsSHA):(ipOuts+bsH+bsBBval+bsHBP);
+    if(bsPA>0){bsKPct=bsK/bsPA;bsBBPct=bsBBval/bsPA;}
+    // wOBA needs extra-base hits broken out. bsField returns null when a key
+    // is genuinely absent (as opposed to present and zero) so a missing 2B
+    // column can't silently inflate singles and skew the result.
+    var bs2B=bsField(bs,['2b','_2b','b2','doubles','dbl']);
+    var bs3B=bsField(bs,['3b','_3b','b3','triples','tpl']);
+    if(bsPA>0&&bs2B!==null&&bs3B!==null){
+      var bs1B=Math.max(0,bsH-bs2B-bs3B-bsHR);
+      bsWOBA=(0.88*bs1B+1.24*bs2B+1.56*bs3B+2.08*bsHR+0.69*bsBBval+0.72*bsHBP)/bsPA;
+    }
     var wegsTotal=52*bsAPP+2*ipOuts+bsK-2*bsBBval-2*bsH-3*bsER-6*bsHR+0.5*whiffs;
     avgWegs=wegsTotal/bsAPP;
   }
@@ -493,6 +526,7 @@ function computePitcherProfile(name, rows){
     name:name,displayName:displayName,lastName:lastName,
     tbf:tbf,wobaAgainst:wobaDen>0?wobaNum/wobaDen:0,
     kPct:tbf>0?ks/tbf:0,bbPct:tbf>0?bbs/tbf:0,kBBPct:tbf>0?(ks-bbs)/tbf:0,
+    bsKPct:bsKPct,bsBBPct:bsBBPct,bsPA:bsPA,bsWOBA:bsWOBA,
     hr:hrs,cswPct:rows.length>0?(calledStrikes+whiffs)/rows.length:0,
     swstrPct:rows.length>0?whiffs/rows.length:0,
     chasePct:ozPitches>0?ozSwings/ozPitches:0,
@@ -680,9 +714,13 @@ function buildCard(){
   } else {
     ssSection.style.display='block';
     document.getElementById('sTBF').textContent=p.ipDisplay;
-    document.getElementById('sWOBA').textContent=fmt3(p.wobaAgainst);
-    document.getElementById('sKPct').textContent=pct(p.kPct);
-    document.getElementById('sBBPct').textContent=pct(p.bbPct);
+    // Season Stats row is full-season box score. Each stat falls back to its
+    // TrackMan equivalent when the box score can't supply it (no matching row,
+    // or missing columns). The Results table keeps TrackMan wOBA either way,
+    // since that one has to respond to the game filter.
+    document.getElementById('sWOBA').textContent=fmt3(p.bsWOBA!==null?p.bsWOBA:p.wobaAgainst);
+    document.getElementById('sKPct').textContent=pct(p.bsKPct!==null?p.bsKPct:p.kPct);
+    document.getElementById('sBBPct').textContent=pct(p.bsBBPct!==null?p.bsBBPct:p.bbPct);
     document.getElementById('sERA').textContent=p.era!==null?p.era.toFixed(2):'--';
     document.getElementById('sFIP').textContent=p.fip!==null?p.fip.toFixed(2):'--';
     document.getElementById('sGS').textContent=p.avgWegs!==null?p.avgWegs.toFixed(1):'--';
@@ -1105,6 +1143,9 @@ async function loadSeasonData(){
       var edgeRes=await fetch(SUPABASE_URL+'/functions/v1/fetch-boxscore?url=season-stats',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
       var edgeData=await edgeRes.json();
       if(edgeData.pitching&&Array.isArray(edgeData.pitching)){
+        // Logs the field names the edge function actually returns, so you can
+        // confirm whether ab/sfa/sha are present. Delete once verified.
+        if(edgeData.pitching.length)console.log('boxscore pitching fields:',Object.keys(edgeData.pitching[0]),edgeData.pitching[0]);
         edgeData.pitching.forEach(function(p){
           var n=(p.name||'').trim();if(!n)return;
           var lastName=n.split(/\s+/).pop().toLowerCase();
