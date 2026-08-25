@@ -332,6 +332,11 @@ var _qs=new URLSearchParams(location.search);
 var CURRENT_SEASON=_qs.get('season')||'2026-spring';
 var GAME_TYPE_MODE=_qs.get('type')||(_qs.get('intersquad')==='1'?'all':'game');
 
+// Shared pitch-call classifications — used everywhere so a call is never
+// counted one way in one metric and another way somewhere else.
+var SWING_CALLS=['StrikeSwinging','FoulBall','FoulBallNotFieldable','FoulBallFieldable','InPlay'];
+var STRIKE_CALLS=['StrikeCalled','StrikeSwinging','FoulBall','FoulBallNotFieldable','FoulBallFieldable','InPlay'];
+
 var PITCH_COLORS={
   'Fastball':'#e63946','Four-Seam':'#e63946','FourSeamFastBall':'#e63946',
   'Sinker':'#ff6a00','TwoSeamFastBall':'#ff6a00',
@@ -391,9 +396,9 @@ function computePitcherProfile(name, rows){
     pitchTypes[pt].total++;
     var velo=parseFloat(r.RelSpeed||r.PitchSpeed||r.StartSpeed||'NaN');
     if(!isNaN(velo)&&velo>0)pitchTypes[pt].velos.push(velo);
-    var isSwing=['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
+    var isSwing=SWING_CALLS.includes(call);
     var isWhiff=call==='StrikeSwinging';
-    var isStrike=['StrikeCalled','StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
+    var isStrike=STRIKE_CALLS.includes(call);
     var side=parseFloat(r.PlateLocSide),height=parseFloat(r.PlateLocHeight);
     var inside=!isNaN(side)&&!isNaN(height)&&Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
     var outside=!isNaN(side)&&!isNaN(height)&&!inside;
@@ -416,7 +421,9 @@ function computePitcherProfile(name, rows){
     if(!isNaN(relh)&&relh>0)pitchTypes[pt].relh.push(relh);
     if(!isNaN(ext)&&ext>0)pitchTypes[pt].ext.push(ext);
     if(parseInt(r.PitchofPA)===1){tbf++;if(isStrike)fpsStrikes++;}
-    if(r.KorBB==='Strikeout'){ks++;pitchTypes[pt].ptKs++;}
+    // Strikeouts are plate appearances and must land in the wOBA denominator
+    // with a weight of zero — otherwise every pitcher's wOBA is inflated.
+    if(r.KorBB==='Strikeout'){ks++;pitchTypes[pt].ptKs++;wobaDen++;}
     if(r.KorBB==='Walk'){bbs++;pitchTypes[pt].ptBBs++;}
     if(r.PlayResult==='HomeRun'||r.PlayResult==='Home Run')hrs++;
     if(r.PitchCall==='HitByPitch'){hbps++;pitchTypes[pt].ptHBPs++;}
