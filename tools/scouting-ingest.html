@@ -383,7 +383,7 @@
       else if(dp!=null&&dp>=4)parts.push('middling ground-ball rate but '+dp+' GIDP — the double play is there; DP depth with a runner on');
       else parts.push('balanced off the bat — infield straight up');}
     else parts.push('IF alignment pending — needs vs Infielders');
-    return parts.join('; ')+'. Pull side not charted — confirm vs the spray chart before shading.';}
+    return parts.join('; ')+'.';}
   function hitterBlock(h,rank){var ep=epithet(h);var bt=btLabel(h.bats,h.throws);
     var html='<div class="block"><div class="bhead"><span class="bspot">'+rank+'</span><span class="bname">'+h.last+'</span><span class="bjersey">#'+h.jersey+' · '+h.first+'</span>'+(bt?'<span class="bhand">'+bt+'</span>':'')+'<span class="btag '+ep.cls+'">'+ep.t+'</span><span class="bslash">'+h.slash+'</span></div>';
     html+='<p class="bp line m-circ"><span class="lbl">Profile</span>'+profile(h)+'</p>';
@@ -585,7 +585,7 @@
 
   function buildBook(kind){var team=currentTeam();var opp=(team&&team.team)||'Opponent';
     var html='<p class="kicker">ADVANCE SCOUT · 2026 · PRE-GAME</p><h1 class="title">'+opp.toUpperCase()+' — ADVANCE BOOK</h1><div class="subline">Generated from your uploads · counting stats from the official sheet, reads from Synergy.</div>';
-    if(kind==='hit'){var H=assembleHitters();html+='<div class="bsec">Hitters — by plate appearances</div>';if(team&&team.hit.length)html+=staffTable(H,team.hit);H.forEach(function(h,i){html+=hitterBlock(h,i+1);});if(!H.length)html+='<div class="block">No hitter reports parsed for '+opp+'. Check the Synergy hitter files and the Scouting team.</div>';document.getElementById('bookTitle').textContent=opp+' · Hitter Book';}
+    if(kind==='hit'){var H=assembleHitters();html+='<div class="bsec">Hitters — by plate appearances</div>';if(team&&team.hit.length)html+=staffTable(H,team.hit);html+='<p class="legend">Defense reads give depth and alignment from infield/outfield contact — not pull-side direction. Confirm lateral shading against the spray chart.</p>';H.forEach(function(h,i){html+=hitterBlock(h,i+1);});if(!H.length)html+='<div class="block">No hitter reports parsed for '+opp+'. Check the Synergy hitter files and the Scouting team.</div>';document.getElementById('bookTitle').textContent=opp+' · Hitter Book';}
     else if(kind==='gp'){var us=ourTeam();var Pg=assignTiers(assemblePitchers());var bg=staffBaseline(Pg.filter(function(p){return p.tier!=='FN';}));
       html=html.replace('ADVANCE SCOUT · 2026 · PRE-GAME','GAME PLAN · 2026 · SERIES')
         .replace(opp.toUpperCase()+' — ADVANCE BOOK',((us&&us.team?us.team:'US')+' vs '+opp).toUpperCase())
