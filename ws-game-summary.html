@@ -389,7 +389,7 @@ function pitchCells(d){
          dText(d.best,dim)];
 }
 function hhead(){
-  return['HITTER','PA','Pitches / PA','Swings','Swing & Miss','Chases','Swings in Zone',
+  return['HITTER','PA','Pitches / PA','Swings','Swing & Miss','Swings in Zone','Chases',
          'Zone - Chase ('+zoBand()[2]+')','Hard Hit','Max Exit Velo','Results'];
 }
 /* One intersquad is noisy enough that +50 is the honest green line. Pooling
@@ -410,8 +410,8 @@ function hitCells(d){
          dNum(d.ppa,4.0,3.0,dim),
          dRate(d.sw,0,0,false,dim,1,true),
          dRate(d.wh,20,30,true,dim,6),
-         dRate(d.ch,20,30,true,dim,6),
          dRate(d.iz,0,0,false,dim,1,true),
+         dRate(d.ch,20,30,true,dim,6),
          dSigned(d.zo,zb[0],zb[1],dim,d.zoOK),
          dRate(d.hh,35,20,false,dim,4),
          dPlain(d.mev,dim,1),
