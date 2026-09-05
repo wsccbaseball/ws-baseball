@@ -864,7 +864,7 @@ function exportAggregate(){
     function q(s){s=String(s==null?'':s);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
 
     var head=['Date','GameType','Game','Pitcher','Throws','PitchType','N','Usage%',
-      'Velo','MaxVelo','IVB','HB','Spin','SpinAxis','SpinAxisSD','VAA','Ext','RelH','RelS',
+      'Velo','MaxVelo','VeloSD','IVB','IVBSD','HB','HBSD','Spin','SpinSD','SpinAxis','SpinAxisSD','VAA','Ext','RelH','RelS',
       'Strike%','Zone%','Swings','Whiffs','Whiff%','CalledStrikes','BIP','AvgEV','MaxEV','K','BB','PA'];
     var byPD={};
     Object.keys(buckets).forEach(function(k){
@@ -876,8 +876,9 @@ function exportAggregate(){
       var b=buckets[k],tot=byPD[b.date+'||'+b.pitcher];
       out.push([q(b.date),q(b.gtype),q(b.gname),q(b.pitcher),q(b.throws),q(b.pt),b.n,
         pc(b.n,tot),
-        f1(mean(b.velo)),f1(b.velo.length?Math.max.apply(null,b.velo):''),
-        f1(mean(b.ivb)),f1(mean(b.hb)),f0(mean(b.spin)),
+        f1(mean(b.velo)),f1(b.velo.length?Math.max.apply(null,b.velo):''),f1(sd(b.velo)),
+        f1(mean(b.ivb)),f1(sd(b.ivb)),f1(mean(b.hb)),f1(sd(b.hb)),
+        f0(mean(b.spin)),f0(sd(b.spin)),
         f1(circMean(b.axis)),f1(circSD(b.axis)),
         f1(mean(b.vaa)),f1(mean(b.ext)),f1(mean(b.relh)),f1(mean(b.rels)),
         pc(b.strikes,b.n),pc(b.zone,b.n),b.swings,b.whiffs,pc(b.whiffs,b.swings),
