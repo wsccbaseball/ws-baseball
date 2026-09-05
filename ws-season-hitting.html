@@ -37,6 +37,8 @@ body{font-family:'Barlow Condensed',sans-serif;background:#f2ead8;min-height:100
 .dd-item input[type=checkbox]{width:14px;height:14px;accent-color:#1a3a5c;flex-shrink:0;cursor:pointer}
 .dd-item.checked{background:#eef4fc}
 .filter-count{font-family:'Barlow',sans-serif;font-size:.72rem;color:#6b5f47;align-self:flex-end;padding-bottom:6px;white-space:nowrap}
+.exp-btn{height:32px;padding:0 10px;border:none;border-radius:4px;font-family:'Anton',sans-serif;font-size:.62rem;letter-spacing:.05em;color:#fff;cursor:pointer;white-space:nowrap;align-self:flex-end}
+.exp-btn:disabled{opacity:.45;cursor:not-allowed}
 #table-screen{padding:0 0 80px}
 .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table.stats-tbl{width:100%;border-collapse:collapse;font-family:'Barlow Condensed',sans-serif;min-width:680px}
@@ -161,6 +163,8 @@ canvas{display:block;border-radius:4px}
       </select>
     </div>
     <div class="filter-count" id="filterCount"></div>
+    <button id="expSwingBtn" class="exp-btn" style="background:#1a3a5c" onclick="exportSwings()">&#11015; SWINGS</button>
+    <button id="expBBBtn" class="exp-btn" style="background:#2d5a8e" onclick="exportBattedBalls()">&#11015; BATTED BALLS</button>
   </div>
   <div class="main-tab-bar">
     <div class="main-tab active" onclick="switchMainTab('leaderboard')">Leaderboard</div>
@@ -337,6 +341,13 @@ var PITCH_NORM={
   'Changeup':'ChangeUp','ChangeUp':'ChangeUp','Change-up':'ChangeUp',
   'Splitter':'Splitter','Knuckleball':'Knuckleball'
 };
+
+// Shared pitch-call classifications. FoulBallFieldable is a real TrackMan call;
+// omitting it silently deflates every swing-decision rate on this page.
+var SWING_CALLS=['StrikeSwinging','FoulBall','FoulBallNotFieldable','FoulBallFieldable','InPlay'];
+var CONTACT_CALLS=['FoulBall','FoulBallNotFieldable','FoulBallFieldable','InPlay'];
+var STRIKE_CALLS=['StrikeCalled','StrikeSwinging','FoulBall','FoulBallNotFieldable','FoulBallFieldable','InPlay'];
+
 function normPitch(t){return PITCH_NORM[t]||t||'Other';}
 function pitchColor(t){return PITCH_COLORS[normPitch(t)]||PITCH_COLORS[t]||'#888888';}
 
@@ -394,9 +405,9 @@ function computeProfile(name,rows){
       ptKs:0,ptBBs:0,ptHBPs:0
     };
     pitchTypes[pt].total++;
-    var isSwing=['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
+    var isSwing=SWING_CALLS.includes(call);
     var isWhiff=call==='StrikeSwinging';
-    var isContact=['FoulBall','FoulBallNotFieldable','InPlay'].includes(call);
+    var isContact=CONTACT_CALLS.includes(call);
     var inside=!isNaN(side)&&!isNaN(height)&&Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
     var outside=!isNaN(side)&&!isNaN(height)&&!inside;
     if(isSwing){swings++;pitchTypes[pt].swings++;}
@@ -1185,6 +1196,160 @@ function drawSprayChart(canvasId, rows, batterSide){
     ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.font='13px Barlow Condensed,sans-serif'; ctx.textAlign='center';
     ctx.fillText('No batted ball data (Direction/Distance not available)', W/2, H/2);
   }
+}
+
+// ── CSV EXPORTS ──────────────────────────────────────────────────────────────
+// Two files, because they aggregate differently.
+//
+//   SWINGS      one row per date / batter / pitch type. Swing decisions and
+//               whiff rates aggregate cleanly, so this collapses ~500 pitches
+//               into ~120 rows with nothing lost. Split by pitch type because
+//               that is what surfaces patterns like slider whiff rates.
+//
+//   BATTEDBALLS one row per ball in play. Best Speed is the mean of a hitter's
+//               hardest 50% of batted balls and CANNOT be rebuilt from daily
+//               averages — a season Best Speed is not the average of four daily
+//               Best Speeds. Same for barrel rate and spray. These stay per
+//               event. Small enough to never need aggregating.
+//
+// Both respect the current Season / Game Type / Game / Player filters.
+
+function _csvQ(s){s=String(s==null?'':s);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
+function _f1(v){v=parseFloat(v);return isNaN(v)?'':v.toFixed(1);}
+function _f2(v){v=parseFloat(v);return isNaN(v)?'':v.toFixed(2);}
+function _pc(n,d){return d>0?(100*n/d).toFixed(1):'';}
+
+function _filteredBatterRows(){
+  var selGames=getSelectedGames(), selPlayers=getSelectedPlayers();
+  return allPitches.filter(function(r){
+    if(!r.BatterTeam||!r.BatterTeam.toLowerCase().includes('wal'))return false;
+    if(selGames.length&&!selGames.includes(r.GameID))return false;
+    if(selPlayers.length&&!selPlayers.includes(r.Batter))return false;
+    return true;
+  });
+}
+function _gameMeta(gid){
+  var m=gamesMeta.find(function(g){return g.game_id===gid;});
+  return {date:(m&&m.date)?m.date:String(gid||'').slice(0,10),
+          type:(m&&m.game_type)?m.game_type:'game',
+          name:(m&&m.display_name)?m.display_name:(gid||'')};
+}
+function _download(csv,fname,btn,orig,nrows){
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download=fname;document.body.appendChild(a);a.click();
+  document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url);},1500);
+  btn.innerHTML='&#10003; '+nrows;
+  setTimeout(function(){btn.innerHTML=orig;btn.disabled=false;},2200);
+}
+
+function exportSwings(){
+  var btn=document.getElementById('expSwingBtn'),orig=btn.innerHTML;
+  btn.innerHTML='...';btn.disabled=true;
+  try{
+    var rows=_filteredBatterRows();
+    if(!rows.length){alert('No pitches match the current filters.');btn.innerHTML=orig;btn.disabled=false;return;}
+
+    var paByDay={};
+    rows.forEach(function(r){
+      if(parseInt(r.PitchofPA)===1){
+        var k=_gameMeta(r.GameID).date+'||'+r.Batter;
+        paByDay[k]=(paByDay[k]||0)+1;
+      }
+    });
+
+    var B={};
+    rows.forEach(function(r){
+      var m=_gameMeta(r.GameID);
+      var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||'Other');
+      var k=[m.date,r.Batter,pt].join('||');
+      if(!B[k])B[k]={date:m.date,gtype:m.type,gname:m.name,batter:r.Batter,side:r.BatterSide||'',
+        pt:pt,n:0,arms:{},sw:0,wh:0,called:0,zn:0,zsw:0,zwh:0,oz:0,ozsw:0,bip:0,
+        ks:0,bbs:0,hbp:0,ev:[]};
+      var b=B[k];
+      b.n++;
+      if(r.Pitcher)b.arms[r.Pitcher]=1;
+      var call=(r.PitchCall||'').trim();
+      var sw=SWING_CALLS.includes(call), wh=(call==='StrikeSwinging');
+      if(sw)b.sw++;
+      if(wh)b.wh++;
+      if(call==='StrikeCalled')b.called++;
+      var side=parseFloat(r.PlateLocSide),ht=parseFloat(r.PlateLocHeight);
+      var known=!isNaN(side)&&!isNaN(ht);
+      var inz=known&&Math.abs(side)<=0.833&&ht>=1.5&&ht<=3.5;
+      if(known){
+        if(inz){b.zn++;if(sw){b.zsw++;if(wh)b.zwh++;}}
+        else{b.oz++;if(sw)b.ozsw++;}
+      }
+      if(call==='InPlay')b.bip++;
+      if(call==='HitByPitch')b.hbp++;
+      if(r.KorBB==='Strikeout')b.ks++;
+      if(r.KorBB==='Walk')b.bbs++;
+      var ev=parseFloat(r.ExitSpeed);
+      if(!isNaN(ev)&&ev>0)b.ev.push(ev);
+    });
+
+    var head=['Date','GameType','Game','Batter','Side','PitchType','PA_day','Pitches','Usage%',
+      'PitchersFaced','Swings','Swing%','Whiffs','Whiff%','CalledStrikes',
+      'ZonePitches','ZoneSwings','ZSwing%','ZoneWhiffs','ZWhiff%',
+      'OzPitches','OzSwings','Chase%','BIP','K','BB','HBP','EVn','AvgEV','MaxEV'];
+    var totByDay={};
+    Object.keys(B).forEach(function(k){
+      var b=B[k],dk=b.date+'||'+b.batter;
+      totByDay[dk]=(totByDay[dk]||0)+b.n;
+    });
+    var out=[head.join(',')];
+    Object.keys(B).sort().forEach(function(k){
+      var b=B[k], dk=b.date+'||'+b.batter, tot=totByDay[dk];
+      var evs=b.ev, avg=evs.length?evs.reduce(function(s,v){return s+v;},0)/evs.length:'';
+      out.push([_csvQ(b.date),_csvQ(b.gtype),_csvQ(b.gname),_csvQ(b.batter),_csvQ(b.side),_csvQ(b.pt),
+        paByDay[dk]||0,b.n,_pc(b.n,tot),Object.keys(b.arms).length,
+        b.sw,_pc(b.sw,b.n),b.wh,_pc(b.wh,b.sw),b.called,
+        b.zn,b.zsw,_pc(b.zsw,b.zn),b.zwh,_pc(b.zwh,b.zsw),
+        b.oz,b.ozsw,_pc(b.ozsw,b.oz),b.bip,b.ks,b.bbs,b.hbp,
+        evs.length,_f1(avg),_f1(evs.length?Math.max.apply(null,evs):'')].join(','));
+    });
+
+    var csv=out.join('\n');
+    _download(csv,'WS_swings_'+CURRENT_SEASON+'_'+new Date().toISOString().slice(0,10)+'.csv',
+      btn,orig,(out.length-1)+' rows');
+  }catch(e){console.error(e);alert('Export failed: '+e.message);btn.innerHTML=orig;btn.disabled=false;}
+}
+
+function exportBattedBalls(){
+  var btn=document.getElementById('expBBBtn'),orig=btn.innerHTML;
+  btn.innerHTML='...';btn.disabled=true;
+  try{
+    var rows=_filteredBatterRows().filter(function(r){return (r.PitchCall||'').trim()==='InPlay';});
+    if(!rows.length){alert('No batted balls match the current filters.');btn.innerHTML=orig;btn.disabled=false;return;}
+
+    var head=['Date','GameType','Game','Batter','Side','Pitcher','PitcherThrows','PitchType',
+      'PitchVelo','SpinRate','IVB','HB','PlateHeight','PlateSide','Balls','Strikes',
+      'ExitSpeed','Angle','Direction','Distance','Bearing',
+      'ContactX','ContactY','ContactZ','HitType','PlayResult'];
+    var out=[head.join(',')];
+    rows.sort(function(a,b){
+      var da=_gameMeta(a.GameID).date, db=_gameMeta(b.GameID).date;
+      if(da!==db)return da<db?-1:1;
+      return String(a.Batter||'')<String(b.Batter||'')?-1:1;
+    }).forEach(function(r){
+      var m=_gameMeta(r.GameID);
+      out.push([_csvQ(m.date),_csvQ(m.type),_csvQ(m.name),_csvQ(r.Batter),_csvQ(r.BatterSide||''),
+        _csvQ(r.Pitcher||''),_csvQ(r.PitcherThrows||''),
+        _csvQ(normPitch(r.TaggedPitchType||r.AutoPitchType||'Other')),
+        _f1(r.RelSpeed),_f1(r.SpinRate),_f1(r.InducedVertBreak),_f1(r.HorzBreak),
+        _f2(r.PlateLocHeight),_f2(r.PlateLocSide),
+        (r.Balls==null?'':r.Balls),(r.Strikes==null?'':r.Strikes),
+        _f1(r.ExitSpeed),_f1(r.Angle),_f1(r.Direction),_f1(r.Distance),_f1(r.Bearing),
+        _f2(r.ContactPositionX),_f2(r.ContactPositionY),_f2(r.ContactPositionZ),
+        _csvQ(r.TaggedHitType||r.AutoHitType||''),_csvQ(r.PlayResult||'')].join(','));
+    });
+
+    var csv=out.join('\n');
+    _download(csv,'WS_battedballs_'+CURRENT_SEASON+'_'+new Date().toISOString().slice(0,10)+'.csv',
+      btn,orig,(out.length-1)+' rows');
+  }catch(e){console.error(e);alert('Export failed: '+e.message);btn.innerHTML=orig;btn.disabled=false;}
 }
 
 </script>
