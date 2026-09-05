@@ -149,6 +149,7 @@ canvas{display:block;border-radius:4px}
       </select>
     </div>
     <div class="filter-count" id="filterCount"></div>
+    <button id="exportBtn" onclick="exportAggregate()" style="height:32px;padding:0 12px;background:#1a3a5c;border:none;border-radius:4px;font-family:'Anton',sans-serif;font-size:.68rem;letter-spacing:.06em;color:#fff;cursor:pointer;white-space:nowrap;align-self:flex-end">&#11015; EXPORT CSV</button>
   </div>
   <div class="tab-bar">
     <button class="tab-btn active" id="tabResults" onclick="switchTab('results')">&#x1F4CA; Results</button>
@@ -787,6 +788,118 @@ function closeOverlay(){document.getElementById('imgOverlay').classList.remove('
 function fmt3(v){if(!v&&v!==0)return'--';var s=parseFloat(v).toFixed(3);return s.startsWith('0.')?s.slice(1):s;}
 function pct(v){if(isNaN(v)||v===null||v===undefined)return'--';return(v*100).toFixed(1)+'%';}
 function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── Aggregate CSV export ─────────────────────────────────────────────────────
+// One row per pitcher / per game date / per pitch type. Collapses ~500 pitches
+// per session into ~80 rows while preserving everything the analysis uses:
+// shape, spin, spin-axis mean AND spread, release, command, and contact.
+// Respects the current Season / Game Type / Game / Pitcher filters.
+function exportAggregate(){
+  var btn=document.getElementById('exportBtn'),orig=btn.innerHTML;
+  btn.innerHTML='Building...';btn.disabled=true;
+  try{
+    var selGames=getSelectedGames(), selPitchers=getSelectedPitchers();
+    var rows=allPitches.filter(function(r){
+      if(!r.PitcherTeam||!r.PitcherTeam.toLowerCase().includes('wal'))return false;
+      if(selGames.length&&!selGames.includes(r.GameID))return false;
+      if(selPitchers.length&&!selPitchers.includes(r.Pitcher))return false;
+      return true;
+    });
+    if(!rows.length){alert('No pitches match the current filters.');btn.innerHTML=orig;btn.disabled=false;return;}
+
+    var buckets={};
+    rows.forEach(function(r){
+      var meta=gamesMeta.find(function(g){return g.game_id===r.GameID;});
+      var date=(meta&&meta.date)?meta.date:String(r.GameID||'').slice(0,10);
+      var gtype=(meta&&meta.game_type)?meta.game_type:'game';
+      var gname=(meta&&meta.display_name)?meta.display_name:(r.GameID||'');
+      var pt=normPitch(r.TaggedPitchType,r.AutoPitchType);
+      var k=[date,r.Pitcher,pt].join('||');
+      if(!buckets[k])buckets[k]={date:date,gtype:gtype,gname:gname,pitcher:r.Pitcher,
+        throws:r.PitcherThrows||'',pt:pt,n:0,velo:[],ivb:[],hb:[],spin:[],axis:[],tilt:[],
+        vaa:[],ext:[],relh:[],rels:[],strikes:0,zone:0,swings:0,whiffs:0,called:0,bip:0,ev:[],
+        ks:0,bbs:0,pa:0};
+      var b=buckets[k];
+      b.n++;
+      function num(v){var x=parseFloat(v);return isNaN(x)?null:x;}
+      var f={velo:num(r.RelSpeed),ivb:num(r.InducedVertBreak),hb:num(r.HorzBreak),
+             spin:num(r.SpinRate),axis:num(r.SpinAxis),vaa:num(r.VertApprAngle),
+             ext:num(r.Extension),relh:num(r.RelHeight),rels:num(r.RelSide)};
+      Object.keys(f).forEach(function(key){if(f[key]!==null)b[key].push(f[key]);});
+      var call=(r.PitchCall||'').trim();
+      if(STRIKE_CALLS.includes(call))b.strikes++;
+      if(SWING_CALLS.includes(call))b.swings++;
+      if(call==='StrikeSwinging')b.whiffs++;
+      if(call==='StrikeCalled')b.called++;
+      var side=parseFloat(r.PlateLocSide),ht=parseFloat(r.PlateLocHeight);
+      if(!isNaN(side)&&!isNaN(ht)&&Math.abs(side)<=0.833&&ht>=1.5&&ht<=3.5)b.zone++;
+      if(call==='InPlay'){b.bip++;var ev=parseFloat(r.ExitSpeed);if(!isNaN(ev)&&ev>0)b.ev.push(ev);}
+      if(r.KorBB==='Strikeout')b.ks++;
+      if(r.KorBB==='Walk')b.bbs++;
+      if(parseInt(r.PitchofPA)===1)b.pa++;
+    });
+
+    function mean(a){return a.length?a.reduce(function(s,v){return s+v;},0)/a.length:'';}
+    function sd(a){if(a.length<2)return '';var m=mean(a);
+      return Math.sqrt(a.reduce(function(s,v){return s+(v-m)*(v-m);},0)/(a.length-1));}
+    // circular SD for spin axis — plain SD is wrong across the 0/360 wrap
+    function circSD(a){
+      if(a.length<2)return '';
+      var sx=0,sy=0;
+      a.forEach(function(d){var r=d*Math.PI/180;sx+=Math.cos(r);sy+=Math.sin(r);});
+      var R=Math.sqrt(sx*sx+sy*sy)/a.length;
+      if(R>=1)return 0;
+      return Math.sqrt(-2*Math.log(R))*180/Math.PI;
+    }
+    function circMean(a){
+      if(!a.length)return '';
+      var sx=0,sy=0;
+      a.forEach(function(d){var r=d*Math.PI/180;sx+=Math.cos(r);sy+=Math.sin(r);});
+      var ang=Math.atan2(sy,sx)*180/Math.PI;
+      return (ang+360)%360;
+    }
+    function f1(v){return v===''||v===null||isNaN(v)?'':(+v).toFixed(1);}
+    function f0(v){return v===''||v===null||isNaN(v)?'':Math.round(v);}
+    function pc(num,den){return den>0?(100*num/den).toFixed(1):'';}
+    function q(s){s=String(s==null?'':s);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
+
+    var head=['Date','GameType','Game','Pitcher','Throws','PitchType','N','Usage%',
+      'Velo','MaxVelo','IVB','HB','Spin','SpinAxis','SpinAxisSD','VAA','Ext','RelH','RelS',
+      'Strike%','Zone%','Swings','Whiffs','Whiff%','CalledStrikes','BIP','AvgEV','MaxEV','K','BB','PA'];
+    var byPD={};
+    Object.keys(buckets).forEach(function(k){
+      var b=buckets[k],pk=b.date+'||'+b.pitcher;
+      byPD[pk]=(byPD[pk]||0)+b.n;
+    });
+    var out=[head.join(',')];
+    Object.keys(buckets).sort().forEach(function(k){
+      var b=buckets[k],tot=byPD[b.date+'||'+b.pitcher];
+      out.push([q(b.date),q(b.gtype),q(b.gname),q(b.pitcher),q(b.throws),q(b.pt),b.n,
+        pc(b.n,tot),
+        f1(mean(b.velo)),f1(b.velo.length?Math.max.apply(null,b.velo):''),
+        f1(mean(b.ivb)),f1(mean(b.hb)),f0(mean(b.spin)),
+        f1(circMean(b.axis)),f1(circSD(b.axis)),
+        f1(mean(b.vaa)),f1(mean(b.ext)),f1(mean(b.relh)),f1(mean(b.rels)),
+        pc(b.strikes,b.n),pc(b.zone,b.n),b.swings,b.whiffs,pc(b.whiffs,b.swings),
+        b.called,b.bip,f1(mean(b.ev)),f1(b.ev.length?Math.max.apply(null,b.ev):''),
+        b.ks,b.bbs,b.pa].join(','));
+    });
+
+    var csv=out.join('\n');
+    var stamp=new Date().toISOString().slice(0,10);
+    var fname='WS_aggregate_'+CURRENT_SEASON+'_'+stamp+'.csv';
+    var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;a.download=fname;document.body.appendChild(a);a.click();
+    document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url);},1500);
+    btn.innerHTML='&#10003; '+(out.length-1)+' rows';
+    setTimeout(function(){btn.innerHTML=orig;btn.disabled=false;},2200);
+  }catch(e){
+    console.error(e);alert('Export failed: '+e.message);
+    btn.innerHTML=orig;btn.disabled=false;
+  }
+}
 
 var currentTab='results';
 var stuffSortPt=null,stuffSortCol=null,stuffSortAsc=false;
