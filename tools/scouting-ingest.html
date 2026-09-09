@@ -385,7 +385,8 @@
     else parts.push('IF alignment pending — needs vs Infielders');
     return parts.join('; ')+'.';}
   function hitterBlock(h,rank){var ep=epithet(h);var bt=btLabel(h.bats,h.throws);
-    var html='<div class="block"><div class="bhead"><span class="bspot">'+rank+'</span><span class="bname">'+h.last+'</span><span class="bjersey">#'+h.jersey+' · '+h.first+'</span>'+(bt?'<span class="bhand">'+bt+'</span>':'')+'<span class="btag '+ep.cls+'">'+ep.t+'</span><span class="bslash">'+h.slash+'</span></div>';
+    var tag=(ep.t&&ep.t!=='HITTER')?'<span class="btag '+ep.cls+'">'+ep.t+'</span>':'';
+    var html='<div class="block"><div class="bhead"><span class="bspot">'+rank+'</span><span class="bname">'+h.last+'</span><span class="bjersey">#'+h.jersey+' · '+h.first+'</span>'+(bt?'<span class="bhand">'+bt+'</span>':'')+tag+'<span class="bslash">'+h.slash+'</span></div>';
     html+='<p class="bp line m-circ"><span class="lbl">Profile</span>'+profile(h)+'</p>';
     html+='<p class="bp line out m-check"><span class="lbl">Out</span>'+outLine(h)+'</p>';
     html+='<p class="bp line danger m-tri"><span class="lbl">Danger</span>'+dangerLine(h)+'</p>';
