@@ -232,7 +232,7 @@
     var role=/\bHitter:/.test(txt)?'hitter':(/\bPitcher:/.test(txt)?'pitcher':'?');
     var nm=txt.match(/(?:Hitter|Pitcher):\s*([^,]+,\s*[^\-\n]+?)\s*-/);var name=nm?nm[1].trim():'?';
     var tm=txt.match(/(?:Hitter|Pitcher):\s*[^-]+-\s*([^,\n]+?),\s*(?:19|20)\d{2}/);var team=tm?tm[1].trim():null;
-    var sub='Overall';var rules=[[/Pitch Type \/ Velocity:\s*Fastball/,'vsFB'],[/Pitch Type \/ Velocity:\s*Slider/,'vsSL'],[/Pitch Type \/ Velocity:\s*Curveball/,'vsCB'],[/Pitch Type \/ Velocity:\s*Changeup/,'vsCH'],[/BIP Zone:[\s\S]*?Infield/,'INF'],[/BIP Zone:[\s\S]*?Outfield/,'OF'],[/Count:\s*Pitcher Ahead/,'Ahead'],[/Count:\s*Hitter Ahead/,'Behind'],[/Left\/Right:\s*LHH/,'vsLHH'],[/Left\/Right:\s*RHH/,'vsRHH']];
+    var sub='Overall';var rules=[[/Pitch Type \/ Velocity:\s*Fastball/,'vsFB'],[/Pitch Type \/ Velocity:\s*Slider/,'vsSL'],[/Pitch Type \/ Velocity:\s*Curveball/,'vsCB'],[/Pitch Type \/ Velocity:\s*Changeup/,'vsCH'],[/BIP Zone:[\s\S]*?Infield/,'INF'],[/BIP Zone:[\s\S]*?Outfield/,'OF'],[/Count:\s*Pitcher Ahead/,'Ahead'],[/Count:\s*Hitter Ahead/,'Behind'],[/Count:\s*2\s*Strikes?/i,'TwoK'],[/Left\/Right:\s*LHH/,'vsLHH'],[/Left\/Right:\s*RHH/,'vsRHH']];
     for(var i=0;i<rules.length;i++){if(rules[i][0].test(txt)){sub=rules[i][1];break;}}
     var basic={};
     for(var j=0;j<R.length;j++){var ln=R[j];var dec=ln.match(/\d*\.\d{3}/g);if(dec&&dec.length>=4&&ln.indexOf('AVG')<0){var ii=intsOf(ln);basic.avg=dec[dec.length-4];basic.obp=dec[dec.length-3];basic.slg=dec[dec.length-2];basic.ops=dec[dec.length-1];if(ii.length>=4){basic.bb=ii[1];basic.k=ii[3];}break;}}
@@ -324,10 +324,14 @@
       var nm=cs.name||r[Object.keys(r)[0]].name,last,first;
       if((cs.name||'').indexOf(' ')>=0){var p=cs.name.split(/\s+/);last=p[p.length-1];first=p.slice(0,-1).join(' ');}else if(nm.indexOf(',')>=0){last=nm.split(',')[0].trim();first=(nm.split(',')[1]||'').trim();}else last=nm;
       var ars=[];['Fastball','Sinker','Cutter','Slider','Curveball','Changeup'].forEach(function(p){var o=ov.mix[p];if(o)ars.push({p:p,velo:o.velo,usage:o.usage,miss:o.whiff});});
+      // 2-strike put-away mix (opt-in file, filter "Count: 2 Strike"). Usage-sorted; whiff carried.
+      var tkr=r.TwoK||{},tkmix=tkr.mix||null,twoStrike=null;
+      if(tkmix){twoStrike=[];['Fastball','Sinker','Cutter','Slider','Curveball','Changeup','Splitter'].forEach(function(pp){var o=tkmix[pp];if(o&&o.usage!=null)twoStrike.push({p:pp,usage:o.usage,whiff:o.whiff});});twoStrike.sort(function(a,b){return b.usage-a.usage;});}
       var role='';
       out.push({role:role,last:(last||'').toUpperCase(),first:first||'',jersey:cs.num||'?',throws:thr[cs.num]||(bt[cs.num]||{}).t||'?',bats:(bt[cs.num]||{}).b||null,
         line:(cs.era!=null?cs.w+'–'+cs.l+', '+cs.era+' · '+cs.ip+' IP · '+cs.k+' K / '+cs.bb+' BB · '+cs.baa:'—'),
         counts:{hr:cs.hr||0,hbp:cs.hbp||0,wp:cs.wp||0,app:cs.app||0,gs:cs.gs||0,sv:cs.sv||0,ipRaw:cs.ip,era:cs.era},arsenal:ars,
+        twoStrike:twoStrike,twoKAvg:(tkr.basic||{}).avg,
         ahead:(r.Ahead||{}).basic,behind:(r.Behind||{}).basic,behindFB:((r.Behind||{}).mix||{}).Fastball,fbOverall:((ov.mix||{}).Fastball||{}).usage,lhh:(r.vsLHH||{}).basic,rhh:(r.vsRHH||{}).basic});});
     return out;}
 
@@ -564,15 +568,30 @@
       html+='</div>';}
     return html;}
 
-  // OUT read: how hitters do once he's AHEAD in the count, measured against how they do
-  // BEHIND. The count only helps you if he's genuinely tougher ahead — so the "get to two
-  // strikes" advice is EARNED by the split, never assumed. AVG only: OBP≈AVG from ahead
-  // (you don't walk from ahead), so printing both was the same number twice.
+  // OUT read. Preferred: the 2-strike put-away mix (what he throws with 2 strikes and how
+  // often it misses) — this is the pitch to sit on or lay off, and needs the opt-in
+  // "Count: 2 Strike" pull. Fallback (no 2K file): how hitters do AHEAD vs BEHIND, with the
+  // "get to two strikes" advice EARNED by the split, never assumed. AVG only there: OBP≈AVG
+  // from ahead (you don't walk from ahead), so printing both was the same number twice.
   var OUT_STRONG=.220;   // AVG-against this low when ahead = a true out pitch
   var OUT_GAP=.080;      // ahead must beat behind by this to call the count a real lever
   var OUT_FLIP=.050;     // ahead worse than behind by this = inverted; two strikes don't help
+  var TK_SHOW=5;         // hide 2-strike pitches used less than this %
+  var TK_WHIFF=15;       // only trust a whiff rate at this usage % or above
   function pitAvg(b){var v=b&&b.avg!=null?parseFloat(b.avg):NaN;return isNaN(v)?null:v;}
+  function twoStrikeLine(p){var ts=p.twoStrike;if(!ts||!ts.length)return '';
+    var shown=ts.filter(function(x){return x.usage>=TK_SHOW;});if(!shown.length)return '';
+    var parts=shown.map(function(x){return '<b>'+x.p+'</b> '+x.usage+'%'+((x.whiff!=null&&x.usage>=TK_WHIFF)?' ('+x.whiff+'% whiff)':'');});
+    var top=ts[0];
+    var cand=ts.filter(function(x){return x.usage>=TK_WHIFF&&x.whiff!=null;}).sort(function(a,b){return b.whiff-a.whiff;});
+    var best=cand[0],tail;
+    if(best&&best.p!==top.p&&best.whiff>=(top.whiff||0)+10)
+      tail='Goes to the '+top.p.toLowerCase()+' most, but the '+best.p.toLowerCase()+' is the swing-and-miss ('+best.whiff+'%).';
+    else
+      tail='Put-away pitch is the '+top.p.toLowerCase()+' — sit for it with two strikes.';
+    return 'Two strikes'+(p.twoKAvg!=null?' (hitters '+d3(p.twoKAvg)+')':'')+': '+parts.join(' · ')+'. '+tail;}
   function outLinePitcher(p){
+    var tk=twoStrikeLine(p);if(tk)return tk;
     var a=pitAvg(p.ahead);if(a==null)return '';var as=d3(a);
     var b=pitAvg(p.behind);
     if(b==null)return (a<=OUT_STRONG?'A true out pitch once ahead — hitters manage just '+as+'. Don\u2019t give away early counts.':'Ahead, hitters are at '+as+'. Get ahead and stay ahead.');
