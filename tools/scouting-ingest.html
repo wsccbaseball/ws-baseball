@@ -564,6 +564,22 @@
       html+='</div>';}
     return html;}
 
+  // OUT read: how hitters do once he's AHEAD in the count, measured against how they do
+  // BEHIND. The count only helps you if he's genuinely tougher ahead — so the "get to two
+  // strikes" advice is EARNED by the split, never assumed. AVG only: OBP≈AVG from ahead
+  // (you don't walk from ahead), so printing both was the same number twice.
+  var OUT_STRONG=.220;   // AVG-against this low when ahead = a true out pitch
+  var OUT_GAP=.080;      // ahead must beat behind by this to call the count a real lever
+  var OUT_FLIP=.050;     // ahead worse than behind by this = inverted; two strikes don't help
+  function pitAvg(b){var v=b&&b.avg!=null?parseFloat(b.avg):NaN;return isNaN(v)?null:v;}
+  function outLinePitcher(p){
+    var a=pitAvg(p.ahead);if(a==null)return '';var as=d3(a);
+    var b=pitAvg(p.behind);
+    if(b==null)return (a<=OUT_STRONG?'A true out pitch once ahead — hitters manage just '+as+'. Don\u2019t give away early counts.':'Ahead, hitters are at '+as+'. Get ahead and stay ahead.');
+    var bs=d3(b),gap=b-a;
+    if(gap>=OUT_GAP)return (a<=OUT_STRONG?'A true out pitch once ahead':'Clearly tougher ahead')+' — '+as+' vs '+bs+' behind. Two strikes and the at-bat\u2019s basically over; don\u2019t give away early counts.';
+    if(gap<=-OUT_FLIP)return 'Reads backwards — more hittable ahead ('+as+') than behind ('+bs+'). Getting to two strikes doesn\u2019t shut him down.';
+    return 'The count isn\u2019t the lever — about the same ahead ('+as+') or behind ('+bs+'). Attack him by pitch type, not by getting to two strikes.';}
   function pitcherBlock(p,base){var ars=p.arsenal.map(function(a){return a.p+' '+a.velo+' ('+a.usage+'%, '+a.miss+'% miss)';}).join(' · ')||'—';
     // Throwing hand leads the pitcher read (RHP/LHP). Bats side is only surfaced when it's
     // non-obvious — a switch hitter or a bat opposite the throwing hand, i.e. the two-way tell.
@@ -574,7 +590,7 @@
     // is just the season walk total. Only the slash and the fastball-usage spike compare
     // like-for-like between buckets — print those, never the K/BB pairings.
     // The "spike" is a DELTA vs his overall usage, measured — never assumed.
-    if(p.ahead)html+='<p class="bp line out m-check"><span class="lbl">Out</span>Ahead — '+p.ahead.avg+'/'+p.ahead.obp+'. Don\u2019t get to two strikes cheap.</p>';
+    var ol=outLinePitcher(p);if(ol)html+='<p class="bp line out m-check"><span class="lbl">Out</span>'+ol+'</p>';
     if(p.behind&&deviates(p,base))html+='<p class="bp line m-arrow"><span class="lbl">By count</span><b>Breaks the staff pattern.</b> Behind he\u2019s '+p.behind.avg+'/'+p.behind.obp+fbShift(p)+'.</p>';
     if(p.lhh&&p.rhh){var stack=parseFloat(p.lhh.ops)>parseFloat(p.rhh.ops)?'LHH':'RHH';html+='<p class="bp line m-circ"><span class="lbl">Platoon</span><strong>Stack '+stack+'.</strong> vs LHH '+p.lhh.avg+'/'+p.lhh.obp+'/'+p.lhh.slg+'; vs RHH '+p.rhh.avg+'/'+p.rhh.obp+'/'+p.rhh.slg+'.</p>';}
     html+='<p class="bp line m-dia"><span class="lbl">Notes</span>'+p.counts.hbp+' HBP / '+p.counts.wp+' WP — a free base shows up; run game live.</p>';return html+'</div>';}
