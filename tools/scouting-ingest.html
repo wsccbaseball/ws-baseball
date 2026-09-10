@@ -307,7 +307,7 @@
         var o=ov.mix[pr[0]]||{},rep2=r[pr[1]]||{},b=rep2.basic||{};
         if(o.usage!=null||b.slg!=null)mix.push({p:pr[0],usage:o.usage,velo:o.velo,whiff:o.whiff,chase:o.chase,
           avg:b.avg!=null?parseFloat(b.avg):null,obp:b.obp!=null?parseFloat(b.obp):null,slg:b.slg!=null?parseFloat(b.slg):null,gb:(rep2.bip||{}).gb});});
-      var want=['Overall','vsFB','vsSL','vsCB','vsCH','INF','OF'];var missing=want.filter(function(s){return !r[s];});
+      var want=['Overall','vsFB','vsSL','vsCB','vsCH'];var missing=want.filter(function(s){return !r[s];});
       var mySlg=parseFloat(cs.slg)||0;
       out.push({last:(last||'').toUpperCase(),first:first||'',jersey:cs.num||'?',bats:(bt[cs.num]||{}).b||null,throws:(bt[cs.num]||{}).t||null,
         slash:(cs.avg!=null?d3(cs.avg)+' / '+d3(cs.obp)+' / '+d3(cs.slg):'—'),
@@ -366,23 +366,23 @@
   // SPEC §6 / §8-I: this line tells fielders WHERE TO STAND. Never a ground-ball percentage.
   // Fails closed — no spray pages, no positioning read. Never substitute a number for a missing input.
   function slgOfSlash(s){if(!s)return null;var p=String(s).split('/');return p.length>=3?(parseFloat(p[2])||0):null;}
-  function defenseLine(h){var z=h.zones,hasOF=!!z.ofSlash,hasINF=!!z.infSlash,parts=[];
-    if(!hasOF&&!hasINF)return 'Positioning pending — needs vs Infielders / vs Outfielders.';
+  function defenseLine(h){var z=h.zones,hasOF=!!z.ofSlash,parts=[];
+    // OF carry needs the vs-Outfielders zone file. Opt-in: omitted silently when it isn't uploaded.
     if(hasOF){var oslg=slgOfSlash(z.ofSlash);
       if(oslg!=null&&oslg>=.700)parts.push('Real carry in the air ('+z.ofSlash+' on outfield contact) — <b>play the OF deep</b>');
       else if(z.ofXBH===0)parts.push('No extra-base damage to the outfield ('+z.ofSlash+') — <b>OF standard depth</b>, play the gaps honest');
       else parts.push('Outfield contact '+z.ofSlash+' — <b>OF honest depth</b>, play the gaps');}
-    else parts.push('OF depth pending — needs vs Outfielders');
-    if(hasINF){
-      var g=z.gb,dp=(h.counts&&h.counts.gdp!=null)?h.counts.gdp:null;
+    // Infield depth runs off overall GB% (Overall report) + GIDP (stat sheet) — no zone pull needed.
+    var g=z.gb,dp=(h.counts&&h.counts.gdp!=null)?h.counts.gdp:null;
+    if(g!=null||dp!=null){
       if(g!=null&&g>=GB_HEAVY){
         if(dp!=null&&dp>=4)parts.push('heavy ground-ball lean ('+g+'% GB) and they turn ('+dp+' GIDP) — <b>infield at DP depth</b> with a runner on');
         else if(dp!=null&&dp<=1)parts.push('hits it on the ground ('+g+'% GB) but rarely gets doubled up ('+dp+' GIDP) — he beats them out or finds the hole; play the infield honest, not deep');
         else parts.push('heavy ground-ball lean ('+g+'% GB) — <b>infield at DP depth</b> with a runner on'+(dp==null?' (GIDP not on the sheet — confirm)':''));}
       else if(g!=null&&g<=GB_AIR)parts.push('gets it off the ground ('+g+'% GB) — infield honest, no DP shade');
-      else if(dp!=null&&dp>=4)parts.push('middling ground-ball rate but '+dp+' GIDP — the double play is there; DP depth with a runner on');
-      else parts.push('balanced off the bat — infield straight up');}
-    else parts.push('IF alignment pending — needs vs Infielders');
+      else if(dp!=null&&dp>=4)parts.push('the double play is there ('+dp+' GIDP) — DP depth with a runner on');
+      else if(g!=null)parts.push('balanced off the bat — infield straight up');}
+    if(!parts.length)return '';
     return parts.join('; ')+'.';}
   function hitterBlock(h,rank){var ep=epithet(h);var bt=btLabel(h.bats,h.throws);
     var tag=(ep.t&&ep.t!=='HITTER')?'<span class="btag '+ep.cls+'">'+ep.t+'</span>':'';
@@ -392,7 +392,7 @@
     html+='<p class="bp line danger m-tri"><span class="lbl">Danger</span>'+dangerLine(h)+'</p>';
     if(h.counts.sb>=10)html+='<p class="bp line m-arrow"><span class="lbl">Run</span>'+h.counts.sb+' SB — he\u2019ll go. Hold him, vary the look; a walk is a double waiting to happen.</p>';
     if(h.counts.sh>=3)html+='<p class="bp line m-arrow"><span class="lbl">Bunt</span>Real — '+h.counts.sh+' sacrifices; he\u2019ll drop one off the fastball. Corners alert in fastball counts.</p>';
-    html+='<p class="bp line m-dia"><span class="lbl">Defense</span>'+defenseLine(h)+'</p>';
+    var dl=defenseLine(h);if(dl)html+='<p class="bp line m-dia"><span class="lbl">Defense</span>'+dl+'</p>';
     if(h.missing&&h.missing.length){var lbl={Overall:'overall',vsFB:'vs FB',vsSL:'vs SL',vsCB:'vs CB',vsCH:'vs CH',INF:'infield zone',OF:'outfield zone'};
       html+='<p class="miss-note">⚠ Missing files: '+h.missing.map(function(s){return lbl[s];}).join(', ')+' — that detail is limited until they\u2019re added.</p>';}
     if(!bt)html+='<p class="hand-note">Bats/throws and lineup spot aren\u2019t in the files (coach-supplied) — strategic cross-lineup notes stay yours.</p>';
