@@ -794,6 +794,19 @@ function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 // per session into ~80 rows while preserving everything the analysis uses:
 // shape, spin, spin-axis mean AND spread, release, command, and contact.
 // Respects the current Season / Game Type / Game / Pitcher filters.
+//
+// Contact columns: EVCount / HardHit / Crushed are COUNTS, not rates, so they
+// sum correctly across pitch types and dates. Compute rates downstream.
+//   EVCount  batted balls in this row that carry a measured ExitSpeed.
+//            Runs about 95% of BIP — TrackMan fails to acquire roughly 1 in 20
+//            batted balls, and on those rows Angle, Distance and
+//            HitLaunchConfidence are null too. That is a source-data gap, not
+//            a pipeline gap. Never use BIP as the hard-hit denominator.
+//   HardHit  ExitSpeed >= 95
+//   Crushed  ExitSpeed >= 100
+// All three come from the same b.ev array that produces AvgEV and MaxEV, and
+// that array is only filled inside the InPlay branch — so foul balls with a
+// tracked ExitSpeed are excluded, matching standard hard-hit%.
 function exportAggregate(){
   var btn=document.getElementById('exportBtn'),orig=btn.innerHTML;
   btn.innerHTML='Building...';btn.disabled=true;
@@ -865,7 +878,7 @@ function exportAggregate(){
 
     var head=['Date','GameType','Game','Pitcher','Throws','PitchType','N','Usage%',
       'Velo','MaxVelo','VeloSD','IVB','IVBSD','HB','HBSD','Spin','SpinSD','SpinAxis','SpinAxisSD','VAA','Ext','RelH','RelS',
-      'Strike%','Zone%','Swings','Whiffs','Whiff%','CalledStrikes','BIP','AvgEV','MaxEV','K','BB','PA'];
+      'Strike%','Zone%','Swings','Whiffs','Whiff%','CalledStrikes','BIP','EVCount','HardHit','Crushed','AvgEV','MaxEV','K','BB','PA'];
     var byPD={};
     Object.keys(buckets).forEach(function(k){
       var b=buckets[k],pk=b.date+'||'+b.pitcher;
@@ -882,7 +895,11 @@ function exportAggregate(){
         f1(circMean(b.axis)),f1(circSD(b.axis)),
         f1(mean(b.vaa)),f1(mean(b.ext)),f1(mean(b.relh)),f1(mean(b.rels)),
         pc(b.strikes,b.n),pc(b.zone,b.n),b.swings,b.whiffs,pc(b.whiffs,b.swings),
-        b.called,b.bip,f1(mean(b.ev)),f1(b.ev.length?Math.max.apply(null,b.ev):''),
+        b.called,b.bip,
+        b.ev.length,
+        b.ev.filter(function(v){return v>=95;}).length,
+        b.ev.filter(function(v){return v>=100;}).length,
+        f1(mean(b.ev)),f1(b.ev.length?Math.max.apply(null,b.ev):''),
         b.ks,b.bbs,b.pa].join(','));
     });
 
