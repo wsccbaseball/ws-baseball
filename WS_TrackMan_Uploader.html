@@ -308,6 +308,15 @@ display: none;
   <div class="file-name" id="fileName"></div>
 </div>
 
+<!-- Upload secret: stays in this browser only (localStorage). DB writes go through trackman-ingest. -->
+<div class="pb-banner">Upload Secret</div>
+<div class="surface-card">
+  <div class="config-row">
+    <label>Stays in this browser only — never sent to GitHub</label>
+    <input type="password" id="uploadSecret" placeholder="Paste upload secret" autocomplete="off" spellcheck="false">
+  </div>
+</div>
+
 <!-- Display name -->
 
 <div id="displayNameSection" style="display:none;">
@@ -374,9 +383,59 @@ display: none;
 <div class="log" id="log"></div>
 
 <script>
+// DB writes (games/pitches) go through Edge Function trackman-ingest (x-upload-secret).
 // ── Config ──────────────────────────────────────────────────────────
 var urlInput = { value: 'https://mghrapwhvihpwgqryail.supabase.co' };
 var keyInput = { value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc' };
+
+var UPLOAD_SECRET_LS_KEY = 'ws_trackman_upload_secret';
+
+function getUploadSecret() {
+  var el = document.getElementById('uploadSecret');
+  return el ? el.value.trim() : '';
+}
+
+function loadUploadSecret() {
+  try {
+    var saved = localStorage.getItem(UPLOAD_SECRET_LS_KEY);
+    if (saved != null) document.getElementById('uploadSecret').value = saved;
+  } catch (e) {}
+}
+
+function saveUploadSecret() {
+  try {
+    localStorage.setItem(UPLOAD_SECRET_LS_KEY, document.getElementById('uploadSecret').value);
+  } catch (e) {}
+}
+
+async function ingestCall(action, payload) {
+  var url = urlInput.value.trim().replace(/\/+$/, '');
+  var key = keyInput.value.trim();
+  var secret = getUploadSecret();
+  var body = Object.assign({ action: action }, payload || {});
+  var res = await fetch(url + '/functions/v1/trackman-ingest', {
+    method: 'POST',
+    headers: {
+      'apikey': key,
+      'Authorization': 'Bearer ' + key,
+      'Content-Type': 'application/json',
+      'x-upload-secret': secret
+    },
+    body: JSON.stringify(body)
+  });
+  var text = await res.text();
+  var data = null;
+  try { data = JSON.parse(text); } catch (e) { data = null; }
+  if (!res.ok) {
+    var msg = (data && (data.error || data.message)) || text || ('HTTP ' + res.status);
+    var err = new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    err.status = res.status;
+    err.body = text;
+    err.data = data;
+    throw err;
+  }
+  return data != null ? data : {};
+}
 
 // ── CSV Parser ──────────────────────────────────────────────────────
 function parseCSV(text) {
@@ -530,19 +589,18 @@ function showGameInfo(rows) {
 }
 
 async function checkDuplicates(gids) {
-  var url = urlInput.value.trim().replace(/\/+$/, '');
-  var key = keyInput.value.trim();
-  if (!url || !key || !gids.length) {
+  if (!gids.length) {
+    document.getElementById('uploadBtn').disabled = false;
+    return;
+  }
+  if (!getUploadSecret()) {
+    document.getElementById('dupWarning').classList.remove('visible');
     document.getElementById('uploadBtn').disabled = false;
     return;
   }
   try {
-    var response = await fetch(
-      url + '/rest/v1/pitches?select=GameID&GameID=in.(' + gids.map(function(g) { return '"' + g + '"'; }).join(',') + ')&limit=1',
-      { headers: { 'apikey': key, 'Authorization': 'Bearer ' + key } }
-    );
-    var data = await response.json();
-    if (data && data.length > 0) {
+    var result = await ingestCall('check_duplicates', { game_ids: gids });
+    if (result && result.exists) {
       document.getElementById('dupWarning').textContent = '⚠ Game data already exists in database. Uploading will add duplicate rows.';
       document.getElementById('dupWarning').classList.add('visible');
     } else {
@@ -557,6 +615,7 @@ document.getElementById('uploadBtn').addEventListener('click', async function() 
   var url = urlInput.value.trim().replace(/\/+$/, '');
   var key = keyInput.value.trim();
   if (!url || !key) { showResult('error', 'Missing Supabase URL or key.'); return; }
+  if (!getUploadSecret()) { showResult('error', 'Enter the upload secret before uploading. It stays in this browser only.'); return; }
   if (!parsedRows.length) { showResult('error', 'No CSV loaded.'); return; }
 
   var btn = document.getElementById('uploadBtn');
@@ -574,11 +633,8 @@ document.getElementById('uploadBtn').addEventListener('click', async function() 
 
   if (csvGameIds.length) {
     try {
-      var dupCheck = await fetch(url + '/rest/v1/pitches?select=GameID&GameID=in.(' + csvGameIds.map(function(g) { return '"' + g + '"'; }).join(',') + ')&limit=1', {
-        headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
-      });
-      var dupData = await dupCheck.json();
-      if (dupData && dupData.length > 0) {
+      var dupResult = await ingestCall('check_duplicates', { game_ids: csvGameIds });
+      if (dupResult && dupResult.exists) {
         log('info', 'Game already in database. Saving display name only...');
         var displayName = document.getElementById('displayName').value.trim();
         var firstRow = parsedRows[0] || {};
@@ -596,11 +652,7 @@ document.getElementById('uploadBtn').addEventListener('click', async function() 
           pitch_count: parsedRows.length,
           box_score_url: boxScoreUrl
         };
-        await fetch(url + '/rest/v1/games', {
-          method: 'POST',
-          headers: { 'apikey': key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Prefer': 'return=minimal,resolution=merge-duplicates' },
-          body: JSON.stringify([gameRecord])
-        });
+        await ingestCall('upsert_game', { game: gameRecord });
         showProgress(false);
         btn.disabled = false;
         btn.textContent = 'Upload to Database';
@@ -608,71 +660,37 @@ document.getElementById('uploadBtn').addEventListener('click', async function() 
         log('ok', 'Game record updated: ' + (displayName || firstRow.GameID));
         return;
       }
-    } catch(e) {}
+    } catch(e) {
+      log('info', 'Duplicate check skipped or failed: ' + (e.message || e));
+    }
   }
 
-  // Step 1: discover DB columns
+  // Step 1: discover DB columns via trackman-ingest (no public REST probe-insert)
   log('info', 'Fetching DB schema...');
   var validColumns = null;
   try {
-    var specRes = await fetch(url + '/rest/v1/', {
-      headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
-    });
-    var spec = await specRes.json();
-    var props = spec && spec.definitions && spec.definitions.pitches && spec.definitions.pitches.properties;
-    if (props) {
-      validColumns = new Set(Object.keys(props).filter(function(c) { return c !== 'id' && c !== 'created_at'; }));
-      log('info', 'Schema loaded: ' + validColumns.size + ' columns found');
-    }
+    var colResult = await ingestCall('list_pitch_columns', {});
+    var cols = null;
+    if (colResult && Array.isArray(colResult.columns)) cols = colResult.columns;
+    else if (Array.isArray(colResult)) cols = colResult;
+    if (!cols || !cols.length) throw new Error('No columns returned from list_pitch_columns');
+    validColumns = new Set(cols.filter(function(c) { return c !== 'id' && c !== 'created_at'; }));
+    log('info', 'Schema loaded: ' + validColumns.size + ' columns found');
   } catch(e) {
-    log('info', 'Schema fetch failed, proceeding with auto-detection');
+    showProgress(false);
+    btn.disabled = false;
+    btn.textContent = 'Upload to Database';
+    showResult('error', 'Could not load pitch schema via trackman-ingest. Upload aborted.');
+    log('err', 'Schema fetch failed: ' + (e.message || e));
+    return;
   }
 
   var csvColumns = parsedRows.length ? Object.keys(parsedRows[0]) : [];
   var skipSet = {};
 
-  if (validColumns) {
-    csvColumns.forEach(function(col) { if (!validColumns.has(col)) skipSet[col] = true; });
-    var skipped = Object.keys(skipSet);
-    if (skipped.length) log('info', 'Pre-filtering ' + skipped.length + ' unknown columns: ' + skipped.join(', '));
-  } else {
-    log('info', 'Probing schema with single row...');
-    var probeRow = mapRow(parsedRows[0]);
-    var probing = true;
-    var probeAttempts = 0;
-    var probeId = null;
-    while (probing && probeAttempts < 100) {
-      probeAttempts++;
-      Object.keys(skipSet).forEach(function(k) { delete probeRow[k]; });
-      try {
-        var pr = await fetch(url + '/rest/v1/pitches', {
-          method: 'POST',
-          headers: { 'apikey': key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-          body: JSON.stringify([probeRow])
-        });
-        if (pr.ok) {
-          probing = false;
-          var probeResult = await pr.json();
-          if (probeResult && probeResult[0] && probeResult[0].id) probeId = probeResult[0].id;
-          log('info', 'Schema probe complete' + (Object.keys(skipSet).length ? '. Skipped: ' + Object.keys(skipSet).join(', ') : '. No unknown columns'));
-        } else {
-          var pt = await pr.text();
-          var cm = pt.match(/Could not find the '([^']+)' column/);
-          if (cm) { skipSet[cm[1]] = true; }
-          else { log('err', 'Probe error: ' + pt.substring(0, 120)); probing = false; }
-        }
-      } catch(e) { log('err', 'Probe failed: ' + e.message); probing = false; }
-    }
-    if (probeId) {
-      try {
-        await fetch(url + '/rest/v1/pitches?id=eq.' + probeId, {
-          method: 'DELETE',
-          headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
-        });
-        log('info', 'Probe row cleaned up');
-      } catch(e) {}
-    }
-  }
+  csvColumns.forEach(function(col) { if (!validColumns.has(col)) skipSet[col] = true; });
+  var skipped = Object.keys(skipSet);
+  if (skipped.length) log('info', 'Pre-filtering ' + skipped.length + ' unknown columns: ' + skipped.join(', '));
 
   var BATCH = 500;
   var total = parsedRows.length;
@@ -693,28 +711,23 @@ document.getElementById('uploadBtn').addEventListener('click', async function() 
     while (!success && attempts < 5) {
       attempts++;
       try {
-        var res = await fetch(url + '/rest/v1/pitches', {
-          method: 'POST',
-          headers: { 'apikey': key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-          body: JSON.stringify(batch)
-        });
-        if (res.ok) {
-          uploaded += batch.length;
-          log('ok', 'Batch ' + batchNum + ': ' + batch.length + ' rows inserted');
-          success = true;
+        await ingestCall('insert_pitches', { rows: batch });
+        uploaded += batch.length;
+        log('ok', 'Batch ' + batchNum + ': ' + batch.length + ' rows inserted');
+        success = true;
+      } catch(e) {
+        var errText = (e && (e.body || e.message)) ? String(e.body || e.message) : String(e);
+        var colMatch = errText.match(/Could not find the '([^']+)' column/);
+        if (colMatch) {
+          skipSet[colMatch[1]] = true;
+          batch = batch.map(function(r) { var c = Object.assign({}, r); delete c[colMatch[1]]; return c; });
+          log('info', 'Stripping unknown column and retrying: ' + colMatch[1]);
         } else {
-          var errText = await res.text();
-          var colMatch = errText.match(/Could not find the '([^']+)' column/);
-          if (colMatch) {
-            skipSet[colMatch[1]] = true;
-            batch = batch.map(function(r) { var c = Object.assign({}, r); delete c[colMatch[1]]; return c; });
-          } else {
-            errors += batch.length;
-            log('err', 'Batch ' + batchNum + ' failed: ' + errText.substring(0, 120));
-            success = true;
-          }
+          errors += batch.length;
+          log('err', 'Batch ' + batchNum + ' failed: ' + errText.substring(0, 120));
+          success = true;
         }
-      } catch(e) { errors += batch.length; log('err', 'Batch ' + batchNum + ' error: ' + e.message); success = true; }
+      }
     }
     if (!success) { errors += batch.length; log('err', 'Batch ' + batchNum + ' gave up after retries'); }
     var pct = Math.round(Math.min((i + BATCH) / total * 100, 100));
@@ -724,31 +737,27 @@ document.getElementById('uploadBtn').addEventListener('click', async function() 
   showProgress(false);
 
   if (errors === 0 && uploaded > 0) {
-    var displayName = document.getElementById('displayName').value.trim();
-    var firstRow = parsedRows[0] || {};
-    var normDate = normDateStr(firstRow.Date || '');
+    var displayName2 = document.getElementById('displayName').value.trim();
+    var firstRow2 = parsedRows[0] || {};
+    var normDate2 = normDateStr(firstRow2.Date || '');
     log('info', 'Auto-fetching box score URL from schedule...');
-    var boxScoreUrl = await autoFetchBoxScoreUrl(url, key, normDate, firstRow.GameID);
-    if (boxScoreUrl) { log('ok', 'Box score URL found: ' + boxScoreUrl); }
+    var boxScoreUrl2 = await autoFetchBoxScoreUrl(url, key, normDate2, firstRow2.GameID);
+    if (boxScoreUrl2) { log('ok', 'Box score URL found: ' + boxScoreUrl2); }
     else { log('info', 'Box score URL not found — can add manually in Supabase later.'); }
-    var gameRecord = {
-      game_id: firstRow.GameID || null,
-      display_name: displayName || null,
-      date: normDate || null,
-      home_team: firstRow.HomeTeam || null,
-      away_team: firstRow.AwayTeam || null,
+    var gameRecord2 = {
+      game_id: firstRow2.GameID || null,
+      display_name: displayName2 || null,
+      date: normDate2 || null,
+      home_team: firstRow2.HomeTeam || null,
+      away_team: firstRow2.AwayTeam || null,
       pitch_count: uploaded,
-      box_score_url: boxScoreUrl
+      box_score_url: boxScoreUrl2
     };
     try {
-      await fetch(url + '/rest/v1/games', {
-        method: 'POST',
-        headers: { 'apikey': key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Prefer': 'return=minimal,resolution=merge-duplicates' },
-        body: JSON.stringify([gameRecord])
-      });
-      log('info', 'Game record saved: ' + (displayName || gameRecord.game_id));
+      await ingestCall('upsert_game', { game: gameRecord2 });
+      log('info', 'Game record saved: ' + (displayName2 || gameRecord2.game_id));
     } catch(e) {
-      log('info', 'Note: games table not yet created - run setup SQL');
+      log('err', 'Game upsert failed: ' + (e.message || e));
     }
   }
 
@@ -814,6 +823,11 @@ async function autoFetchBoxScoreUrl(supaUrl, supaKey, normDate, gameId) {
     return (data && data.url) ? data.url : null;
   } catch(e) { return null; }
 }
+
+// Init secret from localStorage
+loadUploadSecret();
+document.getElementById('uploadSecret').addEventListener('input', saveUploadSecret);
+document.getElementById('uploadSecret').addEventListener('change', saveUploadSecret);
 </script>
 
 </body>
