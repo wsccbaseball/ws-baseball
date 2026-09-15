@@ -7,6 +7,7 @@
 <title>WS Hitter Game Summary</title>
 <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Anton&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -194,6 +195,10 @@ flex-shrink: 0;
 .footer { background: #f0f4fa; border-top: 1px solid #dde4ef; padding: 5px 10px; display: flex; justify-content: space-between; font-family: ‘Barlow Condensed’, sans-serif; font-size: 9px; color: #6a7f9a; }
 .save-btn { display: block; width: calc(100% - 16px); margin: 8px auto; padding: 11px; background: #1a3a5c; border: none; border-radius: 8px; font-family: ‘Barlow Condensed’, sans-serif; font-size: 15px; font-weight: 800; color: #fff; cursor: pointer; letter-spacing: 1px; }
 .save-btn:active { background: #e63946; }
+.save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.save-btn-wrap { width: calc(100% - 16px); max-width: 520px; margin: 10px auto 0; padding: 0 4px; }
+.save-status { font-size: 13px; color: #1a3a5c; margin-top: 6px; text-align: center; min-height: 18px; font-weight: 600; }
+.save-all-tip { font-size: 12px; color: #555; margin-top: 4px; text-align: center; line-height: 1.35; }
 .img-overlay { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.88); align-items: center; justify-content: center; flex-direction: column; padding: 16px; }
 .img-overlay.active { display: flex; }
 .img-overlay img { max-width: 100%; max-height: 80vh; border-radius: 6px; box-shadow: 0 8px 40px rgba(0,0,0,0.6); }
@@ -306,6 +311,14 @@ flex-shrink: 0;
   <button class="save-btn" onclick="saveImage()">📥 SAVE IMAGE</button>
 </div>
 
+<div class="save-btn-wrap" id="saveAllWrap" style="display:none;">
+  <button class="save-btn" id="saveAllBtn" onclick="saveAllWsHitterCards()" disabled>
+    SAVE ALL WS CARDS (ZIP)
+  </button>
+  <div class="save-status" id="saveAllStatus"></div>
+  <div class="save-all-tip">On iPhone: zip lands in Files — unzip, then Share each image in Messages.</div>
+</div>
+
 <div class="img-overlay" id="imgOverlay" onclick="closeOverlay()">
   <img id="overlayImg" src="" alt="Hitter Card">
   <div class="overlay-hint">Hold the image to save to your photos</div>
@@ -373,7 +386,14 @@ document.getElementById('gameSelect').addEventListener('change', async function(
   var bsel = document.getElementById('batterSelect');
   document.getElementById('generateBtn').disabled = true;
   allRows = [];
-  if (!gameId) { bsel.innerHTML = '<option>Select game first</option>'; bsel.disabled = true; return; }
+  if (!gameId) {
+    bsel.innerHTML = '<option>Select game first</option>';
+    bsel.disabled = true;
+    window._wsHitters = [];
+    var saw = document.getElementById('saveAllWrap');
+    if (saw) { saw.style.display = 'none'; document.getElementById('saveAllBtn').disabled = true; }
+    return;
+  }
   bsel.innerHTML = '<option>Loading batters...</option>';
   bsel.disabled = true;
   try {
@@ -409,10 +429,29 @@ document.getElementById('gameSelect').addEventListener('change', async function(
       bsel.appendChild(oppGrp);
     }
     bsel.disabled = false;
+    window._wsHitters = wsBatters;
+    var saveAllWrap = document.getElementById('saveAllWrap');
+    var saveAllBtn = document.getElementById('saveAllBtn');
+    if (saveAllWrap && saveAllBtn) {
+      if (wsBatters.length > 0) {
+        saveAllWrap.style.display = 'block';
+        saveAllBtn.disabled = false;
+        document.getElementById('saveAllStatus').textContent = '';
+      } else {
+        saveAllWrap.style.display = 'none';
+        saveAllBtn.disabled = true;
+      }
+    }
     document.getElementById('statusMsg').textContent = '✓ ' + rows.length + ' pitches loaded — select a batter.';
     document.getElementById('statusMsg').className = 'status-msg';
   } catch(e) {
     bsel.innerHTML = '<option>Error loading batters</option>';
+    window._wsHitters = [];
+    var saveAllWrapErr = document.getElementById('saveAllWrap');
+    if (saveAllWrapErr) {
+      saveAllWrapErr.style.display = 'none';
+      document.getElementById('saveAllBtn').disabled = true;
+    }
   }
 
   var gd = window._gameData[gameId];
@@ -839,6 +878,117 @@ function saveImage(){
   },150);
 }
 function closeOverlay(){document.getElementById('imgOverlay').classList.remove('active');}
+
+function _delay(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
+function _canvasToBlob(canvas){
+  return new Promise(function(resolve){
+    if (canvas.toBlob) {
+      canvas.toBlob(function(blob){ resolve(blob); }, 'image/png');
+    } else {
+      var dataUrl = canvas.toDataURL('image/png');
+      var bin = atob(dataUrl.split(',')[1]);
+      var arr = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      resolve(new Blob([arr], {type:'image/png'}));
+    }
+  });
+}
+
+function _sanitizeFilePart(s){
+  return String(s || '').replace(/[^\w\-]+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '') || 'Game';
+}
+
+function _flipHitterName(b){
+  var parts = String(b || '').split(',');
+  return parts.length > 1 ? parts[1].trim() + ' ' + parts[0].trim() : String(b || 'Hitter');
+}
+
+async function saveAllWsHitterCards(){
+  var gameSel = document.getElementById('gameSelect');
+  var gameId = gameSel.value;
+  var hitters = window._wsHitters || [];
+  if (!gameId || !hitters.length) {
+    alert('Select a game with Walters State hitters first.');
+    return;
+  }
+  if (typeof JSZip === 'undefined') {
+    alert('JSZip failed to load. Check your connection and reload.');
+    return;
+  }
+
+  var btn = document.getElementById('saveAllBtn');
+  var genBtn = document.getElementById('generateBtn');
+  var status = document.getElementById('saveAllStatus');
+  var batterSel = document.getElementById('batterSelect');
+  var prevBatter = batterSel.value;
+
+  btn.disabled = true;
+  if (genBtn) genBtn.disabled = true;
+
+  var zip = new JSZip();
+  var added = 0;
+  var n = hitters.length;
+
+  try {
+    for (var i = 0; i < n; i++) {
+      var batter = hitters[i];
+      var label = _flipHitterName(batter);
+      status.textContent = (i + 1) + '/' + n + ' Rendering ' + label + '...';
+      batterSel.value = batter;
+      generate();
+
+      if (document.getElementById('card').style.display === 'none') {
+        continue;
+      }
+
+      // Charts / PA zones draw via setTimeout inside generate — wait for them
+      await _delay(350);
+
+      var card = document.getElementById('card');
+      var canvas = await html2canvas(card, {
+        scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff',
+        scrollX: 0, scrollY: -window.scrollY, logging: false,
+        ignoreElements: function(el){ return el.classList && el.classList.contains('save-btn'); }
+      });
+      var blob = await _canvasToBlob(canvas);
+      if (!blob) continue;
+      var fileName = 'WS_' + _sanitizeFilePart(label) + '_hitting.png';
+      zip.file(fileName, blob);
+      added++;
+    }
+
+    if (!added) {
+      status.textContent = 'No cards to zip (no pitch data).';
+    } else {
+      status.textContent = 'Building ZIP (' + added + ' cards)...';
+      var zipBlob = await zip.generateAsync({type:'blob'});
+      var opt = gameSel.options[gameSel.selectedIndex];
+      var gameLabel = opt ? (opt.textContent || gameId) : gameId;
+      var zipName = _sanitizeFilePart(gameLabel) + '_WS_hitter_cards.zip';
+      var url = URL.createObjectURL(zipBlob);
+      var link = document.createElement('a');
+      link.download = zipName;
+      link.href = url;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+      status.textContent = '✓ ' + added + ' cards zipped';
+      if (/iP(hone|ad|od)/i.test(navigator.userAgent)) {
+        status.textContent += ' — if zip opens, tap Share → Save to Files';
+      }
+    }
+  } catch(err) {
+    status.textContent = 'Error: ' + err.message;
+  }
+
+  if (prevBatter) batterSel.value = prevBatter;
+  btn.disabled = false;
+  var g = gameSel.value;
+  var b = batterSel.value;
+  if (genBtn) genBtn.disabled = !(g && b);
+}
 
 loadGames();
 </script>

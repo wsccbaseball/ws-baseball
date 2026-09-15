@@ -6,6 +6,7 @@
 <title>WS Season Hitting</title>
 <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Anton&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{max-width:100vw;overflow-x:hidden}
@@ -55,10 +56,18 @@ table.stats-tbl tr.selected td:first-child{background:#e8f0fb!important}
 .val-good{color:#2a7a3a}
 .val-warn{color:#b05000}
 .no-data{text-align:center;padding:40px;color:#9b8c74;font-family:'Barlow',sans-serif;font-size:.9rem}
-.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#1a3a5c;padding:10px 14px;display:flex;gap:8px;z-index:20}
-.gen-btn{flex:1;padding:11px;background:#fff;border:none;font-family:'Anton',sans-serif;font-size:.9rem;letter-spacing:.08em;color:#1a3a5c;cursor:pointer;border-radius:6px}
-.gen-btn:disabled{background:rgba(255,255,255,.3);color:rgba(255,255,255,.5);cursor:not-allowed}
-.sel-hint{font-family:'Barlow',sans-serif;font-size:.72rem;color:#a8c8f0;display:flex;align-items:center;white-space:nowrap}
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#1a3a5c;padding:10px 14px 12px;display:flex;flex-direction:column;gap:8px;z-index:30;box-shadow:0 -4px 16px rgba(0,0,0,.18)}
+.bottom-bar-row{display:flex;gap:8px;width:100%;align-items:center}
+.bottom-bar .gen-btn,.gen-btn{flex:1;padding:11px;background:#fff;border:none;font-family:'Anton',sans-serif;font-size:.9rem;letter-spacing:.08em;color:#1a3a5c;cursor:pointer;border-radius:6px}
+.bottom-bar .gen-btn:disabled,.gen-btn:disabled{background:rgba(255,255,255,.3);color:rgba(255,255,255,.5);cursor:not-allowed}
+.bottom-bar .sel-hint,.sel-hint{flex:0 1 auto;min-width:0;font-family:'Barlow',sans-serif;font-size:.72rem;color:#a8c8f0;display:flex;align-items:center;white-space:nowrap}
+.save-all-tip{font-size:11px;color:rgba(255,255,255,.7);margin:0;text-align:center;line-height:1.3}
+.save-all-inline{display:none;width:100%}
+.save-all-inline.is-open{display:block}
+.save-all-inline .save-btn{width:100%;margin:0;background:linear-gradient(135deg,#2d5a8e,#1a3a5c);color:#fff;border:1px solid rgba(168,200,240,.45);border-radius:8px;padding:11px;font-family:'Anton',sans-serif;letter-spacing:.06em;font-size:.88rem;cursor:pointer}
+.save-all-inline .save-btn:disabled{opacity:.5;cursor:not-allowed}
+.save-all-inline #saveAllStatus{text-align:center;margin-top:4px;font-size:12px;color:#a8c8f0}
+#main-screen{padding-bottom:150px}
 #card-screen{display:none;padding:12px 10px 80px;max-width:520px;margin:0 auto}
 .back-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .back-row-title{font-family:'Abril Fatface',serif;font-size:1.3rem;color:#1a1a2e}
@@ -304,8 +313,15 @@ canvas{display:block;border-radius:4px}
 </div>
 
 <div class="bottom-bar" id="bottomBar" style="display:none">
-  <div class="sel-hint" id="selHint">Tap a player to select</div>
-  <button class="gen-btn" id="genCardBtn" disabled onclick="buildCard()">Generate Season Card &rarr;</button>
+  <div class="save-all-inline" id="saveAllWrap">
+    <button class="save-btn" id="saveAllBtn" type="button" onclick="saveAllWsSeasonHitterCards()">SAVE ALL WS CARDS (ZIP)</button>
+    <div id="saveAllStatus"></div>
+    <div class="save-all-tip">Zips season cards for Walters State hitters in the current filter view.</div>
+  </div>
+  <div class="bottom-bar-row">
+    <div class="sel-hint" id="selHint">Tap a player to select</div>
+    <button class="gen-btn" id="genCardBtn" disabled onclick="buildCard()">Generate Season Card &rarr;</button>
+  </div>
 </div>
 
 <div class="img-overlay" id="imgOverlay" onclick="closeOverlay()">
@@ -668,12 +684,14 @@ function buildCard(){
   },30);
   document.getElementById('main-screen').style.display='none';
   document.getElementById('card-screen').style.display='block';
+  var _sawHide=document.getElementById('saveAllWrap');if(_sawHide)_sawHide.classList.remove('is-open');
   window.scrollTo(0,0);
 }
 
 function showSelect(){
   document.getElementById('card-screen').style.display='none';
   document.getElementById('main-screen').style.display='block';
+  var _saw=document.getElementById('saveAllWrap');if(_saw){_saw.style.display='';_saw.classList.add('is-open');}
 }
 
 async function saveCard(){
@@ -763,6 +781,7 @@ async function loadSeasonData(){
   document.getElementById('loading-screen').style.display='flex';
   document.getElementById('main-screen').style.display='none';
   document.getElementById('bottomBar').style.display='none';
+  var _saw=document.getElementById('saveAllWrap');if(_saw)_saw.classList.remove('is-open');
   seasonStats={batting:[]};
   setProgress(5,'Loading season stats...');
   if(/-spring$/.test(CURRENT_SEASON)){
@@ -786,6 +805,7 @@ async function loadSeasonData(){
   document.getElementById('loading-screen').style.display='none';
   document.getElementById('main-screen').style.display='block';
   document.getElementById('bottomBar').style.display='flex';
+  if(_saw){_saw.style.display='';_saw.classList.add('is-open');}
 }
 
 function populateGameFilter(){
@@ -864,7 +884,7 @@ function renderTable(){
   });
 }
 function sortTable(col){if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=false;}renderTable();}
-function showMain(){document.getElementById('card-screen').style.display='none';document.getElementById('main-screen').style.display='block';document.getElementById('bottomBar').style.display='flex';selectedPlayer=null;document.getElementById('genCardBtn').disabled=true;document.getElementById('selHint').textContent='Tap a player to select';}
+function showMain(){document.getElementById('card-screen').style.display='none';document.getElementById('main-screen').style.display='block';document.getElementById('bottomBar').style.display='flex';var _saw=document.getElementById('saveAllWrap');if(_saw){_saw.style.display='';_saw.classList.add('is-open');}selectedPlayer=null;document.getElementById('genCardBtn').disabled=true;document.getElementById('selHint').textContent='Tap a player to select';}
 
 boot();
 
@@ -1350,6 +1370,72 @@ function exportBattedBalls(){
     _download(csv,'WS_battedballs_'+CURRENT_SEASON+'_'+new Date().toISOString().slice(0,10)+'.csv',
       btn,orig,(out.length-1)+' rows');
   }catch(e){console.error(e);alert('Export failed: '+e.message);btn.innerHTML=orig;btn.disabled=false;}
+}
+
+function _delay(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+function _canvasToBlob(canvas){
+  return new Promise(function(resolve){
+    if (canvas.toBlob) {
+      canvas.toBlob(function(blob){ resolve(blob); }, 'image/png');
+    } else {
+      var dataUrl = canvas.toDataURL('image/png');
+      var bin = atob(dataUrl.split(',')[1]);
+      var arr = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      resolve(new Blob([arr], {type:'image/png'}));
+    }
+  });
+}
+function _sanitizeFilePart(s){
+  return String(s || '').replace(/[^\w\-]+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '') || 'Season';
+}
+
+async function saveAllWsSeasonHitterCards(){
+  if (typeof JSZip === 'undefined') { alert('JSZip failed to load. Check your connection and reload.'); return; }
+  var selectedPlayers = (typeof getSelectedPlayers === 'function') ? getSelectedPlayers() : [];
+  var list = (tableData || []).filter(function(p){
+    return (p.pa > 0 || p.totalPitches > 0) && (!selectedPlayers.length || selectedPlayers.includes(p.name));
+  });
+  if (!list.length) { alert('No Walters State hitters in the current view.'); return; }
+  var btn = document.getElementById('saveAllBtn');
+  var status = document.getElementById('saveAllStatus');
+  var prev = selectedPlayer;
+  btn.disabled = true;
+  var zip = new JSZip();
+  var added = 0;
+  try {
+    for (var i = 0; i < list.length; i++) {
+      var p = list[i];
+      status.textContent = (i+1) + '/' + list.length + ' Rendering ' + (p.displayName || p.name) + '...';
+      selectedPlayer = p.name;
+      buildCard();
+      await _delay(350);
+      var card = document.getElementById('card');
+      var canvas = await html2canvas(card, {scale:2, useCORS:true, allowTaint:true, backgroundColor:'#ffffff', scrollX:0, scrollY:-window.scrollY, ignoreElements:function(el){ return el.classList && el.classList.contains('save-btn'); }});
+      var blob = await _canvasToBlob(canvas);
+      if (!blob) continue;
+      var label = (p.displayName || p.name || 'Hitter').replace(/\s+/g, '_');
+      zip.file('WS_' + _sanitizeFilePart(label) + '_season_hitting.png', blob);
+      added++;
+    }
+    if (!added) { status.textContent = 'No cards to zip.'; }
+    else {
+      status.textContent = 'Building ZIP (' + added + ' cards)...';
+      var zipBlob = await zip.generateAsync({type:'blob'});
+      var zipName = 'WS_' + _sanitizeFilePart(CURRENT_SEASON) + '_season_hitter_cards.zip';
+      var url = URL.createObjectURL(zipBlob);
+      var link = document.createElement('a');
+      link.download = zipName; link.href = url;
+      document.body.appendChild(link); link.click(); document.body.removeChild(link);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+      status.textContent = '✓ ' + added + ' season hitter cards zipped';
+    }
+  } catch(err) {
+    status.textContent = 'Error: ' + err.message;
+  }
+  selectedPlayer = prev;
+  if (typeof showSelect === 'function') showSelect();
+  btn.disabled = false;
 }
 
 </script>
