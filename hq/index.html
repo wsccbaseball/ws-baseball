@@ -172,6 +172,15 @@
       gap: 8px;
       margin-bottom: 12px;
     }
+    @media (min-width: 420px) {
+      .counts.rich { grid-template-columns: repeat(5, 1fr); }
+    }
+    .counts.rich { grid-template-columns: repeat(2, 1fr); }
+    .dash-practice {
+      margin-bottom: 12px;
+    }
+    .dash-practice ul { margin: 8px 0 0 18px; color: var(--muted); font-size: 0.9rem; }
+    .search-box { width: 100%; margin-bottom: 0; }
     .count {
       background: var(--card);
       border: 1px solid var(--border);
@@ -357,7 +366,8 @@
     recruitId: null,
     playerId: null,
     playerTab: 'hitting',
-    recruitFilter: { grad_year: '2027', commit: '' },
+    recruitFilter: { grad_year: '2027', commit: '', q: '' },
+    rosterFilter: { q: '' },
   };
 
   function toast(msg) {
@@ -485,23 +495,51 @@
 
   /* ——— Home ——— */
   async function renderHome(main) {
-    const [recruits, players, alerts] = await Promise.all([
-      sb.from('hq_recruits').select('id', { count: 'exact', head: true }),
+    const day = todayISO();
+    const [recruits27, players, alerts, practiceRes, knowledge] = await Promise.all([
+      sb.from('hq_recruits').select('id', { count: 'exact', head: true }).eq('grad_year', 2027),
       sb.from('hq_players').select('id', { count: 'exact', head: true }).eq('active', true),
       sb.from('hq_alerts').select('*').is('resolved_at', null).order('created_at', { ascending: false }).limit(20),
+      sb.from('hq_practice_days').select('*').eq('practice_date', day).maybeSingle(),
+      sb.from('hq_knowledge_items').select('id', { count: 'exact', head: true }),
     ]);
-    if (recruits.error) throw recruits.error;
+    if (recruits27.error) throw recruits27.error;
     if (players.error) throw players.error;
     if (alerts.error) throw alerts.error;
+    if (knowledge.error) throw knowledge.error;
+
+    let practice = practiceRes.data;
+    if (practiceRes.error && !practice) {
+      const alt = await sb.from('hq_practice_days').select('*').eq('day', day).maybeSingle();
+      practice = alt.data;
+    }
 
     const openAlerts = alerts.data || [];
+    const blocks = Array.isArray(practice?.blocks_json) ? practice.blocks_json : [];
+    const practiceSummary = practice
+      ? `<div class="card dash-practice">
+          <h3>${esc(practice.theme || 'Practice')} <span class="chip">today</span></h3>
+          <div class="meta">${esc(day)}</div>
+          ${blocks.length ? `<ul>${blocks.map((b) => {
+            const title = typeof b === 'string' ? b : (b.title || '');
+            const detail = typeof b === 'object' && b.detail ? ' — ' + b.detail : '';
+            return `<li>${esc(title)}${esc(detail)}</li>`;
+          }).join('')}</ul>` : `<p class="meta" style="margin-top:6px">No blocks listed</p>`}
+          <div class="row-btns"><a class="btn sm secondary" href="#practice">Edit practice</a></div>
+        </div>`
+      : `<div class="empty"><strong>No practice day for today</strong>Create one under Practice.</div>`;
+
     main.innerHTML = `
       <div class="section-title"><h2>Home</h2></div>
-      <div class="counts">
-        <div class="count"><div class="n">${recruits.count ?? 0}</div><div class="l">Recruits</div></div>
-        <div class="count"><div class="n">${players.count ?? 0}</div><div class="l">Active</div></div>
-        <div class="count"><div class="n">${openAlerts.length}</div><div class="l">Alerts</div></div>
+      <div class="counts rich">
+        <div class="count"><div class="n">${openAlerts.length}</div><div class="l">Open alerts</div></div>
+        <div class="count"><div class="n">${recruits27.count ?? 0}</div><div class="l">Recruits ’27</div></div>
+        <div class="count"><div class="n">${players.count ?? 0}</div><div class="l">Active players</div></div>
+        <div class="count"><div class="n">${practice ? blocks.length : 0}</div><div class="l">Practice blocks</div></div>
+        <div class="count"><div class="n">${knowledge.count ?? 0}</div><div class="l">Knowledge</div></div>
       </div>
+      <div class="section-title"><h2>Today’s practice</h2></div>
+      ${practiceSummary}
       <div class="section-title"><h2>Alerts</h2></div>
       <div id="alert-strip">
         ${openAlerts.length ? openAlerts.map((a) => `
@@ -517,10 +555,11 @@
       </div>
       <div class="section-title"><h2>Quick links</h2></div>
       <ul class="quick-links">
-        <li><a href="/">TrackMan hub <small>Program home</small></a></li>
-        <li><a href="/scout/">Press Box <small>/scout/</small></a></li>
-        <li><a href="/tools/scouting-ingest.html">Scouting builder <small>/tools/scouting-ingest.html</small></a></li>
-        <li><a href="player.html">Player view stub <small>Read-only MVP</small></a></li>
+        <li><a href="../">TrackMan hub <small>Program home (../)</small></a></li>
+        <li><a href="../scout/">Press Box <small>../scout/</small></a></li>
+        <li><a href="../tools/scouting-ingest.html">Scouting builder <small>../tools/scouting-ingest.html</small></a></li>
+        <li><a href="./player.html">Player view stub <small>./player.html</small></a></li>
+        <li><a href="https://wsccbaseball.github.io/ws-baseball/">TrackMan hub (absolute) <small>wsccbaseball.github.io/ws-baseball/</small></a></li>
       </ul>
     `;
     $$('.resolve-alert', main).forEach((btn) => {
@@ -538,20 +577,30 @@
   async function renderRecruits(main) {
     const gy = state.recruitFilter.grad_year;
     const commit = state.recruitFilter.commit;
+    const q = (state.recruitFilter.q || '').trim().toLowerCase();
     const yearRes = await sb.from('hq_recruits').select('grad_year');
     if (yearRes.error) throw yearRes.error;
     const years = [...new Set((yearRes.data || []).map((r) => r.grad_year).filter(Boolean))].sort();
-    let q = sb.from('hq_recruits').select('*').order('last_name', { ascending: true });
-    if (gy) q = q.eq('grad_year', Number(gy));
-    const { data, error } = await q;
+    let query = sb.from('hq_recruits').select('*').order('last_name', { ascending: true });
+    if (gy) query = query.eq('grad_year', Number(gy));
+    const { data, error } = await query;
     if (error) throw error;
     let list = data || [];
     if (commit === 'blank') list = list.filter((r) => !r.commit_school);
     if (commit === 'has') list = list.filter((r) => !!r.commit_school);
+    if (q) {
+      list = list.filter((r) => {
+        const name = `${r.first_name || ''} ${r.last_name || ''}`.toLowerCase();
+        const hs = (r.high_school || r.hs || '').toLowerCase();
+        return name.includes(q) || hs.includes(q);
+      });
+    }
+    const titleYear = gy || 'All';
+    const hsOf = (r) => r.high_school || r.hs || '';
 
     main.innerHTML = `
       <div class="section-title">
-        <h2>Recruits</h2>
+        <h2>Recruits · ${esc(titleYear)} · ${list.length}</h2>
       </div>
       <div class="filters">
         <select id="f-gy">
@@ -563,6 +612,7 @@
           <option value="blank" ${commit==='blank'?'selected':''}>No commit</option>
           <option value="has" ${commit==='has'?'selected':''}>Has commit</option>
         </select>
+        <input class="search-box" id="f-q" type="search" placeholder="Search name…" value="${esc(state.recruitFilter.q || '')}" />
       </div>
       <div id="recruit-list">
         ${list.length ? list.map((r) => `
@@ -571,18 +621,18 @@
             <div class="meta">
               ${r.pos ? `<span class="chip">${esc(r.pos)}</span>` : ''}
               ${r.grad_year ? `Class ${esc(r.grad_year)}` : ''}
-              ${r.hs ? ` · ${esc(r.hs)}` : ''}
+              ${hsOf(r) ? ` · ${esc(hsOf(r))}` : ''}
               ${r.commit_school ? ` · <span class="chip ok">${esc(r.commit_school)}</span>` : ''}
             </div>
           </div>
-        `).join('') : `<div class="empty"><strong>No recruits in this filter</strong>Try All years, or add one below.</div>`}
+        `).join('') : `<div class="empty"><strong>No recruits in this filter</strong>Try All years, clear search, or add one below.</div>`}
       </div>
       <div class="card">
         <h3>Add recruit</h3>
         <form class="form-grid" id="add-recruit">
           <label>First <input name="first_name" required /></label>
           <label>Last <input name="last_name" required /></label>
-          <label>HS <input name="hs" /></label>
+          <label>HS <input name="high_school" /></label>
           <label>Pos <input name="pos" placeholder="OF / RHP" /></label>
           <label>Grad year <input name="grad_year" type="number" inputmode="numeric" value="2027" /></label>
           <label>Commit school <input name="commit_school" /></label>
@@ -600,6 +650,12 @@
     $('#f-commit').addEventListener('change', (e) => {
       state.recruitFilter.commit = e.target.value;
       render();
+    });
+    let qTimer;
+    $('#f-q').addEventListener('input', (e) => {
+      state.recruitFilter.q = e.target.value;
+      clearTimeout(qTimer);
+      qTimer = setTimeout(() => render(), 220);
     });
     $$('.recruit-row', main).forEach((el) => {
       el.addEventListener('click', () => { location.hash = `recruit/${el.dataset.id}`; });
@@ -633,7 +689,7 @@
         <h2>${esc(r.first_name)} ${esc(r.last_name)}</h2>
         <div class="meta">
           ${r.pos ? `<span class="chip">${esc(r.pos)}</span>` : ''}
-          ${r.grad_year || ''} ${r.hs ? `· ${esc(r.hs)}` : ''}
+          ${r.grad_year || ''} ${(r.high_school || r.hs) ? `· ${esc(r.high_school || r.hs)}` : ''}
         </div>
         <p style="margin-top:8px">${r.commit_school ? `Commit: <strong>${esc(r.commit_school)}</strong>` : 'No commit yet'}</p>
         ${r.twitter ? `<p class="meta">Twitter: ${esc(r.twitter)}</p>` : ''}
@@ -685,31 +741,56 @@
   async function renderRoster(main) {
     const { data, error } = await sb.from('hq_players').select('*').eq('active', true).order('last_name');
     if (error) throw error;
-    const list = data || [];
+    let list = data || [];
+    const q = (state.rosterFilter.q || '').trim().toLowerCase();
+    if (q) {
+      list = list.filter((p) => {
+        const name = `${p.first_name || ''} ${p.last_name || ''}`.toLowerCase();
+        const pos = (p.pos || '').toLowerCase();
+        return name.includes(q) || pos.includes(q);
+      });
+    }
+    const emptyMsg = (data || []).length === 0
+      ? `<div class="empty"><strong>No active players — import pending</strong>Add players below or wait for roster import.</div>`
+      : (list.length === 0
+        ? `<div class="empty"><strong>No players match search</strong>Clear the search box.</div>`
+        : '');
+
     main.innerHTML = `
-      <div class="section-title"><h2>Roster</h2></div>
+      <div class="section-title"><h2>Roster · ${list.length}</h2></div>
+      <div class="filters">
+        <input class="search-box" id="roster-q" type="search" placeholder="Search name or pos…" value="${esc(state.rosterFilter.q || '')}" />
+      </div>
       ${list.length ? list.map((p) => `
         <div class="card tap player-row" data-id="${esc(p.id)}">
           <h3>${esc(p.last_name)}, ${esc(p.first_name)}</h3>
           <div class="meta">
             ${p.pos ? `<span class="chip">${esc(p.pos)}</span>` : ''}
+            ${p.throws ? `<span class="chip">T: ${esc(p.throws)}</span>` : ''}
+            ${p.bats ? `<span class="chip">B: ${esc(p.bats)}</span>` : ''}
             ${p.class_year || p.grad_year || ''}
-            ${p.number != null ? ` · #${esc(p.number)}` : ''}
           </div>
         </div>
-      `).join('') : `<div class="empty"><strong>No active players — add one</strong>Dev plans and throw logs live on each player.</div>`}
+      `).join('') : emptyMsg}
       <div class="card">
         <h3>Add player</h3>
         <form class="form-grid" id="add-player">
           <label>First <input name="first_name" required /></label>
           <label>Last <input name="last_name" required /></label>
           <label>Pos <input name="pos" /></label>
-          <label>Number <input name="number" type="number" /></label>
+          <label>Throws <input name="throws" placeholder="R / L" /></label>
+          <label>Bats <input name="bats" placeholder="R / L / S" /></label>
           <label>Class / year <input name="class_year" placeholder="FR / SO / 2027" /></label>
           <button class="btn" type="submit">Save player</button>
         </form>
       </div>
     `;
+    let rqTimer;
+    $('#roster-q').addEventListener('input', (e) => {
+      state.rosterFilter.q = e.target.value;
+      clearTimeout(rqTimer);
+      rqTimer = setTimeout(() => render(), 220);
+    });
     $$('.player-row', main).forEach((el) => {
       el.addEventListener('click', () => { location.hash = `player/${el.dataset.id}/hitting`; });
     });
@@ -718,7 +799,6 @@
       const fd = new FormData(e.target);
       const row = Object.fromEntries(fd.entries());
       row.active = true;
-      if (row.number !== '') row.number = Number(row.number); else delete row.number;
       Object.keys(row).forEach((k) => { if (row[k] === '') row[k] = null; });
       const { error: err } = await sb.from('hq_players').insert(row);
       if (err) { toast(err.message); return; }

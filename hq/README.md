@@ -12,10 +12,13 @@ npx serve .
 
 Then open `http://localhost:3000/` (or your port) → `index.html`.
 
-For GitHub Pages, serve this folder as the site (or a `/hq/` subpath). Links assume relative paths:
+For GitHub Pages under `/ws-baseball/hq/`, use **relative** quick links (do not use site-root `/`):
 
-- Staff app: `index.html` (or `/hq/`)
-- Player stub: `player.html`
+- Staff app: `index.html` (or `/ws-baseball/hq/`)
+- Player stub: `./player.html`
+- TrackMan hub: `../` or `https://wsccbaseball.github.io/ws-baseball/`
+- Press Box: `../scout/`
+- Scouting builder: `../tools/scouting-ingest.html`
 
 ## Staff gate
 
@@ -33,6 +36,7 @@ Schema migration already applied: **`hq_mvp_schema`**.
 
 - Recruits + touches
 - Players + dev plans + program assignments + plan logs
+- Program templates (throwing / strength / workout stubs)
 - Alerts (e.g. overthrow when actual throws > planned)
 - Practice days (theme + `blocks_json`)
 - Knowledge items
@@ -41,13 +45,25 @@ Schema migration already applied: **`hq_mvp_schema`**.
 
 | Nav | What it does |
 |-----|----------------|
-| **Home** | Counts, open alerts (resolve), quick links to TrackMan hub `/`, Press Box `/scout/`, builder `/tools/scouting-ingest.html` |
-| **Recruits** | List/filter, add, detail + touches |
-| **Roster** | Active players, add, detail tabs (Hitting/Pitching, Throwing, S&C, Notes), throw log, assign |
+| **Home** | Richer dashboard: open alerts, 2027 recruit count, active players, today’s practice summary + blocks, knowledge count; resolve alerts; relative quick links for Pages |
+| **Recruits** | Default year **2027**; title `Recruits · 2027 · N`; year/commit filters + **name search**; add form writes `high_school`; detail + touches |
+| **Roster** | Active players with **search**; pos / throws / bats chips; empty “import pending” only when roster is empty; add player; detail tabs (Hitting/Pitching, Throwing, S&C, Notes), throw log, assign |
 | **Practice** | Today’s practice day create/edit |
 | **Knowledge** | List + add clippings |
 
-**Player stub** (`player.html`): pick an active player from a dropdown (not real auth). Shows that player’s plans, assignments, today’s practice, recent logs.
+**Player stub** (`player.html`): improved copy, link back to `./index.html` Staff HQ, dropdown + tappable list of active players (not real auth). Shows that player’s plans, assignments, today’s practice, recent logs.
+
+## Seed stubs (Supabase REST / anon)
+
+Idempotent “if none / if missing” seeds for local polish:
+
+| Table | Stub |
+|-------|------|
+| `hq_program_templates` | Default throwing progression; Default S&C block; Individual lift upload placeholder |
+| `hq_practice_days` | Today’s “Team practice (stub)” with warm-up / defense / BP / bullpens (+ S&C if present) |
+| `hq_knowledge_items` | Short stubs tagged `recruiting` / `throwing` / `hitting` noting “replace with real ingest” |
+
+All stubs are labeled as placeholders — not coaching gospel.
 
 ## Known MVP limits
 
@@ -59,6 +75,7 @@ Schema migration already applied: **`hq_mvp_schema`**.
 - Throw overthrow alert is created client-side; resolve from Home.
 - No image uploads; knowledge is URL/text/summary/tags only.
 - Hash routes in the staff SPA (`#home`, `#recruits`, etc.).
+- Recruits column is `high_school` (not `hs`).
 
 ## Stack
 

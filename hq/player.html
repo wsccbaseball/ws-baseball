@@ -90,19 +90,46 @@
       margin-bottom: 12px;
     }
     .empty strong { display: block; color: var(--cream); margin-bottom: 4px; }
-    .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; }
+    .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; flex-wrap: wrap; }
     .top h1 { font-size: 1.35rem; }
     .top h1 span { color: var(--accent); }
     .section-title { margin: 16px 0 8px; font-size: 1.1rem; }
+    .staff-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--cream);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+    .staff-link:hover { border-color: var(--accent); color: var(--accent); }
+    .player-list { list-style: none; margin-top: 8px; }
+    .player-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      cursor: pointer;
+    }
+    .player-list li:last-child { border-bottom: none; }
+    .player-list li:active { opacity: 0.85; }
+    .player-list .name { font-weight: 600; }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
   <div class="banner">
-    <strong>Player view stub</strong> — not real player auth yet. Pick yourself from the roster dropdown for a read-only MVP preview.
+    <strong>Player view stub</strong> — not real player auth. Pick yourself from the roster for a read-only preview of plans, assignments, today’s practice, and logs. Staff still use the unlock gate on HQ.
   </div>
   <div class="top">
     <h1>WS <span>Player</span></h1>
-    <a href="index.html">Staff HQ</a>
+    <a class="staff-link" href="./index.html">← Staff HQ</a>
   </div>
 
   <div class="card">
@@ -112,6 +139,7 @@
         <option value="">Loading…</option>
       </select>
     </label>
+    <div id="player-list-wrap" class="hidden"></div>
   </div>
 
   <div id="view">
@@ -127,23 +155,50 @@
   const todayISO = () => new Date().toISOString().slice(0, 10);
   const pick = document.getElementById('player-pick');
   const view = document.getElementById('view');
+  const listWrap = document.getElementById('player-list-wrap');
+  let playersCache = [];
 
   async function loadPlayers() {
-    const { data, error } = await sb.from('hq_players').select('id, first_name, last_name, pos, number').eq('active', true).order('last_name');
+    const { data, error } = await sb.from('hq_players').select('id, first_name, last_name, pos, bats, throws, class_year').eq('active', true).order('last_name');
     if (error) {
       pick.innerHTML = '<option value="">Error loading players</option>';
       view.innerHTML = `<div class="empty"><strong>Could not load roster</strong>${esc(error.message)}</div>`;
+      listWrap.innerHTML = '';
       return;
     }
     const list = data || [];
+    playersCache = list;
     if (!list.length) {
       pick.innerHTML = '<option value="">No active players</option>';
-      view.innerHTML = `<div class="empty"><strong>No active players yet</strong>Staff can add players in HQ Roster.</div>`;
+      listWrap.innerHTML = '';
+      view.innerHTML = `<div class="empty"><strong>No active players yet</strong>Staff can add players in HQ Roster (or wait for import).</div>`;
       return;
     }
     pick.innerHTML = '<option value="">Choose player…</option>' + list.map((p) =>
       `<option value="${esc(p.id)}">${esc(p.last_name)}, ${esc(p.first_name)}${p.pos ? ' · ' + esc(p.pos) : ''}</option>`
     ).join('');
+    listWrap.classList.remove('hidden');
+    listWrap.innerHTML = `
+      <div class="meta" style="margin-bottom:4px">${list.length} active player${list.length === 1 ? '' : 's'} — tap to open</div>
+      <ul class="player-list">
+        ${list.map((p) => `
+          <li data-id="${esc(p.id)}">
+            <span class="name">${esc(p.last_name)}, ${esc(p.first_name)}</span>
+            <span class="meta">
+              ${p.pos ? `<span class="chip">${esc(p.pos)}</span>` : ''}
+              ${p.throws ? `<span class="chip">T: ${esc(p.throws)}</span>` : ''}
+              ${p.bats ? `<span class="chip">B: ${esc(p.bats)}</span>` : ''}
+            </span>
+          </li>
+        `).join('')}
+      </ul>
+    `;
+    listWrap.querySelectorAll('li[data-id]').forEach((li) => {
+      li.addEventListener('click', () => {
+        pick.value = li.dataset.id;
+        showPlayer(li.dataset.id);
+      });
+    });
   }
 
   async function showPlayer(id) {
@@ -181,7 +236,9 @@
         <h2>${esc(p.first_name)} ${esc(p.last_name)}</h2>
         <div class="meta">
           ${p.pos ? `<span class="chip">${esc(p.pos)}</span>` : ''}
-          ${p.class_year || ''} ${p.number != null ? '#' + esc(p.number) : ''}
+          ${p.throws ? `<span class="chip">T: ${esc(p.throws)}</span>` : ''}
+          ${p.bats ? `<span class="chip">B: ${esc(p.bats)}</span>` : ''}
+          ${p.class_year || ''}
         </div>
       </div>
 
