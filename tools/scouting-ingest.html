@@ -146,11 +146,40 @@
     table.staff tr.full td:nth-child(2){color:#111!important;font-weight:700;}
     footer.meth{color:#333;font-size:8.5pt;padding:3mm 0 0;border-top:.5pt solid #999;}
   }
+
+  /* Access gate */
+  #gate{position:fixed;inset:0;z-index:10000;background:var(--navy);color:var(--cream);display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;}
+  #gate.hidden{display:none;}
+  .gate-card{max-width:420px;width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(242,234,216,.25);border-radius:12px;padding:28px 22px 22px;}
+  .gate-card .eyebrow{font-family:'Oswald',sans-serif;letter-spacing:.14em;text-transform:uppercase;font-size:12px;opacity:.85;margin:0 0 8px;}
+  .gate-card h1{font-family:'Oswald',sans-serif;font-weight:400;font-size:28px;margin:0 0 10px;line-height:1.1;}
+  .gate-card p{margin:0 0 16px;font-size:14px;line-height:1.45;color:var(--cream-deep);}
+  .gate-card input{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:8px;border:1px solid rgba(242,234,216,.35);background:#0f1c2e;color:var(--cream);font-size:16px;margin-bottom:12px;}
+  .gate-card button{width:100%;padding:12px;border:none;border-radius:8px;background:var(--accent);color:#111;font-family:'Oswald',sans-serif;font-size:16px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;cursor:pointer;}
+  .gate-card button:disabled{opacity:.5;cursor:not-allowed;}
+  .gate-err{min-height:18px;font-size:13px;color:#ffb4b4;margin:0 0 8px;}
+  #appRoot.locked{display:none;}
+  #lockAgainBtn{display:none;margin:10px 18px 0;padding:8px 12px;font-size:12px;background:transparent;border:1px solid rgba(242,234,216,.4);color:var(--cream);border-radius:6px;cursor:pointer;font-family:'Oswald',sans-serif;letter-spacing:.08em;text-transform:uppercase;}
+  #lockAgainBtn.show{display:inline-block;}
 </style>
 </head>
 <body>
+
+<div id="gate">
+  <div class="gate-card">
+    <p class="eyebrow">Press Box · Season Access</p>
+    <h1>Enter your access code</h1>
+    <p>This builder is for programs with a season code. After you unlock, it stays open on this device until the code expires.</p>
+    <div class="gate-err" id="gateErr"></div>
+    <input id="gateCode" type="password" autocomplete="off" placeholder="Season access code" enterkeyhint="go">
+    <button type="button" id="gateBtn">Unlock</button>
+  </div>
+</div>
+
+<div id="appRoot" class="locked">
 <div class="wrap">
   <header class="masthead"><p class="eyebrow">Press Box · Advance Scouting</p><h1>Build the Packet</h1>
+    <button type="button" id="lockAgainBtn">Lock again</button>
     <p class="sub">Upload the opponent's files — plus your own stat sheet if you want the team gameplan. The tool sorts everything, figures out which team you're scouting, and builds the advance book on that opponent. Files never leave this device.</p></header>
 
   <section class="card"><p class="step-eyebrow"><span class="num">01</span> &nbsp;Upload</p><h2 class="step">Drop in the files</h2>
@@ -177,9 +206,60 @@
 
 <div id="bookView"><div class="bookbar"><button id="backBtn">← Files</button><span class="t" id="bookTitle">Advance Book</span></div><div class="page" id="page"></div></div>
 
+</div>
+
 <script>
 (function(){
   "use strict";
+
+  var GATE_LS='pb_scouting_unlock';
+  var SUPA_URL='https://mghrapwhvihpwgqryail.supabase.co';
+  var SUPA_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
+  function gateToday(){return new Date().toISOString().slice(0,10);}
+  function gateIsUnlocked(){
+    try{
+      var raw=localStorage.getItem(GATE_LS); if(!raw) return false;
+      var o=JSON.parse(raw); if(!o||!o.expires) return false;
+      return gateToday()<=String(o.expires);
+    }catch(e){return false;}
+  }
+  function gateShowApp(){
+    var g=document.getElementById('gate'); if(g) g.classList.add('hidden');
+    var a=document.getElementById('appRoot'); if(a) a.classList.remove('locked');
+    var b=document.getElementById('lockAgainBtn'); if(b) b.classList.add('show');
+  }
+  function gateShowLock(){
+    var g=document.getElementById('gate'); if(g) g.classList.remove('hidden');
+    var a=document.getElementById('appRoot'); if(a) a.classList.add('locked');
+    var b=document.getElementById('lockAgainBtn'); if(b) b.classList.remove('show');
+  }
+  function gateApply(){ if(gateIsUnlocked()) gateShowApp(); else gateShowLock(); }
+  async function gateUnlock(){
+    var err=document.getElementById('gateErr');
+    var btn=document.getElementById('gateBtn');
+    var code=(document.getElementById('gateCode').value||'').trim();
+    err.textContent='';
+    if(!code){ err.textContent='Enter your season access code.'; return; }
+    btn.disabled=true; btn.textContent='Checking…';
+    try{
+      var res=await fetch(SUPA_URL+'/functions/v1/scouting-unlock',{
+        method:'POST',
+        headers:{'apikey':SUPA_ANON,'Authorization':'Bearer '+SUPA_ANON,'Content-Type':'application/json'},
+        body:JSON.stringify({code:code})
+      });
+      var data=await res.json().catch(function(){return {};});
+      if(!res.ok||!data.ok){ throw new Error((data&&data.error)||('Could not unlock ('+res.status+')')); }
+      localStorage.setItem(GATE_LS, JSON.stringify({expires:data.expires||'2026-12-31'}));
+      document.getElementById('gateCode').value='';
+      gateShowApp();
+    }catch(e){ err.textContent=e.message||String(e); }
+    btn.disabled=false; btn.textContent='Unlock';
+  }
+  document.getElementById('gateBtn').addEventListener('click',gateUnlock);
+  document.getElementById('gateCode').addEventListener('keydown',function(e){ if(e.key==='Enter') gateUnlock(); });
+  var lockBtn=document.getElementById('lockAgainBtn');
+  if(lockBtn) lockBtn.addEventListener('click',function(){ localStorage.removeItem(GATE_LS); gateShowLock(); });
+  gateApply();
   if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   var TYPES={synergyHit:'Synergy — hitter report',synergyPit:'Synergy — pitcher report',roster:'Roster',stats:'Cumulative stats',unknown:'Unknown — pick one'};
   var REPORTS=[{id:'hitbook',name:'Pre-Game Hitter Book',needs:['synergyHit','stats'],build:'hit'},
