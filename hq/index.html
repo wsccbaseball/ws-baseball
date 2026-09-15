@@ -747,7 +747,9 @@
       list = list.filter((p) => {
         const name = `${p.first_name || ''} ${p.last_name || ''}`.toLowerCase();
         const pos = (p.pos || '').toLowerCase();
-        return name.includes(q) || pos.includes(q);
+        const home = (p.hometown || '').toLowerCase();
+        const num = p.jersey_no != null ? String(p.jersey_no) : '';
+        return name.includes(q) || pos.includes(q) || home.includes(q) || num === q || (num && num.includes(q));
       });
     }
     const emptyMsg = (data || []).length === 0
@@ -765,10 +767,12 @@
         <div class="card tap player-row" data-id="${esc(p.id)}">
           <h3>${esc(p.last_name)}, ${esc(p.first_name)}</h3>
           <div class="meta">
+            ${p.jersey_no != null ? `<span class="chip">#${esc(p.jersey_no)}</span>` : ''}
             ${p.pos ? `<span class="chip">${esc(p.pos)}</span>` : ''}
             ${p.throws ? `<span class="chip">T: ${esc(p.throws)}</span>` : ''}
             ${p.bats ? `<span class="chip">B: ${esc(p.bats)}</span>` : ''}
             ${p.class_year || p.grad_year || ''}
+            ${p.hometown ? ` · ${esc(p.hometown)}` : ''}
           </div>
         </div>
       `).join('') : emptyMsg}
@@ -847,7 +851,16 @@
       <button class="back" type="button" id="back-ros">← Roster</button>
       <div class="card">
         <h2>${esc(p.first_name)} ${esc(p.last_name)}</h2>
-        <div class="meta">${p.pos ? `<span class="chip">${esc(p.pos)}</span>` : ''} ${p.class_year || ''} ${p.number != null ? '#'+esc(p.number) : ''}</div>
+        <div class="meta">
+          ${p.jersey_no != null ? `<span class="chip">#${esc(p.jersey_no)}</span>` : ''}
+          ${p.pos ? `<span class="chip">${esc(p.pos)}</span>` : ''}
+          ${p.class_year || ''}
+          ${p.bats || p.throws ? ` · ${esc(p.bats||'?')}/${esc(p.throws||'?')}` : ''}
+          ${p.height ? ` · ${esc(p.height)}` : ''}
+          ${p.weight ? ` / ${esc(p.weight)}` : ''}
+          ${p.hometown ? `<div class="meta">${esc(p.hometown)}${p.previous_college ? ' · prev: '+esc(p.previous_college) : ''}</div>` : ''}
+          ${p.notes ? `<div class="meta">${esc(p.notes)}</div>` : ''}
+        </div>
       </div>
       <div class="tabs">
         ${tabs.map(([k, lab]) => `<button type="button" class="${tab===k?'active':''}" data-tab="${k}">${lab}</button>`).join('')}
