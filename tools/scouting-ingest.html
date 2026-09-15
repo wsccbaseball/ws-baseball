@@ -526,7 +526,8 @@
   // ---------- §6 / §8-E: leverage tiers ----------
   // Order the staff by who actually decides games, not by raw appearance count.
   // Bulk-innings starters first; a 12-IP mop-up man never headlines (§8-E).
-  var TIERS=[{k:'SP',label:'Starters',badge:'STARTER'},
+  // badge text kept for bspot letter only — not printed as a yellow tag (section headers carry the role).
+var TIERS=[{k:'SP',label:'Starters',badge:'STARTER'},
              {k:'HL',label:'High-Leverage Relief',badge:'HIGH LEV'},
              {k:'MS',label:'Middle / Swing Relief',badge:'MIDDLE'},
              {k:'LL',label:'Low-Leverage / Mop-Up',badge:'LOW LEV'},
@@ -693,7 +694,7 @@
     // Throwing hand leads the pitcher read (RHP/LHP). Bats side is only surfaced when it's
     // non-obvious — a switch hitter or a bat opposite the throwing hand, i.e. the two-way tell.
     var batFlag=(p.bats&&(p.bats==='S'||(p.throws!=='?'&&p.bats!==p.throws)))?'<span class="bhand">bats '+p.bats+'</span>':'';
-    var html='<div class="block"><div class="bhead"><span class="bspot">'+p.role.charAt(0)+'</span><span class="bname">'+p.last+'</span><span class="bjersey">#'+p.jersey+' · '+p.first+(p.throws&&p.throws!=='?'?(' · '+p.throws+'HP'):'')+'</span>'+batFlag+'<span class="btag">'+p.role+'</span><span class="bslash">'+p.line+'</span></div>';
+    var html='<div class="block"><div class="bhead"><span class="bspot">'+p.role.charAt(0)+'</span><span class="bname">'+p.last+'</span><span class="bjersey">#'+p.jersey+' · '+p.first+(p.throws&&p.throws!=='?'?(' · '+p.throws+'HP'):'')+'</span>'+batFlag+'<span class="bslash">'+p.line+'</span></div>';
     html+='<p class="bp line m-circ"><span class="lbl">Arsenal</span>'+ars+'.</p>';
     // SPEC §8-C: 3-2 sits in Behind, so BB-when-ahead is structurally 0 and BB-when-behind
     // is just the season walk total. Only the slash and the fastball-usage spike compare
