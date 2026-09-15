@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Anton&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { overflow-x: hidden; }
@@ -71,6 +72,7 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
 .save-btn:active { opacity:0.85; transform:scale(0.99); }
 .save-btn:disabled { opacity:0.5; cursor:not-allowed; }
 .save-status { font-size:13px; color:#1a6b3a; margin-top:6px; text-align:center; min-height:18px; font-weight:600; }
+.save-all-tip { font-size:12px; color:#555; margin-top:4px; text-align:center; line-height:1.35; }
 .img-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; flex-direction:column; align-items:center; justify-content:center; padding:16px; }
 .img-modal.active { display:flex; }
 .img-modal img { max-width:100%; max-height:75vh; border-radius:8px; }
@@ -189,6 +191,19 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
   <div class="save-status" id="saveStatus"></div>
 </div>
 
+<div class="save-btn-wrap" id="saveAllWrap" style="display:none;">
+  <button class="save-btn" id="saveAllBtn" onclick="saveAllWsCards()" disabled>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    SAVE ALL WS CARDS (ZIP)
+  </button>
+  <div class="save-status" id="saveAllStatus"></div>
+  <div class="save-all-tip">On iPhone: zip lands in Files — unzip, then Share each image in Messages.</div>
+</div>
+
 <div class="img-modal" id="imgModal" onclick="closeModal(event)">
   <img id="modalImg" src="" alt="Pitching Card">
   <div class="img-modal-tip">&#x1F4F1; Long-press the image and tap<br><strong>"Save to Photos"</strong> to save</div>
@@ -283,6 +298,9 @@ document.getElementById('gameSelect').addEventListener('change', async function(
     psel.innerHTML = '<option>Select game first</option>';
     psel.disabled = true;
     statusEl.textContent = 'Upload PDF box score to add IP/ER stats (optional).';
+    window._wsPitchers = [];
+    var saw = document.getElementById('saveAllWrap');
+    if (saw) { saw.style.display = 'none'; document.getElementById('saveAllBtn').disabled = true; }
     return;
   }
 
@@ -322,8 +340,25 @@ document.getElementById('gameSelect').addEventListener('change', async function(
       psel.appendChild(oppGroup);
     }
     psel.disabled = false;
+    window._wsPitchers = murPitchers;
+    var saveAllWrap = document.getElementById('saveAllWrap');
+    var saveAllBtn = document.getElementById('saveAllBtn');
+    if (murPitchers.length > 0) {
+      saveAllWrap.style.display = 'block';
+      saveAllBtn.disabled = false;
+      document.getElementById('saveAllStatus').textContent = '';
+    } else {
+      saveAllWrap.style.display = 'none';
+      saveAllBtn.disabled = true;
+    }
   } catch(e) {
     psel.innerHTML = '<option>Error loading pitchers</option>';
+    window._wsPitchers = [];
+    var saveAllWrapErr = document.getElementById('saveAllWrap');
+    if (saveAllWrapErr) {
+      saveAllWrapErr.style.display = 'none';
+      document.getElementById('saveAllBtn').disabled = true;
+    }
   }
 
   var selectedOpt = document.getElementById('gameSelect').options[document.getElementById('gameSelect').selectedIndex];
@@ -808,6 +843,113 @@ async function saveCardImage(){
     }
   }catch(err){status.textContent='Error: '+err.message;}
   btn.disabled=false;
+}
+
+
+function _delay(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
+function _canvasToBlob(canvas){
+  return new Promise(function(resolve){
+    if (canvas.toBlob) {
+      canvas.toBlob(function(blob){ resolve(blob); }, 'image/png');
+    } else {
+      var dataUrl = canvas.toDataURL('image/png');
+      var bin = atob(dataUrl.split(',')[1]);
+      var arr = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      resolve(new Blob([arr], {type:'image/png'}));
+    }
+  });
+}
+
+function _sanitizeFilePart(s){
+  return String(s || '').replace(/[^\w\-]+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '') || 'Game';
+}
+
+async function saveAllWsCards(){
+  var gameSel = document.getElementById('gameSelect');
+  var gameId = gameSel.value;
+  var pitchers = window._wsPitchers || [];
+  if (!gameId || !pitchers.length) {
+    alert('Select a game with Walters State pitchers first.');
+    return;
+  }
+  if (typeof JSZip === 'undefined') {
+    alert('JSZip failed to load. Check your connection and reload.');
+    return;
+  }
+
+  var btn = document.getElementById('saveAllBtn');
+  var saveBtn = document.getElementById('saveBtn');
+  var genBtn = document.getElementById('generateBtn');
+  var status = document.getElementById('saveAllStatus');
+  var pitcherSel = document.getElementById('pitcherSelect');
+  var prevPitcher = pitcherSel.value;
+
+  btn.disabled = true;
+  if (saveBtn) saveBtn.disabled = true;
+  if (genBtn) genBtn.disabled = true;
+
+  var zip = new JSZip();
+  var added = 0;
+  var n = pitchers.length;
+
+  try {
+    for (var i = 0; i < n; i++) {
+      var pitcher = pitchers[i];
+      var label = flipName(pitcher);
+      status.textContent = (i + 1) + '/' + n + ' Rendering ' + label + '...';
+      pitcherSel.value = pitcher;
+      await generate();
+
+      var msg = document.getElementById('statusMsg').textContent || '';
+      if (msg.indexOf('No pitch data') > -1 || document.getElementById('card').style.display === 'none') {
+        continue;
+      }
+
+      // Charts draw via setTimeout(80) inside generate — wait a bit longer
+      await _delay(250);
+
+      var card = document.getElementById('card');
+      var canvas = await html2canvas(card, {scale:2, useCORS:true, allowTaint:true, backgroundColor:'#ffffff', logging:false});
+      var blob = await _canvasToBlob(canvas);
+      if (!blob) continue;
+      var fileName = window._saveFileName || (label.replace(/\s+/g, '_') + '_pitching.png');
+      zip.file(fileName, blob);
+      added++;
+    }
+
+    if (!added) {
+      status.textContent = 'No cards to zip (no pitch data).';
+    } else {
+      status.textContent = 'Building ZIP (' + added + ' cards)...';
+      var zipBlob = await zip.generateAsync({type:'blob'});
+      var opt = gameSel.options[gameSel.selectedIndex];
+      var gameLabel = opt ? (opt.textContent || gameId) : gameId;
+      var zipName = _sanitizeFilePart(gameLabel) + '_WS_pitcher_cards.zip';
+      var url = URL.createObjectURL(zipBlob);
+      var link = document.createElement('a');
+      link.download = zipName;
+      link.href = url;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+      status.textContent = '\u2713 ' + added + ' cards zipped';
+      if (isIOS()) {
+        status.textContent += ' — if zip opens, tap Share \u2192 Save to Files';
+      }
+    }
+  } catch(err) {
+    status.textContent = 'Error: ' + err.message;
+  }
+
+  if (prevPitcher) pitcherSel.value = prevPitcher;
+  btn.disabled = false;
+  if (saveBtn) saveBtn.disabled = false;
+  var g = gameSel.value;
+  var p = pitcherSel.value;
+  if (genBtn) genBtn.disabled = !(g && p);
 }
 
 function closeModal(e){
