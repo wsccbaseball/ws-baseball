@@ -111,7 +111,7 @@
     html,body{background:#fff!important;color:#111!important;font-size:10.5pt;}
     /* Upload UI / gate / chrome — never paper. Browser date/URL still need Headers & footers off in the print dialog. */
     .wrap,.bookbar,header.masthead,.panel,.uploader,#triage,#inventory,#teampick,#reports,#upStatus,#genStatus,
-    details.inspector,#backBtn,#printBtn,#lockAgainBtn,#gate,#ourProgramCard,button,select,input,textarea,.tab,.iconbtn{display:none!important;}
+    details.inspector,#backBtn,#printBtn,#lockAgainBtn,#gate,button,select,input,textarea,.tab,.iconbtn{display:none!important;}
     /* position:fixed prints page 1 only — this is the line that makes the rest exist. */
     #bookView{position:static!important;display:block!important;inset:auto!important;overflow:visible!important;background:#fff!important;z-index:auto!important;}
     #page{margin:0;padding:0;}
@@ -211,7 +211,7 @@
         <ul class="need-list">
           <li><b>Core (enough to Build):</b> opponent hitter Synergy + pitcher Synergy + official counting-stats sheet (print-version PDF works best). Roster helps. You do <i>not</i> need every player file to get a usable book.</li>
           <li><b>Extras (richer cards):</b> per-pitch (vs FB / SL / CB / CH) and zone (infield / outfield) files when you have time. Skip them and the book still builds — those sections stay thinner and note what’s missing.</li>
-          <li><b>Game plan:</b> upload <b>both</b> your program’s <b>stats sheet</b> <b>and</b> your <b>roster with B/T</b> (e.g. R/R) via <i>Your program</i> below — not stats alone. Handedness comes from the roster.</li>
+          <li><b>Game plan:</b> also upload <b>your</b> program’s <b>stats sheet</b> <b>and</b> <b>roster with B/T</b> (e.g. R/R) in the same file drop as the opponent — not stats alone. Handedness comes from the roster.</li>
         </ul>
       </div>
     </details>
@@ -221,15 +221,7 @@
     <p class="hint">We guess the type — fix anything wrong or remove a stray file.</p>
     <div class="triage" id="triage"><p class="emptyfiles">Files you add will be listed here for review.</p></div></section>
 
-  <section class="card" id="ourProgramCard"><p class="step-eyebrow"><span class="num">03</span> &nbsp;Your program</p><h2 class="step">For the Game Plan</h2>
-    <p class="hint">Upload <b>your</b> cumulative stats sheet and <b>your</b> roster (with B/T like R/R). Handedness comes from the roster — we never guess it. Opponent books don’t need these.</p>
-    <label class="filebtn"><span class="tag">Add our files</span><span class="label" id="ourAddLabel">No program files yet</span>
-      <input type="file" id="ourFiles" multiple accept="application/pdf,.pdf,.xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"></label>
-    <div class="status" id="ourUpStatus"></div>
-    <div class="inv" id="ourChecklist" style="margin-top:12px;"></div>
-  </section>
-
-  <section class="card"><p class="step-eyebrow"><span class="num">04</span> &nbsp;Build</p><h2 class="step">Reports</h2>
+  <section class="card"><p class="step-eyebrow"><span class="num">03</span> &nbsp;Build</p><h2 class="step">Reports</h2>
     <div class="inv" id="inventory"></div><div id="teampick"></div><div id="reports"></div><div class="status" id="genStatus"></div>
   </section>
 
@@ -801,7 +793,7 @@ var TIERS=[{k:'SP',label:'Starters',badge:'STARTER'},
     var others=teams.filter(function(t){return t.team!==cur.team;}).map(function(t){return t.team;});
     teampick.innerHTML='<div class="teampick"><span class="lbl">Scouting — team this report is about</span><select id="teamSel">'+opts+'</select>'+(others.length?'<p class="mine">Held aside for the gameplan: '+others.join(', ')+'</p>':'')+'</div>';
     document.getElementById('teamSel').addEventListener('change',function(){selectedTeam=this.value;renderReports();});}
-  function renderReports(){var p=present();inventory.innerHTML='<span class="chip"><b>'+p.synergyHit+'</b> hitter</span><span class="chip"><b>'+p.synergyPit+'</b> pitcher</span><span class="chip"><b>'+p.roster+'</b> roster</span><span class="chip"><b>'+p.stats+'</b> stats</span>';renderOurChecklist();
+  function renderReports(){var p=present();inventory.innerHTML='<span class="chip"><b>'+p.synergyHit+'</b> hitter</span><span class="chip"><b>'+p.synergyPit+'</b> pitcher</span><span class="chip"><b>'+p.roster+'</b> roster</span><span class="chip"><b>'+p.stats+'</b> stats</span>';
     renderTeamPicker();reportsEl.innerHTML='';
     REPORTS.forEach(function(r){var missing=r.needs.filter(function(n){return p[n]<=0;}).map(function(n){return NEED_LABEL[n];});
       if(r.extra)missing=missing.concat(r.extra());
@@ -825,23 +817,9 @@ var TIERS=[{k:'SP',label:'Starters',badge:'STARTER'},
       else setStatus(statusEl,'ok',doneMsg||'Loaded and sorted. Confirm types, then Build.');
     });
   }
-  function renderOurChecklist(){
-    var el=document.getElementById('ourChecklist'); if(!el)return;
-    var teams=statTeams().length;
-    var btN=Object.keys(rosterBT()).length;
-    var statsOk=teams>=2;
-    var rosterOk=btN>0;
-    el.innerHTML=
-      '<span class="chip">'+(statsOk?'<b>Ready</b>':'<b>Need</b>')+' your stats sheet'+(statsOk?' ('+teams+' teams)':'')+'</span>'+
-      '<span class="chip">'+(rosterOk?'<b>Ready</b>':'<b>Need</b>')+' roster B/T'+(rosterOk?' ('+btN+' players)':'')+'</span>';
-  }
   document.getElementById('files').addEventListener('change',function(e){
     var chosen=Array.prototype.slice.call(e.target.files); e.target.value='';
-    ingestChosen(chosen, upStatus, document.getElementById('addLabel'), 'Opponent files loaded. Confirm the Scouting team, then Build.');
-  });
-  document.getElementById('ourFiles').addEventListener('change',function(e){
-    var chosen=Array.prototype.slice.call(e.target.files); e.target.value='';
-    ingestChosen(chosen, document.getElementById('ourUpStatus'), document.getElementById('ourAddLabel'), 'Program files loaded — check Game Plan readiness below.');
+    ingestChosen(chosen, upStatus, document.getElementById('addLabel'), 'Loaded. Confirm types — include your stats + roster for Game Plan — then Build.');
   });
   document.getElementById('pasteBtn').addEventListener('click',function(){var v=document.getElementById('statPaste').value;if(!v.trim())return;pastedStats=v.replace(/\r/g,'');selectedTeam=null;renderReports();setStatus(genStatus,'ok','Pasted stats saved.');});
   renderTriage();
