@@ -357,7 +357,7 @@
     recruitId: null,
     playerId: null,
     playerTab: 'hitting',
-    recruitFilter: { grad_year: '', commit: '' },
+    recruitFilter: { grad_year: '2027', commit: '' },
   };
 
   function toast(msg) {
@@ -536,17 +536,18 @@
 
   /* ——— Recruits ——— */
   async function renderRecruits(main) {
-    let q = sb.from('hq_recruits').select('*').order('last_name', { ascending: true });
     const gy = state.recruitFilter.grad_year;
     const commit = state.recruitFilter.commit;
+    const yearRes = await sb.from('hq_recruits').select('grad_year');
+    if (yearRes.error) throw yearRes.error;
+    const years = [...new Set((yearRes.data || []).map((r) => r.grad_year).filter(Boolean))].sort();
+    let q = sb.from('hq_recruits').select('*').order('last_name', { ascending: true });
     if (gy) q = q.eq('grad_year', Number(gy));
     const { data, error } = await q;
     if (error) throw error;
     let list = data || [];
     if (commit === 'blank') list = list.filter((r) => !r.commit_school);
     if (commit === 'has') list = list.filter((r) => !!r.commit_school);
-
-    const years = [...new Set((data || []).map((r) => r.grad_year).filter(Boolean))].sort();
 
     main.innerHTML = `
       <div class="section-title">
@@ -555,7 +556,7 @@
       <div class="filters">
         <select id="f-gy">
           <option value="">All years</option>
-          ${years.map((y) => `<option value="${y}" ${String(gy)===String(y)?'selected':''}>${y}</option>`).join('')}
+          ${years.map((y) => `<option value="${y}" ${String(gy)===String(y)?'selected':''}>${y}${String(y)==='2027'?' (current)':''}</option>`).join('')}
         </select>
         <select id="f-commit">
           <option value="">All commits</option>
@@ -574,7 +575,7 @@
               ${r.commit_school ? ` · <span class="chip ok">${esc(r.commit_school)}</span>` : ''}
             </div>
           </div>
-        `).join('') : `<div class="empty"><strong>No recruits yet — add one</strong>Track HS prospects, commits, and touches here.</div>`}
+        `).join('') : `<div class="empty"><strong>No recruits in this filter</strong>Try All years, or add one below.</div>`}
       </div>
       <div class="card">
         <h3>Add recruit</h3>
@@ -583,7 +584,7 @@
           <label>Last <input name="last_name" required /></label>
           <label>HS <input name="hs" /></label>
           <label>Pos <input name="pos" placeholder="OF / RHP" /></label>
-          <label>Grad year <input name="grad_year" type="number" inputmode="numeric" /></label>
+          <label>Grad year <input name="grad_year" type="number" inputmode="numeric" value="2027" /></label>
           <label>Commit school <input name="commit_school" /></label>
           <label>Twitter <input name="twitter" placeholder="@handle" /></label>
           <label>Phone <input name="phone" type="tel" /></label>
