@@ -107,11 +107,11 @@
      B&W handout gets mangled.
      ============================================================ */
   @media print{
-    @page{size:Letter portrait;margin:14mm 12mm;}
+    @page{size:Letter portrait;margin:12mm 11mm;}
     html,body{background:#fff!important;color:#111!important;font-size:10.5pt;}
-    /* The upload UI is screen furniture — never paper. */
+    /* Upload UI / gate / chrome — never paper. Browser date/URL still need Headers & footers off in the print dialog. */
     .wrap,.bookbar,header.masthead,.panel,.uploader,#triage,#inventory,#teampick,#reports,#upStatus,#genStatus,
-    details.inspector,#backBtn,button,select,input,textarea,.tab,.iconbtn{display:none!important;}
+    details.inspector,#backBtn,#printBtn,#lockAgainBtn,#gate,button,select,input,textarea,.tab,.iconbtn{display:none!important;}
     /* position:fixed prints page 1 only — this is the line that makes the rest exist. */
     #bookView{position:static!important;display:block!important;inset:auto!important;overflow:visible!important;background:#fff!important;z-index:auto!important;}
     #page{margin:0;padding:0;}
@@ -204,7 +204,7 @@
       <pre class="out" id="output"><span style="color:#8a96a2;font-style:italic;">Tap “View” on any file above to read its text.</span></pre></details></section>
 </div>
 
-<div id="bookView"><div class="bookbar"><button id="backBtn">← Files</button><span class="t" id="bookTitle">Advance Book</span></div><div class="page" id="page"></div></div>
+<div id="bookView"><div class="bookbar"><button id="backBtn">← Files</button><button id="printBtn" type="button">Print / PDF</button><span class="t" id="bookTitle">Advance Book</span></div><div class="page" id="page"></div></div>
 
 </div>
 
@@ -430,7 +430,7 @@
     if(g>=GB_HEAVY)return 'Extreme ground-ball bat ('+g+'% GB) — the contact stays on the ground. ';
     if(g<=GB_AIR)return 'Looks to lift ('+g+'% GB) — a fly-ball profile. ';
     return '';}
-  function profile(h){var disc=h.chase>=37?'A free-swinger — '+h.chase+'% chase, an OBP that barely clears his average. You don\u2019t have to throw him strikes; make him chase.':(h.chase&&h.chase<=25?'Disciplined, low-chase ('+h.chase+'%) — he won\u2019t expand, so the out has to come in the zone.':'');
+  function profile(h){var even=!!(parseInt(h.jersey,10)%2);var disc=h.chase>=37?(even?('Expands early — '+h.chase+'% chase; OBP sits near his average. You don\u2019t have to throw him strikes; make him chase.'):('A free-swinger — '+h.chase+'% chase, an OBP that barely clears his average. You don\u2019t have to throw him strikes; make him chase.')):(h.chase&&h.chase<=25?(even?('Patient in the box ('+h.chase+'% chase) — he won\u2019t expand; the out has to come in the zone.'):('Disciplined, low-chase ('+h.chase+'%) — he won\u2019t expand, so the out has to come in the zone.')):'');
     return (disc?disc+' ':'')+battedBallTrait(h)+'<b>'+h.counts.hr+' HR, '+h.counts.db+' 2B, '+h.counts.k+' K, '+h.counts.bb+' BB, '+h.counts.sb+' SB.</b>';}
   function hasSlg(h){return h.mix.some(function(m){return m.slg!=null;});}
   function outLine(h){if(!hasSlg(h))return 'Per-pitch slash data not uploaded — add the vs-FB/SL/CB/CH files for the out read.';
@@ -588,6 +588,18 @@
     if(d>=FB_SPIKE)return 'Fastball usage jumps to '+b+'% behind (from '+o+'%) — sit dead-red once he falls behind.';
     if(d<=FB_FLAT)return 'He does <b>not</b> tip behind ('+b+'% vs '+o+'%) — don\u2019t sit fastball just because he\u2019s behind.';
     return '';}
+  function cleanDisplayName(raw){
+    if(!raw)return 'Opponent';
+    var s=String(raw);
+    s=s.replace(/\s*[-–—]?\s*PRINT\s+VERSION\s*/gi,' ');
+    s=s.replace(/\s*TENNESSEE COMMUNITY COLLEGE ATHLETIC ASSOCIATION\s*/gi,' ');
+    s=s.replace(/\s*TCCAA\s*/gi,' ');
+    s=s.replace(/\s*NJCAA\s*/gi,' ');
+    s=s.replace(/\s*[-–—]\s*$/g,'').replace(/^\s*[-–—]\s*/g,'');
+    s=s.replace(/\s{2,}/g,' ').trim();
+    if(s.length>52){var cut=s.split(/\s+-\s+/)[0];if(cut&&cut.length>=8)s=cut.trim();}
+    return s||'Opponent';
+  }
   function cmpLine(t){if(!t||!t.totH)return null;var h=t.totH,p=t.totP;
     return (t.record?t.record+' · ':'')+h.avg+' / '+h.obp+' / '+h.slg+' · '+h.hr+' HR · '+h.bb+' BB · '+h.hbp+' HBP · '+h.sb+' SB'+(p?' · '+p.era+' ERA':'');}
   function watchNames(opp){
@@ -607,15 +619,13 @@
     return {list:pick,lowPower:lowPower};}
   function buildGamePlan(opp,us,P,base){
     var bats=rosterBats(),mine=ourBats(us,bats),html='';
-    var oppName=opp.team||'Opponent',usName=us&&us.team?us.team:'Us';
+    var oppName=cleanDisplayName(opp.team||'Opponent'),usName=cleanDisplayName(us&&us.team?us.team:'Us');
     // Same categories both sides, or it isn't a comparison (§6).
     var cu=cmpLine(us),co=cmpLine(opp);
     html+='<div class="bsec">The matchup</div><div class="block">';
     html+='<p class="bp line m-circ"><span class="lbl">'+usName+'</span>'+(cu||'Our totals row not found on the sheet — comparison line unavailable.')+'</p>';
     html+='<p class="bp line m-circ"><span class="lbl">'+oppName+'</span>'+(co||'Their totals row not found on the sheet — comparison line unavailable.')+'</p></div>';
-    // §8-H keynote is genuine editorial synthesis across the whole packet — the one place
-    // a template cannot do the job. Left as an explicit slot rather than faked.
-    html+='<div class="bsec">Series keynote</div><div class="block"><p class="bp line m-dia"><span class="lbl">Pending</span>The four-beat keynote (who they are · what they do well · what we take advantage of · our focus) is a synthesis read across both books — write it once the two opponent files are built.</p></div>';
+    // Series keynote is coach-written — omit Pending placeholder from printed/demo packets.
     html+='<div class="bsec">When we hit</div>';
     var tiers=[{k:'SP',l:'Starters — these carry the series'},{k:'HL',l:'High-leverage relief — late and close'},{k:'MS',l:'Middle / swing — reference'}];
     tiers.forEach(function(t){var grp=P.filter(function(p){return p.tier===t.k;});if(!grp.length)return;
@@ -676,14 +686,14 @@
     var b=pitAvg(p.behind);
     if(b==null)return (a<=OUT_STRONG?'A true out pitch once ahead — hitters manage just '+as+'. Don\u2019t give away early counts.':'Ahead, hitters are at '+as+'. Get ahead and stay ahead.');
     var bs=d3(b),gap=b-a;
-    if(gap>=OUT_GAP)return (a<=OUT_STRONG?'A true out pitch once ahead':'Clearly tougher ahead')+' — '+as+' vs '+bs+' behind. Two strikes and the at-bat\u2019s basically over; don\u2019t give away early counts.';
+    if(gap>=OUT_GAP)return (a<=OUT_STRONG?'A true out pitch once ahead':'Clearly tougher ahead')+' — '+as+' vs '+bs+' behind. Get ahead and finish the at-bat; don\u2019t give away early counts.';
     if(gap<=-OUT_FLIP)return 'Reads backwards — more hittable ahead ('+as+') than behind ('+bs+'). Getting to two strikes doesn\u2019t shut him down.';
     return 'The count isn\u2019t the lever — about the same ahead ('+as+') or behind ('+bs+'). Attack him by pitch type, not by getting to two strikes.';}
   function pitcherBlock(p,base){var ars=p.arsenal.map(function(a){return a.p+' '+a.velo+' ('+a.usage+'%, '+a.miss+'% miss)';}).join(' · ')||'—';
     // Throwing hand leads the pitcher read (RHP/LHP). Bats side is only surfaced when it's
     // non-obvious — a switch hitter or a bat opposite the throwing hand, i.e. the two-way tell.
     var batFlag=(p.bats&&(p.bats==='S'||(p.throws!=='?'&&p.bats!==p.throws)))?'<span class="bhand">bats '+p.bats+'</span>':'';
-    var html='<div class="block"><div class="bhead"><span class="bspot">'+p.role.charAt(0)+'</span><span class="bname">'+p.last+'</span><span class="bjersey">#'+p.jersey+' · '+p.first+' · '+(p.throws==='?'?'?HP':p.throws+'HP')+'</span>'+batFlag+'<span class="btag">'+p.role+'</span><span class="bslash">'+p.line+'</span></div>';
+    var html='<div class="block"><div class="bhead"><span class="bspot">'+p.role.charAt(0)+'</span><span class="bname">'+p.last+'</span><span class="bjersey">#'+p.jersey+' · '+p.first+(p.throws&&p.throws!=='?'?(' · '+p.throws+'HP'):'')+'</span>'+batFlag+'<span class="btag">'+p.role+'</span><span class="bslash">'+p.line+'</span></div>';
     html+='<p class="bp line m-circ"><span class="lbl">Arsenal</span>'+ars+'.</p>';
     // SPEC §8-C: 3-2 sits in Behind, so BB-when-ahead is structurally 0 and BB-when-behind
     // is just the season walk total. Only the slash and the fastball-usage spike compare
@@ -692,19 +702,21 @@
     var ol=outLinePitcher(p);if(ol)html+='<p class="bp line out m-check"><span class="lbl">Out</span>'+ol+'</p>';
     if(p.behind&&deviates(p,base))html+='<p class="bp line m-arrow"><span class="lbl">By count</span><b>Breaks the staff pattern.</b> Behind he\u2019s '+p.behind.avg+'/'+p.behind.obp+fbShift(p)+'.</p>';
     if(p.lhh&&p.rhh){var stack=parseFloat(p.lhh.ops)>parseFloat(p.rhh.ops)?'LHH':'RHH';html+='<p class="bp line m-circ"><span class="lbl">Platoon</span><strong>Stack '+stack+'.</strong> vs LHH '+p.lhh.avg+'/'+p.lhh.obp+'/'+p.lhh.slg+'; vs RHH '+p.rhh.avg+'/'+p.rhh.obp+'/'+p.rhh.slg+'.</p>';}
-    html+='<p class="bp line m-dia"><span class="lbl">Notes</span>'+p.counts.hbp+' HBP / '+p.counts.wp+' WP — a free base shows up; run game live.</p>';return html+'</div>';}
+    var hb=p.counts&&p.counts.hbp!=null?p.counts.hbp:0,wp=p.counts&&p.counts.wp!=null?p.counts.wp:0,free=hb+wp;
+    var note=hb+' HBP / '+wp+' WP'+(free>=3?' — a free base shows up; run game live.':(free>=1?' — occasional free base; stay alive on the bases.':'.'));
+    html+='<p class="bp line m-dia"><span class="lbl">Notes</span>'+note+'</p>';return html+'</div>';}
 
   function staffTable(hitters,hitArr){var rows=hitArr.map(function(s){return {pa:(s.ab||0)+(s.bb||0)+(s.hbp||0)+(s.sf||0)+(s.sh||0),s:s,full:hitters.some(function(h){return h.jersey===s.num;})};});
     rows.sort(function(a,b){return b.pa-a.pa;});var h='<table class="staff"><tr><th>PA</th><th>Hitter</th><th>AVG</th><th>OBP</th><th>SLG</th><th>HR</th><th>AB</th><th>BB</th><th>K</th><th>SB</th></tr>';
     rows.forEach(function(r){var s=r.s;h+='<tr class="'+(r.full?'full':'')+'"><td class="pa">'+r.pa+'</td><td>'+s.name+(r.full?' ●':'')+'</td><td>'+d3(s.avg)+'</td><td>'+d3(s.obp)+'</td><td>'+d3(s.slg)+'</td><td>'+s.hr+'</td><td>'+s.ab+'</td><td>'+s.bb+'</td><td>'+s.k+'</td><td>'+s.sb+'</td></tr>';});
     return h+'</table><p class="legend">Sorted by plate appearances (PA = AB+BB+HBP+SF+SH). ● = full Synergy detail uploaded.</p>';}
 
-  function buildBook(kind){var team=currentTeam();var opp=(team&&team.team)||'Opponent';
+  function buildBook(kind){var team=currentTeam();var opp=cleanDisplayName((team&&team.team)||'Opponent');
     var html='<p class="kicker">ADVANCE SCOUT · 2026 · PRE-GAME</p><h1 class="title">'+opp.toUpperCase()+' — ADVANCE BOOK</h1><div class="subline">Generated from your uploads · counting stats from the official sheet, reads from Synergy.</div>';
     if(kind==='hit'){var H=assembleHitters();html+='<div class="bsec">Hitters — by plate appearances</div>';if(team&&team.hit.length)html+=staffTable(H,team.hit);html+='<p class="legend">Defense reads give depth and alignment from infield/outfield contact — not pull-side direction. Confirm lateral shading against the spray chart.</p>';H.forEach(function(h,i){html+=hitterBlock(h,i+1);});if(!H.length)html+='<div class="block">No hitter reports parsed for '+opp+'. Check the Synergy hitter files and the Scouting team.</div>';document.getElementById('bookTitle').textContent=opp+' · Hitter Book';}
     else if(kind==='gp'){var us=ourTeam();var Pg=assignTiers(assemblePitchers());var bg=staffBaseline(Pg.filter(function(p){return p.tier!=='FN';}));
       html=html.replace('ADVANCE SCOUT · 2026 · PRE-GAME','GAME PLAN · 2026 · SERIES')
-        .replace(opp.toUpperCase()+' — ADVANCE BOOK',((us&&us.team?us.team:'US')+' vs '+opp).toUpperCase())
+        .replace(opp.toUpperCase()+' — ADVANCE BOOK',(cleanDisplayName(us&&us.team?us.team:'US')+' vs '+opp).toUpperCase())
         .replace('Generated from your uploads · counting stats from the official sheet, reads from Synergy.','The only file that crosses both rosters. Counting stats from each team\u2019s official sheet; reads from Synergy.');
       html+=buildGamePlan(team,us,Pg,bg);
       document.getElementById('bookTitle').textContent=opp+' · Game Plan';}
@@ -715,10 +727,14 @@
         html+='<div class="bsec">'+t.label+'</div>';grp.forEach(function(p){html+=pitcherBlock(p,base);});});
       if(!P.length)html+='<div class="block">No pitcher reports parsed for '+opp+'.</div>';document.getElementById('bookTitle').textContent=opp+' · Pitcher Report';}
     html+=(kind==='gp'
-      ? '<footer class="meth">Crosses both rosters by design — the only file that does. Counting stats from each team\u2019s official sheet; PA = AB+BB+HBP+SF+SH. Catcher SBA/CSB is bases allowed (our opportunity), not their offense. Arms ordered by leverage, not split size. Bats/throws taken from the roster as provided — verify before game-planning. The series keynote is coach-written.</footer>'
+      ? '<footer class="meth">Crosses both rosters by design — the only file that does. Counting stats from each team\u2019s official sheet; PA = AB+BB+HBP+SF+SH. Catcher SBA/CSB is bases allowed (our opportunity), not their offense. Arms ordered by leverage, not split size. Bats/throws taken from the roster as provided — verify before game-planning. Coach-written series notes optional.</footer>'
       : '<footer class="meth">Scoped to '+opp+'. Counting stats from the official sheet; PA = AB+BB+HBP+SF+SH. Pitch reads from Synergy. Rates are stable; subsample slashes are directional. Lineup order and the strategic overview are coach-supplied; bats/throws come from the roster when uploaded. Other teams\u2019 stat sheets are held for the team gameplan.</footer>');
     document.getElementById('page').innerHTML=html;document.getElementById('bookView').style.display='block';window.scrollTo(0,0);}
   document.getElementById('backBtn').addEventListener('click',function(){document.getElementById('bookView').style.display='none';});
+  document.getElementById('printBtn').addEventListener('click',function(){
+    if(!window.__pbPrintTip){window.__pbPrintTip=1;alert('In the print dialog: turn OFF Headers and footers (uncheck date / URL), then Save as PDF or print.');}
+    window.print();
+  });
 
   var upStatus=document.getElementById('upStatus'),triage=document.getElementById('triage'),inventory=document.getElementById('inventory'),teampick=document.getElementById('teampick'),reportsEl=document.getElementById('reports'),genStatus=document.getElementById('genStatus'),output=document.getElementById('output');
   function setStatus(el,k,m){el.className='status show '+k;el.textContent=m;}
