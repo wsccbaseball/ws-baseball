@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1c2c" />
+  <title>WS Baseball HQ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --navy: #0b1c2c;
+      --cream: #f2ead8;
+      --accent: #c45c26;
+      --card: #132a3f;
+      --muted: #8fa3b5;
+      --ok: #3d8b6e;
+      --danger: #b33a3a;
+      --border: rgba(242, 234, 216, 0.12);
+      --radius: 12px;
+      --nav-h: 64px;
+      --safe-b: env(safe-area-inset-bottom, 0px);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      min-height: 100%;
+      background: var(--navy);
+      color: var(--cream);
+      font-family: Barlow, system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.45;
+      -webkit-tap-highlight-color: transparent;
+    }
+    h1, h2, h3, .brand {
+      font-family: Oswald, Barlow, sans-serif;
+      letter-spacing: 0.02em;
+      font-weight: 600;
+    }
+    a { color: var(--accent); }
+    button, input, select, textarea {
+      font: inherit;
+      color: inherit;
+    }
+    .hidden { display: none !important; }
+
+    /* Gate */
+    #gate {
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .gate-card {
+      width: 100%;
+      max-width: 360px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 22px;
+      text-align: center;
+    }
+    .gate-card h1 { font-size: 1.6rem; margin-bottom: 6px; }
+    .gate-card p { color: var(--muted); margin-bottom: 18px; font-size: 0.92rem; }
+    .gate-card input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--navy);
+      margin-bottom: 12px;
+      text-align: center;
+      letter-spacing: 0.08em;
+    }
+    .err { color: #f0a090; font-size: 0.88rem; margin-top: 10px; min-height: 1.2em; }
+
+    /* App shell */
+    #app { min-height: 100dvh; padding-bottom: calc(var(--nav-h) + var(--safe-b) + 12px); }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(11, 28, 44, 0.96);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .topbar .brand { font-size: 1.15rem; }
+    .topbar .brand span { color: var(--accent); }
+    .content { padding: 14px 14px 8px; max-width: 560px; margin: 0 auto; }
+
+    .nav {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      z-index: 50;
+      height: calc(var(--nav-h) + var(--safe-b));
+      padding-bottom: var(--safe-b);
+      background: #091621;
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+    }
+    .nav a {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .nav a.active { color: var(--cream); }
+    .nav a .ico { font-size: 1.15rem; line-height: 1; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+    }
+    .btn:active { opacity: 0.9; }
+    .btn.secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--cream);
+    }
+    .btn.ghost {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      width: auto;
+      padding: 6px 8px;
+      font-size: 0.85rem;
+    }
+    .btn.sm { padding: 7px 10px; font-size: 0.85rem; width: auto; }
+    .btn.danger { background: var(--danger); }
+    .row-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .row-btns .btn { width: auto; flex: 1; min-width: 100px; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+    .card.tap { cursor: pointer; }
+    .card.tap:active { background: #183248; }
+    .card h3 { font-size: 1.05rem; margin-bottom: 4px; }
+    .meta { color: var(--muted); font-size: 0.82rem; }
+    .counts {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .count {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 8px;
+      text-align: center;
+    }
+    .count .n { font-family: Oswald, sans-serif; font-size: 1.6rem; color: var(--accent); }
+    .count .l { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 4px 0 10px;
+    }
+    .section-title h2 { font-size: 1.25rem; }
+
+    .empty {
+      text-align: center;
+      padding: 28px 16px;
+      color: var(--muted);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 12px;
+    }
+    .empty strong { display: block; color: var(--cream); margin-bottom: 4px; }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .filters select, .filters input, .form-grid input, .form-grid select, .form-grid textarea {
+      flex: 1;
+      min-width: 0;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--navy);
+    }
+    .form-grid {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .form-grid label {
+      display: grid;
+      gap: 4px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .form-grid textarea { min-height: 80px; resize: vertical; }
+    .chip {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(196, 92, 38, 0.2);
+      color: #e8a882;
+      font-size: 0.72rem;
+      font-weight: 600;
+      margin-right: 4px;
+    }
+    .chip.ok { background: rgba(61, 139, 110, 0.25); color: #8fd4b4; }
+    .alert-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+    .alert-item p { flex: 1; font-size: 0.9rem; }
+    .tabs {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      margin-bottom: 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tabs button {
+      flex: 0 0 auto;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    .tabs button.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .back {
+      color: var(--muted);
+      background: none;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 8px;
+      padding: 0;
+    }
+    .quick-links { list-style: none; }
+    .quick-links li { margin-bottom: 8px; }
+    .quick-links a {
+      display: block;
+      padding: 12px 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      text-decoration: none;
+      color: var(--cream);
+      font-weight: 600;
+    }
+    .quick-links a small { display: block; color: var(--muted); font-weight: 400; margin-top: 2px; }
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(var(--nav-h) + var(--safe-b) + 16px);
+      transform: translateX(-50%);
+      background: #1e3a52;
+      border: 1px solid var(--border);
+      color: var(--cream);
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      z-index: 80;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      max-width: 90vw;
+    }
+    .toast.show { opacity: 1; }
+    .loading { text-align: center; color: var(--muted); padding: 20px; }
+  </style>
+</head>
+<body>
+  <div id="gate">
+    <div class="gate-card">
+      <h1>WS Baseball <span style="color:var(--accent)">HQ</span></h1>
+      <p>Staff unlock required</p>
+      <input id="gate-code" type="password" inputmode="numeric" placeholder="Staff code" autocomplete="off" />
+      <button class="btn" id="gate-btn">Unlock</button>
+      <div class="err" id="gate-err"></div>
+    </div>
+  </div>
+
+  <div id="app" class="hidden">
+    <header class="topbar">
+      <div class="brand">WS <span>HQ</span></div>
+      <button class="btn ghost" id="lock-btn" type="button">Lock again</button>
+    </header>
+    <main class="content" id="main"></main>
+    <nav class="nav" id="nav">
+      <a href="#home" data-route="home"><span class="ico">⌂</span>Home</a>
+      <a href="#recruits" data-route="recruits"><span class="ico">◎</span>Recruits</a>
+      <a href="#roster" data-route="roster"><span class="ico">◈</span>Roster</a>
+      <a href="#practice" data-route="practice"><span class="ico">▣</span>Practice</a>
+      <a href="#knowledge" data-route="knowledge"><span class="ico">☰</span>Knowledge</a>
+    </nav>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+(function () {
+  const SUPA_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
+  const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
+  const UNLOCK_KEY = 'ws_hq_unlock';
+  const sb = window.supabase.createClient(SUPA_URL, SUPA_ANON);
+
+  const $ = (sel, el = document) => el.querySelector(sel);
+  const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const todayISO = () => new Date().toISOString().slice(0, 10);
+
+  let state = {
+    route: 'home',
+    recruitId: null,
+    playerId: null,
+    playerTab: 'hitting',
+    recruitFilter: { grad_year: '', commit: '' },
+  };
+
+  function toast(msg) {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._tm);
+    toast._tm = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  function isUnlocked() {
+    try {
+      const raw = localStorage.getItem(UNLOCK_KEY);
+      if (!raw) return false;
+      const data = JSON.parse(raw);
+      if (data.expires && Date.now() > Date.parse(data.expires)) {
+        localStorage.removeItem(UNLOCK_KEY);
+        return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function showApp() {
+    $('#gate').classList.add('hidden');
+    $('#app').classList.remove('hidden');
+    routeFromHash();
+  }
+
+  function showGate() {
+    $('#app').classList.add('hidden');
+    $('#gate').classList.remove('hidden');
+  }
+
+  async function unlock() {
+    const code = $('#gate-code').value.trim();
+    const err = $('#gate-err');
+    err.textContent = '';
+    if (!code) {
+      err.textContent = 'Enter staff code';
+      return;
+    }
+    $('#gate-btn').disabled = true;
+    try {
+      const res = await fetch(`${SUPA_URL}/functions/v1/hq-unlock`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: SUPA_ANON,
+          Authorization: `Bearer ${SUPA_ANON}`,
+        },
+        body: JSON.stringify({ code }),
+      });
+      if (res.status === 404) {
+        err.textContent = 'Unlock function not found (404). Deploy hq-unlock edge function, then try again.';
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        err.textContent = data.error || data.message || `Unlock failed (${res.status})`;
+        return;
+      }
+      const expires = data.expires || new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString();
+      localStorage.setItem(UNLOCK_KEY, JSON.stringify({ expires }));
+      showApp();
+    } catch (e) {
+      err.textContent = 'Network error — check connection and try again.';
+    } finally {
+      $('#gate-btn').disabled = false;
+    }
+  }
+
+  function lockAgain() {
+    localStorage.removeItem(UNLOCK_KEY);
+    showGate();
+    $('#gate-code').value = '';
+    $('#gate-err').textContent = '';
+  }
+
+  function setNavActive(route) {
+    $$('#nav a').forEach((a) => a.classList.toggle('active', a.dataset.route === route));
+  }
+
+  function routeFromHash() {
+    const hash = (location.hash || '#home').slice(1);
+    const [base, id] = hash.split('/');
+    if (base === 'recruit' && id) {
+      state.route = 'recruit-detail';
+      state.recruitId = id;
+    } else if (base === 'player' && id) {
+      state.route = 'player-detail';
+      state.playerId = id;
+      const tab = (location.hash.split('/')[2]) || 'hitting';
+      state.playerTab = ['hitting','pitching','throwing','sc','notes'].includes(tab) ? tab : 'hitting';
+    } else if (['home','recruits','roster','practice','knowledge'].includes(base)) {
+      state.route = base;
+      state.recruitId = null;
+      state.playerId = null;
+    } else {
+      state.route = 'home';
+    }
+    setNavActive(['recruit-detail'].includes(state.route) ? 'recruits' : ['player-detail'].includes(state.route) ? 'roster' : state.route);
+    render();
+  }
+
+  async function render() {
+    const main = $('#main');
+    main.innerHTML = '<div class="loading">Loading…</div>';
+    try {
+      if (state.route === 'home') await renderHome(main);
+      else if (state.route === 'recruits') await renderRecruits(main);
+      else if (state.route === 'recruit-detail') await renderRecruitDetail(main);
+      else if (state.route === 'roster') await renderRoster(main);
+      else if (state.route === 'player-detail') await renderPlayerDetail(main);
+      else if (state.route === 'practice') await renderPractice(main);
+      else if (state.route === 'knowledge') await renderKnowledge(main);
+      else main.innerHTML = '<div class="empty">Unknown screen</div>';
+    } catch (e) {
+      console.error(e);
+      main.innerHTML = `<div class="empty"><strong>Something went wrong</strong>${esc(e.message || e)}</div>`;
+    }
+  }
+
+  /* ——— Home ——— */
+  async function renderHome(main) {
+    const [recruits, players, alerts] = await Promise.all([
+      sb.from('hq_recruits').select('id', { count: 'exact', head: true }),
+      sb.from('hq_players').select('id', { count: 'exact', head: true }).eq('active', true),
+      sb.from('hq_alerts').select('*').is('resolved_at', null).order('created_at', { ascending: false }).limit(20),
+    ]);
+    if (recruits.error) throw recruits.error;
+    if (players.error) throw players.error;
+    if (alerts.error) throw alerts.error;
+
+    const openAlerts = alerts.data || [];
+    main.innerHTML = `
+      <div class="section-title"><h2>Home</h2></div>
+      <div class="counts">
+        <div class="count"><div class="n">${recruits.count ?? 0}</div><div class="l">Recruits</div></div>
+        <div class="count"><div class="n">${players.count ?? 0}</div><div class="l">Active</div></div>
+        <div class="count"><div class="n">${openAlerts.length}</div><div class="l">Alerts</div></div>
+      </div>
+      <div class="section-title"><h2>Alerts</h2></div>
+      <div id="alert-strip">
+        ${openAlerts.length ? openAlerts.map((a) => `
+          <div class="card alert-item" data-alert="${esc(a.id)}">
+            <div>
+              <span class="chip">${esc(a.kind || 'alert')}</span>
+              <p>${esc(a.message || '—')}</p>
+              <div class="meta">${a.created_at ? new Date(a.created_at).toLocaleString() : ''}</div>
+            </div>
+            <button class="btn sm secondary resolve-alert" data-id="${esc(a.id)}">Resolve</button>
+          </div>
+        `).join('') : `<div class="empty"><strong>No open alerts</strong>Throw logs and assignments will surface here.</div>`}
+      </div>
+      <div class="section-title"><h2>Quick links</h2></div>
+      <ul class="quick-links">
+        <li><a href="/">TrackMan hub <small>Program home</small></a></li>
+        <li><a href="/scout/">Press Box <small>/scout/</small></a></li>
+        <li><a href="/tools/scouting-ingest.html">Scouting builder <small>/tools/scouting-ingest.html</small></a></li>
+        <li><a href="player.html">Player view stub <small>Read-only MVP</small></a></li>
+      </ul>
+    `;
+    $$('.resolve-alert', main).forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        const { error } = await sb.from('hq_alerts').update({ resolved_at: new Date().toISOString() }).eq('id', id);
+        if (error) { toast(error.message); return; }
+        toast('Alert resolved');
+        render();
+      });
+    });
+  }
+
+  /* ——— Recruits ——— */
+  async function renderRecruits(main) {
+    let q = sb.from('hq_recruits').select('*').order('last_name', { ascending: true });
+    const gy = state.recruitFilter.grad_year;
+    const commit = state.recruitFilter.commit;
+    if (gy) q = q.eq('grad_year', Number(gy));
+    const { data, error } = await q;
+    if (error) throw error;
+    let list = data || [];
+    if (commit === 'blank') list = list.filter((r) => !r.commit_school);
+    if (commit === 'has') list = list.filter((r) => !!r.commit_school);
+
+    const years = [...new Set((data || []).map((r) => r.grad_year).filter(Boolean))].sort();
+
+    main.innerHTML = `
+      <div class="section-title">
+        <h2>Recruits</h2>
+      </div>
+      <div class="filters">
+        <select id="f-gy">
+          <option value="">All years</option>
+          ${years.map((y) => `<option value="${y}" ${String(gy)===String(y)?'selected':''}>${y}</option>`).join('')}
+        </select>
+        <select id="f-commit">
+          <option value="">All commits</option>
+          <option value="blank" ${commit==='blank'?'selected':''}>No commit</option>
+          <option value="has" ${commit==='has'?'selected':''}>Has commit</option>
+        </select>
+      </div>
+      <div id="recruit-list">
+        ${list.length ? list.map((r) => `
+          <div class="card tap recruit-row" data-id="${esc(r.id)}">
+            <h3>${esc(r.last_name)}, ${esc(r.first_name)}</h3>
+            <div class="meta">
+              ${r.pos ? `<span class="chip">${esc(r.pos)}</span>` : ''}
+              ${r.grad_year ? `Class ${esc(r.grad_year)}` : ''}
+              ${r.hs ? ` · ${esc(r.hs)}` : ''}
+              ${r.commit_school ? ` · <span class="chip ok">${esc(r.commit_school)}</span>` : ''}
+            </div>
+          </div>
+        `).join('') : `<div class="empty"><strong>No recruits yet — add one</strong>Track HS prospects, commits, and touches here.</div>`}
+      </div>
+      <div class="card">
+        <h3>Add recruit</h3>
+        <form class="form-grid" id="add-recruit">
+          <label>First <input name="first_name" required /></label>
+          <label>Last <input name="last_name" required /></label>
+          <label>HS <input name="hs" /></label>
+          <label>Pos <input name="pos" placeholder="OF / RHP" /></label>
+          <label>Grad year <input name="grad_year" type="number" inputmode="numeric" /></label>
+          <label>Commit school <input name="commit_school" /></label>
+          <label>Twitter <input name="twitter" placeholder="@handle" /></label>
+          <label>Phone <input name="phone" type="tel" /></label>
+          <label>Notes <textarea name="notes"></textarea></label>
+          <button class="btn" type="submit">Save recruit</button>
+        </form>
+      </div>
+    `;
+    $('#f-gy').addEventListener('change', (e) => {
+      state.recruitFilter.grad_year = e.target.value;
+      render();
+    });
+    $('#f-commit').addEventListener('change', (e) => {
+      state.recruitFilter.commit = e.target.value;
+      render();
+    });
+    $$('.recruit-row', main).forEach((el) => {
+      el.addEventListener('click', () => { location.hash = `recruit/${el.dataset.id}`; });
+    });
+    $('#add-recruit').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const row = Object.fromEntries(fd.entries());
+      if (row.grad_year) row.grad_year = Number(row.grad_year);
+      else delete row.grad_year;
+      Object.keys(row).forEach((k) => { if (row[k] === '') row[k] = null; });
+      const { error: err } = await sb.from('hq_recruits').insert(row);
+      if (err) { toast(err.message); return; }
+      toast('Recruit added');
+      e.target.reset();
+      render();
+    });
+  }
+
+  async function renderRecruitDetail(main) {
+    const id = state.recruitId;
+    const { data: r, error } = await sb.from('hq_recruits').select('*').eq('id', id).single();
+    if (error) throw error;
+    const { data: touches, error: tErr } = await sb.from('hq_recruit_touches')
+      .select('*').eq('recruit_id', id).order('touched_at', { ascending: false });
+    if (tErr) throw tErr;
+
+    main.innerHTML = `
+      <button class="back" type="button" id="back-rec">← Recruits</button>
+      <div class="card">
+        <h2>${esc(r.first_name)} ${esc(r.last_name)}</h2>
+        <div class="meta">
+          ${r.pos ? `<span class="chip">${esc(r.pos)}</span>` : ''}
+          ${r.grad_year || ''} ${r.hs ? `· ${esc(r.hs)}` : ''}
+        </div>
+        <p style="margin-top:8px">${r.commit_school ? `Commit: <strong>${esc(r.commit_school)}</strong>` : 'No commit yet'}</p>
+        ${r.twitter ? `<p class="meta">Twitter: ${esc(r.twitter)}</p>` : ''}
+        ${r.phone ? `<p class="meta">Phone: ${esc(r.phone)}</p>` : ''}
+        ${r.notes ? `<p style="margin-top:8px">${esc(r.notes)}</p>` : ''}
+      </div>
+      <div class="section-title"><h2>Touches</h2></div>
+      ${(touches || []).length ? (touches || []).map((t) => `
+        <div class="card">
+          <div class="meta">${t.touched_at ? new Date(t.touched_at).toLocaleString() : ''} · ${esc(t.kind || 'note')}</div>
+          <p>${esc(t.notes || t.body || '—')}</p>
+        </div>
+      `).join('') : `<div class="empty"><strong>No touches yet</strong>Log calls, texts, and visits.</div>`}
+      <div class="card">
+        <h3>Add touch</h3>
+        <form class="form-grid" id="add-touch">
+          <label>Kind
+            <select name="kind">
+              <option value="call">Call</option>
+              <option value="text">Text</option>
+              <option value="visit">Visit</option>
+              <option value="email">Email</option>
+              <option value="note">Note</option>
+            </select>
+          </label>
+          <label>Notes <textarea name="notes" required></textarea></label>
+          <button class="btn" type="submit">Save touch</button>
+        </form>
+      </div>
+    `;
+    $('#back-rec').addEventListener('click', () => { location.hash = 'recruits'; });
+    $('#add-touch').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const row = {
+        recruit_id: id,
+        kind: fd.get('kind'),
+        notes: fd.get('notes'),
+        touched_at: new Date().toISOString(),
+      };
+      const { error: err } = await sb.from('hq_recruit_touches').insert(row);
+      if (err) { toast(err.message); return; }
+      toast('Touch saved');
+      render();
+    });
+  }
+
+  /* ——— Roster ——— */
+  async function renderRoster(main) {
+    const { data, error } = await sb.from('hq_players').select('*').eq('active', true).order('last_name');
+    if (error) throw error;
+    const list = data || [];
+    main.innerHTML = `
+      <div class="section-title"><h2>Roster</h2></div>
+      ${list.length ? list.map((p) => `
+        <div class="card tap player-row" data-id="${esc(p.id)}">
+          <h3>${esc(p.last_name)}, ${esc(p.first_name)}</h3>
+          <div class="meta">
+            ${p.pos ? `<span class="chip">${esc(p.pos)}</span>` : ''}
+            ${p.class_year || p.grad_year || ''}
+            ${p.number != null ? ` · #${esc(p.number)}` : ''}
+          </div>
+        </div>
+      `).join('') : `<div class="empty"><strong>No active players — add one</strong>Dev plans and throw logs live on each player.</div>`}
+      <div class="card">
+        <h3>Add player</h3>
+        <form class="form-grid" id="add-player">
+          <label>First <input name="first_name" required /></label>
+          <label>Last <input name="last_name" required /></label>
+          <label>Pos <input name="pos" /></label>
+          <label>Number <input name="number" type="number" /></label>
+          <label>Class / year <input name="class_year" placeholder="FR / SO / 2027" /></label>
+          <button class="btn" type="submit">Save player</button>
+        </form>
+      </div>
+    `;
+    $$('.player-row', main).forEach((el) => {
+      el.addEventListener('click', () => { location.hash = `player/${el.dataset.id}/hitting`; });
+    });
+    $('#add-player').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const row = Object.fromEntries(fd.entries());
+      row.active = true;
+      if (row.number !== '') row.number = Number(row.number); else delete row.number;
+      Object.keys(row).forEach((k) => { if (row[k] === '') row[k] = null; });
+      const { error: err } = await sb.from('hq_players').insert(row);
+      if (err) { toast(err.message); return; }
+      toast('Player added');
+      e.target.reset();
+      render();
+    });
+  }
+
+  async function renderPlayerDetail(main) {
+    const id = state.playerId;
+    const tab = state.playerTab;
+    const { data: p, error } = await sb.from('hq_players').select('*').eq('id', id).single();
+    if (error) throw error;
+
+    const areaMap = { hitting: 'hitting', pitching: 'pitching', throwing: 'throwing', sc: 'strength', notes: 'notes' };
+    const area = areaMap[tab] || 'hitting';
+
+    const [plansRes, assignsRes, logsRes] = await Promise.all([
+      sb.from('hq_dev_plans').select('*').eq('player_id', id).eq('area', area).limit(1),
+      sb.from('hq_program_assignments').select('*').eq('player_id', id).order('created_at', { ascending: false }),
+      sb.from('hq_plan_logs').select('*').eq('player_id', id).order('created_at', { ascending: false }).limit(15),
+    ]);
+    if (plansRes.error) throw plansRes.error;
+    if (assignsRes.error) throw assignsRes.error;
+    if (logsRes.error) throw logsRes.error;
+    const planRow = (plansRes.data && plansRes.data[0]) || null;
+    const assignList = assignsRes.data || [];
+    const logList = logsRes.data || [];
+
+    const throwAssigns = assignList.filter((a) => (a.kind || a.area || '').toLowerCase().includes('throw') || a.kind === 'throwing');
+    const scAssigns = assignList.filter((a) => {
+      const k = (a.kind || a.area || '').toLowerCase();
+      return k.includes('strength') || k.includes('sc') || k === 'workout' || k === 's&c';
+    });
+
+    const tabs = [
+      ['hitting', 'Hitting'],
+      ['pitching', 'Pitching'],
+      ['throwing', 'Throwing'],
+      ['sc', 'S&C'],
+      ['notes', 'Notes'],
+    ];
+
+    main.innerHTML = `
+      <button class="back" type="button" id="back-ros">← Roster</button>
+      <div class="card">
+        <h2>${esc(p.first_name)} ${esc(p.last_name)}</h2>
+        <div class="meta">${p.pos ? `<span class="chip">${esc(p.pos)}</span>` : ''} ${p.class_year || ''} ${p.number != null ? '#'+esc(p.number) : ''}</div>
+      </div>
+      <div class="tabs">
+        ${tabs.map(([k, lab]) => `<button type="button" class="${tab===k?'active':''}" data-tab="${k}">${lab}</button>`).join('')}
+      </div>
+      <div id="tab-body"></div>
+    `;
+    $('#back-ros').addEventListener('click', () => { location.hash = 'roster'; });
+    $$('.tabs button', main).forEach((b) => {
+      b.addEventListener('click', () => { location.hash = `player/${id}/${b.dataset.tab}`; });
+    });
+
+    const body = $('#tab-body');
+    if (tab === 'hitting' || tab === 'pitching' || tab === 'notes') {
+      body.innerHTML = `
+        <div class="card">
+          <h3>Dev plan — ${esc(area)}</h3>
+          <form class="form-grid" id="plan-form">
+            <label>Goals <textarea name="goals">${esc(planRow?.goals || '')}</textarea></label>
+            <label>Cues <textarea name="cues">${esc(planRow?.cues || '')}</textarea></label>
+            <button class="btn" type="submit">Save plan</button>
+          </form>
+        </div>
+        ${tab === 'notes' ? `
+          <div class="section-title"><h2>Recent logs</h2></div>
+          ${logList.length ? logList.map((l) => `
+            <div class="card">
+              <div class="meta">${esc(l.kind)} · ${l.created_at ? new Date(l.created_at).toLocaleString() : ''}</div>
+              <p>${esc(l.notes || l.message || '')}
+              ${l.planned_throws != null ? ` · planned ${l.planned_throws}` : ''}
+              ${l.actual_throws != null ? ` / actual ${l.actual_throws}` : ''}</p>
+            </div>
+          `).join('') : `<div class="empty"><strong>No logs yet</strong></div>`}
+        ` : ''}
+      `;
+      $('#plan-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const payload = {
+          player_id: id,
+          area,
+          goals: fd.get('goals') || null,
+          cues: fd.get('cues') || null,
+          updated_at: new Date().toISOString(),
+        };
+        let err;
+        if (planRow?.id) {
+          ({ error: err } = await sb.from('hq_dev_plans').update(payload).eq('id', planRow.id));
+        } else {
+          ({ error: err } = await sb.from('hq_dev_plans').upsert(payload, { onConflict: 'player_id,area' }));
+          if (err) {
+            // fallback insert if no unique constraint name
+            ({ error: err } = await sb.from('hq_dev_plans').insert(payload));
+          }
+        }
+        if (err) { toast(err.message); return; }
+        toast('Plan saved');
+        render();
+      });
+    } else if (tab === 'throwing') {
+      body.innerHTML = `
+        <div class="card">
+          <h3>Throw log</h3>
+          <form class="form-grid" id="throw-log">
+            <label>Planned throws <input name="planned_throws" type="number" inputmode="numeric" required /></label>
+            <label>Actual throws <input name="actual_throws" type="number" inputmode="numeric" required /></label>
+            <label>Notes <textarea name="notes"></textarea></label>
+            <button class="btn" type="submit">Log throws</button>
+          </form>
+        </div>
+        <div class="section-title"><h2>Assignments</h2></div>
+        ${throwAssigns.length ? throwAssigns.map(assignCard).join('') : `<div class="empty"><strong>No throwing assignments</strong>Quick-assign below.</div>`}
+        ${assignForm('throwing')}
+        <div class="section-title"><h2>Recent throw logs</h2></div>
+        ${logList.filter((l) => l.kind === 'throwing').length
+          ? logList.filter((l) => l.kind === 'throwing').map((l) => `
+            <div class="card">
+              <div class="meta">${l.created_at ? new Date(l.created_at).toLocaleString() : ''}</div>
+              <p>Planned ${esc(l.planned_throws)} · Actual ${esc(l.actual_throws)}</p>
+              ${l.notes ? `<p class="meta">${esc(l.notes)}</p>` : ''}
+            </div>`).join('')
+          : `<div class="empty"><strong>No throw logs yet</strong></div>`}
+      `;
+      wireAssignForm(body, id, 'throwing');
+      $('#throw-log').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const planned = Number(fd.get('planned_throws'));
+        const actual = Number(fd.get('actual_throws'));
+        const notes = fd.get('notes') || null;
+        const { error: err } = await sb.from('hq_plan_logs').insert({
+          player_id: id,
+          kind: 'throwing',
+          planned_throws: planned,
+          actual_throws: actual,
+          notes,
+        });
+        if (err) { toast(err.message); return; }
+        if (actual > planned) {
+          const msg = `${p.first_name} ${p.last_name}: overthrow ${actual}/${planned}`;
+          const { error: aErr } = await sb.from('hq_alerts').insert({
+            kind: 'overthrow',
+            message: msg,
+            player_id: id,
+          });
+          if (aErr) console.warn(aErr);
+          toast('Logged — overthrow alert created');
+        } else {
+          toast('Throw log saved');
+        }
+        e.target.reset();
+        render();
+      });
+    } else if (tab === 'sc') {
+      body.innerHTML = `
+        <div class="section-title"><h2>S&C / workouts</h2></div>
+        ${scAssigns.length ? scAssigns.map((a) => assignCard(a, true)).join('') : `<div class="empty"><strong>No S&C assignments</strong>Add one below.</div>`}
+        ${assignForm('strength')}
+        <div class="card">
+          <h3>Quick checkoff</h3>
+          <form class="form-grid" id="checkoff">
+            <label>Kind
+              <select name="kind">
+                <option value="strength">Strength</option>
+                <option value="workout">Workout</option>
+              </select>
+            </label>
+            <label>Note <textarea name="notes" placeholder="Completed session…"></textarea></label>
+            <button class="btn" type="submit">Mark done</button>
+          </form>
+        </div>
+      `;
+      wireAssignForm(body, id, 'strength');
+      $$('.checkoff-btn', body).forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const { error: err } = await sb.from('hq_plan_logs').insert({
+            player_id: id,
+            kind: 'strength',
+            assignment_id: btn.dataset.id || null,
+            notes: 'Checked off: ' + (btn.dataset.title || 'assignment'),
+          });
+          if (err) { toast(err.message); return; }
+          toast('Checked off');
+        });
+      });
+      $('#checkoff').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const { error: err } = await sb.from('hq_plan_logs').insert({
+          player_id: id,
+          kind: fd.get('kind'),
+          notes: fd.get('notes') || 'Checkoff',
+        });
+        if (err) { toast(err.message); return; }
+        toast('Logged');
+        e.target.reset();
+      });
+    }
+
+    function assignCard(a, withCheck) {
+      return `<div class="card">
+        <h3>${esc(a.title || 'Assignment')}</h3>
+        <div class="meta">${esc(a.kind || '')}</div>
+        <p style="white-space:pre-wrap;margin-top:6px">${esc(a.body_md || a.body || '')}</p>
+        ${withCheck ? `<button class="btn sm secondary checkoff-btn" data-id="${esc(a.id)}" data-title="${esc(a.title || '')}" type="button">Check off</button>` : ''}
+      </div>`;
+    }
+    function assignForm(kind) {
+      return `<div class="card">
+        <h3>Quick assign</h3>
+        <form class="form-grid assign-form" data-kind="${esc(kind)}">
+          <label>Title <input name="title" required /></label>
+          <label>Body (markdown OK) <textarea name="body_md"></textarea></label>
+          <button class="btn" type="submit">Create assignment</button>
+        </form>
+      </div>`;
+    }
+    function wireAssignForm(root, playerId, kind) {
+      const form = $('.assign-form', root);
+      if (!form) return;
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const { error: err } = await sb.from('hq_program_assignments').insert({
+          player_id: playerId,
+          kind: form.dataset.kind || kind,
+          title: fd.get('title'),
+          body_md: fd.get('body_md') || null,
+        });
+        if (err) { toast(err.message); return; }
+        toast('Assignment created');
+        render();
+      });
+    }
+  }
+
+  /* ——— Practice ——— */
+  async function renderPractice(main) {
+    const day = todayISO();
+    let { data, error } = await sb.from('hq_practice_days').select('*').eq('practice_date', day).maybeSingle();
+    if (error && error.code !== 'PGRST116') {
+      // try date column name variants
+      const alt = await sb.from('hq_practice_days').select('*').eq('day', day).maybeSingle();
+      if (!alt.error) { data = alt.data; error = null; }
+      else if (error) throw error;
+    }
+    const blocks = Array.isArray(data?.blocks_json)
+      ? data.blocks_json
+      : (typeof data?.blocks_json === 'string' ? JSON.parse(data.blocks_json || '[]') : []);
+    const lines = (blocks || []).map((b) => {
+      if (typeof b === 'string') return b;
+      return [b.title, b.detail].filter(Boolean).join(' — ');
+    }).join('\n');
+
+    main.innerHTML = `
+      <div class="section-title"><h2>Practice</h2><span class="meta">${day}</span></div>
+      <div class="card">
+        <h3>${data ? 'Edit today' : 'Create today’s plan'}</h3>
+        <form class="form-grid" id="practice-form">
+          <label>Theme <input name="theme" value="${esc(data?.theme || '')}" placeholder="e.g. Defense focus" /></label>
+          <label>Blocks (one per line: Title — detail)
+            <textarea name="blocks" placeholder="Warmup — band + plyo&#10;BP — situational">${esc(lines)}</textarea>
+          </label>
+          <button class="btn" type="submit">Save practice day</button>
+        </form>
+      </div>
+      ${!data ? `<div class="empty"><strong>No practice day yet for ${day}</strong>Set a theme and blocks above.</div>` : ''}
+    `;
+    $('#practice-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const blocks_json = String(fd.get('blocks') || '').split('\n').map((line) => line.trim()).filter(Boolean).map((line) => {
+        const parts = line.split(/\s+[—\-]\s+/);
+        return { title: parts[0], detail: parts.slice(1).join(' — ') || null };
+      });
+      const row = {
+        practice_date: day,
+        theme: fd.get('theme') || null,
+        blocks_json,
+      };
+      let err;
+      if (data?.id) {
+        ({ error: err } = await sb.from('hq_practice_days').update(row).eq('id', data.id));
+      } else {
+        ({ error: err } = await sb.from('hq_practice_days').upsert(row, { onConflict: 'practice_date' }));
+        if (err) ({ error: err } = await sb.from('hq_practice_days').insert(row));
+      }
+      if (err) { toast(err.message); return; }
+      toast('Practice saved');
+      render();
+    });
+  }
+
+  /* ——— Knowledge ——— */
+  async function renderKnowledge(main) {
+    const { data, error } = await sb.from('hq_knowledge_items').select('*').order('created_at', { ascending: false }).limit(50);
+    if (error) throw error;
+    const list = data || [];
+    main.innerHTML = `
+      <div class="section-title"><h2>Knowledge</h2></div>
+      ${list.length ? list.map((k) => `
+        <div class="card">
+          <h3>${esc(k.summary || k.source_url || 'Item')}</h3>
+          <div class="meta">
+            ${(k.tags || []).length || (typeof k.tags === 'string' && k.tags)
+              ? (Array.isArray(k.tags) ? k.tags : String(k.tags).split(',')).map((t) => `<span class="chip">${esc(String(t).trim())}</span>`).join('')
+              : ''}
+          </div>
+          ${k.source_url ? `<p><a href="${esc(k.source_url)}" target="_blank" rel="noopener">Source</a></p>` : ''}
+          ${k.source_text ? `<p class="meta" style="margin-top:6px;white-space:pre-wrap">${esc(k.source_text).slice(0, 280)}${String(k.source_text).length > 280 ? '…' : ''}</p>` : ''}
+        </div>
+      `).join('') : `<div class="empty"><strong>No knowledge items yet — add one</strong>Clip articles, drills, and cues.</div>`}
+      <div class="card">
+        <h3>Add item</h3>
+        <form class="form-grid" id="add-knowledge">
+          <label>Source URL <input name="source_url" type="url" placeholder="https://" /></label>
+          <label>Source text <textarea name="source_text"></textarea></label>
+          <label>Summary <textarea name="summary" required></textarea></label>
+          <label>Tags (comma) <input name="tags" placeholder="hitting, velo" /></label>
+          <button class="btn" type="submit">Save</button>
+        </form>
+      </div>
+    `;
+    $('#add-knowledge').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const tagsRaw = String(fd.get('tags') || '');
+      const tags = tagsRaw.split(',').map((t) => t.trim()).filter(Boolean);
+      const row = {
+        source_url: fd.get('source_url') || null,
+        source_text: fd.get('source_text') || null,
+        summary: fd.get('summary'),
+        tags,
+      };
+      const { error: err } = await sb.from('hq_knowledge_items').insert(row);
+      if (err) { toast(err.message); return; }
+      toast('Saved');
+      e.target.reset();
+      render();
+    });
+  }
+
+  /* boot */
+  $('#gate-btn').addEventListener('click', unlock);
+  $('#gate-code').addEventListener('keydown', (e) => { if (e.key === 'Enter') unlock(); });
+  $('#lock-btn').addEventListener('click', lockAgain);
+  window.addEventListener('hashchange', routeFromHash);
+
+  if (isUnlocked()) showApp();
+  else showGate();
+})();
+  </script>
+</body>
+</html>
