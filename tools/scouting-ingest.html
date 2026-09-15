@@ -110,7 +110,7 @@
     @page{size:Letter portrait;margin:12mm 11mm;}
     html,body{background:#fff!important;color:#111!important;font-size:10.5pt;}
     /* Upload UI / gate / chrome — never paper. Browser date/URL still need Headers & footers off in the print dialog. */
-    .wrap,.bookbar,header.masthead,.panel,.uploader,#triage,#inventory,#teampick,#reports,#upStatus,#genStatus,
+    .wrap,.bookbar,header.masthead,.panel,.uploader,#sessionBar,#triage,#inventory,#teampick,#reports,#upStatus,#genStatus,
     details.inspector,#backBtn,#printBtn,#lockAgainBtn,#gate,button,select,input,textarea,.tab,.iconbtn{display:none!important;}
     /* position:fixed prints page 1 only — this is the line that makes the rest exist. */
     #bookView{position:static!important;display:block!important;inset:auto!important;overflow:visible!important;background:#fff!important;z-index:auto!important;}
@@ -160,6 +160,13 @@
   .masthead-row{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:10px;}
   .masthead-row h1{flex:1;min-width:200px;}
 
+
+  .session-bar{display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--cream-deep);border:1px solid var(--rule);border-radius:2px;padding:10px 12px;margin:0 0 16px;font-size:13px;color:var(--navy-ink);}
+  .session-bar.show{display:flex;}
+  .session-bar .msg{flex:1;min-width:180px;line-height:1.35;}
+  .session-bar button{font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:7px 11px;border-radius:2px;cursor:pointer;border:1px solid var(--navy);background:#fff;color:var(--navy);}
+  .session-bar button.danger{border-color:var(--accent);color:var(--accent);}
+
   /* Access gate */
   #gate{position:fixed;inset:0;z-index:10000;background:var(--navy);color:var(--cream);display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;}
   #gate.hidden{display:none;}
@@ -199,6 +206,11 @@
     </div>
     <p class="sub">Upload the opponent’s Synergy + sheet files. We sort them, pick the team you’re scouting, and build the books. Everything stays on this device.</p>
   </header>
+
+  <div class="session-bar" id="sessionBar">
+    <div class="msg" id="sessionMsg"></div>
+    <button type="button" id="sessionClearBtn" class="danger">Clear saved</button>
+  </div>
 
   <section class="card"><p class="step-eyebrow"><span class="num">01</span> &nbsp;Upload</p><h2 class="step">Drop in the files</h2>
     <p class="hint">PDF or Excel — Synergy reports, roster, and the opponent stat sheet.</p>
@@ -266,6 +278,7 @@
     var g=document.getElementById('gate'); if(g) g.classList.add('hidden');
     var a=document.getElementById('appRoot'); if(a) a.classList.remove('locked');
     var b=document.getElementById('lockAgainBtn'); if(b) b.classList.add('show');
+    idbGet().then(function(snap){ if(snap && ((snap.files&&snap.files.length)||snap.pastedStats)) applySession(snap); else updateSessionBar(null); }).catch(function(){});
   }
   function gateShowLock(){
     var g=document.getElementById('gate'); if(g) g.classList.remove('hidden');
@@ -297,7 +310,7 @@
   document.getElementById('gateBtn').addEventListener('click',gateUnlock);
   document.getElementById('gateCode').addEventListener('keydown',function(e){ if(e.key==='Enter') gateUnlock(); });
   var lockBtn=document.getElementById('lockAgainBtn');
-  if(lockBtn) lockBtn.addEventListener('click',function(){ localStorage.removeItem(GATE_LS); gateShowLock(); });
+  if(lockBtn) lockBtn.addEventListener('click',function(){ localStorage.removeItem(GATE_LS); idbClear().then(function(){ clearSessionMemory(); gateShowLock(); }).catch(function(){ clearSessionMemory(); gateShowLock(); }); });
   gateApply();
   if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   var TYPES={synergyHit:'Synergy — hitter report',synergyPit:'Synergy — pitcher report',roster:'Roster',stats:'Cumulative stats',unknown:'Unknown — pick one'};
@@ -313,7 +326,107 @@
     {id:'cards',name:'Hitter Index Cards',needs:['synergyHit','stats'],build:'soon'}];
   var NEED_LABEL={synergyHit:'hitter reports',synergyPit:'pitcher reports',roster:'roster',stats:'stat sheet'};
   var PITCHES=['Fastball','Sinker','Cutter','Slider','Curveball','Changeup','Splitter','Four-Seam','Unknown'];
-  var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',selectedTeam=null;
+  
+var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',selectedTeam=null;
+  var SESSION_DB='pb_scouting_session_v1', SESSION_STORE='session', _saveTimer=null, _sessionMeta=null;
+
+  function idbOpen(){
+    return new Promise(function(resolve,reject){
+      if(!window.indexedDB){ reject(new Error('no idb')); return; }
+      var req=indexedDB.open(SESSION_DB,1);
+      req.onupgradeneeded=function(){ var db=req.result; if(!db.objectStoreNames.contains(SESSION_STORE)) db.createObjectStore(SESSION_STORE); };
+      req.onsuccess=function(){ resolve(req.result); };
+      req.onerror=function(){ reject(req.error||new Error('idb open failed')); };
+    });
+  }
+  function idbPut(payload){
+    return idbOpen().then(function(db){
+      return new Promise(function(resolve,reject){
+        var tx=db.transaction(SESSION_STORE,'readwrite');
+        tx.objectStore(SESSION_STORE).put(payload,'current');
+        tx.oncomplete=function(){ resolve(); }; tx.onerror=function(){ reject(tx.error); };
+      });
+    });
+  }
+  function idbGet(){
+    return idbOpen().then(function(db){
+      return new Promise(function(resolve,reject){
+        var tx=db.transaction(SESSION_STORE,'readonly');
+        var req=tx.objectStore(SESSION_STORE).get('current');
+        req.onsuccess=function(){ resolve(req.result||null); };
+        req.onerror=function(){ reject(req.error); };
+      });
+    });
+  }
+  function idbClear(){
+    return idbOpen().then(function(db){
+      return new Promise(function(resolve,reject){
+        var tx=db.transaction(SESSION_STORE,'readwrite');
+        tx.objectStore(SESSION_STORE).delete('current');
+        tx.oncomplete=function(){ resolve(); }; tx.onerror=function(){ reject(tx.error); };
+      });
+    }).catch(function(){});
+  }
+  function sessionSnapshot(){
+    return {
+      savedAt: Date.now(),
+      selectedTeam: selectedTeam,
+      pastedStats: pastedStats||'',
+      nextId: nextId,
+      files: files.map(function(f){ return {id:f.id,name:f.name,kind:f.kind,type:f.type,conf:f.conf,rowsText:f.rowsText||'',rawText:f.rawText||''}; })
+    };
+  }
+  function scheduleSessionSave(){
+    if(_saveTimer) clearTimeout(_saveTimer);
+    _saveTimer=setTimeout(function(){
+      if(!files.length && !pastedStats){ updateSessionBar(null); idbClear(); return; }
+      var snap=sessionSnapshot();
+      idbPut(snap).then(function(){ _sessionMeta=snap; updateSessionBar(snap); }).catch(function(e){
+        var el=document.getElementById('upStatus');
+        if(el) setStatus(el,'err','Could not save session on this device'+(e&&e.name==='QuotaExceededError'?' (storage full)':'')+'.');
+      });
+    },450);
+  }
+  function updateSessionBar(snap){
+    var bar=document.getElementById('sessionBar'); var msg=document.getElementById('sessionMsg');
+    if(!bar||!msg) return;
+    if(!snap || (!(snap.files&&snap.files.length) && !snap.pastedStats)){ bar.classList.remove('show'); return; }
+    var n=(snap.files&&snap.files.length)||0;
+    var when=snap.savedAt? new Date(snap.savedAt): null;
+    var time=when? when.toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}): '';
+    var team=snap.selectedTeam? (' \u00b7 '+snap.selectedTeam): '';
+    msg.textContent='Remembered on this device: '+n+' file'+(n===1?'':'s')+team+(time?(' \u00b7 '+time):'')+'. Refresh-safe until you clear or lock.';
+    bar.classList.add('show');
+  }
+  function applySession(snap){
+    if(!snap) return false;
+    files=(snap.files||[]).map(function(f){ return {id:f.id,name:f.name,kind:f.kind,type:f.type,conf:f.conf,rowsText:f.rowsText||'',rawText:f.rawText||''}; });
+    pastedStats=snap.pastedStats||'';
+    selectedTeam=snap.selectedTeam||null;
+    nextId=Math.max(snap.nextId||1, files.reduce(function(m,f){return Math.max(m,(f.id||0)+1);},1));
+    var paste=document.getElementById('statPaste'); if(paste) paste.value=pastedStats;
+    var lab=document.getElementById('addLabel'); if(lab) lab.textContent=files.length? (files.length+' file'+(files.length===1?'':'s')+' loaded'):'No files yet';
+    _sessionMeta=snap;
+    renderTriage();
+    updateSessionBar(snap);
+    var el=document.getElementById('upStatus');
+    if(el && files.length) setStatus(el,'ok','Restored last session on this device.');
+    return files.length>0 || !!pastedStats;
+  }
+  function clearSessionMemory(){
+    files=[]; pastedStats=''; selectedTeam=null; nextId=1; inspect={rows:'',raw:''};
+    var paste=document.getElementById('statPaste'); if(paste) paste.value='';
+    var lab=document.getElementById('addLabel'); if(lab) lab.textContent='No files yet';
+    _sessionMeta=null;
+    renderTriage();
+    updateSessionBar(null);
+  }
+  async function clearSavedSession(){
+    await idbClear();
+    clearSessionMemory();
+    var el=document.getElementById('upStatus'); if(el) setStatus(el,'ok','Saved session cleared.');
+  }
+
 
   function classify(text){var t=(text||'').toLowerCase();function hits(ws){var n=0;for(var i=0;i<ws.length;i++)if(t.indexOf(ws[i])>=0)n++;return n;}
     var common=hits(['fastball','slider','curveball','changeup','sinker','cutter','whiff','chase','synergy','heat map','spray','swing %','put away']);
@@ -780,19 +893,19 @@ var TIERS=[{k:'SP',label:'Starters',badge:'STARTER'},
   function setStatus(el,k,m){el.className='status show '+k;el.textContent=m;}
   function countType(t){return files.filter(function(f){return f.type===t;}).length;}
   function present(){return {synergyHit:countType('synergyHit'),synergyPit:countType('synergyPit'),roster:countType('roster'),stats:countType('stats')+(pastedStats?1:0)};}
-  function renderTriage(){if(!files.length){triage.innerHTML='<p class="emptyfiles">Files you add will be listed here for review.</p>';renderReports();return;}
+  function renderTriage(){if(!files.length){triage.innerHTML='<p class="emptyfiles">Files you add will be listed here for review.</p>';renderReports();scheduleSessionSave();return;}
     triage.innerHTML='';files.forEach(function(f){var row=document.createElement('div');row.className='frow';
       var name=document.createElement('div');name.className='fname';name.innerHTML=f.name+'<span class="kind">'+(f.kind==='sheet'?'Excel':'PDF')+'</span><span class="conf">'+(f.type==='unknown'?'couldn\u2019t identify':'detected · '+f.conf)+'</span>';
       var sel=document.createElement('select');sel.className='ftype'+(f.type==='unknown'?' unknown':'');Object.keys(TYPES).forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=TYPES[k];if(k===f.type)o.selected=true;sel.appendChild(o);});
-      sel.addEventListener('change',function(){f.type=sel.value;sel.className='ftype'+(f.type==='unknown'?' unknown':'');renderReports();});
+      sel.addEventListener('change',function(){f.type=sel.value;sel.className='ftype'+(f.type==='unknown'?' unknown':'');renderReports();scheduleSessionSave();});
       var view=document.createElement('button');view.className='iconbtn view';view.textContent='View';view.addEventListener('click',function(){inspect.rows=f.rowsText;inspect.raw=f.rawText;renderInspect();document.querySelector('details.inspector').open=true;});
       var del=document.createElement('button');del.className='iconbtn';del.innerHTML='&times;';del.addEventListener('click',function(){files=files.filter(function(x){return x.id!==f.id;});renderTriage();});
-      row.appendChild(name);row.appendChild(sel);row.appendChild(view);row.appendChild(del);triage.appendChild(row);});renderReports();}
+      row.appendChild(name);row.appendChild(sel);row.appendChild(view);row.appendChild(del);triage.appendChild(row);});renderReports();scheduleSessionSave();}
   function renderTeamPicker(){var teams=statTeams();if(teams.length<=0){teampick.innerHTML='';return;}var cur=currentTeam();
     var opts=teams.map(function(t){return '<option value="'+t.team.replace(/"/g,'')+'"'+(t.team===cur.team?' selected':'')+'>'+t.team+' ('+t.hit.length+' batters)</option>';}).join('');
     var others=teams.filter(function(t){return t.team!==cur.team;}).map(function(t){return t.team;});
     teampick.innerHTML='<div class="teampick"><span class="lbl">Scouting — team this report is about</span><select id="teamSel">'+opts+'</select>'+(others.length?'<p class="mine">Held aside for the gameplan: '+others.join(', ')+'</p>':'')+'</div>';
-    document.getElementById('teamSel').addEventListener('change',function(){selectedTeam=this.value;renderReports();});}
+    document.getElementById('teamSel').addEventListener('change',function(){selectedTeam=this.value;renderReports();scheduleSessionSave();});}
   function renderReports(){var p=present();inventory.innerHTML='<span class="chip"><b>'+p.synergyHit+'</b> hitter</span><span class="chip"><b>'+p.synergyPit+'</b> pitcher</span><span class="chip"><b>'+p.roster+'</b> roster</span><span class="chip"><b>'+p.stats+'</b> stats</span>';
     renderTeamPicker();reportsEl.innerHTML='';
     REPORTS.forEach(function(r){var missing=r.needs.filter(function(n){return p[n]<=0;}).map(function(n){return NEED_LABEL[n];});
@@ -821,7 +934,9 @@ var TIERS=[{k:'SP',label:'Starters',badge:'STARTER'},
     var chosen=Array.prototype.slice.call(e.target.files); e.target.value='';
     ingestChosen(chosen, upStatus, document.getElementById('addLabel'), 'Loaded. Confirm types — include your stats + roster for Game Plan — then Build.');
   });
-  document.getElementById('pasteBtn').addEventListener('click',function(){var v=document.getElementById('statPaste').value;if(!v.trim())return;pastedStats=v.replace(/\r/g,'');selectedTeam=null;renderReports();setStatus(genStatus,'ok','Pasted stats saved.');});
+  document.getElementById('pasteBtn').addEventListener('click',function(){var v=document.getElementById('statPaste').value;if(!v.trim())return;pastedStats=v.replace(/\r/g,'');selectedTeam=null;renderReports();scheduleSessionSave();setStatus(genStatus,'ok','Pasted stats saved.');});
+  var scb=document.getElementById('sessionClearBtn');
+  if(scb) scb.addEventListener('click',function(){ if(confirm('Clear the saved session on this device?')) clearSavedSession(); });
   renderTriage();
 })();
 </script>
