@@ -620,25 +620,16 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
       else if(g!=null)parts.push('balanced off the bat — infield straight up');}
     if(!parts.length)return '';
     return parts.join('; ')+'.';}
-  // Bunt read: rate + share of team sacs — never "Real" on raw SH count alone.
-  // Real ≈ ≥2% of PA (about 1/50) with ≥3 SH, OR ≥30% of team sacs when the team has ≥5.
-  var BUNT_RATE_REAL=0.02, BUNT_SHARE_REAL=0.30, BUNT_TEAM_MIN=5;
+  // Bunt read: rate-aware + team-share — Real only at ≥3 SH and rate ≥1/45 (~2.2%).
   function buntLine(h){
     var sh=h.counts&&h.counts.sh||0; if(sh<2) return '';
-    var pa=h.pa||0, rate=pa>0?sh/pa:0, teamSh=h.teamSh||0;
-    var share=teamSh>0?sh/teamSh:null;
-    var shareTxt=share!=null?(Math.round(share*100)+'% of the team\u2019s '+teamSh+' sacs'):null;
-    var isReal=(sh>=3&&rate>=BUNT_RATE_REAL)||(sh>=3&&share!=null&&share>=BUNT_SHARE_REAL&&teamSh>=BUNT_TEAM_MIN);
-    if(isReal){
-      var t='Real — '+sh+' sacrifices'+(pa?(' in '+pa+' PA'):'');
-      if(shareTxt) t+=' \u00b7 '+shareTxt;
-      t+='; he\u2019ll drop one off the fastball. Corners alert in fastball counts.';
-      return t;
+    var pa=h.pa||0, rate=pa>0?sh/pa:0;
+    var teamSh=h.teamSh||0;
+    var shareBit=teamSh>0?(' — '+sh+' of the team\u2019s '+teamSh+' sacs ('+Math.round(100*sh/teamSh)+'%)'):'';
+    if(sh>=3&&rate>=1/45){
+      return 'Real — '+sh+' sacrifices'+(pa?(' in '+pa+' PA'):'')+shareBit+'; he\u2019ll drop one off the fastball. Corners alert in fastball counts.';
     }
-    var soft=sh+' sacrifices'+(pa?(' in '+pa+' PA (~'+(rate*100).toFixed(1)+'%)'):'');
-    if(shareTxt) soft+=' \u00b7 '+shareTxt;
-    soft+=' \u2014 occasional, not a constant threat. Don\u2019t over-shift the corners.';
-    return soft;
+    return sh+' sacrifices'+(pa?(' in '+pa+' PA'):'')+shareBit+' \u2014 occasional, not a high-volume bunt threat. Don\u2019t shade corners every FB count.';
   }
   function hitterBlock(h,rank){var ep=epithet(h);var bt=btLabel(h.bats,h.throws);
     var tag=(ep.t&&ep.t!=='HITTER')?'<span class="btag '+ep.cls+'">'+ep.t+'</span>':'';
