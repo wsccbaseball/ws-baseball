@@ -582,8 +582,20 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
     if(g>=GB_HEAVY)return 'Extreme ground-ball bat ('+g+'% GB) — the contact stays on the ground. ';
     if(g<=GB_AIR)return 'Looks to lift ('+g+'% GB) — a fly-ball profile. ';
     return '';}
-  function profile(h){var even=!!(parseInt(h.jersey,10)%2);var disc=h.chase>=37?(even?('Expands early — '+h.chase+'% chase; OBP sits near his average. You don\u2019t have to throw him strikes; make him chase.'):('A free-swinger — '+h.chase+'% chase, an OBP that barely clears his average. You don\u2019t have to throw him strikes; make him chase.')):(h.chase&&h.chase<=25?(even?('Patient in the box ('+h.chase+'% chase) — he won\u2019t expand; the out has to come in the zone.'):('Disciplined, low-chase ('+h.chase+'%) — he won\u2019t expand, so the out has to come in the zone.')):'');
-    return (disc?disc+' ':'')+battedBallTrait(h)+'<b>'+h.counts.hr+' HR, '+h.counts.db+' 2B, '+h.counts.k+' K, '+h.counts.bb+' BB, '+h.counts.sb+' SB.</b>';}
+  function profile(h){
+    // Chase: short label+% for common bands; full coaching sentence only for extremes.
+    // Out/Danger carry the plan — don't repeat "won't expand / in the zone" on every card.
+    var disc='';
+    if(h.chase!=null&&h.chase!==''){
+      var c=h.chase, gap=(h.obp||0)-(h.avg||0);
+      if(c>=37&&gap<.07) disc='Expands · '+c+'% chase — OBP sits near his average; you don\u2019t have to throw strikes. ';
+      else if(c>=40) disc='Expands · '+c+'% chase — make him chase. ';
+      else if(c>=37) disc='Expands · '+c+'% chase. ';
+      else if(c<=12) disc='Patient · '+c+'% chase — won\u2019t expand; outs in the zone. ';
+      else if(c<=25) disc='Patient · '+c+'% chase. ';
+    }
+    return disc+battedBallTrait(h)+'<b>'+h.counts.hr+' HR, '+h.counts.db+' 2B, '+h.counts.k+' K, '+h.counts.bb+' BB, '+h.counts.sb+' SB.</b>';
+  }
   function hasSlg(h){return h.mix.some(function(m){return m.slg!=null;});}
   // Sample gate: parseSynergy stores slash-line leading int as basic.n (AB/PA-eq; mix has no pitch-N). Danger/OF-deep need n>=8; if n absent, usage!=null may list Danger but color language stays off.
   function mixN(m){return m.n!=null?m.n:(m.pitches!=null?m.pitches:(m.pa!=null?m.pa:(m.ab!=null?m.ab:null)));}
