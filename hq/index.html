@@ -593,7 +593,10 @@
     const q = (state.recruitFilter.q || '').trim().toLowerCase();
     const yearRes = await sb.from('hq_recruits').select('grad_year');
     if (yearRes.error) throw yearRes.error;
-    const years = [...new Set((yearRes.data || []).map((r) => r.grad_year).filter(Boolean))].sort();
+    const fromDb = [...new Set((yearRes.data || []).map((r) => r.grad_year).filter(Boolean).map(Number))];
+    // Always offer near-term classes even before any rows exist for that year
+    const baseline = [2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030];
+    const years = [...new Set([...baseline, ...fromDb])].sort((a, b) => a - b);
     let query = sb.from('hq_recruits').select('*').order('last_name', { ascending: true });
     if (gy) query = query.eq('grad_year', Number(gy));
     const { data, error } = await query;
