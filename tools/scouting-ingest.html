@@ -528,7 +528,7 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
 
   function assembleHitters(){
     var team=currentTeam()||{hit:[]};var idx=indexByKey(team.hit);var rep=synergyByPlayer('synergyHit');var bt=rosterBT();var out=[];
-    var maxSlg=0;team.hit.forEach(function(s){var v=parseFloat(s.slg)||0;if(v>maxSlg)maxSlg=v;});
+    var maxSlg=0,teamSh=0;team.hit.forEach(function(s){var v=parseFloat(s.slg)||0;if(v>maxSlg)maxSlg=v;teamSh+=(s.sh||0);});
     Object.keys(rep).forEach(function(k){var r=rep[k],cs=idx[k]||{},ov=r.Overall||{mix:{},bip:{}};
       var nm=cs.name||r[Object.keys(r)[0]].name,last,first;
       if((cs.name||'').indexOf(',')>=0){last=cs.name.split(',')[0];first=(cs.name.split(',')[1]||'').trim();}
@@ -547,7 +547,7 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
         chase:(ov.mix.Overall||{}).chase||0,obp:parseFloat(cs.obp)||0,avg:parseFloat(cs.avg)||0,
         teamSlgLeader:(mySlg>0&&mySlg>=maxSlg),
         mix:mix,zones:{infSlash:fmtSlash((r.INF||{}).basic),ofSlash:fmtSlash((r.OF||{}).basic),ofXBH:((r.OF||{}).basic||{}).xbh,gb:(ov.bip||{}).gb},
-        pa:pa,missing:missing});});
+        pa:pa,teamSh:teamSh,missing:missing});});
     return out.sort(function(a,b){return b.pa-a.pa;});}
 
   function assemblePitchers(){
@@ -620,6 +620,17 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
       else if(g!=null)parts.push('balanced off the bat — infield straight up');}
     if(!parts.length)return '';
     return parts.join('; ')+'.';}
+  // Bunt read: rate-aware + team-share — Real only at ≥3 SH and rate ≥1/45 (~2.2%).
+  function buntLine(h){
+    var sh=h.counts&&h.counts.sh||0; if(sh<2) return '';
+    var pa=h.pa||0, rate=pa>0?sh/pa:0;
+    var teamSh=h.teamSh||0;
+    var shareBit=teamSh>0?(' — '+sh+' of the team\u2019s '+teamSh+' sacs ('+Math.round(100*sh/teamSh)+'%)'):'';
+    if(sh>=3&&rate>=1/45){
+      return 'Real — '+sh+' sacrifices'+(pa?(' in '+pa+' PA'):'')+shareBit+'; he\u2019ll drop one off the fastball. Corners alert in fastball counts.';
+    }
+    return sh+' sacrifices'+(pa?(' in '+pa+' PA'):'')+shareBit+' \u2014 occasional, not a high-volume bunt threat. Don\u2019t shade corners every FB count.';
+  }
   function hitterBlock(h,rank){var ep=epithet(h);var bt=btLabel(h.bats,h.throws);
     var tag=(ep.t&&ep.t!=='HITTER')?'<span class="btag '+ep.cls+'">'+ep.t+'</span>':'';
     var html='<div class="block"><div class="bhead"><span class="bspot">'+rank+'</span><span class="bname">'+h.last+'</span><span class="bjersey">#'+h.jersey+' · '+h.first+'</span>'+(bt?'<span class="bhand">'+bt+'</span>':'')+tag+'<span class="bslash">'+h.slash+'</span></div>';
@@ -627,7 +638,7 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
     html+='<p class="bp line out m-check"><span class="lbl">Out</span>'+outLine(h)+'</p>';
     html+='<p class="bp line danger m-tri"><span class="lbl">Danger</span>'+dangerLine(h)+'</p>';
     if(h.counts.sb>=10)html+='<p class="bp line m-arrow"><span class="lbl">Run</span>'+h.counts.sb+' SB — he\u2019ll go. Hold him, vary the look; a walk is a double waiting to happen.</p>';
-    if(h.counts.sh>=3)html+='<p class="bp line m-arrow"><span class="lbl">Bunt</span>Real — '+h.counts.sh+' sacrifices; he\u2019ll drop one off the fastball. Corners alert in fastball counts.</p>';
+    var bl=buntLine(h);if(bl)html+='<p class="bp line m-arrow"><span class="lbl">Bunt</span>'+bl+'</p>';
     var dl=defenseLine(h);if(dl)html+='<p class="bp line m-dia"><span class="lbl">Defense</span>'+dl+'</p>';
     if(h.missing&&h.missing.length){var lbl={Overall:'overall',vsFB:'vs FB',vsSL:'vs SL',vsCB:'vs CB',vsCH:'vs CH',INF:'infield zone',OF:'outfield zone'};
       html+='<p class="miss-note">⚠ Missing files: '+h.missing.map(function(s){return lbl[s];}).join(', ')+' — that detail is limited until they\u2019re added.</p>';}
