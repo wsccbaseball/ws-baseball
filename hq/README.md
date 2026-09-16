@@ -2,6 +2,8 @@
 
 Phone-first staff HQ for recruits, roster/dev plans, practice days, and knowledge. Static HTML for GitHub Pages — no build step.
 
+**Theme:** Quiet admin light theme.
+
 ## Open locally
 
 ```bash
@@ -81,4 +83,4 @@ All stubs are labeled as placeholders — not coaching gospel.
 
 - Static HTML/CSS/JS
 - [supabase-js v2](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2) from CDN
-- Oswald / system fonts, navy `#0b1c2c` / cream `#f2ead8` / accent `#c45c26`
+- Quiet admin light theme — Barlow + system-ui; bg `#f5f5f5`, navy `#0b1c2c` topbar/primary only
