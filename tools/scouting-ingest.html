@@ -467,7 +467,7 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
     var sub='Overall';var rules=[[/Pitch Type \/ Velocity:\s*Fastball/,'vsFB'],[/Pitch Type \/ Velocity:\s*Slider/,'vsSL'],[/Pitch Type \/ Velocity:\s*Curveball/,'vsCB'],[/Pitch Type \/ Velocity:\s*Changeup/,'vsCH'],[/BIP Zone:[\s\S]*?Infield/,'INF'],[/BIP Zone:[\s\S]*?Outfield/,'OF'],[/Count:\s*Pitcher Ahead/,'Ahead'],[/Count:\s*Hitter Ahead/,'Behind'],[/Count:\s*2\s*Strikes?/i,'TwoK'],[/Left\/Right:\s*LHH/,'vsLHH'],[/Left\/Right:\s*RHH/,'vsRHH']];
     for(var i=0;i<rules.length;i++){if(rules[i][0].test(txt)){sub=rules[i][1];break;}}
     var basic={};
-    for(var j=0;j<R.length;j++){var ln=R[j];var dec=ln.match(/\d*\.\d{3}/g);if(dec&&dec.length>=4&&ln.indexOf('AVG')<0){var ii=intsOf(ln);basic.avg=dec[dec.length-4];basic.obp=dec[dec.length-3];basic.slg=dec[dec.length-2];basic.ops=dec[dec.length-1];if(ii.length>=4){basic.bb=ii[1];basic.k=ii[3];}break;}}
+    for(var j=0;j<R.length;j++){var ln=R[j];var dec=ln.match(/\d*\.\d{3}/g);if(dec&&dec.length>=4&&ln.indexOf('AVG')<0){var ii=intsOf(ln);basic.avg=dec[dec.length-4];basic.obp=dec[dec.length-3];basic.slg=dec[dec.length-2];basic.ops=dec[dec.length-1];if(ii.length>=4){basic.n=ii[0];basic.bb=ii[1];basic.k=ii[3];}break;}}
     for(var j2=0;j2<R.length;j2++){var l2=R[j2];if(/^\d+ \d+ \d+/.test(l2)&&l2.indexOf('%')<0&&l2.indexOf('Events')<0){var ii2=intsOf(l2);if(ii2.length>=11){basic.xbh=ii2[7]+ii2[8]+ii2[9];basic.hr=ii2[9];break;}}}
     var mix={};var re=new RegExp('^(Overall|'+PITCHES.join('|')+')\\s*\\(([-\\d.]+)\\)\\s+(.*)$');
     R.forEach(function(ln){var m=ln.match(re);if(!m)return;var pcts=(m[3].match(/(\d+)%/g)||[]).map(function(p){return parseInt(p,10);});if(pcts.length>=6)mix[m[1]]={velo:m[2],usage:pcts[0],whiff:pcts[4],chase:pcts[5]};});
@@ -538,7 +538,7 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
       var mix=[];[['Fastball','vsFB'],['Slider','vsSL'],['Curveball','vsCB'],['Changeup','vsCH']].forEach(function(pr){
         var o=ov.mix[pr[0]]||{},rep2=r[pr[1]]||{},b=rep2.basic||{};
         if(o.usage!=null||b.slg!=null)mix.push({p:pr[0],usage:o.usage,velo:o.velo,whiff:o.whiff,chase:o.chase,
-          avg:b.avg!=null?parseFloat(b.avg):null,obp:b.obp!=null?parseFloat(b.obp):null,slg:b.slg!=null?parseFloat(b.slg):null,gb:(rep2.bip||{}).gb});});
+          n:b.n!=null?b.n:null,avg:b.avg!=null?parseFloat(b.avg):null,obp:b.obp!=null?parseFloat(b.obp):null,slg:b.slg!=null?parseFloat(b.slg):null,gb:(rep2.bip||{}).gb});});
       var want=['Overall','vsFB','vsSL','vsCB','vsCH'];var missing=want.filter(function(s){return !r[s];});
       var mySlg=parseFloat(cs.slg)||0;
       out.push({last:(last||'').toUpperCase(),first:first||'',jersey:cs.num||'?',bats:(bt[cs.num]||{}).b||null,throws:(bt[cs.num]||{}).t||null,
@@ -546,7 +546,7 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
         counts:{hr:cs.hr||0,db:cs.db||0,k:cs.k||0,bb:cs.bb||0,sb:cs.sb||0,sh:cs.sh||0,gdp:(cs.gdp==null?null:cs.gdp)},
         chase:(ov.mix.Overall||{}).chase||0,obp:parseFloat(cs.obp)||0,avg:parseFloat(cs.avg)||0,
         teamSlgLeader:(mySlg>0&&mySlg>=maxSlg),
-        mix:mix,zones:{infSlash:fmtSlash((r.INF||{}).basic),ofSlash:fmtSlash((r.OF||{}).basic),ofXBH:((r.OF||{}).basic||{}).xbh,gb:(ov.bip||{}).gb},
+        mix:mix,zones:{infSlash:fmtSlash((r.INF||{}).basic),ofSlash:fmtSlash((r.OF||{}).basic),ofXBH:((r.OF||{}).basic||{}).xbh,ofN:((r.OF||{}).basic||{}).n,gb:(ov.bip||{}).gb},
         pa:pa,teamSh:teamSh,missing:missing});});
     return out.sort(function(a,b){return b.pa-a.pa;});}
 
@@ -585,27 +585,41 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
   function profile(h){var even=!!(parseInt(h.jersey,10)%2);var disc=h.chase>=37?(even?('Expands early — '+h.chase+'% chase; OBP sits near his average. You don\u2019t have to throw him strikes; make him chase.'):('A free-swinger — '+h.chase+'% chase, an OBP that barely clears his average. You don\u2019t have to throw him strikes; make him chase.')):(h.chase&&h.chase<=25?(even?('Patient in the box ('+h.chase+'% chase) — he won\u2019t expand; the out has to come in the zone.'):('Disciplined, low-chase ('+h.chase+'%) — he won\u2019t expand, so the out has to come in the zone.')):'');
     return (disc?disc+' ':'')+battedBallTrait(h)+'<b>'+h.counts.hr+' HR, '+h.counts.db+' 2B, '+h.counts.k+' K, '+h.counts.bb+' BB, '+h.counts.sb+' SB.</b>';}
   function hasSlg(h){return h.mix.some(function(m){return m.slg!=null;});}
+  // Sample gate: parseSynergy stores slash-line leading int as basic.n (AB/PA-eq; mix has no pitch-N). Danger/OF-deep need n>=8; if n absent, usage!=null may list Danger but color language stays off.
+  function mixN(m){return m.n!=null?m.n:(m.pitches!=null?m.pitches:(m.pa!=null?m.pa:(m.ab!=null?m.ab:null)));}
+  function mixDangerEligible(m){var n=mixN(m);if(n!=null)return n>=8;return m.usage!=null;}
+  function mixColorOk(m){var n=mixN(m);return n!=null&&n>=8;}
   function outLine(h){if(!hasSlg(h))return 'Per-pitch slash data not uploaded — add the vs-FB/SL/CB/CH files for the out read.';
-    var weak=h.mix.filter(function(m){return m.slg!=null&&m.slg<.350;});
+    var weak=h.mix.filter(function(m){return m.slg!=null&&m.slg<.350;}).slice().sort(function(a,b){return a.slg-b.slg;});
     if(!weak.length)return 'No soft-contact weakness in the data — every pitch does damage. Change eye level and pitch around the count.';
+    if(weak.length>=3)return 'Spreads soft contact across the arsenal (no single out pitch). Change eye level; make him put it in play.';
     var parts=weak.map(function(m){return '<b>'+m.p+'</b> ('+ss(m)+(noXBH(m)?', no extra-base hit':'')+(m.chase!=null?', '+m.chase+'% chase':'')+(m.whiff!=null?' / '+m.whiff+'% miss':'')+(m.gb?', '+m.gb+'% GB':'')+')';});
     var lead=(weak.length===1)?weak[0].p+' — and only the '+weak[0].p.toLowerCase()+': ':'';
     return lead+parts.join(' and ')+'. Expand the zone; he gets himself out.';}
   function dangerLine(h){if(!hasSlg(h))return 'Damage read needs the per-pitch files. Don\u2019t groove the fastball.';
-    var dmg=h.mix.filter(function(m){return m.slg!=null&&m.slg>=.450;});
-    if(!dmg.length)return 'Spreads contact — no single damage pitch. Change eye level, work the count.';
+    var raw=h.mix.filter(function(m){return m.slg!=null&&m.slg>=.450;});
+    if(!raw.length)return 'Spreads contact — no single damage pitch. Change eye level, work the count.';
+    var dmg=raw.filter(mixDangerEligible);
+    if(!dmg.length)return 'Damage reads are thin in the per-pitch files — don\u2019t groove the fastball; treat subsample slashes as directional.';
     var parts=dmg.map(function(m){var s='<b>'+m.p+'</b> ('+ss(m)+')';
-      if(m.whiff!=null&&m.whiff<=8)s+=' — and he barely misses it ('+m.whiff+'%)';
-      else if(m.p!=='Fastball'&&m.chase!=null&&m.chase>=25)s+=' — he chases it ('+m.chase+'%) but slugs it anyway, not the soft pitch it looks like';
+      if(mixColorOk(m)&&m.whiff!=null&&m.whiff<=8)s+=' — and he barely misses it ('+m.whiff+'%)';
+      else if(mixColorOk(m)&&m.p!=='Fastball'&&m.chase!=null&&m.chase>=25)s+=' — he chases it ('+m.chase+'%) but slugs it anyway, not the soft pitch it looks like';
       return s;});
     return 'Don\u2019t groove it: '+parts.join('; ')+'. Keep it off the plate.';}
   // SPEC §6 / §8-I: this line tells fielders WHERE TO STAND. Never a ground-ball percentage.
   // Fails closed — no spray pages, no positioning read. Never substitute a number for a missing input.
   function slgOfSlash(s){if(!s)return null;var p=String(s).split('/');return p.length>=3?(parseFloat(p[2])||0):null;}
+  function ofCarrySampleOk(z){// Gate: OF BIP/contact n>=8 when present; else skip Real carry on 1.000-perfect tiny lines.
+    if(z.ofN!=null)return z.ofN>=8;
+    var p=String(z.ofSlash||'').split('/'),a=parseFloat(p[0]),o=parseFloat(p[1]),s=parseFloat(p[2]);
+    if(a>=.999)return false;
+    if(p.length>=3&&a>=.999&&o>=.999&&s>=.999)return false;
+    if(/1\.000\s*\/\s*1\.000\s*\/\s*1\.000/.test(String(z.ofSlash||'')))return false;
+    return true;}
   function defenseLine(h){var z=h.zones,hasOF=!!z.ofSlash,parts=[];
     // OF carry needs the vs-Outfielders zone file. Opt-in: omitted silently when it isn't uploaded.
     if(hasOF){var oslg=slgOfSlash(z.ofSlash);
-      if(oslg!=null&&oslg>=.700)parts.push('Real carry in the air ('+z.ofSlash+' on outfield contact) — <b>play the OF deep</b>');
+      if(oslg!=null&&oslg>=.700&&ofCarrySampleOk(z))parts.push('Real carry in the air ('+z.ofSlash+' on outfield contact) — <b>play the OF deep</b>');
       else if(z.ofXBH===0)parts.push('No extra-base damage to the outfield ('+z.ofSlash+') — <b>OF standard depth</b>, play the gaps honest');
       else parts.push('Outfield contact '+z.ofSlash+' — <b>OF honest depth</b>, play the gaps');}
     // Infield depth runs off overall GB% (Overall report) + GIDP (stat sheet) — no zone pull needed.
@@ -634,6 +648,14 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
   function hitterBlock(h,rank){var ep=epithet(h);var bt=btLabel(h.bats,h.throws);
     var tag=(ep.t&&ep.t!=='HITTER')?'<span class="btag '+ep.cls+'">'+ep.t+'</span>':'';
     var html='<div class="block"><div class="bhead"><span class="bspot">'+rank+'</span><span class="bname">'+h.last+'</span><span class="bjersey">#'+h.jersey+' · '+h.first+'</span>'+(bt?'<span class="bhand">'+bt+'</span>':'')+tag+'<span class="bslash">'+h.slash+'</span></div>';
+    // Thin-sample stub (~45 PA floor): counting Profile only — skip Out/Danger/Defense/Bunt/Run pitch reads.
+    if((h.pa||0)<45){
+      html+='<p class="bp line m-circ"><span class="lbl">Profile</span><b>'+h.counts.hr+' HR, '+h.counts.db+' 2B, '+h.counts.k+' K, '+h.counts.bb+' BB, '+h.counts.sb+' SB.</b></p>';
+      html+='<p class="bp line"><span class="lbl">Note</span>Thin sample ('+h.pa+' PA) — don\u2019t overfit Synergy pitch reads.</p>';
+      if(h.missing&&h.missing.length){var lbl0={Overall:'overall',vsFB:'vs FB',vsSL:'vs SL',vsCB:'vs CB',vsCH:'vs CH',INF:'infield zone',OF:'outfield zone'};
+        html+='<p class="miss-note">⚠ Missing files: '+h.missing.map(function(s){return lbl0[s];}).join(', ')+' — that detail is limited until they\u2019re added.</p>';}
+      if(!bt)html+='<p class="hand-note">Bats/throws and lineup spot aren\u2019t in the files (coach-supplied) — strategic cross-lineup notes stay yours.</p>';
+      return html+'</div>';}
     html+='<p class="bp line m-circ"><span class="lbl">Profile</span>'+profile(h)+'</p>';
     html+='<p class="bp line out m-check"><span class="lbl">Out</span>'+outLine(h)+'</p>';
     html+='<p class="bp line danger m-tri"><span class="lbl">Danger</span>'+dangerLine(h)+'</p>';
