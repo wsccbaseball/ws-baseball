@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stuff+ | WS Baseball Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Anton&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#f2ead8; --paper:#fbf7ee; --navy:#1a3a5c; --ink:#1c2530; --muted:#6b6457;
+  --rule:#d9cfb8; --g2:#1f7a44; --g1:#cfe8d5; --r1:#f3d4cc; --r2:#a8352a;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--cream);color:var(--ink);font:15px/1.45 Georgia,"Times New Roman",serif}
+header{background:var(--navy);color:var(--cream);padding:18px 20px 16px}
+header a{color:var(--cream);opacity:.75;text-decoration:none;font-size:13px}
+header a:hover{opacity:1}
+h1{font-family:"Abril Fatface",Georgia,serif;font-weight:400;font-size:44px;line-height:1;margin:6px 0 4px}
+.sub{font-size:14px;opacity:.8}
+main{max-width:1100px;margin:0 auto;padding:18px 16px 60px}
+.controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-bottom:16px}
+.controls label{font-size:14px;display:flex;align-items:center;gap:6px}
+select,input[type=number]{font:inherit;font-size:14px;padding:5px 8px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);border-radius:4px}
+input[type=number]{width:64px}
+.seg{display:inline-flex;border:1px solid var(--navy);border-radius:4px;overflow:hidden}
+.seg button{font:inherit;font-size:13px;padding:5px 12px;border:0;background:var(--paper);color:var(--navy);cursor:pointer}
+.seg button.on{background:var(--navy);color:var(--cream)}
+button:focus-visible,select:focus-visible,input:focus-visible,tr[tabindex]:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+h2{font-family:Anton,Impact,sans-serif;font-weight:400;font-size:22px;color:var(--navy);margin:26px 0 8px;letter-spacing:.3px}
+.note{font-size:13px;color:var(--muted);margin:4px 0 10px;max-width:70ch}
+.wrap{overflow-x:auto;background:var(--paper);border:1px solid var(--rule);border-radius:6px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-family:Anton,Impact,sans-serif;font-weight:400;font-size:14px;color:var(--navy);text-align:right;padding:8px 10px;border-bottom:2px solid var(--navy);white-space:nowrap;cursor:pointer;user-select:none}
+th.l,td.l{text-align:left}
+th.sorted::after{content:" \25BE"}
+th.sorted.asc::after{content:" \25B4"}
+td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--rule);white-space:nowrap;font-variant-numeric:tabular-nums}
+tbody tr:last-child td{border-bottom:0}
+#staff tbody tr{cursor:pointer}
+#staff tbody tr:hover td{background:#f3ecdc}
+#staff tbody tr.sel td{background:#e6dcc4}
+tr.thin td{color:var(--muted)}
+.gr{display:inline-block;min-width:46px;padding:2px 6px;border-radius:3px;text-align:center;font-weight:700}
+.b5{background:var(--g2);color:#fff}.b4{background:var(--g1)}.b3{background:transparent}
+.b2{background:var(--r1)}.b1{background:var(--r2);color:#fff}.bx{color:var(--muted);font-weight:400}
+#detail{display:none}
+.phead{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin-top:30px;border-top:3px double var(--navy);padding-top:14px}
+.phead h3{font-family:"Abril Fatface",Georgia,serif;font-weight:400;font-size:32px;margin:0;color:var(--navy)}
+.phead span{color:var(--muted);font-size:14px}
+.spark{margin:10px 0 0;background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:8px}
+.spark svg{display:block;width:100%;height:140px}
+.msg{padding:18px;background:var(--paper);border:1px solid var(--rule);border-radius:6px}
+.err{color:var(--r2)}
+@media (max-width:600px){h1{font-size:36px}.phead h3{font-size:26px}td,th{padding:6px 8px}}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html">&larr; Back to hub</a>
+  <h1>Stuff+</h1>
+  <div class="sub">Pitch quality from shape alone: velo, movement, spin, release. 100 is average for the scale you pick.</div>
+</header>
+<main>
+  <div class="controls">
+    <label>Season <select id="season"></select></label>
+    <label><input type="checkbox" id="gamesOnly"> Games only (no intersquads)</label>
+    <label>Scale
+      <span class="seg" id="scale"><button data-v="juco" class="on">JUCO</button><button data-v="d1">D1</button></span>
+    </label>
+    <label>Min pitches <input type="number" id="minN" value="20" min="1" step="5"></label>
+  </div>
+
+  <div id="status" class="msg">Loading pitches…</div>
+
+  <section id="staffSec" style="display:none">
+    <h2>Staff</h2>
+    <p class="note">Tap a pitcher for his arsenal and outing log. Pitcher grades are an average of his pitch grades, so the spread is tighter than a single pitch's. Use them to rank the staff, not against outside benchmarks.</p>
+    <div class="wrap"><table id="staff"><thead></thead><tbody></tbody></table></div>
+  </section>
+
+  <section id="detail">
+    <div class="phead"><h3 id="pname"></h3><span id="pmeta"></span></div>
+    <h2>Stuff+ by outing</h2>
+    <div class="spark"><svg id="spark" role="img" aria-label="Stuff+ by outing"></svg></div>
+    <h2>Arsenal</h2>
+    <div class="wrap"><table id="arsenal"><thead></thead><tbody></tbody></table></div>
+    <h2>Outings</h2>
+    <p class="note">One row per day he pitched. Pitch grades need a handful of pitches to mean much, so read small cells loosely.</p>
+    <div class="wrap"><table id="outings"><thead></thead><tbody></tbody></table></div>
+  </section>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
+const SUPABASE_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc;
+
+var CANON = {'Four-Seam':'Fastball','FourSeamFastBall':'Fastball','ChangeUp':'Changeup',
+             'TwoSeamFastBall':'Sinker','Split-Finger':'Splitter'};
+var GROUP = {Fastball:'FB',Sinker:'FB',Cutter:'FB',Slider:'BB',Curveball:'BB',Sweeper:'BB',
+             Slurve:'BB',Knuckleball:'BB',Changeup:'OS',Splitter:'OS',Screwball:'OS'};
+var ORDER = ['Fastball','Sinker','Cutter','Slider','Sweeper','Curveball','Slurve','Changeup','Splitter'];
+
+var state = {games:[], pitches:[], scale:'juco', sel:null, sort:{key:'grade', asc:false}};
+
+function qs(k){ return new URLSearchParams(location.search).get(k); }
+function setQS(){
+  var p = new URLSearchParams();
+  p.set('season', el('season').value);
+  if (el('gamesOnly').checked) p.set('games','1');
+  if (state.scale === 'd1') p.set('scale','d1');
+  if (state.sel) p.set('p', state.sel);
+  history.replaceState(null, '', '?' + p.toString());
+}
+function el(id){ return document.getElementById(id); }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+async function supaFetch(path){
+  var out = [], off = 0, page = 1000;
+  while (true){
+    var sep = path.indexOf('?') >= 0 ? '&' : '?';
+    var r = await fetch(SUPABASE_URL + '/rest/v1/' + path + sep + 'limit=' + page + '&offset=' + off,
+      {headers:{apikey:SUPABASE_KEY, Authorization:'Bearer ' + SUPABASE_KEY}});
+    if (!r.ok) throw new Error('Supabase ' + r.status + ': ' + (await r.text()));
+    var b = await r.json();
+    out = out.concat(b);
+    if (b.length < page) return out;
+    off += page;
+  }
+}
+
+function ptype(p){
+  var t = p.AutoPitchType || p.TaggedPitchType;
+  if (!t || t === 'Undefined' || t === 'Other') t = p.TaggedPitchType;
+  return CANON[t] || t;
+}
+function gradeOf(p){ return state.scale === 'd1' ? p.stuff_plus_d1 : p.stuff_plus_juco; }
+function mean(a){ var s = 0, n = 0; for (var i=0;i<a.length;i++) if (a[i] != null && !isNaN(a[i])) { s += +a[i]; n++; } return n ? s/n : null; }
+function f1(v){ return v == null ? '' : v.toFixed(1); }
+function f0(v){ return v == null ? '' : Math.round(v).toString(); }
+function band(v){ if (v == null) return 'bx'; return v >= 110 ? 'b5' : v >= 104 ? 'b4' : v > 96 ? 'b3' : v > 90 ? 'b2' : 'b1'; }
+function chip(v, n, minCell){
+  if (v == null) return '';
+  var cls = (minCell && n < minCell) ? 'bx' : band(v);
+  return '<span class="gr ' + cls + '">' + v.toFixed(1) + '</span>';
+}
+
+async function boot(){
+  try {
+    state.games = await supaFetch('games?select=game_id,date,season,game_type,display_name');
+    var seasons = Array.from(new Set(state.games.map(function(g){ return g.season; }).filter(Boolean))).sort().reverse();
+    var want = qs('season') || seasons[0];
+    el('season').innerHTML = seasons.map(function(s){
+      return '<option' + (s === want ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join('');
+    el('gamesOnly').checked = qs('games') === '1';
+    if (qs('scale') === 'd1') setScale('d1', true);
+    state.sel = qs('p');
+
+    var cols = 'Pitcher,PitcherThrows,PitcherTeam,GameID,Date,AutoPitchType,TaggedPitchType,' +
+               'RelSpeed,InducedVertBreak,HorzBreak,SpinRate,stuff_plus_juco,stuff_plus_d1';
+    state.pitches = await supaFetch('pitches?select=' + cols +
+      '&stuff_plus_juco=not.is.null&PitcherTeam=ilike.*wal*');
+    state.pitches.forEach(function(p){ p._pt = ptype(p); p._g = GROUP[p._pt]; });
+
+    el('season').onchange = function(){ state.sel = null; render(); };
+    el('gamesOnly').onchange = render;
+    el('minN').oninput = render;
+    Array.prototype.forEach.call(el('scale').querySelectorAll('button'), function(b){
+      b.onclick = function(){ setScale(b.dataset.v); };
+    });
+    render();
+  } catch (e) {
+    el('status').innerHTML = '<span class="err">Couldn\'t load data. ' + esc(e.message) +
+      '</span><br>Check that SUPABASE_KEY is set to the anon key.';
+  }
+}
+
+function setScale(v, quiet){
+  state.scale = v;
+  Array.prototype.forEach.call(el('scale').querySelectorAll('button'), function(b){
+    b.classList.toggle('on', b.dataset.v === v); });
+  if (!quiet) render();
+}
+
+function currentPitches(){
+  var season = el('season').value, gamesOnly = el('gamesOnly').checked, meta = {};
+  state.games.forEach(function(g){
+    if (g.season === season && (!gamesOnly || g.game_type !== 'intersquad')) meta[g.game_id] = g;
+  });
+  return state.pitches.filter(function(p){ return meta[p.GameID]; }).map(function(p){
+    p._game = meta[p.GameID]; return p; });
+}
+
+function groupBy(arr, fn){
+  var m = {}; arr.forEach(function(x){ var k = fn(x); (m[k] = m[k] || []).push(x); }); return m;
+}
+
+function render(){
+  setQS();
+  var ps = currentPitches();
+  if (!ps.length){
+    el('status').style.display = ''; el('staffSec').style.display = 'none'; el('detail').style.display = 'none';
+    el('status').textContent = el('gamesOnly').checked
+      ? 'No games against other teams in this season. Uncheck "Games only" to include intersquads.'
+      : 'No graded pitches for this season yet. New uploads are graded overnight.';
+    return;
+  }
+  el('status').style.display = 'none'; el('staffSec').style.display = '';
+  renderStaff(ps);
+  if (state.sel) renderDetail(ps.filter(function(p){ return p.Pitcher === state.sel; }));
+  else el('detail').style.display = 'none';
+}
+
+function renderStaff(ps){
+  var minN = +el('minN').value || 1;
+  var by = groupBy(ps, function(p){ return p.Pitcher; });
+  var rows = Object.keys(by).map(function(name){
+    var a = by[name], g = groupBy(a, function(p){ return p._g; });
+    var types = groupBy(a, function(p){ return p._pt; }), best = null;
+    Object.keys(types).forEach(function(t){
+      if (types[t].length < 10) return;
+      var v = mean(types[t].map(gradeOf));
+      if (best == null || v > best.v) best = {t:t, v:v};
+    });
+    var fb = a.filter(function(p){ return p._g === 'FB'; });
+    return {name:name, thr:(a[0].PitcherThrows || '').charAt(0), n:a.length,
+      out: Object.keys(groupBy(a, function(p){ return p.Date; })).length,
+      velo: mean(fb.map(function(p){ return p.RelSpeed; })),
+      grade: mean(a.map(gradeOf)),
+      FB: g.FB ? mean(g.FB.map(gradeOf)) : null, nFB: g.FB ? g.FB.length : 0,
+      BB: g.BB ? mean(g.BB.map(gradeOf)) : null, nBB: g.BB ? g.BB.length : 0,
+      OS: g.OS ? mean(g.OS.map(gradeOf)) : null, nOS: g.OS ? g.OS.length : 0,
+      best: best};
+  });
+  var s = state.sort;
+  rows.sort(function(x, y){
+    var a = x[s.key], b = y[s.key];
+    if (a == null) return 1; if (b == null) return -1;
+    var c = typeof a === 'string' ? a.localeCompare(b) : a - b;
+    return s.asc ? c : -c;
+  });
+  var heads = [['name','Pitcher','l'],['thr','T','l'],['n','Pitches'],['out','Outings'],['velo','FB velo'],
+               ['grade','Stuff+'],['FB','Fastballs'],['BB','Breaking'],['OS','Offspeed'],['best','Best pitch','l']];
+  el('staff').tHead.innerHTML = '<tr>' + heads.map(function(h){
+    var cls = (h[2] || '') + (s.key === h[0] ? ' sorted' + (s.asc ? ' asc' : '') : '');
+    return '<th class="' + cls + '" data-k="' + h[0] + '">' + h[1] + '</th>'; }).join('') + '</tr>';
+  Array.prototype.forEach.call(el('staff').tHead.querySelectorAll('th'), function(th){
+    th.onclick = function(){
+      var k = th.dataset.k; if (k === 'best') return;
+      state.sort = {key:k, asc: state.sort.key === k ? !state.sort.asc : (k === 'name' || k === 'thr')};
+      render();
+    };
+  });
+  el('staff').tBodies[0].innerHTML = rows.map(function(r){
+    var thin = r.n < minN;
+    return '<tr tabindex="0" data-p="' + esc(r.name) + '" class="' + (thin ? 'thin' : '') + (r.name === state.sel ? ' sel' : '') + '">' +
+      '<td class="l">' + esc(r.name) + '</td><td class="l">' + r.thr + '</td><td>' + r.n + '</td><td>' + r.out + '</td>' +
+      '<td>' + f1(r.velo) + '</td><td>' + (thin ? f1(r.grade) : chip(r.grade)) + '</td>' +
+      '<td>' + chip(r.FB, r.nFB, 10) + '</td><td>' + chip(r.BB, r.nBB, 10) + '</td><td>' + chip(r.OS, r.nOS, 10) + '</td>' +
+      '<td class="l">' + (r.best ? esc(r.best.t) + ' ' + f1(r.best.v) : '') + '</td></tr>';
+  }).join('');
+  Array.prototype.forEach.call(el('staff').tBodies[0].rows, function(tr){
+    var pick = function(){ state.sel = tr.dataset.p; render(); el('detail').scrollIntoView({behavior:'smooth'}); };
+    tr.onclick = pick;
+    tr.onkeydown = function(e){ if (e.key === 'Enter') pick(); };
+  });
+}
+
+function sortTypes(types){
+  return types.sort(function(a, b){
+    var ia = ORDER.indexOf(a), ib = ORDER.indexOf(b);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+  });
+}
+
+function renderDetail(ps){
+  if (!ps.length){ el('detail').style.display = 'none'; return; }
+  el('detail').style.display = '';
+  var outs = groupBy(ps, function(p){ return p.Date; });
+  el('pname').textContent = state.sel;
+  el('pmeta').textContent = (ps[0].PitcherThrows === 'Left' ? 'LHP' : 'RHP') + ', ' + ps.length + ' pitches over ' +
+    Object.keys(outs).length + ' outings, ' + (state.scale === 'd1' ? 'D1' : 'JUCO') + ' scale';
+
+  var types = groupBy(ps, function(p){ return p._pt; });
+  var tlist = sortTypes(Object.keys(types));
+  el('arsenal').tHead.innerHTML = '<tr><th class="l">Pitch</th><th>Pitches</th><th>Usage</th><th>Velo</th>' +
+    '<th>Vert break</th><th>Horz break</th><th>Spin</th><th>Stuff+</th></tr>';
+  el('arsenal').tBodies[0].innerHTML = tlist.map(function(t){
+    var a = types[t];
+    return '<tr class="' + (a.length < 10 ? 'thin' : '') + '"><td class="l">' + esc(t) + '</td><td>' + a.length + '</td>' +
+      '<td>' + (100 * a.length / ps.length).toFixed(0) + '%</td>' +
+      '<td>' + f1(mean(a.map(function(p){ return p.RelSpeed; }))) + '</td>' +
+      '<td>' + f1(mean(a.map(function(p){ return p.InducedVertBreak; }))) + '</td>' +
+      '<td>' + f1(mean(a.map(function(p){ return p.HorzBreak; }))) + '</td>' +
+      '<td>' + f0(mean(a.map(function(p){ return p.SpinRate; }))) + '</td>' +
+      '<td>' + chip(mean(a.map(gradeOf)), a.length, 10) + '</td></tr>';
+  }).join('');
+
+  var dates = Object.keys(outs).sort();
+  el('outings').tHead.innerHTML = '<tr><th class="l">Date</th><th class="l">Game</th><th>Pitches</th><th>Stuff+</th>' +
+    '<th>FB velo</th><th>FB vert</th>' + tlist.map(function(t){ return '<th>' + esc(t) + '</th>'; }).join('') + '</tr>';
+  var series = [];
+  el('outings').tBodies[0].innerHTML = dates.slice().reverse().map(function(d){
+    var a = outs[d], by = groupBy(a, function(p){ return p._pt; });
+    var fb = a.filter(function(p){ return p._pt === 'Fastball' || p._pt === 'Sinker'; });
+    var names = Array.from(new Set(a.map(function(p){ return p._game.display_name || p.GameID; })));
+    return '<tr><td class="l">' + esc(d) + '</td><td class="l">' + esc(names.join(', ')) + '</td><td>' + a.length + '</td>' +
+      '<td>' + chip(mean(a.map(gradeOf)), a.length, 10) + '</td>' +
+      '<td>' + f1(mean(fb.map(function(p){ return p.RelSpeed; }))) + '</td>' +
+      '<td>' + f1(mean(fb.map(function(p){ return p.InducedVertBreak; }))) + '</td>' +
+      tlist.map(function(t){
+        var x = by[t]; if (!x) return '<td></td>';
+        return '<td>' + chip(mean(x.map(gradeOf)), x.length, 5) + ' <small>' + x.length + '</small></td>';
+      }).join('') + '</tr>';
+  }).join('');
+  dates.forEach(function(d){ series.push({d:d, v:mean(outs[d].map(gradeOf)), n:outs[d].length}); });
+  drawSpark(series);
+}
+
+function drawSpark(s){
+  var svg = el('spark'), W = svg.clientWidth || 800, H = 140, pl = 34, pr = 12, pt = 10, pb = 22;
+  var vals = s.map(function(x){ return x.v; }).concat([100]);
+  var lo = Math.floor(Math.min.apply(null, vals) - 3), hi = Math.ceil(Math.max.apply(null, vals) + 3);
+  var X = function(i){ return s.length < 2 ? (pl + W - pr) / 2 : pl + i * (W - pl - pr) / (s.length - 1); };
+  var Y = function(v){ return pt + (hi - v) * (H - pt - pb) / (hi - lo); };
+  var h = '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + Y(100) + '" y2="' + Y(100) +
+    '" stroke="#b9ad92" stroke-dasharray="4 4"/>' +
+    '<text x="' + (pl - 6) + '" y="' + (Y(100) + 4) + '" text-anchor="end" font-size="11" fill="#6b6457">100</text>';
+  if (s.length > 1) h += '<polyline fill="none" stroke="#1a3a5c" stroke-width="2" points="' +
+    s.map(function(x, i){ return X(i) + ',' + Y(x.v); }).join(' ') + '"/>';
+  s.forEach(function(x, i){
+    var r = Math.max(3, Math.min(8, Math.sqrt(x.n)));
+    h += '<circle cx="' + X(i) + '" cy="' + Y(x.v) + '" r="' + r + '" fill="' +
+      (x.v >= 100 ? '#1f7a44' : '#a8352a') + '"><title>' + x.d + ': ' + x.v.toFixed(1) + ' on ' + x.n + ' pitches</title></circle>';
+  });
+  if (s.length){
+    h += '<text x="' + pl + '" y="' + (H - 6) + '" font-size="11" fill="#6b6457">' + s[0].d + '</text>';
+    if (s.length > 1) h += '<text x="' + (W - pr) + '" y="' + (H - 6) + '" text-anchor="end" font-size="11" fill="#6b6457">' +
+      s[s.length - 1].d + '</text>';
+  }
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.innerHTML = h;
+}
+
+boot();
+</script>
+</body>
+</html>
