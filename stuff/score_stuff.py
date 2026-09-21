@@ -20,6 +20,9 @@ CANON = {'Four-Seam':'Fastball','FourSeamFastBall':'Fastball','ChangeUp':'Change
          'TwoSeamFastBall':'Sinker','Split-Finger':'Splitter'}
 NUM = ['RelSpeed','SpinRate','SpinAxis','InducedVertBreak','HorzBreak','RelHeight',
        'RelSide','Extension','VertApprAngle','HorzApprAngle']
+# The model was trained only on pitches with all of these tracked. Grading a pitch
+# with any of them missing is guesswork, so those pitches are left ungraded.
+REQUIRED = ['RelSpeed','SpinRate','SpinAxis','InducedVertBreak','HorzBreak','RelHeight','RelSide','Extension']
 
 def pitch_group(s):
     return 'FB' if s in FB else 'BB' if s in BB_ else 'OS' if s in OS else None
@@ -62,7 +65,8 @@ def build(d, base):
     for c in NUM: d[c] = pd.to_numeric(d[c], errors='coerce')
     d['PType'] = ptype(d)
     d['PGroup'] = d['PType'].map(pitch_group)
-    d = d[d['PGroup'].notna() & d['RelSpeed'].between(50, 110) & d['PitcherThrows'].isin(['Left','Right'])].copy()
+    d = d[d['PGroup'].notna() & d['RelSpeed'].between(50, 110) & d['PitcherThrows'].isin(['Left','Right'])
+          & d[REQUIRED].notna().all(axis=1)].copy()
     lhp = d['PitcherThrows'] == 'Left'
     for c in ['HorzBreak','RelSide','HorzApprAngle']:
         d.loc[lhp, c] = -d.loc[lhp, c]
