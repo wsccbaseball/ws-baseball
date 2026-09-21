@@ -42,7 +42,11 @@ def key(d):
            + '_' + d['PitcherThrows'].str[0]
 
 def ptype(d):
-    return d['AutoPitchType'].where(d['AutoPitchType'].notna(), d['TaggedPitchType']).replace(CANON)
+    # Tagged type first: TrackMan's auto classifier calls slow fastballs changeups,
+    # which sends them to the wrong model. Fall back to auto only when untagged.
+    t = d['TaggedPitchType']
+    bad = t.isna() | t.isin(['Undefined', 'Other', ''])
+    return t.where(~bad, d['AutoPitchType']).replace(CANON)
 
 def baselines():
     a = fetch({'select': 'Pitcher,PitcherThrows,AutoPitchType,TaggedPitchType,RelSpeed,InducedVertBreak,HorzBreak'})
