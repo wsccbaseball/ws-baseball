@@ -1,0 +1,21 @@
+name: Stuff+ nightly scoring
+
+on:
+  schedule:
+    - cron: '0 8 * * *'     # 08:00 UTC = 3-4 AM Eastern
+  workflow_dispatch:         # adds a "Run workflow" button for manual runs
+
+jobs:
+  score:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install lightgbm pandas numpy requests
+      - run: python stuff/score_stuff.py
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          STUFF_TABLE: ${{ secrets.STUFF_TABLE }}
