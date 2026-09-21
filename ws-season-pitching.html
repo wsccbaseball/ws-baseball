@@ -976,7 +976,11 @@ function buildStuffTable(){
   // Pitcher-scale constants from the 2026 training data. Overall grades are the
   // average of a pitcher's pitch grades, stretched so 10 points = 1 SD of pitchers.
   var STUFF_D1={mean:99.496,sd:1.961}, STUFF_JUCO={mean:100.251,sd:1.831};
-  var MIN_OVERALL=100, MIN_PT=10;
+  var MIN_OVERALL=100, MIN_PT=20;
+  // Per pitch group: spread of D1 pitchers' average grade for that pitch (30+ pitches).
+  var PT_SCALE={FB:{mean:99.328,sd:2.329},BB:{mean:99.142,sd:2.823},OS:{mean:99.467,sd:2.970}};
+  var PT_GROUP={Fastball:'FB',Sinker:'FB',Cutter:'FB',Slider:'BB',Curveball:'BB',Sweeper:'BB',Slurve:'BB',
+                Knuckleball:'BB',ChangeUp:'OS',Changeup:'OS',Splitter:'OS',Screwball:'OS'};
   if(!document.getElementById('stuffPlusCss')){
     var css=document.createElement('style');css.id='stuffPlusCss';
     css.textContent='#stuffTbl td,#stuffTbl th{width:auto;max-width:none;min-width:58px;overflow:visible;padding:6px 4px}'+
@@ -987,8 +991,8 @@ function buildStuffTable(){
       '#stuffNote{font-family:Barlow,sans-serif;font-size:.78rem;color:#6b5f47;padding:8px 12px;background:#fffdf7;border-bottom:1px solid #e8e0d0}';
     document.head.appendChild(css);
     var note=document.createElement('div');note.id='stuffNote';
-    note.textContent='Stuff+ from pitch shape only. 100 = average. Overall is scaled to pitchers (110 = 1 SD above the average D1 or JUCO arm); '+
-      'pitch types are on the D1 scale. Gray = too few pitches to trust (under '+MIN_OVERALL+' overall, under '+MIN_PT+' for a pitch type).';
+    note.textContent='Stuff+ from pitch shape only. 100 = average, 110 = 1 SD better. Overall compares him to D1 or JUCO pitchers; '+
+      'each pitch type compares that pitch to the same pitch from D1 pitchers. Gray = too few pitches to trust (under '+MIN_OVERALL+' overall, under '+MIN_PT+' for a pitch type).';
     var scr=document.getElementById('stuff-screen');scr.insertBefore(note,scr.firstChild);
   }
   function m(a){return a.length?a.reduce(function(s,v){return s+v;},0)/a.length:null;}
@@ -1011,7 +1015,7 @@ function buildStuffTable(){
         (byPt[pt]=byPt[pt]||[]).push(a);
       });
       var s={p:p,n:d1.length,d1:scaleUp(m(d1),STUFF_D1),juco:scaleUp(m(ju),STUFF_JUCO),pt:{}};
-      Object.keys(byPt).forEach(function(k){s.pt[k]={n:byPt[k].length,v:m(byPt[k])};});
+      Object.keys(byPt).forEach(function(k){var g=PT_GROUP[k];s.pt[k]={n:byPt[k].length,v:g?scaleUp(m(byPt[k]),PT_SCALE[g]):null};});
       return s;
     });
 
