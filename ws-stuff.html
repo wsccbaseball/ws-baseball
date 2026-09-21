@@ -74,7 +74,7 @@ tr.thin td{color:var(--muted)}
 
   <section id="staffSec" style="display:none">
     <h2>Staff</h2>
-    <p class="note">Tap a pitcher for his arsenal and outing log. Overall Stuff+ is scaled against D1 pitchers, so 110 means one standard deviation better than the average D1 arm.</p>
+    <p class="note">Tap a pitcher for his arsenal and outing log. Overall Stuff+ is scaled against pitchers at each level, so 110 means one standard deviation better than the average D1 (or JUCO) arm. Pitch-type grades are on the D1 scale. It's grayed out under 100 pitches, where it isn't reliable yet.</p>
     <div class="wrap"><table id="staff"><thead></thead><tbody></tbody></table></div>
   </section>
 
@@ -103,10 +103,12 @@ var ORDER = ['Fastball','Sinker','Cutter','Slider','Sweeper','Curveball','Slurve
 var state = {games:[], pitches:[], sel:null, sort:{key:'grade', asc:false}};
 // D1 pitcher-level spread of averaged pitch grades, from the training data.
 // Fill both in to put overall grades on a true pitcher scale; left null, the raw average is shown.
-var OVERALL_D1 = {mean: null, sd: null};
-function overall(avg){
-  if (avg == null || OVERALL_D1.mean == null || !OVERALL_D1.sd) return avg;
-  return 100 + 10 * (avg - OVERALL_D1.mean) / OVERALL_D1.sd;
+var OVERALL_D1 = {mean: 99.496, sd: 1.961};
+var OVERALL_JUCO = {mean: 100.251, sd: 1.831};
+function overall(avg, c){
+  c = c || OVERALL_D1;
+  if (avg == null || c.mean == null || !c.sd) return avg;
+  return 100 + 10 * (avg - c.mean) / c.sd;
 }
 
 function qs(k){ return new URLSearchParams(location.search).get(k); }
@@ -162,7 +164,7 @@ async function boot(){
     state.sel = qs('p');
 
     var cols = 'Pitcher,PitcherThrows,PitcherTeam,GameID,Date,AutoPitchType,TaggedPitchType,' +
-               'RelSpeed,InducedVertBreak,HorzBreak,SpinRate,stuff_plus_d1';
+               'RelSpeed,InducedVertBreak,HorzBreak,SpinRate,stuff_plus_d1,stuff_plus_juco';
     state.pitches = await supaFetch('pitches?select=' + cols +
       '&stuff_plus_d1=not.is.null&PitcherTeam=ilike.*wal*');
     state.pitches.forEach(function(p){ p._pt = ptype(p); p._g = GROUP[p._pt]; });
@@ -223,6 +225,7 @@ function renderStaff(ps){
       out: Object.keys(groupBy(a, function(p){ return p.Date; })).length,
       velo: mean(fb.map(function(p){ return p.RelSpeed; })),
       grade: overall(mean(a.map(gradeOf))),
+      juco: overall(mean(a.map(function(p){ return p.stuff_plus_juco; })), OVERALL_JUCO),
       FB: g.FB ? mean(g.FB.map(gradeOf)) : null, nFB: g.FB ? g.FB.length : 0,
       BB: g.BB ? mean(g.BB.map(gradeOf)) : null, nBB: g.BB ? g.BB.length : 0,
       OS: g.OS ? mean(g.OS.map(gradeOf)) : null, nOS: g.OS ? g.OS.length : 0,
@@ -236,7 +239,7 @@ function renderStaff(ps){
     return s.asc ? c : -c;
   });
   var heads = [['name','Pitcher','l'],['thr','T','l'],['n','Pitches'],['out','Outings'],['velo','FB velo'],
-               ['grade','Stuff+'],['FB','Fastballs'],['BB','Breaking'],['OS','Offspeed'],['best','Best pitch','l']];
+               ['grade','Stuff+ D1'],['juco','Stuff+ JUCO'],['FB','Fastballs'],['BB','Breaking'],['OS','Offspeed'],['best','Best pitch','l']];
   el('staff').tHead.innerHTML = '<tr>' + heads.map(function(h){
     var cls = (h[2] || '') + (s.key === h[0] ? ' sorted' + (s.asc ? ' asc' : '') : '');
     return '<th class="' + cls + '" data-k="' + h[0] + '">' + h[1] + '</th>'; }).join('') + '</tr>';
@@ -251,7 +254,7 @@ function renderStaff(ps){
     var thin = r.n < minN;
     return '<tr tabindex="0" data-p="' + esc(r.name) + '" class="' + (thin ? 'thin' : '') + (r.name === state.sel ? ' sel' : '') + '">' +
       '<td class="l">' + esc(r.name) + '</td><td class="l">' + r.thr + '</td><td>' + r.n + '</td><td>' + r.out + '</td>' +
-      '<td>' + f1(r.velo) + '</td><td>' + (thin ? f1(r.grade) : chip(r.grade)) + '</td>' +
+      '<td>' + f1(r.velo) + '</td><td>' + chip(r.grade, r.n, 100) + '</td><td>' + chip(r.juco, r.n, 100) + '</td>' +
       '<td>' + chip(r.FB, r.nFB, 10) + '</td><td>' + chip(r.BB, r.nBB, 10) + '</td><td>' + chip(r.OS, r.nOS, 10) + '</td>' +
       '<td class="l">' + (r.best ? esc(r.best.t) + ' ' + f1(r.best.v) : '') + '</td></tr>';
   }).join('');
@@ -275,7 +278,8 @@ function renderDetail(ps){
   var outs = groupBy(ps, function(p){ return p.Date; });
   el('pname').textContent = state.sel;
   el('pmeta').textContent = (ps[0].PitcherThrows === 'Left' ? 'LHP' : 'RHP') + ', ' + ps.length + ' pitches over ' +
-    Object.keys(outs).length + ' outings, overall ' + f1(overall(mean(ps.map(gradeOf)))) + ' on the D1 scale';
+    Object.keys(outs).length + ' outings. Overall Stuff+ ' + f1(overall(mean(ps.map(gradeOf)))) + ' D1, ' +
+    f1(overall(mean(ps.map(function(p){ return p.stuff_plus_juco; })), OVERALL_JUCO)) + ' JUCO';
 
   var types = groupBy(ps, function(p){ return p._pt; });
   var tlist = sortTypes(Object.keys(types));
