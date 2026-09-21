@@ -1011,7 +1011,7 @@ function buildStuffTable(){
         var a=parseFloat(r.stuff_plus_d1),b=parseFloat(r.stuff_plus_juco);
         if(isNaN(a))return;
         d1.push(a);if(!isNaN(b))ju.push(b);
-                var pt=normPitch(r.AutoPitchType,r.TaggedPitchType);
+                           var pt=normPitch(r.TaggedPitchType,r.AutoPitchType);
         (byPt[pt]=byPt[pt]||[]).push(a);
       });
       var s={p:p,n:d1.length,d1:scaleUp(m(d1),STUFF_D1),juco:scaleUp(m(ju),STUFF_JUCO),pt:{}};
