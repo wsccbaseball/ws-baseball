@@ -61,15 +61,12 @@ tr.thin td{color:var(--muted)}
 <header>
   <a href="index.html">&larr; Back to hub</a>
   <h1>Stuff+</h1>
-  <div class="sub">Pitch quality from shape alone: velo, movement, spin, release. 100 is average for the scale you pick.</div>
+  <div class="sub">Pitch quality from shape alone: velo, movement, spin, release. 100 is an average D1 pitch.</div>
 </header>
 <main>
   <div class="controls">
     <label>Season <select id="season"></select></label>
     <label><input type="checkbox" id="gamesOnly"> Games only (no intersquads)</label>
-    <label>Scale
-      <span class="seg" id="scale"><button data-v="juco" class="on">JUCO</button><button data-v="d1">D1</button></span>
-    </label>
     <label>Min pitches <input type="number" id="minN" value="20" min="1" step="5"></label>
   </div>
 
@@ -77,7 +74,7 @@ tr.thin td{color:var(--muted)}
 
   <section id="staffSec" style="display:none">
     <h2>Staff</h2>
-    <p class="note">Tap a pitcher for his arsenal and outing log. Pitcher grades are an average of his pitch grades, so the spread is tighter than a single pitch's. Use them to rank the staff, not against outside benchmarks.</p>
+    <p class="note">Tap a pitcher for his arsenal and outing log. Overall Stuff+ is scaled against D1 pitchers, so 110 means one standard deviation better than the average D1 arm.</p>
     <div class="wrap"><table id="staff"><thead></thead><tbody></tbody></table></div>
   </section>
 
@@ -95,7 +92,7 @@ tr.thin td{color:var(--muted)}
 
 <script>
 const SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
-const SUPABASE_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc;
+const SUPABASE_KEY = 'YOUR_ANON_KEY';
 
 var CANON = {'Four-Seam':'Fastball','FourSeamFastBall':'Fastball','ChangeUp':'Changeup',
              'TwoSeamFastBall':'Sinker','Split-Finger':'Splitter'};
@@ -103,14 +100,20 @@ var GROUP = {Fastball:'FB',Sinker:'FB',Cutter:'FB',Slider:'BB',Curveball:'BB',Sw
              Slurve:'BB',Knuckleball:'BB',Changeup:'OS',Splitter:'OS',Screwball:'OS'};
 var ORDER = ['Fastball','Sinker','Cutter','Slider','Sweeper','Curveball','Slurve','Changeup','Splitter'];
 
-var state = {games:[], pitches:[], scale:'juco', sel:null, sort:{key:'grade', asc:false}};
+var state = {games:[], pitches:[], sel:null, sort:{key:'grade', asc:false}};
+// D1 pitcher-level spread of averaged pitch grades, from the training data.
+// Fill both in to put overall grades on a true pitcher scale; left null, the raw average is shown.
+var OVERALL_D1 = {mean: null, sd: null};
+function overall(avg){
+  if (avg == null || OVERALL_D1.mean == null || !OVERALL_D1.sd) return avg;
+  return 100 + 10 * (avg - OVERALL_D1.mean) / OVERALL_D1.sd;
+}
 
 function qs(k){ return new URLSearchParams(location.search).get(k); }
 function setQS(){
   var p = new URLSearchParams();
   p.set('season', el('season').value);
   if (el('gamesOnly').checked) p.set('games','1');
-  if (state.scale === 'd1') p.set('scale','d1');
   if (state.sel) p.set('p', state.sel);
   history.replaceState(null, '', '?' + p.toString());
 }
@@ -137,7 +140,7 @@ function ptype(p){
   if (!t || t === 'Undefined' || t === 'Other') t = p.TaggedPitchType;
   return CANON[t] || t;
 }
-function gradeOf(p){ return state.scale === 'd1' ? p.stuff_plus_d1 : p.stuff_plus_juco; }
+function gradeOf(p){ return p.stuff_plus_d1; }
 function mean(a){ var s = 0, n = 0; for (var i=0;i<a.length;i++) if (a[i] != null && !isNaN(a[i])) { s += +a[i]; n++; } return n ? s/n : null; }
 function f1(v){ return v == null ? '' : v.toFixed(1); }
 function f0(v){ return v == null ? '' : Math.round(v).toString(); }
@@ -156,21 +159,17 @@ async function boot(){
     el('season').innerHTML = seasons.map(function(s){
       return '<option' + (s === want ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join('');
     el('gamesOnly').checked = qs('games') === '1';
-    if (qs('scale') === 'd1') setScale('d1', true);
     state.sel = qs('p');
 
     var cols = 'Pitcher,PitcherThrows,PitcherTeam,GameID,Date,AutoPitchType,TaggedPitchType,' +
-               'RelSpeed,InducedVertBreak,HorzBreak,SpinRate,stuff_plus_juco,stuff_plus_d1';
+               'RelSpeed,InducedVertBreak,HorzBreak,SpinRate,stuff_plus_d1';
     state.pitches = await supaFetch('pitches?select=' + cols +
-      '&stuff_plus_juco=not.is.null&PitcherTeam=ilike.*wal*');
+      '&stuff_plus_d1=not.is.null&PitcherTeam=ilike.*wal*');
     state.pitches.forEach(function(p){ p._pt = ptype(p); p._g = GROUP[p._pt]; });
 
     el('season').onchange = function(){ state.sel = null; render(); };
     el('gamesOnly').onchange = render;
     el('minN').oninput = render;
-    Array.prototype.forEach.call(el('scale').querySelectorAll('button'), function(b){
-      b.onclick = function(){ setScale(b.dataset.v); };
-    });
     render();
   } catch (e) {
     el('status').innerHTML = '<span class="err">Couldn\'t load data. ' + esc(e.message) +
@@ -178,12 +177,6 @@ async function boot(){
   }
 }
 
-function setScale(v, quiet){
-  state.scale = v;
-  Array.prototype.forEach.call(el('scale').querySelectorAll('button'), function(b){
-    b.classList.toggle('on', b.dataset.v === v); });
-  if (!quiet) render();
-}
 
 function currentPitches(){
   var season = el('season').value, gamesOnly = el('gamesOnly').checked, meta = {};
@@ -229,7 +222,7 @@ function renderStaff(ps){
     return {name:name, thr:(a[0].PitcherThrows || '').charAt(0), n:a.length,
       out: Object.keys(groupBy(a, function(p){ return p.Date; })).length,
       velo: mean(fb.map(function(p){ return p.RelSpeed; })),
-      grade: mean(a.map(gradeOf)),
+      grade: overall(mean(a.map(gradeOf))),
       FB: g.FB ? mean(g.FB.map(gradeOf)) : null, nFB: g.FB ? g.FB.length : 0,
       BB: g.BB ? mean(g.BB.map(gradeOf)) : null, nBB: g.BB ? g.BB.length : 0,
       OS: g.OS ? mean(g.OS.map(gradeOf)) : null, nOS: g.OS ? g.OS.length : 0,
@@ -282,7 +275,7 @@ function renderDetail(ps){
   var outs = groupBy(ps, function(p){ return p.Date; });
   el('pname').textContent = state.sel;
   el('pmeta').textContent = (ps[0].PitcherThrows === 'Left' ? 'LHP' : 'RHP') + ', ' + ps.length + ' pitches over ' +
-    Object.keys(outs).length + ' outings, ' + (state.scale === 'd1' ? 'D1' : 'JUCO') + ' scale';
+    Object.keys(outs).length + ' outings, overall ' + f1(overall(mean(ps.map(gradeOf)))) + ' on the D1 scale';
 
   var types = groupBy(ps, function(p){ return p._pt; });
   var tlist = sortTypes(Object.keys(types));
