@@ -230,6 +230,19 @@ cursor: pointer;
 transition: opacity 0.2s;
 margin-bottom: 16px;
 }
+.secret-change-btn {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  border: 1px solid var(--line, #ccc);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--navy, #1a2744);
+  cursor: pointer;
+}
+.secret-change-btn:active { opacity: 0.7; }
 .upload-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 .upload-btn:not(:disabled):active { opacity: 0.8; }
 
@@ -311,9 +324,13 @@ display: none;
 <!-- Upload secret: stays in this browser only (localStorage). DB writes go through trackman-ingest. -->
 <div class="pb-banner">Upload Secret</div>
 <div class="surface-card">
-  <div class="config-row">
+  <div class="config-row" id="secretSavedRow" style="display:none;">
+    <label>Saved on this phone — never sent to GitHub</label>
+    <button type="button" id="secretChangeBtn" class="secret-change-btn">Change</button>
+  </div>
+  <div class="config-row" id="secretEditRow">
     <label>Stays in this browser only — never sent to GitHub</label>
-    <input type="password" id="uploadSecret" placeholder="Paste upload secret" autocomplete="off" spellcheck="false">
+    <input type="password" id="uploadSecret" name="ws_trackman_upload_secret" placeholder="Paste upload secret" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true">
   </div>
 </div>
 
@@ -391,21 +408,65 @@ var keyInput = { value: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 var UPLOAD_SECRET_LS_KEY = 'ws_trackman_upload_secret';
 
 function getUploadSecret() {
+  try {
+    var saved = localStorage.getItem(UPLOAD_SECRET_LS_KEY);
+    if (saved != null && String(saved).trim()) return String(saved).trim();
+  } catch (e) {}
   var el = document.getElementById('uploadSecret');
   return el ? el.value.trim() : '';
 }
 
+function refreshSecretUI() {
+  var saved = '';
+  try { saved = localStorage.getItem(UPLOAD_SECRET_LS_KEY) || ''; } catch (e) {}
+  var has = !!String(saved).trim();
+  var savedRow = document.getElementById('secretSavedRow');
+  var editRow = document.getElementById('secretEditRow');
+  var input = document.getElementById('uploadSecret');
+  if (!savedRow || !editRow || !input) return;
+  if (has) {
+    savedRow.style.display = '';
+    editRow.style.display = 'none';
+    input.value = '';
+  } else {
+    savedRow.style.display = 'none';
+    editRow.style.display = '';
+  }
+}
+
 function loadUploadSecret() {
-  try {
-    var saved = localStorage.getItem(UPLOAD_SECRET_LS_KEY);
-    if (saved != null) document.getElementById('uploadSecret').value = saved;
-  } catch (e) {}
+  refreshSecretUI();
 }
 
 function saveUploadSecret() {
+  var el = document.getElementById('uploadSecret');
+  if (!el) return;
+  var val = el.value;
+  // Don't wipe a saved secret when the field is intentionally blank in collapsed mode
+  if (!String(val).trim() && document.getElementById('secretEditRow') &&
+      document.getElementById('secretEditRow').style.display === 'none') {
+    return;
+  }
   try {
-    localStorage.setItem(UPLOAD_SECRET_LS_KEY, document.getElementById('uploadSecret').value);
+    if (String(val).trim()) localStorage.setItem(UPLOAD_SECRET_LS_KEY, val);
+    else localStorage.removeItem(UPLOAD_SECRET_LS_KEY);
   } catch (e) {}
+  refreshSecretUI();
+}
+
+function beginSecretEdit() {
+  var editRow = document.getElementById('secretEditRow');
+  var savedRow = document.getElementById('secretSavedRow');
+  var input = document.getElementById('uploadSecret');
+  if (savedRow) savedRow.style.display = 'none';
+  if (editRow) editRow.style.display = '';
+  if (input) {
+    try {
+      var saved = localStorage.getItem(UPLOAD_SECRET_LS_KEY);
+      input.value = saved != null ? saved : '';
+    } catch (e) { input.value = ''; }
+    setTimeout(function() { input.focus(); input.select(); }, 0);
+  }
 }
 
 async function ingestCall(action, payload) {
@@ -615,6 +676,8 @@ document.getElementById('uploadBtn').addEventListener('click', async function() 
   var url = urlInput.value.trim().replace(/\/+$/, '');
   var key = keyInput.value.trim();
   if (!url || !key) { showResult('error', 'Missing Supabase URL or key.'); return; }
+  var _secEl = document.getElementById('uploadSecret');
+  if (_secEl && _secEl.value.trim()) saveUploadSecret();
   if (!getUploadSecret()) { showResult('error', 'Enter the upload secret before uploading. It stays in this browser only.'); return; }
   if (!parsedRows.length) { showResult('error', 'No CSV loaded.'); return; }
 
@@ -824,10 +887,19 @@ async function autoFetchBoxScoreUrl(supaUrl, supaKey, normDate, gameId) {
   } catch(e) { return null; }
 }
 
-// Init secret from localStorage
+// Init secret from localStorage — collapse field once saved so iOS Keychain/Face ID is not prompted every visit
 loadUploadSecret();
-document.getElementById('uploadSecret').addEventListener('input', saveUploadSecret);
-document.getElementById('uploadSecret').addEventListener('change', saveUploadSecret);
+var secretInput = document.getElementById('uploadSecret');
+if (secretInput) {
+  secretInput.addEventListener('input', saveUploadSecret);
+  secretInput.addEventListener('change', saveUploadSecret);
+  secretInput.addEventListener('blur', saveUploadSecret);
+}
+var secretChangeBtn = document.getElementById('secretChangeBtn');
+if (secretChangeBtn) secretChangeBtn.addEventListener('click', function(e) {
+  e.preventDefault();
+  beginSecretEdit();
+});
 </script>
 
 </body>
