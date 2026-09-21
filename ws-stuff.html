@@ -141,8 +141,8 @@ async function supaFetch(path){
 }
 
 function ptype(p){
-  var t = p.AutoPitchType || p.TaggedPitchType;
-  if (!t || t === 'Undefined' || t === 'Other') t = p.TaggedPitchType;
+       var t = p.TaggedPitchType;
+     if (!t || t === 'Undefined' || t === 'Other') t = p.AutoPitchType;
   return CANON[t] || t;
 }
 function gradeOf(p){ return p.stuff_plus_d1; }
