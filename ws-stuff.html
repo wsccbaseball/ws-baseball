@@ -103,10 +103,9 @@ var ORDER = ['Fastball','Sinker','Cutter','Slider','Sweeper','Curveball','Slurve
 var state = {games:[], pitches:[], sel:null, sort:{key:'grade', asc:false}};
 // D1 pitcher-level spread of averaged pitch grades, from the training data.
 // Fill both in to put overall grades on a true pitcher scale; left null, the raw average is shown.
-var OVERALL_D1 = {mean: 99.496, sd: 1.961};
-var OVERALL_JUCO = {mean: 100.251, sd: 1.831};
-// Per pitch group: spread of D1 pitchers' average grade for that pitch (30+ pitches).
-var PT_SCALE = {FB:{mean:99.328, sd:2.329}, BB:{mean:99.142, sd:2.823}, OS:{mean:99.467, sd:2.970}};
+   var OVERALL_D1 = {mean: 99.374, sd: 4.058};
+   var OVERALL_JUCO = {mean: 100.911, sd: 4.355};
+   var PT_SCALE = {FB:{mean:99.079, sd:5.133}, BB:{mean:98.499, sd:5.924}, OS:{mean:99.404, sd:5.289}};
 function ptGrade(avg, g){ return (avg == null || !PT_SCALE[g]) ? null : 100 + 10 * (avg - PT_SCALE[g].mean) / PT_SCALE[g].sd; }
 function overall(avg, c){
   c = c || OVERALL_D1;
