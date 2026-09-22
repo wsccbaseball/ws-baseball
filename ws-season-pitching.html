@@ -975,10 +975,10 @@ function stuffVal(d,col){
 function buildStuffTable(){
   // Pitcher-scale constants from the 2026 training data. Overall grades are the
   // average of a pitcher's pitch grades, stretched so 10 points = 1 SD of pitchers.
-  var STUFF_D1={mean:99.496,sd:1.961}, STUFF_JUCO={mean:100.251,sd:1.831};
+       var STUFF_D1={mean:99.374,sd:4.058}, STUFF_JUCO={mean:100.911,sd:4.355};
   var MIN_OVERALL=100, MIN_PT=20;
   // Per pitch group: spread of D1 pitchers' average grade for that pitch (30+ pitches).
-  var PT_SCALE={FB:{mean:99.328,sd:2.329},BB:{mean:99.142,sd:2.823},OS:{mean:99.467,sd:2.970}};
+       var PT_SCALE={FB:{mean:99.079,sd:5.133},BB:{mean:98.499,sd:5.924},OS:{mean:99.404,sd:5.289}};
   var PT_GROUP={Fastball:'FB',Sinker:'FB',Cutter:'FB',Slider:'BB',Curveball:'BB',Sweeper:'BB',Slurve:'BB',
                 Knuckleball:'BB',ChangeUp:'OS',Changeup:'OS',Splitter:'OS',Screwball:'OS'};
   if(!document.getElementById('stuffPlusCss')){
