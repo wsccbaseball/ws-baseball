@@ -12,4 +12,6 @@ Colab v3 is in `stuff/models/`: `stuff_FB.txt`, `stuff_BB.txt`, `stuff_OS.txt`, 
 
 To pick up grades for pitches that were scored while cutters were fastballs, null `stuff_plus_juco` and `stuff_plus_d1` on those rows and rerun `python stuff/score_stuff.py`.
 
-`PT_SCALE.CT` in `ws-stuff.html` and `ws-season-pitching.html` is the D1 pitcher-level cutter spread from the 2026 Colab leaderboard: rows with `PGroup == CT` and `n >= 30` (65 pitchers). Mean of `stuff_d1` is 100.641 and the population sd is 2.533. Sample floors are unchanged.
+The Stuff+ pages show the mean of the stored grades. `scaling.json` already puts each pitch on a level×group scale (100 = average, 10 = one standard deviation of pitches), so the pages do not apply a second pitcher-level stretch. The old display constants (`OVERALL_*` / `PT_SCALE`, including the cutter leaderboard mean 100.641 and sd 2.533) are not used.
+
+Sample floors: staff Min pitches defaults to 50; overall chips gray under 150 pitches; pitch-type chips gray under 40; an outing overall grays under 75; an outing pitch type grays under 30. Staff rows under the Min pitches setting sort below everyone else on numeric columns.
