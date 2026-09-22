@@ -37,6 +37,11 @@ def fetch(params, page=1000):
         if len(b) < page: return pd.DataFrame(out)
         off += page
 
+def season(dates):
+    # '2026S' = spring (Jan-Jul), '2026F' = fall (Aug-Dec). Baselines never mix the two.
+    dt = pd.to_datetime(dates, errors='coerce')
+    return dt.dt.year.astype('Int64').astype(str) + np.where(dt.dt.month >= 8, 'F', 'S')
+
 def key(d):
     return d['Pitcher'].fillna('').str.upper().str.replace(r'[^A-Z]', '', regex=True) \
            + '_' + d['PitcherThrows'].str[0]
@@ -49,20 +54,22 @@ def ptype(d):
     return t.where(~bad, d['AutoPitchType']).replace(CANON)
 
 def baselines():
-    a = fetch({'select': 'Pitcher,PitcherThrows,AutoPitchType,TaggedPitchType,RelSpeed,InducedVertBreak,HorzBreak'})
-    if a.empty: return pd.DataFrame(columns=['v','ivb','hb'])
+    a = fetch({'select': 'Pitcher,PitcherThrows,AutoPitchType,TaggedPitchType,Date,RelSpeed,InducedVertBreak,HorzBreak'})
+    if a.empty: return pd.DataFrame(columns=['v','ivb','hb'], index=pd.MultiIndex.from_arrays([[], []], names=['Key','Season']))
     a = a[a['PitcherThrows'].isin(['Left','Right'])].copy()
     a['PType'] = ptype(a)
     for c in ['RelSpeed','InducedVertBreak','HorzBreak']:
         a[c] = pd.to_numeric(a[c], errors='coerce')
     a.loc[a['PitcherThrows'] == 'Left', 'HorzBreak'] *= -1
     a['Key'] = key(a)
+    a['Season'] = season(a['Date'])
     fb = a[a['PType'].map(pitch_group) == 'FB']
-    g = (fb.groupby(['Key','PType'])
+    g = (fb.groupby(['Key','Season','PType'])
            .agg(n=('RelSpeed','size'), v=('RelSpeed','mean'),
                 ivb=('InducedVertBreak','mean'), hb=('HorzBreak','mean')).reset_index())
     g = g[g['n'] >= 10]
-    return g.sort_values('v', ascending=False).drop_duplicates('Key').set_index('Key')[['v','ivb','hb']]
+    return (g.sort_values('v', ascending=False).drop_duplicates(['Key','Season'])
+             .set_index(['Key','Season'])[['v','ivb','hb']])
 
 def build(d, base):
     d = d.copy()
@@ -81,7 +88,8 @@ def build(d, base):
     d['Platoon'] = np.where(bs.isna() | ~bs.isin(['Left','Right']), np.nan,
                             ((bs == 'Left') != lhp).astype(float))
     d['Key'] = key(d)
-    d = d.join(base, on='Key')
+    d['Season'] = season(d['Date'])
+    d = d.join(base, on=['Key','Season'])
     d['dVelo'] = d['RelSpeed'] - d['v']
     d['dIVB']  = d['InducedVertBreak'] - d['ivb']
     d['dHB']   = d['HorzBreak'] - d['hb']
@@ -103,7 +111,7 @@ def score(d):
     return d
 
 def main():
-    pull = ['id','Pitcher','PitcherThrows','BatterSide','AutoPitchType','TaggedPitchType'] + NUM
+    pull = ['id','Pitcher','PitcherThrows','BatterSide','AutoPitchType','TaggedPitchType','Date'] + NUM
     new = fetch({'select': ','.join(pull), 'stuff_plus_juco': 'is.null'})
     print(f'{len(new)} unscored pitches')
     if new.empty: return
