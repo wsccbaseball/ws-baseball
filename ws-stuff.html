@@ -95,8 +95,9 @@ const SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
 
 var CANON = {'Four-Seam':'Fastball','FourSeamFastBall':'Fastball','ChangeUp':'Changeup',
-             'TwoSeamFastBall':'Sinker','Split-Finger':'Splitter'};
-var GROUP = {Fastball:'FB',Sinker:'FB',Cutter:'FB',Slider:'BB',Curveball:'BB',Sweeper:'BB',
+             'TwoSeamFastBall':'Sinker','Split-Finger':'Splitter',
+             'Cut Fastball':'Cutter','FC':'Cutter','CT':'Cutter'};
+var GROUP = {Fastball:'FB',Sinker:'FB',Cutter:'CT',Slider:'BB',Curveball:'BB',Sweeper:'BB',
              Slurve:'BB',Knuckleball:'BB',Changeup:'OS',Splitter:'OS',Screwball:'OS'};
 var ORDER = ['Fastball','Sinker','Cutter','Slider','Sweeper','Curveball','Slurve','Changeup','Splitter'];
 
@@ -105,6 +106,8 @@ var state = {games:[], pitches:[], sel:null, sort:{key:'grade', asc:false}};
 // Fill both in to put overall grades on a true pitcher scale; left null, the raw average is shown.
    var OVERALL_D1 = {mean: 99.374, sd: 4.058};
    var OVERALL_JUCO = {mean: 100.911, sd: 4.355};
+   // CT mean/sd is filled from the cutter retrain. Until then cutter pitch-type
+   // grades stay blank instead of borrowing the fastball scale.
    var PT_SCALE = {FB:{mean:99.079, sd:5.133}, BB:{mean:98.499, sd:5.924}, OS:{mean:99.404, sd:5.289}};
 function ptGrade(avg, g){ return (avg == null || !PT_SCALE[g]) ? null : 100 + 10 * (avg - PT_SCALE[g].mean) / PT_SCALE[g].sd; }
 function overall(avg, c){
@@ -140,8 +143,8 @@ async function supaFetch(path){
 }
 
 function ptype(p){
-       var t = p.TaggedPitchType;
-     if (!t || t === 'Undefined' || t === 'Other') t = p.AutoPitchType;
+  var t = p.AutoPitchType;
+  if (!t || t === 'Undefined' || t === 'Other') t = p.TaggedPitchType;
   return CANON[t] || t;
 }
 function gradeOf(p){ return p.stuff_plus_d1; }
@@ -220,6 +223,7 @@ function renderStaff(ps){
     Object.keys(types).forEach(function(t){
       if (types[t].length < 20 || !GROUP[t]) return;
       var v = ptGrade(mean(types[t].map(gradeOf)), GROUP[t]);
+      if (v == null) return;
       if (best == null || v > best.v) best = {t:t, v:v};
     });
     var fb = a.filter(function(p){ return p._g === 'FB'; });
@@ -229,6 +233,7 @@ function renderStaff(ps){
       grade: overall(mean(a.map(gradeOf))),
       juco: overall(mean(a.map(function(p){ return p.stuff_plus_juco; })), OVERALL_JUCO),
       FB: g.FB ? ptGrade(mean(g.FB.map(gradeOf)), 'FB') : null, nFB: g.FB ? g.FB.length : 0,
+      CT: g.CT ? ptGrade(mean(g.CT.map(gradeOf)), 'CT') : null, nCT: g.CT ? g.CT.length : 0,
       BB: g.BB ? ptGrade(mean(g.BB.map(gradeOf)), 'BB') : null, nBB: g.BB ? g.BB.length : 0,
       OS: g.OS ? ptGrade(mean(g.OS.map(gradeOf)), 'OS') : null, nOS: g.OS ? g.OS.length : 0,
       best: best};
@@ -241,7 +246,7 @@ function renderStaff(ps){
     return s.asc ? c : -c;
   });
   var heads = [['name','Pitcher','l'],['thr','T','l'],['n','Pitches'],['out','Outings'],['velo','FB velo'],
-               ['grade','Stuff+ D1'],['juco','Stuff+ JUCO'],['FB','Fastballs'],['BB','Breaking'],['OS','Offspeed'],['best','Best pitch','l']];
+               ['grade','Stuff+ D1'],['juco','Stuff+ JUCO'],['FB','Fastballs'],['CT','Cutters'],['BB','Breaking'],['OS','Offspeed'],['best','Best pitch','l']];
   el('staff').tHead.innerHTML = '<tr>' + heads.map(function(h){
     var cls = (h[2] || '') + (s.key === h[0] ? ' sorted' + (s.asc ? ' asc' : '') : '');
     return '<th class="' + cls + '" data-k="' + h[0] + '">' + h[1] + '</th>'; }).join('') + '</tr>';
@@ -257,7 +262,7 @@ function renderStaff(ps){
     return '<tr tabindex="0" data-p="' + esc(r.name) + '" class="' + (thin ? 'thin' : '') + (r.name === state.sel ? ' sel' : '') + '">' +
       '<td class="l">' + esc(r.name) + '</td><td class="l">' + r.thr + '</td><td>' + r.n + '</td><td>' + r.out + '</td>' +
       '<td>' + f1(r.velo) + '</td><td>' + chip(r.grade, r.n, 100) + '</td><td>' + chip(r.juco, r.n, 100) + '</td>' +
-      '<td>' + chip(r.FB, r.nFB, 20) + '</td><td>' + chip(r.BB, r.nBB, 20) + '</td><td>' + chip(r.OS, r.nOS, 20) + '</td>' +
+      '<td>' + chip(r.FB, r.nFB, 20) + '</td><td>' + chip(r.CT, r.nCT, 20) + '</td><td>' + chip(r.BB, r.nBB, 20) + '</td><td>' + chip(r.OS, r.nOS, 20) + '</td>' +
       '<td class="l">' + (r.best ? esc(r.best.t) + ' ' + f1(r.best.v) : '') + '</td></tr>';
   }).join('');
   Array.prototype.forEach.call(el('staff').tBodies[0].rows, function(tr){
