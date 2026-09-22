@@ -32,7 +32,7 @@ def load_models():
     for g in GROUPS:
         path = os.path.join(MODEL_DIR, f'stuff_{g}.txt')
         # FB/BB/OS are the live models and must be present. CT is optional until
-        # the cutter model is copied in from the Colab retrain.
+        # the cutter model is copied in from the Colab v3 retrain.
         if not os.path.exists(path):
             if g == 'CT':
                 continue

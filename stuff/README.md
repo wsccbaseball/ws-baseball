@@ -10,7 +10,7 @@ The 12 features in `models/scaling.json` are RelSpeed, SpinRate, InducedVertBrea
 
 `stuff_CT.txt` is not shipped here. Until that file and the `D1|CT` / `JUCO|CT` keys exist, the scorer logs a skip and leaves cutter pitches ungraded. It does not score them as FB.
 
-Retrain Colab `stuff_plus_training_v2.ipynb` with CT as its own group, same features and the same target as FB, BB, and OS. Copy into `stuff/models/`:
+Retrain Colab v3 with CT as its own group, same features and the same target as FB, BB, and OS. Copy into `stuff/models/`:
 
 - `stuff_CT.txt`
 - `scaling.json`, including level×CT keys the same way as the other groups (`D1|CT`, `D2|CT`, `JUCO|CT`, `NAIA|CT`)
