@@ -12,4 +12,4 @@ Colab v3 is in `stuff/models/`: `stuff_FB.txt`, `stuff_BB.txt`, `stuff_OS.txt`, 
 
 To pick up grades for pitches that were scored while cutters were fastballs, null `stuff_plus_juco` and `stuff_plus_d1` on those rows and rerun `python stuff/score_stuff.py`.
 
-TODO: `PT_SCALE.CT` in `ws-stuff.html` and `ws-season-pitching.html` is still empty. That second scale is the spread of D1 pitchers' average cutter grades, and the Colab leaderboard or scored parquet was not in this drop, so the constant is not filled in. Cutter pitch-type chips stay blank until that mean and sd are computed from those artifacts. Sample floors are unchanged.
+`PT_SCALE.CT` in `ws-stuff.html` and `ws-season-pitching.html` is the D1 pitcher-level cutter spread from the 2026 Colab leaderboard: rows with `PGroup == CT` and `n >= 30` (65 pitchers). Mean of `stuff_d1` is 100.641 and the population sd is 2.533. Sample floors are unchanged.
