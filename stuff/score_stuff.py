@@ -88,11 +88,13 @@ def key(d):
            + '_' + d['PitcherThrows'].str[0]
 
 def ptype(d):
-    # Auto first. Tagged breakers are messy, so tagged is only the fallback when
-    # auto is blank, Undefined, or Other.
-    auto = d['AutoPitchType']
-    bad = auto.isna() | auto.isin(['Undefined', 'Other', ''])
-    return auto.where(~bad, d['TaggedPitchType']).replace(CANON)
+    # Tagged first. On Walters State, AutoPitchType='Cutter' is usually a tagged
+    # fastball within about 0-1.5 mph of that pitcher's heater, so TrackMan's
+    # auto cutter call does not override a real tag. Auto is only the fallback
+    # when tagged is blank, Undefined, or Other. A resolved Cutter still maps to CT.
+    tagged = d['TaggedPitchType']
+    bad = tagged.isna() | tagged.isin(['Undefined', 'Other', ''])
+    return tagged.where(~bad, d['AutoPitchType']).replace(CANON)
 
 def primary_fastball(a):
     """Highest-velo true fastball (10+ pitches) per pitcher-season. Cutters are excluded."""

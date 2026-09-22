@@ -2,7 +2,7 @@
 
 `score_stuff.py` grades unscored pitches and writes `stuff_plus_juco` and `stuff_plus_d1`. Groups are **FB**, **CT**, **BB**, and **OS**. A cutter is CT, not a fastball and not a breaker.
 
-Typing is auto-first: `AutoPitchType`, then `TaggedPitchType` only when auto is blank, `Undefined`, or `Other`.
+Typing is tagged-first: `TaggedPitchType` when it is present and not blank, `Undefined`, or `Other`; otherwise `AutoPitchType`. Both pass through the CANON map. There is no Auto=Cutter override. On Walters State, TrackMan `AutoPitchType='Cutter'` is usually a tagged fastball within about 0–1.5 mph of that pitcher's heater, so forcing those into CT would mis-bucket real fastballs. A pitch whose resolved type is Cutter still scores in its own CT group.
 
 The 12 features in `models/scaling.json` are RelSpeed, SpinRate, InducedVertBreak, HorzBreak, AxisSin, AxisCos, RelHeight, RelSide, Extension, dVelo, dIVB, dHB. dVelo / dIVB / dHB are versus that pitcher-season's primary fastball (highest average velo among true FB types with at least 10 pitches). Cutters are not eligible for that baseline. CT, BB, and OS pitches still diff against it when the pitcher has one.
 
