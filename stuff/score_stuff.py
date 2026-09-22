@@ -4,28 +4,69 @@ import numpy as np, pandas as pd, requests, lightgbm as lgb
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 MODEL_DIR = os.path.join(HERE, 'models')
-URL   = os.environ['SUPABASE_URL'].rstrip('/')
-KEY   = os.environ['SUPABASE_SERVICE_KEY']
+URL   = os.environ.get('SUPABASE_URL', '').rstrip('/')
+KEY   = os.environ.get('SUPABASE_SERVICE_KEY', '')
 TABLE = os.environ.get('STUFF_TABLE', 'pitches')
 H = {'apikey': KEY, 'Authorization': f'Bearer {KEY}', 'Content-Type': 'application/json'}
 
-models = {g: lgb.Booster(model_file=os.path.join(MODEL_DIR, f'stuff_{g}.txt')) for g in ['FB','BB','OS']}
+# FB / CT / BB / OS. Cutter is its own group, never a fastball and never a breaker.
+# CT aliases are the ones used elsewhere in this repo (pitcher-report.html).
+GROUPS = ('FB', 'CT', 'BB', 'OS')
+PITCH_GROUPS = {
+    'FB': {'Fastball', 'FourSeamFastBall', 'Four-Seam', 'TwoSeamFastBall', 'Sinker'},
+    'CT': {'Cutter', 'Cut Fastball', 'FC', 'CT'},
+    'BB': {'Slider', 'Curveball', 'Sweeper', 'Slurve', 'Knuckleball'},
+    'OS': {'ChangeUp', 'Changeup', 'Splitter', 'Split-Finger', 'Screwball'},
+}
+CANON = {'Four-Seam': 'Fastball', 'FourSeamFastBall': 'Fastball', 'ChangeUp': 'Changeup',
+         'TwoSeamFastBall': 'Sinker', 'Split-Finger': 'Splitter',
+         'Cut Fastball': 'Cutter', 'FC': 'Cutter', 'CT': 'Cutter'}
+NUM = ['RelSpeed', 'SpinRate', 'SpinAxis', 'InducedVertBreak', 'HorzBreak', 'RelHeight',
+       'RelSide', 'Extension', 'VertApprAngle', 'HorzApprAngle']
+# The model was trained only on pitches with all of these tracked. Grading a pitch
+# with any of them missing is guesswork, so those pitches are left ungraded.
+REQUIRED = ['RelSpeed', 'SpinRate', 'SpinAxis', 'InducedVertBreak', 'HorzBreak', 'RelHeight', 'RelSide', 'Extension']
+
+def load_models():
+    loaded = {}
+    for g in GROUPS:
+        path = os.path.join(MODEL_DIR, f'stuff_{g}.txt')
+        # FB/BB/OS are the live models and must be present. CT is optional until
+        # the cutter model is copied in from the Colab v3 retrain.
+        if not os.path.exists(path):
+            if g == 'CT':
+                continue
+            raise FileNotFoundError(path)
+        loaded[g] = lgb.Booster(model_file=path)
+    return loaded
+
+models = load_models()
 cfg = json.load(open(os.path.join(MODEL_DIR, 'scaling.json')))
 scale, FEATS = cfg['scale'], cfg['feats']
 
-FB  = {'Fastball','FourSeamFastBall','Four-Seam','TwoSeamFastBall','Sinker','Cutter'}
-BB_ = {'Slider','Curveball','Sweeper','Slurve','Knuckleball'}
-OS  = {'ChangeUp','Changeup','Splitter','Split-Finger','Screwball'}
-CANON = {'Four-Seam':'Fastball','FourSeamFastBall':'Fastball','ChangeUp':'Changeup',
-         'TwoSeamFastBall':'Sinker','Split-Finger':'Splitter'}
-NUM = ['RelSpeed','SpinRate','SpinAxis','InducedVertBreak','HorzBreak','RelHeight',
-       'RelSide','Extension','VertApprAngle','HorzApprAngle']
-# The model was trained only on pitches with all of these tracked. Grading a pitch
-# with any of them missing is guesswork, so those pitches are left ungraded.
-REQUIRED = ['RelSpeed','SpinRate','SpinAxis','InducedVertBreak','HorzBreak','RelHeight','RelSide','Extension']
+def group_ready(g):
+    """A group is scored only when its booster and both live scale keys exist."""
+    return g in models and bool(scale.get(f'D1|{g}')) and bool(scale.get(f'JUCO|{g}'))
+
+def ct_block_reason():
+    if 'CT' not in models:
+        return 'stuff/models/stuff_CT.txt is missing'
+    missing = [k for k in ('D1|CT', 'JUCO|CT') if not scale.get(k)]
+    if missing:
+        return 'scaling.json is missing ' + ' and '.join(missing)
+    return None
 
 def pitch_group(s):
-    return 'FB' if s in FB else 'BB' if s in BB_ else 'OS' if s in OS else None
+    try:
+        if pd.isna(s):
+            return None
+    except (TypeError, ValueError):
+        return None
+    # CT first so a cutter alias can never fall through into FB.
+    for g in ('CT', 'FB', 'BB', 'OS'):
+        if s in PITCH_GROUPS[g]:
+            return g
+    return None
 
 def fetch(params, page=1000):
     out, off = [], 0
@@ -47,49 +88,60 @@ def key(d):
            + '_' + d['PitcherThrows'].str[0]
 
 def ptype(d):
-    # Tagged type first: TrackMan's auto classifier calls slow fastballs changeups,
-    # which sends them to the wrong model. Fall back to auto only when untagged.
-    t = d['TaggedPitchType']
-    bad = t.isna() | t.isin(['Undefined', 'Other', ''])
-    return t.where(~bad, d['AutoPitchType']).replace(CANON)
+    # Auto first. Tagged breakers are messy, so tagged is only the fallback when
+    # auto is blank, Undefined, or Other.
+    auto = d['AutoPitchType']
+    bad = auto.isna() | auto.isin(['Undefined', 'Other', ''])
+    return auto.where(~bad, d['TaggedPitchType']).replace(CANON)
+
+def primary_fastball(a):
+    """Highest-velo true fastball (10+ pitches) per pitcher-season. Cutters are excluded."""
+    empty = pd.DataFrame(columns=['v', 'ivb', 'hb'],
+                         index=pd.MultiIndex.from_arrays([[], []], names=['Key', 'Season']))
+    fb = a[a['PType'].map(pitch_group) == 'FB']
+    if fb.empty:
+        return empty
+    g = (fb.groupby(['Key', 'Season', 'PType'])
+           .agg(n=('RelSpeed', 'size'), v=('RelSpeed', 'mean'),
+                ivb=('InducedVertBreak', 'mean'), hb=('HorzBreak', 'mean')).reset_index())
+    g = g[g['n'] >= 10]
+    if g.empty:
+        return empty
+    return (g.sort_values('v', ascending=False).drop_duplicates(['Key', 'Season'])
+             .set_index(['Key', 'Season'])[['v', 'ivb', 'hb']])
 
 def baselines():
     a = fetch({'select': 'Pitcher,PitcherThrows,AutoPitchType,TaggedPitchType,Date,RelSpeed,InducedVertBreak,HorzBreak'})
-    if a.empty: return pd.DataFrame(columns=['v','ivb','hb'], index=pd.MultiIndex.from_arrays([[], []], names=['Key','Season']))
-    a = a[a['PitcherThrows'].isin(['Left','Right'])].copy()
+    if a.empty:
+        return pd.DataFrame(columns=['v', 'ivb', 'hb'], index=pd.MultiIndex.from_arrays([[], []], names=['Key', 'Season']))
+    a = a[a['PitcherThrows'].isin(['Left', 'Right'])].copy()
     a['PType'] = ptype(a)
-    for c in ['RelSpeed','InducedVertBreak','HorzBreak']:
+    for c in ['RelSpeed', 'InducedVertBreak', 'HorzBreak']:
         a[c] = pd.to_numeric(a[c], errors='coerce')
     a.loc[a['PitcherThrows'] == 'Left', 'HorzBreak'] *= -1
     a['Key'] = key(a)
     a['Season'] = season(a['Date'])
-    fb = a[a['PType'].map(pitch_group) == 'FB']
-    g = (fb.groupby(['Key','Season','PType'])
-           .agg(n=('RelSpeed','size'), v=('RelSpeed','mean'),
-                ivb=('InducedVertBreak','mean'), hb=('HorzBreak','mean')).reset_index())
-    g = g[g['n'] >= 10]
-    return (g.sort_values('v', ascending=False).drop_duplicates(['Key','Season'])
-             .set_index(['Key','Season'])[['v','ivb','hb']])
+    return primary_fastball(a)
 
 def build(d, base):
     d = d.copy()
     for c in NUM: d[c] = pd.to_numeric(d[c], errors='coerce')
     d['PType'] = ptype(d)
     d['PGroup'] = d['PType'].map(pitch_group)
-    d = d[d['PGroup'].notna() & d['RelSpeed'].between(50, 110) & d['PitcherThrows'].isin(['Left','Right'])
+    d = d[d['PGroup'].notna() & d['RelSpeed'].between(50, 110) & d['PitcherThrows'].isin(['Left', 'Right'])
           & d[REQUIRED].notna().all(axis=1)].copy()
     lhp = d['PitcherThrows'] == 'Left'
-    for c in ['HorzBreak','RelSide','HorzApprAngle']:
+    for c in ['HorzBreak', 'RelSide', 'HorzApprAngle']:
         d.loc[lhp, c] = -d.loc[lhp, c]
     d.loc[lhp, 'SpinAxis'] = (360 - d.loc[lhp, 'SpinAxis']) % 360
     d['AxisSin'] = np.sin(np.radians(d['SpinAxis']))
     d['AxisCos'] = np.cos(np.radians(d['SpinAxis']))
     bs = d['BatterSide'].astype('object')
-    d['Platoon'] = np.where(bs.isna() | ~bs.isin(['Left','Right']), np.nan,
+    d['Platoon'] = np.where(bs.isna() | ~bs.isin(['Left', 'Right']), np.nan,
                             ((bs == 'Left') != lhp).astype(float))
     d['Key'] = key(d)
     d['Season'] = season(d['Date'])
-    d = d.join(base, on=['Key','Season'])
+    d = d.join(base, on=['Key', 'Season'])
     d['dVelo'] = d['RelSpeed'] - d['v']
     d['dIVB']  = d['InducedVertBreak'] - d['ivb']
     d['dHB']   = d['HorzBreak'] - d['hb']
@@ -98,24 +150,37 @@ def build(d, base):
 def score(d):
     d['rv_pred'] = np.nan
     for g, m in models.items():
+        if not group_ready(g):
+            continue
         i = d.index[d['PGroup'] == g]
         if len(i): d.loc[i, 'rv_pred'] = m.predict(d.loc[i, FEATS].astype(float))
-    for lvl, col in [('JUCO','stuff_plus_juco'), ('D1','stuff_plus_d1')]:
+    for lvl, col in [('JUCO', 'stuff_plus_juco'), ('D1', 'stuff_plus_d1')]:
         out = pd.Series(np.nan, index=d.index)
-        for g in ['FB','BB','OS']:
-            s = scale.get(f'{lvl}|{g}')
-            if not s: continue
+        for g in GROUPS:
+            if not group_ready(g):
+                continue
+            s = scale[f'{lvl}|{g}']
             i = d.index[d['PGroup'] == g]
             out.loc[i] = 100 + 10 * (s['mean'] - d.loc[i, 'rv_pred']) / s['sd']
         d[col] = out.round(1)
     return d
 
 def main():
-    pull = ['id','Pitcher','PitcherThrows','BatterSide','AutoPitchType','TaggedPitchType','Date'] + NUM
+    if not URL or not KEY:
+        print('SUPABASE_URL and SUPABASE_SERVICE_KEY are required')
+        sys.exit(1)
+    reason = ct_block_reason()
+    if reason:
+        print(f'Cutter model is not ready: {reason}. Cutter pitches will be left unscored.')
+    pull = ['id', 'Pitcher', 'PitcherThrows', 'BatterSide', 'AutoPitchType', 'TaggedPitchType', 'Date'] + NUM
     new = fetch({'select': ','.join(pull), 'stuff_plus_juco': 'is.null'})
     print(f'{len(new)} unscored pitches')
     if new.empty: return
-    d = score(build(new, baselines()))
+    built = build(new, baselines())
+    n_ct = int((built['PGroup'] == 'CT').sum())
+    if n_ct and reason:
+        print(f'Skipping {n_ct} cutter pitches this run (not scored as fastballs or breakers).')
+    d = score(built)
     d = d[d['stuff_plus_juco'].notna()]
     print(f'{len(d)} gradeable (the rest are untracked or unknown pitch types)')
     rows = [{'id': int(i), 'j': float(j), 'd': float(x)}
