@@ -43,6 +43,7 @@ tbody tr:last-child td{border-bottom:0}
 #staff tbody tr:hover td{background:#f3ecdc}
 #staff tbody tr.sel td{background:#e6dcc4}
 tr.thin td{color:var(--muted)}
+#staff tbody tr.thin{opacity:.68}
 .gr{display:inline-block;min-width:46px;padding:2px 6px;border-radius:3px;text-align:center;font-weight:700}
 .b5{background:var(--g2);color:#fff}.b4{background:var(--g1)}.b3{background:transparent}
 .b2{background:var(--r1)}.b1{background:var(--r2);color:#fff}.bx{color:var(--muted);font-weight:400}
@@ -61,20 +62,20 @@ tr.thin td{color:var(--muted)}
 <header>
   <a href="index.html">&larr; Back to hub</a>
   <h1>Stuff+</h1>
-  <div class="sub">Pitch quality from shape alone: velo, movement, spin, release. 100 is an average D1 pitch.</div>
+  <div class="sub">Pitch quality from shape alone: velo, movement, spin, release. 100 is an average D1 pitch from the model.</div>
 </header>
 <main>
   <div class="controls">
     <label>Season <select id="season"></select></label>
     <label><input type="checkbox" id="gamesOnly"> Games only (no intersquads)</label>
-    <label>Min pitches <input type="number" id="minN" value="20" min="1" step="5"></label>
+    <label>Min pitches <input type="number" id="minN" value="50" min="1" step="5"></label>
   </div>
 
   <div id="status" class="msg">Loading pitches…</div>
 
   <section id="staffSec" style="display:none">
     <h2>Staff</h2>
-    <p class="note">Tap a pitcher for his arsenal and outing log. Overall Stuff+ is scaled against pitchers at each level, so 110 means one standard deviation better than the average D1 (or JUCO) arm. Each pitch-type grade compares that pitch to the same pitch from D1 pitchers. It's grayed out under 100 pitches, where it isn't reliable yet.</p>
+    <p class="note">Tap a pitcher for his arsenal and outing log. Stuff+ D1 and Stuff+ JUCO are the average of the grades already stored on each pitch. 100 is an average pitch at that level, and 110 is one standard deviation better. The model did that scaling, and this page does not scale it again. Fastball, cutter, breaking, and offspeed chips are those same grades averaged inside the group. Overall chips go gray under 150 pitches, and a pitch-group chip under 40. Anyone under the Min pitches setting is muted and drops to the bottom when you sort by a number.</p>
     <div class="wrap"><table id="staff"><thead></thead><tbody></tbody></table></div>
   </section>
 
@@ -85,7 +86,7 @@ tr.thin td{color:var(--muted)}
     <h2>Arsenal</h2>
     <div class="wrap"><table id="arsenal"><thead></thead><tbody></tbody></table></div>
     <h2>Outings</h2>
-    <p class="note">One row per day he pitched. Grades are grayed until there are enough pitches to trust them: 50 for the outing, 20 for a pitch type.</p>
+    <p class="note">One row per day he pitched. Grades are grayed until there are enough pitches to trust them: 75 for the outing, 30 for a pitch type.</p>
     <div class="wrap"><table id="outings"><thead></thead><tbody></tbody></table></div>
   </section>
 </main>
@@ -102,19 +103,14 @@ var GROUP = {Fastball:'FB',Sinker:'FB',Cutter:'CT',Slider:'BB',Curveball:'BB',Sw
 var ORDER = ['Fastball','Sinker','Cutter','Slider','Sweeper','Curveball','Slurve','Changeup','Splitter'];
 
 var state = {games:[], pitches:[], sel:null, sort:{key:'grade', asc:false}};
-// D1 pitcher-level spread of averaged pitch grades, from the training data.
-// Fill both in to put overall grades on a true pitcher scale; left null, the raw average is shown.
-   var OVERALL_D1 = {mean: 99.374, sd: 4.058};
-   var OVERALL_JUCO = {mean: 100.911, sd: 4.355};
-   // CT: D1 pitchers with 30+ cutters on the 2026 Colab leaderboard (65 pitchers).
-   // stuff_d1 mean 100.641, population sd 2.533.
-   var PT_SCALE = {FB:{mean:99.079, sd:5.133}, BB:{mean:98.499, sd:5.924}, OS:{mean:99.404, sd:5.289}, CT:{mean:100.641, sd:2.533}};
-function ptGrade(avg, g){ return (avg == null || !PT_SCALE[g]) ? null : 100 + 10 * (avg - PT_SCALE[g].mean) / PT_SCALE[g].sd; }
-function overall(avg, c){
-  c = c || OVERALL_D1;
-  if (avg == null || c.mean == null || !c.sd) return avg;
-  return 100 + 10 * (avg - c.mean) / c.sd;
-}
+// stuff_plus_d1 / stuff_plus_juco are already ~100 per level and pitch group
+// (FB, CT, BB, OS) in score_stuff.py. Show the mean of those grades. A second
+// pitcher-level stretch used to live here (OVERALL_* and PT_SCALE) and made
+// rankings drift, especially cutters, whose pitcher sd was only about 2.5.
+var MIN_OVERALL = 150;  // staff Stuff+ D1 / JUCO chips
+var MIN_PT = 40;        // pitch-group chips, arsenal rows, best-pitch picker
+var MIN_OUTING = 75;    // outing overall chip
+var MIN_OUTING_PT = 30; // outing pitch-type chip
 
 function qs(k){ return new URLSearchParams(location.search).get(k); }
 function setQS(){
@@ -221,8 +217,8 @@ function renderStaff(ps){
     var a = by[name], g = groupBy(a, function(p){ return p._g; });
     var types = groupBy(a, function(p){ return p._pt; }), best = null;
     Object.keys(types).forEach(function(t){
-      if (types[t].length < 20 || !GROUP[t]) return;
-      var v = ptGrade(mean(types[t].map(gradeOf)), GROUP[t]);
+      if (types[t].length < MIN_PT || !GROUP[t]) return;
+      var v = mean(types[t].map(gradeOf));
       if (v == null) return;
       if (best == null || v > best.v) best = {t:t, v:v};
     });
@@ -230,17 +226,23 @@ function renderStaff(ps){
     return {name:name, thr:(a[0].PitcherThrows || '').charAt(0), n:a.length,
       out: Object.keys(groupBy(a, function(p){ return p.Date; })).length,
       velo: mean(fb.map(function(p){ return p.RelSpeed; })),
-      grade: overall(mean(a.map(gradeOf))),
-      juco: overall(mean(a.map(function(p){ return p.stuff_plus_juco; })), OVERALL_JUCO),
-      FB: g.FB ? ptGrade(mean(g.FB.map(gradeOf)), 'FB') : null, nFB: g.FB ? g.FB.length : 0,
-      CT: g.CT ? ptGrade(mean(g.CT.map(gradeOf)), 'CT') : null, nCT: g.CT ? g.CT.length : 0,
-      BB: g.BB ? ptGrade(mean(g.BB.map(gradeOf)), 'BB') : null, nBB: g.BB ? g.BB.length : 0,
-      OS: g.OS ? ptGrade(mean(g.OS.map(gradeOf)), 'OS') : null, nOS: g.OS ? g.OS.length : 0,
+      grade: mean(a.map(gradeOf)),
+      juco: mean(a.map(function(p){ return p.stuff_plus_juco; })),
+      FB: g.FB ? mean(g.FB.map(gradeOf)) : null, nFB: g.FB ? g.FB.length : 0,
+      CT: g.CT ? mean(g.CT.map(gradeOf)) : null, nCT: g.CT ? g.CT.length : 0,
+      BB: g.BB ? mean(g.BB.map(gradeOf)) : null, nBB: g.BB ? g.BB.length : 0,
+      OS: g.OS ? mean(g.OS.map(gradeOf)) : null, nOS: g.OS ? g.OS.length : 0,
       best: best};
   });
   var s = state.sort;
+  var sinkThin = s.key !== 'name' && s.key !== 'thr';
   rows.sort(function(x, y){
+    if (sinkThin) {
+      var tx = x.n < minN, ty = y.n < minN;
+      if (tx !== ty) return tx ? 1 : -1;
+    }
     var a = x[s.key], b = y[s.key];
+    if (a == null && b == null) return 0;
     if (a == null) return 1; if (b == null) return -1;
     var c = typeof a === 'string' ? a.localeCompare(b) : a - b;
     return s.asc ? c : -c;
@@ -261,8 +263,8 @@ function renderStaff(ps){
     var thin = r.n < minN;
     return '<tr tabindex="0" data-p="' + esc(r.name) + '" class="' + (thin ? 'thin' : '') + (r.name === state.sel ? ' sel' : '') + '">' +
       '<td class="l">' + esc(r.name) + '</td><td class="l">' + r.thr + '</td><td>' + r.n + '</td><td>' + r.out + '</td>' +
-      '<td>' + f1(r.velo) + '</td><td>' + chip(r.grade, r.n, 100) + '</td><td>' + chip(r.juco, r.n, 100) + '</td>' +
-      '<td>' + chip(r.FB, r.nFB, 20) + '</td><td>' + chip(r.CT, r.nCT, 20) + '</td><td>' + chip(r.BB, r.nBB, 20) + '</td><td>' + chip(r.OS, r.nOS, 20) + '</td>' +
+      '<td>' + f1(r.velo) + '</td><td>' + chip(r.grade, r.n, MIN_OVERALL) + '</td><td>' + chip(r.juco, r.n, MIN_OVERALL) + '</td>' +
+      '<td>' + chip(r.FB, r.nFB, MIN_PT) + '</td><td>' + chip(r.CT, r.nCT, MIN_PT) + '</td><td>' + chip(r.BB, r.nBB, MIN_PT) + '</td><td>' + chip(r.OS, r.nOS, MIN_PT) + '</td>' +
       '<td class="l">' + (r.best ? esc(r.best.t) + ' ' + f1(r.best.v) : '') + '</td></tr>';
   }).join('');
   Array.prototype.forEach.call(el('staff').tBodies[0].rows, function(tr){
@@ -285,8 +287,8 @@ function renderDetail(ps){
   var outs = groupBy(ps, function(p){ return p.Date; });
   el('pname').textContent = state.sel;
   el('pmeta').textContent = (ps[0].PitcherThrows === 'Left' ? 'LHP' : 'RHP') + ', ' + ps.length + ' pitches over ' +
-    Object.keys(outs).length + ' outings. Overall Stuff+ ' + f1(overall(mean(ps.map(gradeOf)))) + ' D1, ' +
-    f1(overall(mean(ps.map(function(p){ return p.stuff_plus_juco; })), OVERALL_JUCO)) + ' JUCO';
+    Object.keys(outs).length + ' outings. Stuff+ ' + f1(mean(ps.map(gradeOf))) + ' D1, ' +
+    f1(mean(ps.map(function(p){ return p.stuff_plus_juco; }))) + ' JUCO';
 
   var types = groupBy(ps, function(p){ return p._pt; });
   var tlist = sortTypes(Object.keys(types));
@@ -294,13 +296,13 @@ function renderDetail(ps){
     '<th>Vert break</th><th>Horz break</th><th>Spin</th><th>Stuff+</th></tr>';
   el('arsenal').tBodies[0].innerHTML = tlist.map(function(t){
     var a = types[t];
-    return '<tr class="' + (a.length < 20 ? 'thin' : '') + '"><td class="l">' + esc(t) + '</td><td>' + a.length + '</td>' +
+    return '<tr class="' + (a.length < MIN_PT ? 'thin' : '') + '"><td class="l">' + esc(t) + '</td><td>' + a.length + '</td>' +
       '<td>' + (100 * a.length / ps.length).toFixed(0) + '%</td>' +
       '<td>' + f1(mean(a.map(function(p){ return p.RelSpeed; }))) + '</td>' +
       '<td>' + f1(mean(a.map(function(p){ return p.InducedVertBreak; }))) + '</td>' +
       '<td>' + f1(mean(a.map(function(p){ return p.HorzBreak; }))) + '</td>' +
       '<td>' + f0(mean(a.map(function(p){ return p.SpinRate; }))) + '</td>' +
-      '<td>' + chip(ptGrade(mean(a.map(gradeOf)), GROUP[t]), a.length, 20) + '</td></tr>';
+      '<td>' + chip(mean(a.map(gradeOf)), a.length, MIN_PT) + '</td></tr>';
   }).join('');
 
   var dates = Object.keys(outs).sort();
@@ -312,15 +314,15 @@ function renderDetail(ps){
     var fb = a.filter(function(p){ return p._pt === 'Fastball' || p._pt === 'Sinker'; });
     var names = Array.from(new Set(a.map(function(p){ return p._game.display_name || p.GameID; })));
     return '<tr><td class="l">' + esc(d) + '</td><td class="l">' + esc(names.join(', ')) + '</td><td>' + a.length + '</td>' +
-      '<td>' + chip(overall(mean(a.map(gradeOf))), a.length, 50) + '</td>' +
+      '<td>' + chip(mean(a.map(gradeOf)), a.length, MIN_OUTING) + '</td>' +
       '<td>' + f1(mean(fb.map(function(p){ return p.RelSpeed; }))) + '</td>' +
       '<td>' + f1(mean(fb.map(function(p){ return p.InducedVertBreak; }))) + '</td>' +
       tlist.map(function(t){
         var x = by[t]; if (!x) return '<td></td>';
-        return '<td>' + chip(ptGrade(mean(x.map(gradeOf)), GROUP[t]), x.length, 20) + ' <small>' + x.length + '</small></td>';
+        return '<td>' + chip(mean(x.map(gradeOf)), x.length, MIN_OUTING_PT) + ' <small>' + x.length + '</small></td>';
       }).join('') + '</tr>';
   }).join('');
-  dates.forEach(function(d){ series.push({d:d, v:overall(mean(outs[d].map(gradeOf))), n:outs[d].length}); });
+  dates.forEach(function(d){ series.push({d:d, v:mean(outs[d].map(gradeOf)), n:outs[d].length}); });
   drawSpark(series);
 }
 
