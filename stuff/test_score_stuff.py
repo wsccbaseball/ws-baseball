@@ -31,7 +31,7 @@ class PitchGroupTests(unittest.TestCase):
         self.assertIsNone(s.pitch_group('Other'))
         self.assertIsNone(s.pitch_group(None))
 
-    def test_auto_first_then_canon(self):
+    def test_tagged_first_then_canon_no_auto_cutter_override(self):
         d = pd.DataFrame([
             _pitch(AutoPitchType='Cutter', TaggedPitchType='Fastball'),
             _pitch(AutoPitchType=None, TaggedPitchType='Cutter'),
@@ -43,12 +43,27 @@ class PitchGroupTests(unittest.TestCase):
             _pitch(AutoPitchType='Slider', TaggedPitchType='Cutter'),
             _pitch(AutoPitchType='FC', TaggedPitchType='Fastball'),
             _pitch(AutoPitchType='Cut Fastball', TaggedPitchType='Slider'),
+            # Tagged missing: auto is the fallback, then CANON. Auto cutter is
+            # CT only in that case, not because of an override.
+            _pitch(AutoPitchType='Cutter', TaggedPitchType=None),
+            _pitch(AutoPitchType='Cutter', TaggedPitchType=''),
+            _pitch(AutoPitchType='Cutter', TaggedPitchType='Undefined'),
+            _pitch(AutoPitchType='Cutter', TaggedPitchType='Other'),
+            _pitch(AutoPitchType='Four-Seam', TaggedPitchType=None),
+            _pitch(AutoPitchType='FC', TaggedPitchType='Undefined'),
+            _pitch(AutoPitchType='ChangeUp', TaggedPitchType='Other'),
+            _pitch(AutoPitchType='Cut Fastball', TaggedPitchType=''),
         ])
         got = list(s.ptype(d))
         self.assertEqual(got, [
-            'Cutter', 'Cutter', 'Slider', 'Fastball', 'Sinker',
-            'Fastball', 'Changeup', 'Slider', 'Cutter', 'Cutter',
+            'Fastball', 'Cutter', 'Slider', 'Fastball', 'Sinker',
+            'Sinker', 'Fastball', 'Cutter', 'Fastball', 'Slider',
+            'Cutter', 'Cutter', 'Cutter', 'Cutter',
+            'Fastball', 'Cutter', 'Changeup', 'Cutter',
         ])
+        self.assertEqual(s.pitch_group(got[0]), 'FB')
+        self.assertEqual(s.pitch_group(got[7]), 'CT')
+        self.assertEqual(s.pitch_group(got[10]), 'CT')
 
     def test_primary_fastball_ignores_harder_cutter(self):
         rows = []
@@ -72,11 +87,14 @@ class PitchGroupTests(unittest.TestCase):
             {'v': [92.0], 'ivb': [16.0], 'hb': [8.0]},
             index=pd.MultiIndex.from_tuples([('ACE_R', '2026S')], names=['Key', 'Season']))
         raw = pd.DataFrame([
-            _pitch(AutoPitchType='Cutter', TaggedPitchType='Fastball', RelSpeed=88,
+            # Tagged Cutter stays CT even when auto says Fastball.
+            _pitch(AutoPitchType='Fastball', TaggedPitchType='Cutter', RelSpeed=88,
                    InducedVertBreak=8, HorzBreak=4),
-            _pitch(AutoPitchType='Four-Seam', TaggedPitchType='Sinker', RelSpeed=93),
-            _pitch(AutoPitchType='Slider', TaggedPitchType='Cutter', RelSpeed=84),
-            _pitch(AutoPitchType='Changeup', TaggedPitchType='Fastball', RelSpeed=83),
+            # Tagged Four-Seam canonicalizes to Fastball; auto Sinker does not win.
+            _pitch(AutoPitchType='Sinker', TaggedPitchType='Four-Seam', RelSpeed=93),
+            # Auto Cutter does not pull a tagged slider into CT.
+            _pitch(AutoPitchType='Cutter', TaggedPitchType='Slider', RelSpeed=84),
+            _pitch(AutoPitchType='Fastball', TaggedPitchType='ChangeUp', RelSpeed=83),
         ])
         d = s.build(raw, base).set_index('PType')
         self.assertEqual(d.loc['Cutter', 'PGroup'], 'CT')

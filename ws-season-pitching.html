@@ -1000,8 +1000,11 @@ function buildStuffTable(){
   }
 
   function stuffType(r){
-    var t=r.AutoPitchType;
-    if(!t||t==='Undefined'||t==='Other')t=r.TaggedPitchType;
+    // Tagged first, same rule as stuff/score_stuff.py and ws-stuff.html.
+    // Auto is only the fallback when tagged is blank, Undefined, or Other.
+    // No Auto=Cutter override.
+    var t=r.TaggedPitchType;
+    if(!t||t==='Undefined'||t==='Other')t=r.AutoPitchType;
     var canon={'Cut Fastball':'Cutter','FC':'Cutter','CT':'Cutter'};
     t=canon[t]||t;
     return PITCH_NORM[t]||t||'Other';
