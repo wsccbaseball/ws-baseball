@@ -99,16 +99,46 @@ class ScoreTests(unittest.TestCase):
         ct = dict(feats, PGroup='CT')
         return pd.DataFrame([fb, ct])
 
-    def test_missing_ct_model_does_not_score_cutters_as_fb(self):
-        self.assertIsNotNone(s.ct_block_reason())
-        self.assertFalse(s.group_ready('CT'))
-        self.assertTrue(s.group_ready('FB'))
+    def test_installed_models_share_feats_and_score_ct(self):
+        want = ['RelSpeed', 'SpinRate', 'InducedVertBreak', 'HorzBreak', 'AxisSin', 'AxisCos',
+                'RelHeight', 'RelSide', 'Extension', 'dVelo', 'dIVB', 'dHB']
+        self.assertEqual(list(s.FEATS), want)
+        for g in ('FB', 'BB', 'OS', 'CT'):
+            self.assertIn(g, s.models)
+            self.assertEqual(s.models[g].feature_name(), want)
+        for key in ('D1|CT', 'D2|CT', 'JUCO|CT', 'NAIA|CT'):
+            self.assertGreater(s.scale[key]['sd'], 0)
+        self.assertIsNone(s.ct_block_reason())
+        self.assertTrue(s.group_ready('CT'))
         d = s.score(self._frame())
-        self.assertTrue(pd.notna(d.loc[0, 'stuff_plus_juco']))
-        self.assertTrue(pd.notna(d.loc[0, 'stuff_plus_d1']))
-        self.assertTrue(pd.isna(d.loc[1, 'stuff_plus_juco']))
-        self.assertTrue(pd.isna(d.loc[1, 'stuff_plus_d1']))
-        self.assertTrue(pd.isna(d.loc[1, 'rv_pred']))
+        pred = float(d.loc[1, 'rv_pred'])
+        juco, d1 = s.scale['JUCO|CT'], s.scale['D1|CT']
+        self.assertAlmostEqual(d.loc[1, 'stuff_plus_juco'], round(100 + 10 * (juco['mean'] - pred) / juco['sd'], 1))
+        self.assertAlmostEqual(d.loc[1, 'stuff_plus_d1'], round(100 + 10 * (d1['mean'] - pred) / d1['sd'], 1))
+        fb = s.scale['JUCO|FB']
+        self.assertNotAlmostEqual(d.loc[1, 'stuff_plus_juco'], round(100 + 10 * (fb['mean'] - pred) / fb['sd'], 1))
+
+    def test_missing_ct_model_does_not_score_cutters_as_fb(self):
+        saved_models = dict(s.models)
+        saved_scale = dict(s.scale)
+        try:
+            s.models.pop('CT', None)
+            s.scale.pop('D1|CT', None)
+            s.scale.pop('JUCO|CT', None)
+            self.assertIsNotNone(s.ct_block_reason())
+            self.assertFalse(s.group_ready('CT'))
+            self.assertTrue(s.group_ready('FB'))
+            d = s.score(self._frame())
+            self.assertTrue(pd.notna(d.loc[0, 'stuff_plus_juco']))
+            self.assertTrue(pd.notna(d.loc[0, 'stuff_plus_d1']))
+            self.assertTrue(pd.isna(d.loc[1, 'stuff_plus_juco']))
+            self.assertTrue(pd.isna(d.loc[1, 'stuff_plus_d1']))
+            self.assertTrue(pd.isna(d.loc[1, 'rv_pred']))
+        finally:
+            s.models.clear()
+            s.models.update(saved_models)
+            s.scale.clear()
+            s.scale.update(saved_scale)
 
     def test_ct_scale_keys_are_used_when_present(self):
         saved_models = dict(s.models)

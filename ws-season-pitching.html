@@ -979,8 +979,9 @@ function buildStuffTable(){
   var MIN_OVERALL=100, MIN_PT=20;
   // Per pitch group: spread of D1 pitchers' average grade for that pitch (30+ pitches).
        var PT_SCALE={FB:{mean:99.079,sd:5.133},BB:{mean:98.499,sd:5.924},OS:{mean:99.404,sd:5.289}};
-  // Cutter is its own group. PT_SCALE.CT is filled from the retrain; until then
-  // the cutter column stays blank instead of using the fastball scale.
+  // TODO: PT_SCALE.CT mean/sd. Needs the D1 pitcher-level cutter spread from the
+  // Colab leaderboard or scored parquet. Those artifacts were not in the model
+  // drop, so the cutter column stays blank.
   var PT_GROUP={Fastball:'FB',Sinker:'FB',Cutter:'CT',Slider:'BB',Curveball:'BB',Sweeper:'BB',Slurve:'BB',
                 Knuckleball:'BB',ChangeUp:'OS',Changeup:'OS',Splitter:'OS',Screwball:'OS'};
   if(!document.getElementById('stuffPlusCss')){

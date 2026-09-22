@@ -8,13 +8,8 @@ The 12 features in `models/scaling.json` are RelSpeed, SpinRate, InducedVertBrea
 
 ## Cutter model
 
-`stuff_CT.txt` is not shipped here. Until that file and the `D1|CT` / `JUCO|CT` keys exist, the scorer logs a skip and leaves cutter pitches ungraded. It does not score them as FB.
+Colab v3 is in `stuff/models/`: `stuff_FB.txt`, `stuff_BB.txt`, `stuff_OS.txt`, `stuff_CT.txt`, and `scaling.json` with `D1|CT`, `D2|CT`, `JUCO|CT`, and `NAIA|CT`. The scorer grades CT when `stuff_CT.txt` plus `D1|CT` and `JUCO|CT` are present. If either is missing, it logs a skip and leaves cutter pitches unscored.
 
-Retrain Colab v3 with CT as its own group, same features and the same target as FB, BB, and OS. Copy into `stuff/models/`:
+To pick up grades for pitches that were scored while cutters were fastballs, null `stuff_plus_juco` and `stuff_plus_d1` on those rows and rerun `python stuff/score_stuff.py`.
 
-- `stuff_CT.txt`
-- `scaling.json`, including level×CT keys the same way as the other groups (`D1|CT`, `D2|CT`, `JUCO|CT`, `NAIA|CT`)
-
-Then null `stuff_plus_juco` and `stuff_plus_d1` on pitches that were previously graded as fastballs and rerun `python stuff/score_stuff.py`.
-
-The Stuff+ pages apply a second, pitcher-level scale from hardcoded spreads. After the retrain, add the CT spread next to FB/BB/OS in `PT_SCALE` in `ws-stuff.html` and `ws-season-pitching.html`. Do not invent that mean and sd. Until it is filled in, cutter pitch-type chips stay blank instead of using the fastball scale. Sample floors are unchanged.
+TODO: `PT_SCALE.CT` in `ws-stuff.html` and `ws-season-pitching.html` is still empty. That second scale is the spread of D1 pitchers' average cutter grades, and the Colab leaderboard or scored parquet was not in this drop, so the constant is not filled in. Cutter pitch-type chips stay blank until that mean and sd are computed from those artifacts. Sample floors are unchanged.

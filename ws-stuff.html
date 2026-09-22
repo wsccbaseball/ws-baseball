@@ -106,8 +106,9 @@ var state = {games:[], pitches:[], sel:null, sort:{key:'grade', asc:false}};
 // Fill both in to put overall grades on a true pitcher scale; left null, the raw average is shown.
    var OVERALL_D1 = {mean: 99.374, sd: 4.058};
    var OVERALL_JUCO = {mean: 100.911, sd: 4.355};
-   // CT mean/sd is filled from the cutter retrain. Until then cutter pitch-type
-   // grades stay blank instead of borrowing the fastball scale.
+   // TODO: PT_SCALE.CT mean/sd. Needs the D1 pitcher-level cutter spread from the
+   // Colab leaderboard or scored parquet. Those artifacts were not in the model
+   // drop, so cutter pitch-type chips stay blank.
    var PT_SCALE = {FB:{mean:99.079, sd:5.133}, BB:{mean:98.499, sd:5.924}, OS:{mean:99.404, sd:5.289}};
 function ptGrade(avg, g){ return (avg == null || !PT_SCALE[g]) ? null : 100 + 10 * (avg - PT_SCALE[g].mean) / PT_SCALE[g].sd; }
 function overall(avg, c){
