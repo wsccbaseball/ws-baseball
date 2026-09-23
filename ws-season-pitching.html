@@ -975,7 +975,7 @@ function stuffVal(d,col){
 function buildStuffTable(){
   // Stored stuff_plus_* values are already ~100 per level and pitch group.
   // Show the mean. Do not stretch them onto a pitcher scale (old STUFF_* / PT_SCALE).
-  var MIN_OVERALL=150, MIN_PT=40;
+  var MIN_OVERALL=80, MIN_PT=25;
   if(!document.getElementById('stuffPlusCss')){
     var css=document.createElement('style');css.id='stuffPlusCss';
     css.textContent='#stuffTbl td,#stuffTbl th{width:auto;max-width:none;min-width:58px;overflow:visible;padding:6px 4px}'+
