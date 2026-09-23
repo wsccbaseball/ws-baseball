@@ -339,7 +339,7 @@ var allPitches=[], seasonStats={batting:[]}, gamesMeta=[], allGamesMeta=[], tabl
 var sortCol='woba', sortAsc=false, selectedPlayer=null;
 var _qs=new URLSearchParams(location.search);
 var CURRENT_SEASON=_qs.get('season')||'2026-spring';
-var GAME_TYPE_MODE=_qs.get('type')||(_qs.get('intersquad')==='1'?'all':'game');
+var GAME_TYPE_MODE=_qs.get('type')||'all';
 
 var PITCH_COLORS={
   'Fastball':'#e63946','Four-Seam':'#e63946','FourSeamFastBall':'#e63946',
