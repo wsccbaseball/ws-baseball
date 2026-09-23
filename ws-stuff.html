@@ -107,10 +107,10 @@ var state = {games:[], pitches:[], sel:null, sort:{key:'grade', asc:false}};
 // (FB, CT, BB, OS) in score_stuff.py. Show the mean of those grades. A second
 // pitcher-level stretch used to live here (OVERALL_* and PT_SCALE) and made
 // rankings drift, especially cutters, whose pitcher sd was only about 2.5.
-var MIN_OVERALL = 150;  // staff Stuff+ D1 / JUCO chips
-var MIN_PT = 40;        // pitch-group chips, arsenal rows, best-pitch picker
-var MIN_OUTING = 75;    // outing overall chip
-var MIN_OUTING_PT = 30; // outing pitch-type chip
+var MIN_OVERALL = 80;  // staff Stuff+ D1 / JUCO chips
+var MIN_PT = 25;        // pitch-group chips, arsenal rows, best-pitch picker
+var MIN_OUTING = 50;    // outing overall chip
+var MIN_OUTING_PT = 20; // outing pitch-type chip
 
 function qs(k){ return new URLSearchParams(location.search).get(k); }
 function setQS(){
