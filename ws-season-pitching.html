@@ -913,6 +913,16 @@ function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 // All three come from the same b.ev array that produces AvgEV and MaxEV, and
 // that array is only filled inside the InPlay branch — so foul balls with a
 // tracked ExitSpeed are excluded, matching standard hard-hit%.
+//
+// Stuff+ columns: StuffPlusD1 and StuffPlusJUCO are the mean graded value for
+// that pitch type on that date. Both are already scaled (100 = average at that
+// level, 10 = one SD) so the mean is the right rollup — do not rescale.
+// Pitches with no grade write empty, not zero, so the pre-calibration sessions
+// (no break data, hence no grade) drop out instead of averaging in as zeros.
+//
+// Filename is stamped with the last session date IN the file, not the clock.
+// Wall-clock stamps were coming out in UTC, so anything exported after 8pm
+// Eastern carried the next day's date.
 function exportAggregate(){
   var btn=document.getElementById('exportBtn'),orig=btn.innerHTML;
   btn.innerHTML='Building...';btn.disabled=true;
@@ -932,7 +942,7 @@ function exportAggregate(){
       if(!buckets[k])buckets[k]={date:date,gtype:gtype,gname:gname,pitcher:pitcher,
         throws:throws||'',pt:pt,n:0,velo:[],ivb:[],hb:[],spin:[],axis:[],tilt:[],
         vaa:[],ext:[],relh:[],rels:[],strikes:0,zone:0,swings:0,whiffs:0,called:0,bip:0,ev:[],
-        ks:0,bbs:0,pa:0,stuffD1:[]};
+        ks:0,bbs:0,pa:0,stuffD1:[],stuffJU:[]};
       return buckets[k];
     }
     rows.forEach(function(r){
@@ -960,7 +970,12 @@ function exportAggregate(){
       if(r.KorBB==='Walk')b.bbs++;
       if(parseInt(r.PitchofPA)===1)b.pa++;
       var d1=parseFloat(r.stuff_plus_d1);
-      if(!isNaN(d1))bucket(date,gtype,gname,r.Pitcher,r.PitcherThrows,stuffType(r)).stuffD1.push(d1);
+      var ju=parseFloat(r.stuff_plus_juco);
+      if(!isNaN(d1)||!isNaN(ju)){
+        var sb=bucket(date,gtype,gname,r.Pitcher,r.PitcherThrows,stuffType(r));
+        if(!isNaN(d1))sb.stuffD1.push(d1);
+        if(!isNaN(ju))sb.stuffJU.push(ju);
+      }
     });
 
     function mean(a){return a.length?a.reduce(function(s,v){return s+v;},0)/a.length:'';}
@@ -989,7 +1004,7 @@ function exportAggregate(){
 
     var head=['Date','GameType','Game','Pitcher','Throws','PitchType','N','Usage%',
       'Velo','MaxVelo','VeloSD','IVB','IVBSD','HB','HBSD','Spin','SpinSD','SpinAxis','SpinAxisSD','VAA','Ext','RelH','RelS',
-      'Strike%','Zone%','Swings','Whiffs','Whiff%','CalledStrikes','BIP','EVCount','HardHit','Crushed','AvgEV','MaxEV','K','BB','PA','StuffPlusD1'];
+      'Strike%','Zone%','Swings','Whiffs','Whiff%','CalledStrikes','BIP','EVCount','HardHit','Crushed','AvgEV','MaxEV','K','BB','PA','StuffPlusD1','StuffPlusJUCO'];
     var byPD={};
     Object.keys(buckets).forEach(function(k){
       var b=buckets[k],pk=b.date+'||'+b.pitcher;
@@ -1012,12 +1027,14 @@ function exportAggregate(){
         b.ev.filter(function(v){return v>=95;}).length,
         b.ev.filter(function(v){return v>=100;}).length,
         f1(mean(b.ev)),f1(b.ev.length?Math.max.apply(null,b.ev):''),
-        b.ks,b.bbs,b.pa,f1(meanOf(b.stuffD1))].join(','));
+        b.ks,b.bbs,b.pa,f1(meanOf(b.stuffD1)),f1(meanOf(b.stuffJU))].join(','));
     });
 
     var csv=out.join('\n');
-    var stamp=new Date().toISOString().slice(0,10);
-    var fname='WS_aggregate_'+CURRENT_SEASON+'_'+stamp+'.csv';
+    var maxDate='';
+    Object.keys(buckets).forEach(function(k){if(buckets[k].date>maxDate)maxDate=buckets[k].date;});
+    var stamp=maxDate||new Date().toISOString().slice(0,10);
+    var fname='WS_aggregate_'+CURRENT_SEASON+'_thru'+stamp+'.csv';
     var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
     var url=URL.createObjectURL(blob);
     var a=document.createElement('a');
@@ -1030,6 +1047,7 @@ function exportAggregate(){
     btn.innerHTML=orig;btn.disabled=false;
   }
 }
+
 
 var currentTab='results';
 var stuffSortPt=null,stuffSortCol=null,stuffSortAsc=false;
