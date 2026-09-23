@@ -96,6 +96,9 @@ canvas{display:block;border-radius:4px}
 .pitch-table th:first-child{text-align:left}
 .pitch-table td{text-align:center;padding:4px 4px;font-size:11px;font-weight:700;color:#1a1a1a;border:1px solid #dde4ef;background:#f8fafd}
 .pitch-table td:first-child{text-align:left;display:flex;align-items:center;gap:4px;background:#f8fafd}
+.pitch-table.arsenal{table-layout:fixed}
+.pitch-table.arsenal th{font-size:7px;padding:3px 1px;letter-spacing:-.02em}
+.pitch-table.arsenal td{font-size:9.5px;padding:3px 1px}
 .pitch-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .card-footer{background:#f0f4fa;border-top:1px solid #dde4ef;padding:5px 10px;display:flex;justify-content:space-between;font-family:'Barlow Condensed',sans-serif;font-size:8px;color:#6a7f9a}
 .save-btn{display:block;width:calc(100% - 16px);margin:8px auto;padding:11px;background:#1a3a5c;border:none;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:#fff;cursor:pointer;letter-spacing:1px}
@@ -285,12 +288,12 @@ canvas{display:block;border-radius:4px}
     <!-- Pitch Arsenal -->
     <div class="pitch-section">
       <span class="stat-section-label" style="display:block;margin-bottom:4px">Pitch Arsenal</span>
-      <table class="pitch-table">
+      <table class="pitch-table arsenal">
         <thead><tr>
           <th style="text-align:left">Pitch</th>
           <th>Usage</th><th>Velo</th><th>Max</th><th>iVB</th><th>HB</th>
           <th>Spin</th><th>VAA</th><th>RelH</th><th>Ext</th>
-          <th>SwStr%</th><th>Chase%</th><th>Str%</th><th>Hard%</th>
+          <th>Zone%</th><th>SwStr%</th><th>Chase%</th><th>Str%</th><th>Hard%</th><th>Stuff+</th>
         </tr></thead>
         <tbody id="pitchTableBody"></tbody>
       </table>
@@ -373,6 +376,30 @@ var PITCH_NORM={
 var WOBA_WEIGHTS={'Single':0.88,'Double':1.24,'Triple':1.56,'HomeRun':2.08,'Home Run':2.08};
 
 function normPitch(t,a){var raw=(!t||t==='Undefined')?a:t;return PITCH_NORM[raw]||raw||'Other';}
+function stuffType(r){
+  // Tagged first, same rule as stuff/score_stuff.py and ws-stuff.html.
+  // Auto is only the fallback when tagged is blank, Undefined, or Other.
+  // No Auto=Cutter override.
+  var t=r.TaggedPitchType;
+  if(!t||t==='Undefined'||t==='Other')t=r.AutoPitchType;
+  var canon={'Cut Fastball':'Cutter','FC':'Cutter','CT':'Cutter'};
+  t=canon[t]||t;
+  return PITCH_NORM[t]||t||'Other';
+}
+function meanOf(arr){
+  if(!arr||!arr.length)return null;
+  var s=0;for(var i=0;i<arr.length;i++)s+=arr[i];
+  return s/arr.length;
+}
+function newPitchBucket(){
+  return {
+    total:0,swings:0,whiffs:0,calledStrikes:0,chases:0,ozPitches:0,inZone:0,strikes:0,
+    ev:[],velos:[],contacts:0,ivb:[],hb:[],spin:[],vaa:[],relh:[],ext:[],
+    ptInPlay:0,singles:0,doubles:0,triples:0,ptHRs:0,
+    ptKs:0,ptBBs:0,ptHBPs:0,ptGB:0,ptBarrels:0,ptEVContacts:0,
+    stuffD1:[]
+  };
+}
 function pitchColor(t){return PITCH_COLORS[normPitch(t)]||PITCH_COLORS[t]||'#888888';}
 var PITCH_ABBREV={'Fastball':'FB','Sinker':'SI','Curveball':'CB','Slider':'SL','Cutter':'CT','ChangeUp':'CH','Splitter':'SP','Knuckleball':'KN','Other':'OT'};
 function pitchAbbrev(t){return PITCH_ABBREV[t]||t.slice(0,3).toUpperCase();}
@@ -416,13 +443,12 @@ function computePitcherProfile(name, rows){
   rows.forEach(function(r){
     var call=(r.PitchCall||'').trim();
     var pt=normPitch(r.TaggedPitchType,r.AutoPitchType);
-    if(!pitchTypes[pt])pitchTypes[pt]={
-      total:0,swings:0,whiffs:0,calledStrikes:0,chases:0,ozPitches:0,inZone:0,strikes:0,
-      ev:[],velos:[],contacts:0,ivb:[],hb:[],spin:[],vaa:[],relh:[],ext:[],
-      ptInPlay:0,singles:0,doubles:0,triples:0,ptHRs:0,
-      ptKs:0,ptBBs:0,ptHBPs:0,ptGB:0,ptBarrels:0,ptEVContacts:0
-    };
+    if(!pitchTypes[pt])pitchTypes[pt]=newPitchBucket();
     pitchTypes[pt].total++;
+    var spt=stuffType(r);
+    if(!pitchTypes[spt])pitchTypes[spt]=newPitchBucket();
+    var d1=parseFloat(r.stuff_plus_d1);
+    if(!isNaN(d1))pitchTypes[spt].stuffD1.push(d1);
     var velo=parseFloat(r.RelSpeed||r.PitchSpeed||r.StartSpeed||'NaN');
     if(!isNaN(velo)&&velo>0)pitchTypes[pt].velos.push(velo);
     var isSwing=SWING_CALLS.includes(call);
@@ -666,10 +692,12 @@ function buildPitchTable(p){
       '<td>'+fmt1(avg(d.velos))+'</td><td>'+fmt1(maxArr(d.velos))+'</td>'+
       '<td>'+fmt1(avg(d.ivb))+'</td><td>'+fmt1(avg(d.hb))+'</td><td>'+fmt0(avg(d.spin))+'</td>'+
       '<td>'+fmt1(avg(d.vaa))+'</td><td>'+fmt1(avg(d.relh))+'</td><td>'+fmt1(avg(d.ext))+'</td>'+
+      '<td>'+pct(d.inZone/d.total)+'</td>'+
       '<td>'+pct(d.whiffs/d.total)+'</td>'+
       '<td>'+(d.ozPitches>0?pct(d.chases/d.ozPitches):'--')+'</td>'+
       '<td>'+pct(d.strikes/d.total)+'</td>'+
       '<td>'+(d.ev.length>0?pct(d.ev.filter(function(v){return v>=95;}).length/d.ev.length):'--')+'</td>'+
+      '<td>'+fmt1(meanOf(d.stuffD1))+'</td>'+
       '</tr>';
   });
 }
@@ -839,18 +867,21 @@ function exportAggregate(){
     if(!rows.length){alert('No pitches match the current filters.');btn.innerHTML=orig;btn.disabled=false;return;}
 
     var buckets={};
+    function bucket(date,gtype,gname,pitcher,throws,pt){
+      var k=[date,pitcher,pt].join('||');
+      if(!buckets[k])buckets[k]={date:date,gtype:gtype,gname:gname,pitcher:pitcher,
+        throws:throws||'',pt:pt,n:0,velo:[],ivb:[],hb:[],spin:[],axis:[],tilt:[],
+        vaa:[],ext:[],relh:[],rels:[],strikes:0,zone:0,swings:0,whiffs:0,called:0,bip:0,ev:[],
+        ks:0,bbs:0,pa:0,stuffD1:[]};
+      return buckets[k];
+    }
     rows.forEach(function(r){
       var meta=gamesMeta.find(function(g){return g.game_id===r.GameID;});
       var date=(meta&&meta.date)?meta.date:String(r.GameID||'').slice(0,10);
       var gtype=(meta&&meta.game_type)?meta.game_type:'game';
       var gname=(meta&&meta.display_name)?meta.display_name:(r.GameID||'');
       var pt=normPitch(r.TaggedPitchType,r.AutoPitchType);
-      var k=[date,r.Pitcher,pt].join('||');
-      if(!buckets[k])buckets[k]={date:date,gtype:gtype,gname:gname,pitcher:r.Pitcher,
-        throws:r.PitcherThrows||'',pt:pt,n:0,velo:[],ivb:[],hb:[],spin:[],axis:[],tilt:[],
-        vaa:[],ext:[],relh:[],rels:[],strikes:0,zone:0,swings:0,whiffs:0,called:0,bip:0,ev:[],
-        ks:0,bbs:0,pa:0};
-      var b=buckets[k];
+      var b=bucket(date,gtype,gname,r.Pitcher,r.PitcherThrows,pt);
       b.n++;
       function num(v){var x=parseFloat(v);return isNaN(x)?null:x;}
       var f={velo:num(r.RelSpeed),ivb:num(r.InducedVertBreak),hb:num(r.HorzBreak),
@@ -868,6 +899,8 @@ function exportAggregate(){
       if(r.KorBB==='Strikeout')b.ks++;
       if(r.KorBB==='Walk')b.bbs++;
       if(parseInt(r.PitchofPA)===1)b.pa++;
+      var d1=parseFloat(r.stuff_plus_d1);
+      if(!isNaN(d1))bucket(date,gtype,gname,r.Pitcher,r.PitcherThrows,stuffType(r)).stuffD1.push(d1);
     });
 
     function mean(a){return a.length?a.reduce(function(s,v){return s+v;},0)/a.length:'';}
@@ -896,7 +929,7 @@ function exportAggregate(){
 
     var head=['Date','GameType','Game','Pitcher','Throws','PitchType','N','Usage%',
       'Velo','MaxVelo','VeloSD','IVB','IVBSD','HB','HBSD','Spin','SpinSD','SpinAxis','SpinAxisSD','VAA','Ext','RelH','RelS',
-      'Strike%','Zone%','Swings','Whiffs','Whiff%','CalledStrikes','BIP','EVCount','HardHit','Crushed','AvgEV','MaxEV','K','BB','PA'];
+      'Strike%','Zone%','Swings','Whiffs','Whiff%','CalledStrikes','BIP','EVCount','HardHit','Crushed','AvgEV','MaxEV','K','BB','PA','StuffPlusD1'];
     var byPD={};
     Object.keys(buckets).forEach(function(k){
       var b=buckets[k],pk=b.date+'||'+b.pitcher;
@@ -905,6 +938,7 @@ function exportAggregate(){
     var out=[head.join(',')];
     Object.keys(buckets).sort().forEach(function(k){
       var b=buckets[k],tot=byPD[b.date+'||'+b.pitcher];
+      if(!b.n)return;
       out.push([q(b.date),q(b.gtype),q(b.gname),q(b.pitcher),q(b.throws),q(b.pt),b.n,
         pc(b.n,tot),
         f1(mean(b.velo)),f1(b.velo.length?Math.max.apply(null,b.velo):''),f1(sd(b.velo)),
@@ -918,7 +952,7 @@ function exportAggregate(){
         b.ev.filter(function(v){return v>=95;}).length,
         b.ev.filter(function(v){return v>=100;}).length,
         f1(mean(b.ev)),f1(b.ev.length?Math.max.apply(null,b.ev):''),
-        b.ks,b.bbs,b.pa].join(','));
+        b.ks,b.bbs,b.pa,f1(meanOf(b.stuffD1))].join(','));
     });
 
     var csv=out.join('\n');
@@ -992,38 +1026,32 @@ function buildStuffTable(){
       'Gray = too few pitches to trust (under '+MIN_OVERALL+' overall, under '+MIN_PT+' for a pitch type). Rows under '+MIN_OVERALL+' pitches are muted.';
     var scr=document.getElementById('stuff-screen');scr.insertBefore(note,scr.firstChild);
   }
-  function m(a){return a.length?a.reduce(function(s,v){return s+v;},0)/a.length:null;}
   function chip(v,n,min){
     if(v===null)return '<span class="spx">--</span>';
     var cls=n<min?'spx':v>=110?'sp5':v>=104?'sp4':v>96?'sp3':v>90?'sp2':'sp1';
     return '<span class="sp '+cls+'">'+v.toFixed(1)+'</span>';
   }
 
-  function stuffType(r){
-    // Tagged first, same rule as stuff/score_stuff.py and ws-stuff.html.
-    // Auto is only the fallback when tagged is blank, Undefined, or Other.
-    // No Auto=Cutter override.
-    var t=r.TaggedPitchType;
-    if(!t||t==='Undefined'||t==='Other')t=r.AutoPitchType;
-    var canon={'Cut Fastball':'Cutter','FC':'Cutter','CT':'Cutter'};
-    t=canon[t]||t;
-    return PITCH_NORM[t]||t||'Other';
-  }
-
   var selectedPitchers=getSelectedPitchers();
   var data=tableData.filter(function(p){return p.tbf>0&&(!selectedPitchers.length||selectedPitchers.includes(p.name));})
     .map(function(p){
-      var d1=[],ju=[],byPt={};
+      // D1 means come from the same per-type stuffD1 lists the season card uses.
+      var d1=[],byPt={};
+      Object.keys(p.pitchTypes).forEach(function(k){
+        var grades=p.pitchTypes[k].stuffD1;
+        if(!grades||!grades.length)return;
+        byPt[k]=grades;
+        grades.forEach(function(v){d1.push(v);});
+      });
+      var ju=[];
       p.rows.forEach(function(r){
         var a=parseFloat(r.stuff_plus_d1),b=parseFloat(r.stuff_plus_juco);
-        if(isNaN(a))return;
-        d1.push(a);if(!isNaN(b))ju.push(b);
-        var pt=stuffType(r);
-        (byPt[pt]=byPt[pt]||[]).push(a);
+        if(isNaN(a)||isNaN(b))return;
+        ju.push(b);
       });
-      var s={p:p,n:d1.length,d1:m(d1),juco:m(ju),pt:{}};
+      var s={p:p,n:d1.length,d1:meanOf(d1),juco:meanOf(ju),pt:{}};
       Object.keys(byPt).forEach(function(k){
-        s.pt[k]={n:byPt[k].length,v:m(byPt[k])};
+        s.pt[k]={n:byPt[k].length,v:meanOf(byPt[k])};
       });
       return s;
     });
