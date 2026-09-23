@@ -141,7 +141,7 @@ var allGamesMeta=[], gamesMeta=[], LASTROWS=null, LASTGAME=null, LASTSCOPE='wal'
 var XLBLOB=null, XLNAME='Game_Report.xlsx';
 var _qs=new URLSearchParams(location.search);
 var CURRENT_SEASON=_qs.get('season')||'2026-spring';
-var GAME_TYPE_MODE=_qs.get('type')||(_qs.get('intersquad')==='1'?'all':'game');
+var GAME_TYPE_MODE=_qs.get('type')||'all';
 var TAGSRC='auto';
 
 var PITCH_NORM={
