@@ -352,7 +352,7 @@ var seasonPitching={};
 var FIP_CONSTANT=5.49;
 var _qs=new URLSearchParams(location.search);
 var CURRENT_SEASON=_qs.get('season')||'2026-spring';
-var GAME_TYPE_MODE=_qs.get('type')||(_qs.get('intersquad')==='1'?'all':'game');
+var GAME_TYPE_MODE=_qs.get('type')||'all';
 
 // Shared pitch-call classifications — used everywhere so a call is never
 // counted one way in one metric and another way somewhere else.
