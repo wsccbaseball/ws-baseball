@@ -704,11 +704,26 @@ function mixHex(a,b,t){
 }
 // z is SDs above the D1 anchor. Positive (better) washes green; negative washes warm.
 // Clamped at ±2 SD so a single outlier does not blow out the cream card.
+// Zone% uses this. Stuff+ uses d1StuffStyle — a ±3 grade is only z≈0.3, and
+// this curve mixes ~10% at that z, which disappears on the cream cell.
 function d1GradeStyle(z){
   if(z===null||z===undefined||isNaN(z))return '';
   var mag=Math.max(-2,Math.min(2,z))/2;
   var base='#f8fafd';
   var bg=mag>=0?mixHex(base,'#1a6b3a',mag*0.58):mixHex(base,'#b45309',-mag*0.48);
+  return 'background-color:'+bg+';color:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact';
+}
+// Stuff+ display wash only. z is still (grade-100)/10; scoring is unchanged.
+// Full glanceable color by one SD (110 / 90). A sub-linear ramp lifts
+// 103 / 97 off white. Strength flattens after ±1.25 SD so 120 / 80 stay
+// a wash with dark ink, not a solid cell. html2canvas reads background-color.
+function d1StuffStyle(z){
+  if(z===null||z===undefined||isNaN(z))return '';
+  var sign=z<0?-1:1;
+  var az=Math.abs(z);
+  var u=az<=1?Math.pow(az,0.55):Math.min(1.12,1+(Math.min(az,1.25)-1)*0.48);
+  var base='#f8fafd';
+  var bg=sign>0?mixHex(base,'#1a6b3a',Math.min(0.70,u*0.58)):mixHex(base,'#b45309',Math.min(0.64,u*0.56));
   return 'background-color:'+bg+';color:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact';
 }
 
@@ -720,9 +735,9 @@ function buildPitchTable(p){
   function maxArr(arr){return arr.length>0?Math.max.apply(null,arr):null;}
   function fmt1(v){return v!==null&&!isNaN(v)?v.toFixed(1):'--';}
   function fmt0(v){return v!==null&&!isNaN(v)?Math.round(v)+'':'--';}
-  function cell(text,z){
+  function cell(text,z,styleFn){
     if(text==='--'||z===null||z===undefined||isNaN(z))return '<td>'+text+'</td>';
-    return '<td style="'+d1GradeStyle(z)+'">'+text+'</td>';
+    return '<td style="'+(styleFn||d1GradeStyle)(z)+'">'+text+'</td>';
   }
   Object.entries(p.pitchTypes).filter(function(e){return e[1].total>=3;}).sort(function(a,b){return b[1].total-a[1].total;}).forEach(function(e){
     var pt=e[0],d=e[1];
@@ -742,7 +757,7 @@ function buildPitchTable(p){
       '<td>'+(d.ozPitches>0?pct(d.chases/d.ozPitches):'--')+'</td>'+
       '<td>'+pct(d.strikes/d.total)+'</td>'+
       '<td>'+(d.ev.length>0?pct(d.ev.filter(function(v){return v>=95;}).length/d.ev.length):'--')+'</td>'+
-      cell(fmt1(stuff),stuffZ)+
+      cell(fmt1(stuff),stuffZ,d1StuffStyle)+
       '</tr>';
   });
 }
