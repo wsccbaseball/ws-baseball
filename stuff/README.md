@@ -8,7 +8,7 @@ The 12 features in `models/scaling.json` are RelSpeed, SpinRate, InducedVertBrea
 
 ## Cutter model
 
-Colab v3 is in `stuff/models/`: `stuff_FB.txt`, `stuff_BB.txt`, `stuff_OS.txt`, `stuff_CT.txt`, and `scaling.json` with `D1|CT`, `D2|CT`, `JUCO|CT`, and `NAIA|CT`. The scorer grades CT when `stuff_CT.txt` plus `D1|CT` and `JUCO|CT` are present. If either is missing, it logs a skip and leaves cutter pitches unscored.
+Colab v4 is in `stuff/models/`: `stuff_FB.txt`, `stuff_BB.txt`, `stuff_OS.txt`, `stuff_CT.txt`, and `scaling.json` (`version` `v4`) with `D1|CT`, `D2|CT`, `JUCO|CT`, and `NAIA|CT`. The previous v3 boosters and `scaling.json` are in `stuff/models_v3_backup/`. The FB model has a monotone constraint on RelSpeed and adds about 1.2 Stuff+ per mph. It weights low-velo fastballs more heavily, adds non-WS JUCO fastballs to training, and trains tagged-first. Holdout is slightly better than v3. The same 12 features, tagged-first typing, CT group, and scaling format are unchanged. The scorer grades CT when `stuff_CT.txt` plus `D1|CT` and `JUCO|CT` are present. If either is missing, it logs a skip and leaves cutter pitches unscored.
 
 To pick up grades for pitches that were scored while cutters were fastballs, null `stuff_plus_juco` and `stuff_plus_d1` on those rows and rerun `python stuff/score_stuff.py`.
 
