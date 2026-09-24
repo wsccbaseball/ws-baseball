@@ -3,6 +3,7 @@ import os
 import sys
 import unittest
 
+import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -68,44 +69,100 @@ class PitchGroupTests(unittest.TestCase):
     def test_primary_fastball_ignores_harder_cutter(self):
         rows = []
         for _ in range(12):
-            rows.append(dict(PType='Cutter', RelSpeed=96, InducedVertBreak=8, HorzBreak=3,
-                             Key='ACE_R', Season='2026S'))
-            rows.append(dict(PType='Fastball', RelSpeed=91, InducedVertBreak=17, HorzBreak=9,
-                             Key='ACE_R', Season='2026S'))
-        base = s.primary_fastball(pd.DataFrame(rows))
-        self.assertAlmostEqual(base.loc[('ACE_R', '2026S'), 'v'], 91)
-        self.assertAlmostEqual(base.loc[('ACE_R', '2026S'), 'ivb'], 17)
+            rows.append(_pitch(TaggedPitchType='Cutter', AutoPitchType='Cutter', RelSpeed=96,
+                               InducedVertBreak=8, HorzBreak=3))
+            rows.append(_pitch(TaggedPitchType='Fastball', RelSpeed=91,
+                               InducedVertBreak=17, HorzBreak=9))
+        d = s.build(pd.DataFrame(rows))
+        fb = d[d['PType'] == 'Fastball'].iloc[0]
+        self.assertAlmostEqual(fb['v'], 91)
+        self.assertAlmostEqual(fb['ivb'], 17)
+        self.assertAlmostEqual(fb['hb'], 9)
+        ct = d[d['PType'] == 'Cutter'].iloc[0]
+        self.assertAlmostEqual(ct['dVelo'], 5)
 
-    def test_cutter_only_pitcher_has_no_fastball_baseline(self):
-        rows = [dict(PType='Cutter', RelSpeed=90, InducedVertBreak=8, HorzBreak=2,
-                     Key='ACE_R', Season='2026S') for _ in range(15)]
-        base = s.primary_fastball(pd.DataFrame(rows))
-        self.assertTrue(base.empty)
+    def test_fewer_than_10_fastballs_does_not_use_cutter_as_primary(self):
+        rows = [_pitch(TaggedPitchType='Cutter', RelSpeed=80, InducedVertBreak=8, HorzBreak=2)
+                for _ in range(15)]
+        rows += [_pitch(TaggedPitchType='Fastball', RelSpeed=100, InducedVertBreak=16, HorzBreak=8)
+                 for _ in range(9)]
+        d = s.build(pd.DataFrame(rows))
+        # No FB type reaches n>=10, so the baseline is the pitcher mean, not the cutter.
+        expected = (15 * 80 + 9 * 100) / 24
+        self.assertAlmostEqual(d['v'].iloc[0], expected)
+        self.assertNotAlmostEqual(d['v'].iloc[0], 80)
 
     def test_build_routes_groups_and_diffs_against_true_fb(self):
-        base = pd.DataFrame(
-            {'v': [92.0], 'ivb': [16.0], 'hb': [8.0]},
-            index=pd.MultiIndex.from_tuples([('ACE_R', '2026S')], names=['Key', 'Season']))
-        raw = pd.DataFrame([
+        rows = [
+            _pitch(AutoPitchType='Sinker', TaggedPitchType='Four-Seam', RelSpeed=92,
+                   InducedVertBreak=16, HorzBreak=8)
+            for _ in range(12)
+        ]
+        rows += [
             # Tagged Cutter stays CT even when auto says Fastball.
             _pitch(AutoPitchType='Fastball', TaggedPitchType='Cutter', RelSpeed=88,
                    InducedVertBreak=8, HorzBreak=4),
-            # Tagged Four-Seam canonicalizes to Fastball; auto Sinker does not win.
-            _pitch(AutoPitchType='Sinker', TaggedPitchType='Four-Seam', RelSpeed=93),
             # Auto Cutter does not pull a tagged slider into CT.
-            _pitch(AutoPitchType='Cutter', TaggedPitchType='Slider', RelSpeed=84),
-            _pitch(AutoPitchType='Fastball', TaggedPitchType='ChangeUp', RelSpeed=83),
-        ])
-        d = s.build(raw, base).set_index('PType')
-        self.assertEqual(d.loc['Cutter', 'PGroup'], 'CT')
-        self.assertEqual(d.loc['Fastball', 'PGroup'], 'FB')
-        self.assertEqual(d.loc['Slider', 'PGroup'], 'BB')
-        self.assertEqual(d.loc['Changeup', 'PGroup'], 'OS')
-        self.assertAlmostEqual(d.loc['Cutter', 'dVelo'], -4)
-        self.assertAlmostEqual(d.loc['Cutter', 'dIVB'], -8)
-        self.assertAlmostEqual(d.loc['Cutter', 'dHB'], -4)
-        self.assertAlmostEqual(d.loc['Changeup', 'dVelo'], -9)
-        self.assertAlmostEqual(d.loc['Fastball', 'dVelo'], 1)
+            _pitch(AutoPitchType='Cutter', TaggedPitchType='Slider', RelSpeed=84,
+                   InducedVertBreak=2, HorzBreak=6),
+            _pitch(AutoPitchType='Fastball', TaggedPitchType='ChangeUp', RelSpeed=83,
+                   InducedVertBreak=6, HorzBreak=12),
+        ]
+        d = s.build(pd.DataFrame(rows))
+        fb = d[d['PType'] == 'Fastball'].iloc[0]
+        ct = d[d['PType'] == 'Cutter'].iloc[0]
+        bb = d[d['PType'] == 'Slider'].iloc[0]
+        os_ = d[d['PType'] == 'Changeup'].iloc[0]
+        self.assertEqual(fb['PGroup'], 'FB')
+        self.assertEqual(ct['PGroup'], 'CT')
+        self.assertEqual(bb['PGroup'], 'BB')
+        self.assertEqual(os_['PGroup'], 'OS')
+        self.assertAlmostEqual(fb['dVelo'], 0)
+        self.assertAlmostEqual(ct['dVelo'], -4)
+        self.assertAlmostEqual(ct['dIVB'], -8)
+        self.assertAlmostEqual(ct['dHB'], -4)
+        self.assertAlmostEqual(os_['dVelo'], -9)
+        # Same outing: day diffs use that day's most-used FB type.
+        self.assertAlmostEqual(ct['dVelo_day'], -4)
+        self.assertAlmostEqual(ct['dSpin_day'], 0)
+
+    def test_day_fb_is_most_used_then_higher_velo(self):
+        rows = []
+        for _ in range(12):
+            rows.append(_pitch(TaggedPitchType='Sinker', RelSpeed=90, InducedVertBreak=10, HorzBreak=14,
+                               SpinRate=2100, Date='2026-03-01'))
+        for _ in range(6):
+            rows.append(_pitch(TaggedPitchType='Fastball', RelSpeed=95, InducedVertBreak=18, HorzBreak=8,
+                               SpinRate=2400, Date='2026-03-01'))
+        rows.append(_pitch(TaggedPitchType='Slider', RelSpeed=82, InducedVertBreak=2, HorzBreak=4,
+                           SpinRate=2500, Date='2026-03-01'))
+        d = s.build(pd.DataFrame(rows))
+        slider = d[d['PType'] == 'Slider'].iloc[0]
+        # Sinker has n=12; the harder Fastball has only 6, so the pitcher baseline is the sinker.
+        self.assertAlmostEqual(slider['v'], 90)
+        self.assertAlmostEqual(slider['dVelo'], -8)
+        # Day FB is the most-used type (Sinker, n=12), not the harder four-seam.
+        self.assertAlmostEqual(slider['v_day'], 90)
+        self.assertAlmostEqual(slider['dVelo_day'], -8)
+        self.assertAlmostEqual(slider['dIVB_day'], -8)
+        self.assertAlmostEqual(slider['dHB_day'], -10)
+        self.assertAlmostEqual(slider['dSpin_day'], 400)
+
+    def test_lhp_flips_break_and_arm_angle(self):
+        rows = [_pitch(PitcherThrows='Left', RelSide=1.5, RelHeight=6.0, HorzBreak=10,
+                       SpinAxis=200, TaggedPitchType='Fastball', RelSpeed=92)
+                for _ in range(10)]
+        d = s.build(pd.DataFrame(rows))
+        row = d.iloc[0]
+        self.assertAlmostEqual(row['HorzBreak'], -10)
+        self.assertAlmostEqual(row['RelSide'], -1.5)
+        self.assertAlmostEqual(row['SpinAxis'], (360 - 200) % 360)
+        self.assertAlmostEqual(row['ArmAngle'], float(np.degrees(np.arctan2(-1.5, 6.0))))
+
+
+def _blend(rv, whiff, sr, sw):
+    z = s.W_RV * (sr['mean'] - rv) / sr['sd'] + s.W_WHIFF * (whiff - sw['mean']) / sw['sd']
+    return round(100 + 10 * z, 1)
 
 
 class ScoreTests(unittest.TestCase):
@@ -119,30 +176,40 @@ class ScoreTests(unittest.TestCase):
 
     def test_installed_models_share_feats_and_score_ct(self):
         want = ['RelSpeed', 'SpinRate', 'InducedVertBreak', 'HorzBreak', 'AxisSin', 'AxisCos',
-                'RelHeight', 'RelSide', 'Extension', 'dVelo', 'dIVB', 'dHB']
+                'RelHeight', 'RelSide', 'Extension', 'dVelo', 'dIVB', 'dHB',
+                'ArmAngle', 'dVelo_day', 'dIVB_day', 'dHB_day', 'dSpin_day']
         self.assertEqual(list(s.FEATS), want)
+        self.assertEqual(len(s.FEATS), 17)
         for g in ('FB', 'BB', 'OS', 'CT'):
-            self.assertIn(g, s.models)
-            self.assertEqual(s.models[g].feature_name(), want)
-        for key in ('D1|CT', 'D2|CT', 'JUCO|CT', 'NAIA|CT'):
-            self.assertGreater(s.scale[key]['sd'], 0)
+            self.assertIn(g, s.stuff_models)
+            self.assertIn(g, s.whiff_models)
+            self.assertEqual(s.stuff_models[g].feature_name(), want)
+            self.assertEqual(s.whiff_models[g].feature_name(), want)
+            for lvl in ('D1', 'JUCO'):
+                self.assertGreater(s.scale_rv[f'{lvl}|{g}']['sd'], 0)
+                self.assertGreater(s.scale_whiff[f'{lvl}|{g}']['sd'], 0)
         self.assertIsNone(s.ct_block_reason())
         self.assertTrue(s.group_ready('CT'))
         d = s.score(self._frame())
-        pred = float(d.loc[1, 'rv_pred'])
-        juco, d1 = s.scale['JUCO|CT'], s.scale['D1|CT']
-        self.assertAlmostEqual(d.loc[1, 'stuff_plus_juco'], round(100 + 10 * (juco['mean'] - pred) / juco['sd'], 1))
-        self.assertAlmostEqual(d.loc[1, 'stuff_plus_d1'], round(100 + 10 * (d1['mean'] - pred) / d1['sd'], 1))
-        fb = s.scale['JUCO|FB']
-        self.assertNotAlmostEqual(d.loc[1, 'stuff_plus_juco'], round(100 + 10 * (fb['mean'] - pred) / fb['sd'], 1))
+        rv = float(d.loc[1, 'rv_pred'])
+        wh = float(d.loc[1, 'whiff_pred'])
+        self.assertAlmostEqual(d.loc[1, 'stuff_plus_juco'], _blend(rv, wh, s.scale_rv['JUCO|CT'], s.scale_whiff['JUCO|CT']))
+        self.assertAlmostEqual(d.loc[1, 'stuff_plus_d1'], _blend(rv, wh, s.scale_rv['D1|CT'], s.scale_whiff['D1|CT']))
+        fb_only = _blend(rv, wh, s.scale_rv['JUCO|FB'], s.scale_whiff['JUCO|FB'])
+        self.assertNotAlmostEqual(d.loc[1, 'stuff_plus_juco'], fb_only)
 
     def test_missing_ct_model_does_not_score_cutters_as_fb(self):
-        saved_models = dict(s.models)
-        saved_scale = dict(s.scale)
+        saved_stuff = dict(s.stuff_models)
+        saved_whiff = dict(s.whiff_models)
+        saved_rv = dict(s.scale_rv)
+        saved_wh = dict(s.scale_whiff)
         try:
-            s.models.pop('CT', None)
-            s.scale.pop('D1|CT', None)
-            s.scale.pop('JUCO|CT', None)
+            s.stuff_models.pop('CT', None)
+            s.whiff_models.pop('CT', None)
+            s.scale_rv.pop('D1|CT', None)
+            s.scale_rv.pop('JUCO|CT', None)
+            s.scale_whiff.pop('D1|CT', None)
+            s.scale_whiff.pop('JUCO|CT', None)
             self.assertIsNotNone(s.ct_block_reason())
             self.assertFalse(s.group_ready('CT'))
             self.assertTrue(s.group_ready('FB'))
@@ -152,36 +219,40 @@ class ScoreTests(unittest.TestCase):
             self.assertTrue(pd.isna(d.loc[1, 'stuff_plus_juco']))
             self.assertTrue(pd.isna(d.loc[1, 'stuff_plus_d1']))
             self.assertTrue(pd.isna(d.loc[1, 'rv_pred']))
+            self.assertTrue(pd.isna(d.loc[1, 'whiff_pred']))
         finally:
-            s.models.clear()
-            s.models.update(saved_models)
-            s.scale.clear()
-            s.scale.update(saved_scale)
+            s.stuff_models.clear(); s.stuff_models.update(saved_stuff)
+            s.whiff_models.clear(); s.whiff_models.update(saved_whiff)
+            s.scale_rv.clear(); s.scale_rv.update(saved_rv)
+            s.scale_whiff.clear(); s.scale_whiff.update(saved_wh)
 
     def test_ct_scale_keys_are_used_when_present(self):
-        saved_models = dict(s.models)
-        saved_scale = dict(s.scale)
+        saved_stuff = dict(s.stuff_models)
+        saved_whiff = dict(s.whiff_models)
+        saved_rv = dict(s.scale_rv)
+        saved_wh = dict(s.scale_whiff)
         try:
-            s.models['CT'] = s.models['FB']
-            s.scale['D1|CT'] = {'mean': 0.02, 'sd': 0.01}
-            s.scale['JUCO|CT'] = {'mean': 0.03, 'sd': 0.02}
+            s.stuff_models['CT'] = s.stuff_models['FB']
+            s.whiff_models['CT'] = s.whiff_models['FB']
+            s.scale_rv['D1|CT'] = {'mean': 0.02, 'sd': 0.01}
+            s.scale_rv['JUCO|CT'] = {'mean': 0.03, 'sd': 0.02}
+            s.scale_whiff['D1|CT'] = {'mean': 0.20, 'sd': 0.05}
+            s.scale_whiff['JUCO|CT'] = {'mean': 0.25, 'sd': 0.04}
             self.assertIsNone(s.ct_block_reason())
             d = s.score(self._frame())
-            pred = float(d.loc[1, 'rv_pred'])
-            juco = 100 + 10 * (0.03 - pred) / 0.02
-            d1 = 100 + 10 * (0.02 - pred) / 0.01
-            fb_pred = float(d.loc[0, 'rv_pred'])
-            fb_juco_scale = s.scale['JUCO|FB']
-            fb_as_fb = 100 + 10 * (fb_juco_scale['mean'] - pred) / fb_juco_scale['sd']
-            self.assertAlmostEqual(d.loc[1, 'stuff_plus_juco'], round(juco, 1))
-            self.assertAlmostEqual(d.loc[1, 'stuff_plus_d1'], round(d1, 1))
-            self.assertNotAlmostEqual(d.loc[1, 'stuff_plus_juco'], round(fb_as_fb, 1))
-            self.assertAlmostEqual(fb_pred, pred)
+            rv = float(d.loc[1, 'rv_pred'])
+            wh = float(d.loc[1, 'whiff_pred'])
+            self.assertAlmostEqual(d.loc[1, 'stuff_plus_juco'], _blend(rv, wh, s.scale_rv['JUCO|CT'], s.scale_whiff['JUCO|CT']))
+            self.assertAlmostEqual(d.loc[1, 'stuff_plus_d1'], _blend(rv, wh, s.scale_rv['D1|CT'], s.scale_whiff['D1|CT']))
+            fb_as_fb = _blend(rv, wh, s.scale_rv['JUCO|FB'], s.scale_whiff['JUCO|FB'])
+            self.assertNotAlmostEqual(d.loc[1, 'stuff_plus_juco'], fb_as_fb)
+            self.assertAlmostEqual(float(d.loc[0, 'rv_pred']), rv)
+            self.assertAlmostEqual(float(d.loc[0, 'whiff_pred']), wh)
         finally:
-            s.models.clear()
-            s.models.update(saved_models)
-            s.scale.clear()
-            s.scale.update(saved_scale)
+            s.stuff_models.clear(); s.stuff_models.update(saved_stuff)
+            s.whiff_models.clear(); s.whiff_models.update(saved_whiff)
+            s.scale_rv.clear(); s.scale_rv.update(saved_rv)
+            s.scale_whiff.clear(); s.scale_whiff.update(saved_wh)
 
 
 if __name__ == '__main__':

@@ -7,24 +7,22 @@
   },
   "ablation_oof_r": {
     "FB": {
-      "free": 0.033577811848760644,
-      "RelSpeed": 0.03263933466745673,
-      "RelSpeed+dVelo": 0.03251913162426067,
+      "RelSpeed": 0.033265749852460225,
       "chosen": "RelSpeed"
     },
     "BB": {
-      "free": 0.035937727570201715,
-      "RelSpeed": 0.035706754679005796,
+      "free": 0.03649409427648101,
+      "RelSpeed": 0.03731270711652071,
       "chosen": "free"
     },
     "OS": {
-      "free": 0.035145664123491335,
-      "RelSpeed": 0.03481859202276753,
+      "free": 0.03556056472950952,
+      "RelSpeed": 0.03365855784385596,
       "chosen": "free"
     },
     "CT": {
-      "free": 0.011822711067741035,
-      "RelSpeed": 0.009730805142634514,
+      "free": 0.010413843375215257,
+      "RelSpeed": 0.010239859304298559,
       "chosen": "free"
     }
   },
@@ -40,31 +38,73 @@
     "Extension",
     "dVelo",
     "dIVB",
-    "dHB"
+    "dHB",
+    "ArmAngle",
+    "dVelo_day",
+    "dIVB_day",
+    "dHB_day",
+    "dSpin_day"
   ],
-  "soft_fb_weights": [
-    [
-      84.0,
-      10.0
-    ],
-    [
-      86.0,
-      6.0
-    ],
-    [
-      88.0,
-      3.0
-    ],
-    [
-      90.0,
-      1.5
-    ]
-  ],
-  "juco_fb_base_weight": 0.35,
-  "juco_fb_soft_bonus": 2.0,
+  "blend_chosen": "50_50_rv_whiff",
+  "blend_results": {
+    "rv_only": {
+      "n_pitchers": 2008,
+      "stuff_to_future_whiff_r": 0.41404964024857305,
+      "whiff_to_future_whiff_r": 0.5143825719402815,
+      "stuff_to_future_rv_r": -0.28166623949242997,
+      "rv_to_future_rv_r": 0.20973896981177012,
+      "split_half_stuff_r": 0.9762657322278245
+    },
+    "whiff_only": {
+      "n_pitchers": 2008,
+      "stuff_to_future_whiff_r": 0.5159640204839167,
+      "whiff_to_future_whiff_r": 0.5143825719402815,
+      "stuff_to_future_rv_r": -0.2182771768875917,
+      "rv_to_future_rv_r": 0.20973896981177012,
+      "split_half_stuff_r": 0.989927498300152
+    },
+    "swstr_only": {
+      "n_pitchers": 2008,
+      "stuff_to_future_whiff_r": 0.5026317941381785,
+      "whiff_to_future_whiff_r": 0.5143825719402815,
+      "stuff_to_future_rv_r": -0.21637298783547707,
+      "rv_to_future_rv_r": 0.20973896981177012,
+      "split_half_stuff_r": 0.9890180689507329
+    },
+    "50_50_rv_whiff": {
+      "n_pitchers": 2008,
+      "stuff_to_future_whiff_r": 0.4959850297062821,
+      "whiff_to_future_whiff_r": 0.5143825719402815,
+      "stuff_to_future_rv_r": -0.25675078572029647,
+      "rv_to_future_rv_r": 0.20973896981177012,
+      "split_half_stuff_r": 0.987773218083978
+    },
+    "70_30_rv_whiff": {
+      "n_pitchers": 2008,
+      "stuff_to_future_whiff_r": 0.4727681299208053,
+      "whiff_to_future_whiff_r": 0.5143825719402815,
+      "stuff_to_future_rv_r": -0.27002907434626655,
+      "rv_to_future_rv_r": 0.20973896981177012,
+      "split_half_stuff_r": 0.9844991422979457
+    },
+    "60_40_rv_whiff": {
+      "n_pitchers": 2008,
+      "stuff_to_future_whiff_r": 0.4858134883933111,
+      "whiff_to_future_whiff_r": 0.5143825719402815,
+      "stuff_to_future_rv_r": -0.2637571848951628,
+      "rv_to_future_rv_r": 0.20973896981177012,
+      "split_half_stuff_r": 0.986354878536104
+    },
+    "50_50_rv_swstr": {
+      "n_pitchers": 2008,
+      "stuff_to_future_whiff_r": 0.4888899405766811,
+      "whiff_to_future_whiff_r": 0.5143825719402815,
+      "stuff_to_future_rv_r": -0.2571762750480742,
+      "rv_to_future_rv_r": 0.20973896981177012,
+      "split_half_stuff_r": 0.9871804214052754
+    }
+  },
   "typing": "tagged-first",
-  "notes": {
-    "RelSpeed_mono_sign": "LightGBM -1 because target is hitter run value; higher velo -> lower rv_pred",
-    "dVelo": "Only kept with RelSpeed on FB if OOF improved by >=0.001; else RelSpeed-only to avoid double-counting primary FB"
-  }
+  "arm_angle": "degrees(atan2(RelSide, RelHeight)) after LHP RelSide flip; geometric proxy not sensor AA",
+  "day_diffs": "vs most-used FB/sinker on same pitcher-day; FB pitches get own diffs (primary\u22480)"
 }
