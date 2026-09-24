@@ -1,0 +1,305 @@
+{
+  "status": "READY TO DEPLOY (pending Sean approve)",
+  "ready": true,
+  "constraints": {
+    "FB": "RelSpeed",
+    "BB": "free",
+    "OS": "free",
+    "CT": "free"
+  },
+  "ablation_oof_r": {
+    "FB": {
+      "free": 0.033577811848760644,
+      "RelSpeed": 0.03263933466745673,
+      "RelSpeed+dVelo": 0.03251913162426067,
+      "chosen": "RelSpeed"
+    },
+    "BB": {
+      "free": 0.035937727570201715,
+      "RelSpeed": 0.035706754679005796,
+      "chosen": "free"
+    },
+    "OS": {
+      "free": 0.035145664123491335,
+      "RelSpeed": 0.03481859202276753,
+      "chosen": "free"
+    },
+    "CT": {
+      "free": 0.011822711067741035,
+      "RelSpeed": 0.009730805142634514,
+      "chosen": "free"
+    }
+  },
+  "ice": {
+    "D1_median_FB": {
+      "ppm_80_to_95": 1.1958905021367428,
+      "median_local_ppm": 0.7962503767822398,
+      "min_local_ppm": 0.0,
+      "monotone_nondecreasing": true,
+      "curve": {
+        "80": 77.84,
+        "81": 81.43,
+        "82": 85.88,
+        "83": 87.58,
+        "84": 88.54,
+        "85": 88.67,
+        "86": 89.32,
+        "87": 89.64,
+        "88": 89.64,
+        "89": 89.93,
+        "90": 91.74,
+        "91": 91.98,
+        "92": 94.06,
+        "93": 94.98,
+        "94": 95.77,
+        "95": 95.77
+      }
+    },
+    "Ozment, Easton": {
+      "ppm_80_to_95": 1.2307300069876335,
+      "median_local_ppm": 0.6720868892068239,
+      "min_local_ppm": 0.0,
+      "monotone_nondecreasing": true,
+      "curve": {
+        "80": 80.66,
+        "81": 85.82,
+        "82": 90.38,
+        "83": 90.79,
+        "84": 91.46,
+        "85": 91.72,
+        "86": 93.32,
+        "87": 94.41,
+        "88": 94.41,
+        "89": 94.69,
+        "90": 95.7,
+        "91": 96.22,
+        "92": 97.99,
+        "93": 98.77,
+        "94": 99.12,
+        "95": 99.12
+      }
+    },
+    "Stephens, Cy": {
+      "ppm_80_to_95": 1.2796261683528845,
+      "median_local_ppm": 1.107985908214701,
+      "min_local_ppm": 0.0,
+      "monotone_nondecreasing": true,
+      "curve": {
+        "80": 85.86,
+        "81": 86.0,
+        "82": 88.01,
+        "83": 91.0,
+        "84": 91.0,
+        "85": 91.0,
+        "86": 93.31,
+        "87": 96.31,
+        "88": 98.31,
+        "89": 98.52,
+        "90": 99.43,
+        "91": 100.54,
+        "92": 101.46,
+        "93": 103.54,
+        "94": 104.89,
+        "95": 105.06
+      }
+    },
+    "McLaughlin, TJ": {
+      "ppm_80_to_95": 1.2187678144105347,
+      "median_local_ppm": 0.7714334335531134,
+      "min_local_ppm": 0.0,
+      "monotone_nondecreasing": true,
+      "curve": {
+        "80": 79.62,
+        "81": 83.22,
+        "82": 87.95,
+        "83": 89.7,
+        "84": 89.87,
+        "85": 89.98,
+        "86": 90.48,
+        "87": 90.48,
+        "88": 91.25,
+        "89": 91.25,
+        "90": 93.85,
+        "91": 94.21,
+        "92": 95.91,
+        "93": 96.74,
+        "94": 97.73,
+        "95": 97.9
+      }
+    }
+  },
+  "holdout": {
+    "v4": {
+      "n_pitchers": 2008,
+      "stuff_to_future_whiff_r": 0.4097071233525921,
+      "whiff_to_future_whiff_r": 0.5143825719402815,
+      "stuff_to_future_rv_r": -0.2815861126228518,
+      "rv_to_future_rv_r": 0.20973896981177012,
+      "split_half_stuff_r": 0.9779765069362146
+    },
+    "v3": {
+      "n_pitchers": 2008,
+      "stuff_to_future_whiff_r": 0.39533487715015253,
+      "whiff_to_future_whiff_r": 0.5143825719402815,
+      "stuff_to_future_rv_r": -0.26995810872893145,
+      "rv_to_future_rv_r": 0.20973896981177012,
+      "split_half_stuff_r": 0.9769609253700242
+    }
+  },
+  "focus_compare": [
+    {
+      "Pitcher": "Ozment, Easton",
+      "PGroup": "ALL",
+      "n": 159,
+      "v3_d1": 94.7,
+      "v4_d1": 87.2,
+      "delta_d1": -7.5,
+      "v3_juco": 99.3,
+      "v4_juco": 91.5,
+      "velo": NaN
+    },
+    {
+      "Pitcher": "Ozment, Easton",
+      "PGroup": "BB",
+      "n": 50,
+      "v3_d1": 89.2,
+      "v4_d1": 86.0,
+      "delta_d1": -3.3,
+      "v3_juco": 94.8,
+      "v4_juco": 89.2,
+      "velo": 70.7
+    },
+    {
+      "Pitcher": "Ozment, Easton",
+      "PGroup": "CT",
+      "n": 4,
+      "v3_d1": 97.9,
+      "v4_d1": 98.6,
+      "delta_d1": 0.8,
+      "v3_juco": 100.2,
+      "v4_juco": 99.4,
+      "velo": 75.8
+    },
+    {
+      "Pitcher": "Ozment, Easton",
+      "PGroup": "FB",
+      "n": 101,
+      "v3_d1": 97.7,
+      "v4_d1": 87.3,
+      "delta_d1": -10.4,
+      "v3_juco": 102.0,
+      "v4_juco": 92.3,
+      "velo": 80.6
+    },
+    {
+      "Pitcher": "Ozment, Easton",
+      "PGroup": "OS",
+      "n": 4,
+      "v3_d1": 82.8,
+      "v4_d1": 90.1,
+      "delta_d1": 7.3,
+      "v3_juco": 85.4,
+      "v4_juco": 92.0,
+      "velo": 79.1
+    },
+    {
+      "Pitcher": "Stephens, Cy",
+      "PGroup": "ALL",
+      "n": 150,
+      "v3_d1": 96.6,
+      "v4_d1": 90.3,
+      "delta_d1": -6.3,
+      "v3_juco": 100.9,
+      "v4_juco": 94.4,
+      "velo": NaN
+    },
+    {
+      "Pitcher": "Stephens, Cy",
+      "PGroup": "BB",
+      "n": 14,
+      "v3_d1": 91.7,
+      "v4_d1": 85.8,
+      "delta_d1": -5.9,
+      "v3_juco": 97.4,
+      "v4_juco": 89.1,
+      "velo": 74.2
+    },
+    {
+      "Pitcher": "Stephens, Cy",
+      "PGroup": "CT",
+      "n": 1,
+      "v3_d1": 104.3,
+      "v4_d1": 87.5,
+      "delta_d1": -16.8,
+      "v3_juco": 108.3,
+      "v4_juco": 86.4,
+      "velo": 75.3
+    },
+    {
+      "Pitcher": "Stephens, Cy",
+      "PGroup": "FB",
+      "n": 101,
+      "v3_d1": 96.1,
+      "v4_d1": 87.9,
+      "delta_d1": -8.2,
+      "v3_juco": 100.4,
+      "v4_juco": 92.8,
+      "velo": 82.3
+    },
+    {
+      "Pitcher": "Stephens, Cy",
+      "PGroup": "OS",
+      "n": 34,
+      "v3_d1": 99.9,
+      "v4_d1": 99.5,
+      "delta_d1": -0.4,
+      "v3_juco": 103.8,
+      "v4_juco": 101.6,
+      "velo": 76.2
+    },
+    {
+      "Pitcher": "McLaughlin, TJ",
+      "PGroup": "ALL",
+      "n": 143,
+      "v3_d1": 96.3,
+      "v4_d1": 95.4,
+      "delta_d1": -0.9,
+      "v3_juco": 100.8,
+      "v4_juco": 99.2,
+      "velo": NaN
+    },
+    {
+      "Pitcher": "McLaughlin, TJ",
+      "PGroup": "BB",
+      "n": 26,
+      "v3_d1": 95.7,
+      "v4_d1": 96.7,
+      "delta_d1": 1.1,
+      "v3_juco": 101.4,
+      "v4_juco": 101.2,
+      "velo": 79.6
+    },
+    {
+      "Pitcher": "McLaughlin, TJ",
+      "PGroup": "FB",
+      "n": 96,
+      "v3_d1": 95.9,
+      "v4_d1": 94.6,
+      "delta_d1": -1.3,
+      "v3_juco": 100.2,
+      "v4_juco": 98.6,
+      "velo": 87.3
+    },
+    {
+      "Pitcher": "McLaughlin, TJ",
+      "PGroup": "OS",
+      "n": 21,
+      "v3_d1": 99.2,
+      "v4_d1": 97.4,
+      "delta_d1": -1.7,
+      "v3_juco": 103.0,
+      "v4_juco": 99.5,
+      "velo": 81.7
+    }
+  ]
+}

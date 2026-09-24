@@ -1,0 +1,70 @@
+{
+  "constraints": {
+    "FB": "RelSpeed",
+    "BB": "free",
+    "OS": "free",
+    "CT": "free"
+  },
+  "ablation_oof_r": {
+    "FB": {
+      "free": 0.033577811848760644,
+      "RelSpeed": 0.03263933466745673,
+      "RelSpeed+dVelo": 0.03251913162426067,
+      "chosen": "RelSpeed"
+    },
+    "BB": {
+      "free": 0.035937727570201715,
+      "RelSpeed": 0.035706754679005796,
+      "chosen": "free"
+    },
+    "OS": {
+      "free": 0.035145664123491335,
+      "RelSpeed": 0.03481859202276753,
+      "chosen": "free"
+    },
+    "CT": {
+      "free": 0.011822711067741035,
+      "RelSpeed": 0.009730805142634514,
+      "chosen": "free"
+    }
+  },
+  "feats": [
+    "RelSpeed",
+    "SpinRate",
+    "InducedVertBreak",
+    "HorzBreak",
+    "AxisSin",
+    "AxisCos",
+    "RelHeight",
+    "RelSide",
+    "Extension",
+    "dVelo",
+    "dIVB",
+    "dHB"
+  ],
+  "soft_fb_weights": [
+    [
+      84.0,
+      10.0
+    ],
+    [
+      86.0,
+      6.0
+    ],
+    [
+      88.0,
+      3.0
+    ],
+    [
+      90.0,
+      1.5
+    ]
+  ],
+  "juco_fb_base_weight": 0.35,
+  "juco_fb_soft_bonus": 2.0,
+  "typing": "tagged-first",
+  "notes": {
+    "RelSpeed_mono_sign": "LightGBM -1 because target is hitter run value; higher velo -> lower rv_pred",
+    "dVelo": "Only kept with RelSpeed on FB if OOF improved by >=0.001; else RelSpeed-only to avoid double-counting primary FB"
+  }
+}
