@@ -45,6 +45,7 @@ table.stats-tbl{width:100%;border-collapse:collapse;font-family:'Barlow Condense
 table.stats-tbl thead tr{background:#1a3a5c}
 table.stats-tbl th{color:#fff;font-size:.7rem;font-weight:700;padding:8px 6px;text-align:center;white-space:nowrap;cursor:pointer;user-select:none;border-right:1px solid rgba(255,255,255,.1)}
 table.stats-tbl th:first-child{text-align:left;min-width:110px;position:sticky;left:0;z-index:2;background:#1a3a5c}
+table.trend-log thead tr:nth-child(2) th{position:static;left:auto;min-width:0;text-align:center}
 table.stats-tbl td{padding:8px 6px;text-align:center;font-size:.88rem;border-bottom:1px solid #e8e0d0;color:#1a1a2e;border-right:1px solid #ede6d8}
 table.stats-tbl td:first-child{text-align:left;font-weight:700;border-right:2px solid #c5b88a;position:sticky;left:0;z-index:1;background:#fffdf7}
 table.stats-tbl tr:hover td{background:#f4efe4;cursor:pointer}
@@ -1235,18 +1236,56 @@ function buildTrendTable(){
     return da<db?-1:da>db?1:0;
   });
 
-  var html='<div style="padding:8px 12px 6px;font-family:Anton,sans-serif;font-size:.75rem;letter-spacing:.08em;color:#1a3a5c;text-transform:uppercase;background:#fffdf7;border-bottom:1px solid #e8e0d0">'+escH(displayName)+' — Game Log'+
-    '<div style="font-family:Barlow,sans-serif;font-size:.72rem;letter-spacing:0;text-transform:none;color:#6b5f47;font-weight:400;margin-top:2px">Stuff+ is the average D1 grade stored on that game\u2019s pitches. 100 is average (SD 10).</div></div>';
-  html+='<div class="table-wrap"><table class="stats-tbl" style="min-width:960px"><thead><tr>';
-  html+='<th style="text-align:left;min-width:100px;max-width:120px">Game</th>';
-  html+='<th>Role</th><th>NP</th><th>TBF</th><th>GS</th>';
-  html+='<th title="Average of stored D1 grades. 100 is average.">Stuff+</th>';
-  html+='<th>Max Velo</th><th>Avg Velo</th><th>iVB</th><th>HB</th><th>Spin</th><th>VAA</th><th>Ext</th><th>RelH</th><th>RelS</th>';
-  html+='</tr></thead><tbody>';
+  // Same labels as the season card and Stuff tab (pitchAbbrev). Order matches
+  // the Stuff+ outing log. Only pitches he actually threw get a column.
+  var TYPE_ORDER=['Fastball','Sinker','Cutter','Slider','Sweeper','Curveball','Slurve','ChangeUp','Splitter','Knuckleball','Other'];
+  var typeSeen={};
+  pitcherPitches.forEach(function(r){typeSeen[stuffType(r)]=true;});
+  var logTypes=Object.keys(typeSeen).sort(function(a,b){
+    var ia=TYPE_ORDER.indexOf(a);if(ia<0)ia=50;
+    var ib=TYPE_ORDER.indexOf(b);if(ib<0)ib=50;
+    if(ia!==ib)return ia-ib;
+    return a.localeCompare(b);
+  });
+  // D1 and JUCO are both stored grades, already on a 100 = average, SD 10 scale.
+  function stuffClass(v){
+    if(v===null||isNaN(v))return '';
+    if(v>=D1_STUFF_MEAN+D1_STUFF_SD)return 'val-good';
+    if(v<=D1_STUFF_MEAN-D1_STUFF_SD)return 'val-warn';
+    return 'val-hi';
+  }
+  function gradeCell(grades, thrown){
+    var v=meanOf(grades);
+    if(!thrown||v===null)return '<td title="'+(thrown?'No graded pitches':'Not thrown')+'">--</td>';
+    return '<td class="'+stuffClass(v)+'" title="'+grades.length+' graded pitches">'+v.toFixed(1)+'</td>';
+  }
+  function newGradeBucket(){return {n:0,d1:[],ju:[]};}
+  function pushGrade(b,r){
+    b.n++;
+    var d1=parseFloat(r.stuff_plus_d1),ju=parseFloat(r.stuff_plus_juco);
+    if(!isNaN(d1))b.d1.push(d1);
+    if(!isNaN(ju))b.ju.push(ju);
+  }
 
-  function avg(arr){return arr.length>0?arr.reduce(function(a,b){return a+b;},0)/arr.length:null;}
-  function f1(v){return v!==null?v.toFixed(1):'--';}
-  function f0(v){return v!==null?Math.round(v)+'':'--';}
+  var colCount=5+2+logTypes.length*2;
+  var html='<div style="padding:8px 12px 6px;font-family:Anton,sans-serif;font-size:.75rem;letter-spacing:.08em;color:#1a3a5c;text-transform:uppercase;background:#fffdf7;border-bottom:1px solid #e8e0d0">'+escH(displayName)+' — Game Log'+
+    '<div style="font-family:Barlow,sans-serif;font-size:.72rem;letter-spacing:0;text-transform:none;color:#6b5f47;font-weight:400;margin-top:2px">D1 and JUCO are the grades stored on each pitch. 100 is average on both. A pitch column is the average for that pitch in the game. A dash means it was not thrown, or none of those pitches are graded.</div></div>';
+  html+='<div class="table-wrap"><table class="stats-tbl trend-log" style="min-width:'+Math.max(720,220+colCount*52)+'px"><thead>';
+  html+='<tr>';
+  html+='<th rowspan="2" style="text-align:left;min-width:100px;max-width:120px">Game</th>';
+  html+='<th rowspan="2">Role</th><th rowspan="2">NP</th><th rowspan="2">TBF</th><th rowspan="2">GS</th>';
+  html+='<th colspan="2" title="Pitch-count average of the grades stored on every pitch in the game.">Stuff+</th>';
+  logTypes.forEach(function(pt){
+    html+='<th colspan="2" title="'+escH(pt)+'">'+escH(pitchAbbrev(pt))+'</th>';
+  });
+  html+='</tr><tr>';
+  html+='<th title="Average of the D1 grades stored on this game\'s pitches. 100 is average.">D1</th>';
+  html+='<th title="Average of the JUCO grades stored on this game\'s pitches. 100 is average.">JUCO</th>';
+  logTypes.forEach(function(pt){
+    html+='<th title="'+escH(pt)+' D1. Pitch-count average of stored grades. 100 is average.">D1</th>';
+    html+='<th title="'+escH(pt)+' JUCO. Pitch-count average of stored grades. 100 is average.">JUCO</th>';
+  });
+  html+='</tr></thead><tbody>';
 
   gameIds.forEach(function(gid){
     var rows=gameMap[gid];
@@ -1256,14 +1295,12 @@ function buildTrendTable(){
     var dateStr=meta&&meta.date?meta.date.slice(5).replace('-','/'):gid.slice(0,8);
 
     var np=rows.length,tbf=0,ks=0,bbs=0,hits=0,hrs=0,whiffs=0,inPlayCount=0;
-    var fbVelos=[],fbIVB=[],fbHB=[],fbSpin=[],fbVAA=[],fbExt=[],fbRelH=[],fbRelS=[];
-    var stuffGrades=[];
+    var overall=newGradeBucket();
+    var byPt={};
     var hasInning1=rows.some(function(r){return parseInt(r.Inning)===1;});
 
     rows.forEach(function(r){
       var call=(r.PitchCall||'').trim();
-      var pt=normPitch(r.TaggedPitchType,r.AutoPitchType);
-      var isFB=(pt==='Fastball'||pt==='Sinker');
       if(parseInt(r.PitchofPA)===1)tbf++;
       if(r.KorBB==='Strikeout')ks++;
       if(r.KorBB==='Walk')bbs++;
@@ -1275,45 +1312,21 @@ function buildTrendTable(){
         if(res==='HomeRun'||res==='Home Run')hrs++;
       }
       if(r.PitchCall==='HitByPitch')bbs++;
-      // Outing Stuff+ is the pitch-count mean of stored D1 grades. Ungraded
-      // pitches stay out of the average (they are not zeros). Same meaning as
-      // the season-card arsenal, which averages stuffD1 and does not rescale.
-      var d1g=parseFloat(r.stuff_plus_d1);
-      if(!isNaN(d1g))stuffGrades.push(d1g);
-      var velo=parseFloat(r.RelSpeed||'NaN');
-      if(isFB&&!isNaN(velo)&&velo>0){
-        fbVelos.push(velo);
-        var ivb=parseFloat(r.InducedVertBreak||'NaN');
-        var hb=parseFloat(r.HorzBreak||'NaN');
-        var sp=parseFloat(r.SpinRate||'NaN');
-        var vaa=parseFloat(r.VertApprAngle||'NaN');
-        var ext=parseFloat(r.Extension||'NaN');
-        var relh=parseFloat(r.RelHeight||'NaN');
-        var rels=parseFloat(r.RelSide||'NaN');
-        if(!isNaN(ivb))fbIVB.push(ivb);
-        if(!isNaN(hb))fbHB.push(hb);
-        if(!isNaN(sp)&&sp>0)fbSpin.push(sp);
-        if(!isNaN(vaa))fbVAA.push(vaa);
-        if(!isNaN(ext)&&ext>0)fbExt.push(ext);
-        if(!isNaN(relh)&&relh>0)fbRelH.push(relh);
-        if(!isNaN(rels))fbRelS.push(rels);
-      }
+      // Pitch type follows stuffType, the same tagged-first rule as the
+      // season-card arsenal and the scorer. Each grade is the pitch-count
+      // mean of the stored value. Missing grades are left out, not treated as 0.
+      var pt=stuffType(r);
+      if(!byPt[pt])byPt[pt]=newGradeBucket();
+      pushGrade(byPt[pt],r);
+      pushGrade(overall,r);
     });
 
     var role=hasInning1?'Start':'Rel';
-    var maxVelo=fbVelos.length>0?Math.max.apply(null,fbVelos):null;
-    var avgVelo=avg(fbVelos);
 
     // Game Score: 52 + 2*outs + K - 2*BB - 2*H - 6*HR + 0.5*Whiffs (no ER available)
     var outs=ks+Math.max(0,inPlayCount-hits);
     var gs=Math.round(52+2*outs+ks-2*bbs-2*hits-6*hrs+0.5*whiffs);
     var gsClass=gs>=65?'val-good':gs<=40?'val-warn':'val-hi';
-    // Same 100 / SD 10 scale as the season card (D1_STUFF_MEAN / D1_STUFF_SD).
-    // Green and warm are the trend log's existing classes. A thin grade still
-    // shows; only a game with no graded pitches gets a dash. The row stays.
-    var stuff=meanOf(stuffGrades);
-    var stuffClass='';
-    if(stuff!==null)stuffClass=stuff>=D1_STUFF_MEAN+D1_STUFF_SD?'val-good':stuff<=D1_STUFF_MEAN-D1_STUFF_SD?'val-warn':'val-hi';
 
     html+='<tr>';
     html+='<td style="text-align:left;font-weight:700;line-height:1.3;max-width:120px;white-space:normal"><span style="font-size:.7rem;color:#6b5f47;display:block">'+escH(dateStr)+'</span>'+escH(opp)+'</td>';
@@ -1321,20 +1334,17 @@ function buildTrendTable(){
     html+='<td>'+np+'</td>';
     html+='<td>'+tbf+'</td>';
     html+='<td class="'+gsClass+'">'+gs+'</td>';
-    html+='<td class="'+stuffClass+'" title="'+(stuff===null?'No graded pitches':stuffGrades.length+' graded pitches')+'">'+(stuff===null?'--':stuff.toFixed(1))+'</td>';
-    html+='<td class="val-hi">'+f1(maxVelo)+'</td>';
-    html+='<td>'+f1(avgVelo)+'</td>';
-    html+='<td>'+f1(avg(fbIVB))+'</td>';
-    html+='<td>'+f1(avg(fbHB))+'</td>';
-    html+='<td>'+f0(avg(fbSpin))+'</td>';
-    html+='<td>'+f1(avg(fbVAA))+'</td>';
-    html+='<td>'+f1(avg(fbExt))+'</td>';
-    html+='<td>'+f1(avg(fbRelH))+'</td>';
-    html+='<td>'+f1(avg(fbRelS))+'</td>';
+    html+=gradeCell(overall.d1,overall.n>0);
+    html+=gradeCell(overall.ju,overall.n>0);
+    logTypes.forEach(function(pt){
+      var b=byPt[pt];
+      html+=gradeCell(b?b.d1:[],!!b);
+      html+=gradeCell(b?b.ju:[],!!b);
+    });
     html+='</tr>';
   });
 
-  if(!gameIds.length)html+='<tr><td colspan="15" class="no-data">No games found</td></tr>';
+  if(!gameIds.length)html+='<tr><td colspan="'+colCount+'" class="no-data">No games found</td></tr>';
   html+='</tbody></table></div>';
   screen.innerHTML=html;
 }
