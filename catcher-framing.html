@@ -197,7 +197,8 @@ function computeMetrics(name,rows){
     var on1=!!(r['Runner1B']||'').trim(),on2=!!(r['Runner2B']||'').trim(),on3=!!(r['Runner3B']||'').trim();
     var baseState=(on1?1:0)|(on2?2:0)|(on3?4:0);
     if(isStr){strikeTotal++;if(!inside){stolen++;re24Runs+=stolenStrikeDelta(balls,strikes,outs,baseState);}else inZoneStr++;}
-    if(isBall&&inside){lost++;inZoneBall++;re24Runs-=lostStrikeDelta(balls,strikes,outs,baseState);}
+    // lostStrikeDelta is already RE(strike)−RE(ball), the negative of stolenStrikeDelta. Add it so a lost strike costs runs.
+    if(isBall&&inside){lost++;inZoneBall++;re24Runs+=lostStrikeDelta(balls,strikes,outs,baseState);}
     if(ri>=0){rings[ri].total++;if(isStr)rings[ri].strikes++;}
     pts.push({s:s,h:h,isStr:isStr});
   }
