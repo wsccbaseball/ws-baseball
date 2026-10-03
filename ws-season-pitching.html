@@ -90,6 +90,7 @@ table.stats-tbl tr.selected td:first-child{background:#e8f0fb!important}
 .stat-val.good{color:#2a7a3a}
 .stat-val.warn{color:#b05000}
 .stat-lbl{font-family:'Barlow Condensed',sans-serif;font-size:7.5px;font-weight:600;color:#9b8c9a;text-transform:uppercase;letter-spacing:.4px;display:block;margin-top:1px}
+.grade-note{font-family:'Barlow',sans-serif;font-size:8px;line-height:1.35;color:#6a7f9a;padding:1px 4px 4px}
 .hmap-section{padding:5px 6px 4px;border-bottom:1px solid #e4eaf4}
 canvas{display:block;border-radius:4px}
 .pitch-section{padding:4px 6px 5px}
@@ -287,6 +288,18 @@ canvas{display:block;border-radius:4px}
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:4px">Pitcher's View &middot; looking toward the pitcher</div>
     </div>
 
+    <!-- Pitch grades: Stuff+ v5, Location+ v1, Pitching+ v1 -->
+    <div class="stat-section" id="gradeSection">
+      <span class="stat-section-label">Stuff+ · Location+ · Pitching+</span>
+      <div class="stat-row">
+        <div class="stat-box"><span class="stat-val" id="gStuff">&#8212;</span><span class="stat-lbl" id="gStuffLbl">Stuff+ · 0 scored</span></div>
+        <div class="stat-box"><span class="stat-val" id="gLoc">&#8212;</span><span class="stat-lbl" id="gLocLbl">Location+ · 0 scored</span></div>
+        <div class="stat-box"><span class="stat-val" id="gPit">&#8212;</span><span class="stat-lbl" id="gPitLbl">Pitching+ · 0 scored</span></div>
+        <div class="stat-box"><span class="stat-val" id="gN">&#8212;</span><span class="stat-lbl">Pitches</span></div>
+      </div>
+      <div class="grade-note">Pitch scale, not a percent. 100 is an average pitch. 10 points is one standard deviation of individual pitches, not of pitcher averages. 85 is 1.5 SD below an average pitch. A grade stays blank under 100 scored pitches. The count next to it stays.</div>
+    </div>
+
     <!-- Pitch Arsenal -->
     <div class="pitch-section">
       <span class="stat-section-label" style="display:block;margin-bottom:4px">Pitch Arsenal</span>
@@ -299,7 +312,7 @@ canvas{display:block;border-radius:4px}
         </tr></thead>
         <tbody id="pitchTableBody"></tbody>
       </table>
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:3px;line-height:1.3">Color vs D1 &middot; green above, warm below &middot; Stuff+ 100 (SD 10) &middot; Zone% by pitch group</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:7px;color:#9b8c9a;text-align:center;margin-top:3px;line-height:1.3">Color vs D1 &middot; green above, warm below &middot; Stuff+ is the pitch scale (100, SD 10 of pitches, not a percent) and is hidden under 100 scored pitches &middot; Zone% by pitch group</div>
     </div>
 
     <!-- Results by Pitch Type -->
@@ -400,7 +413,7 @@ function newPitchBucket(){
     ev:[],velos:[],contacts:0,ivb:[],hb:[],spin:[],vaa:[],relh:[],ext:[],
     ptInPlay:0,singles:0,doubles:0,triples:0,ptHRs:0,
     ptKs:0,ptBBs:0,ptHBPs:0,ptGB:0,ptBarrels:0,ptEVContacts:0,
-    stuffD1:[]
+    stuffD1:[],locPlus:[],pitPlus:[]
   };
 }
 function pitchColor(t){return PITCH_COLORS[normPitch(t)]||PITCH_COLORS[t]||'#888888';}
@@ -452,6 +465,10 @@ function computePitcherProfile(name, rows){
     if(!pitchTypes[spt])pitchTypes[spt]=newPitchBucket();
     var d1=parseFloat(r.stuff_plus_d1);
     if(!isNaN(d1))pitchTypes[spt].stuffD1.push(d1);
+    var locG=parseFloat(r.location_plus_d1);
+    if(!isNaN(locG))pitchTypes[spt].locPlus.push(locG);
+    var pitG=parseFloat(r.pitching_plus);
+    if(!isNaN(pitG))pitchTypes[spt].pitPlus.push(pitG);
     var velo=parseFloat(r.RelSpeed||r.PitchSpeed||r.StartSpeed||'NaN');
     if(!isNaN(velo)&&velo>0)pitchTypes[pt].velos.push(velo);
     var isSwing=SWING_CALLS.includes(call);
@@ -588,8 +605,29 @@ function computePitcherProfile(name, rows){
     strPct:rows.length>0?totalStrikes/rows.length:0,
     avgFBVelo:(function(){var a=(pitchTypes['Fastball']||{velos:[]}).velos;return a.length>0?a.reduce(function(s,v){return s+v;},0)/a.length:null;})(),
     maxFBVelo:(function(){var a=(pitchTypes['Fastball']||{velos:[]}).velos;return a.length>0?Math.max.apply(null,a):null;})(),
-    totalPitches:rows.length,pitchTypes:pitchTypes,rows:rows
+    totalPitches:rows.length,pitchTypes:pitchTypes,rows:rows,
+    stuffGrades:collectGrades(pitchTypes,'stuffD1'),
+    locGrades:collectGrades(pitchTypes,'locPlus'),
+    pitGrades:collectGrades(pitchTypes,'pitPlus')
   };
+}
+function collectGrades(pitchTypes,key){
+  var out=[];
+  Object.keys(pitchTypes).forEach(function(k){
+    var arr=pitchTypes[k][key];
+    if(arr)arr.forEach(function(v){out.push(v);});
+  });
+  return out;
+}
+var MIN_CARD_GRADE=100;
+function paintCardGrade(valId,lblId,name,grades){
+  var n=grades?grades.length:0;
+  var v=n?meanOf(grades):null;
+  var show=n>=MIN_CARD_GRADE&&v!==null&&!isNaN(v);
+  var el=document.getElementById(valId);
+  el.textContent=show?v.toFixed(1):'\u2014';
+  el.className='stat-val'+(show?(v>=110?' good':v<=90?' warn':''):'');
+  document.getElementById(lblId).textContent=name+' \u00b7 '+n+' scored';
 }
 
 // ── KDE Heat Map Engine ──────────────────────────────────────────────────────
@@ -742,7 +780,7 @@ function buildPitchTable(p){
   }
   Object.entries(p.pitchTypes).filter(function(e){return e[1].total>=3;}).sort(function(a,b){return b[1].total-a[1].total;}).forEach(function(e){
     var pt=e[0],d=e[1];
-    var stuff=meanOf(d.stuffD1);
+    var stuff=(p.stuffGrades||[]).length>=MIN_CARD_GRADE?meanOf(d.stuffD1):null;
     var zone=d.total>0?d.inZone/d.total:null;
     var zAnchor=D1_ZONE_BY_GROUP[arsenalGroup(pt)];
     var zoneZ=(zone===null||zAnchor==null)?null:(zone-zAnchor)/D1_ZONE_SD;
@@ -831,6 +869,11 @@ function buildCard(){
     document.getElementById('sFIP').textContent=p.fip!==null?p.fip.toFixed(2):'--';
     document.getElementById('sGS').textContent=p.avgWegs!==null?p.avgWegs.toFixed(1):'--';
   }
+
+  paintCardGrade('gStuff','gStuffLbl','Stuff+',p.stuffGrades);
+  paintCardGrade('gLoc','gLocLbl','Location+',p.locGrades);
+  paintCardGrade('gPit','gPitLbl','Pitching+',p.pitGrades);
+  document.getElementById('gN').textContent=String(p.totalPitches||0);
 
   document.getElementById('tMaxVelo').textContent=p.maxVelo>0?p.maxVelo.toFixed(1):'--';
   document.getElementById('tCSW').textContent=pct(p.cswPct);
