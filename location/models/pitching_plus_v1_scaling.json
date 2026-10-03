@@ -1,0 +1,272 @@
+{
+ "version": "pitching_plus_v1",
+ "note": "February-April 2026 D1 holdout retrains. Not production. Do not copy over stuff_*.txt or location_*.txt.",
+ "seed": 17,
+ "january_used": false,
+ "train_window": "2026-02 through 2026-04",
+ "score_window": "2026-05 and 2026-06, D1 only",
+ "population": "D1 only for FB, BB, OS, and CT. JUCO fastballs are not added.",
+ "fastballs": "D1 only",
+ "training_row_count": 1539358,
+ "d1_pitches_loaded": 1578488,
+ "d1_pitches_with_target_and_stuff_features": 1539772,
+ "train_counts": {
+  "FB": {
+   "stuff_rows": 811274,
+   "location_rows": 811274,
+   "pitchers": 4457,
+   "pitching_rows": 811059
+  },
+  "BB": {
+   "stuff_rows": 445322,
+   "location_rows": 445322,
+   "pitchers": 4448,
+   "pitching_rows": 445225
+  },
+  "OS": {
+   "stuff_rows": 184259,
+   "location_rows": 184259,
+   "pitchers": 4145,
+   "pitching_rows": 184158
+  },
+  "CT": {
+   "stuff_rows": 98917,
+   "location_rows": 98917,
+   "pitchers": 2682,
+   "pitching_rows": 98916
+  }
+ },
+ "feats_stuff": [
+  "RelSpeed",
+  "SpinRate",
+  "InducedVertBreak",
+   "HorzBreak",
+  "AxisSin",
+   "AxisCos",
+  "RelHeight",
+  "RelSide",
+   "Extension",
+  "dVelo",
+  "dIVB",
+  "dHB",
+  "ArmAngle",
+  "dVelo_day",
+  "dIVB_day",
+  "dHB_day",
+  "dSpin_day"
+ ],
+ "feats_location": [
+  "PlateLocHeight",
+  "PlateLocSide"
+ ],
+ "feats_pitching": [
+  "StuffZ100",
+  "LocationZ100",
+  "Balls",
+  "Strikes",
+  "Platoon"
+ ],
+ "platoon": "1 if BatterSide and PitcherThrows are both Right or both Left, else 0. Undefined batter side is missing. Not z-scored.",
+ "count_features": "Raw Balls and Strikes. Not z-scored. The run-value target still clips the count state to 0-3 balls and 0-2 strikes.",
+ "stuff_grade": "100 + 10 * (0.5 * z_rv + 0.5 * z_whiff). Locked 50/50. z from February-April D1 prediction mean and sd.",
+ "location_grade": "100 + 10 * (February-April D1 mean - prediction) / sd. PlateLocHeight and PlateLocSide only.",
+ "pitching_grade": "100 + 10 * (February-April D1 mean prediction - prediction) / sd. Higher is better.",
+ "second_stage": "Trained on within-pitch-group z-scores of the February-April Stuff+ and Location+ grades, entered as 100+10z, plus Balls, Strikes, and Platoon.",
+ "score_time_z": "Same z recipe on the matched May-June D1 pitches, within pitch group. Stuff+ is shared. Location is ours or Muse. Muse is higher-better and is not multiplied by -1.",
+ "scale_mismatch": "Training z uses February-April rows. Score-time z uses matched May-June D1 pitches, because Muse has no February-April predictions and both versions must share one scale.",
+ "constraints": {
+  "FB_rv": "RelSpeed -1",
+  "BB_rv": "free",
+  "OS_rv": "free",
+  "C_rv": "free",
+  "FB_whiff": "+RelSpeed",
+  "pitching": "none"
+ },
+ "blend": "50_50_rv_whiff locked for the Stuff+ input grade. Pitching+ itself is run value only.",
+ "groupkfold": false,
+ "lightgbm_regressor": {
+  "n_estimators": 600,
+  "learning_rate": 0.04,
+  "num_leaves": 63,
+  "min_child_samples": 200,
+  "subsample": 0.8,
+  "subsample_freq": 1,
+  "colsample_bytree": 0.8,
+  "random_state": 17,
+  "verbose": -1
+ },
+ "lightgbm_whiff": {
+  "n_estimators": 400,
+  "learning_rate": 0.05,
+  "num_leaves": 63,
+  "min_child_samples": 200,
+  "subsample": 0.8,
+  "subsample_freq": 1,
+  "colsample_bytree": 0.8,
+  "random_state": 17,
+  "verbose": -1
+ },
+ "scale_stuff_rv": {
+  "D1|BB": {
+   "mean": 0.00288002395723137,
+   "sd": 0.014094498320813114,
+   "n": 445322
+  },
+  "D1|CT": {
+   "mean": 0.0051423129104239355,
+   "sd": 0.027854489563650744,
+   "n": 98917
+  },
+  "D1|FB": {
+   "mean": 0.009612900851751911,
+   "sd": 0.012399383055021678,
+   "n": 811274
+  },
+  "D1|OS": {
+   "mean": 0.007947827940448633,
+   "sd": 0.02054951478946394,
+   "n": 184259
+  }
+ },
+ "scale_stuff_whiff": {
+  "D1|BB": {
+   "mean": 0.3182056749645952,
+   "sd": 0.08213648691485222,
+   "n": 445322
+  },
+  "D1|CT": {
+   "mean": 0.27106412993928597,
+   "sd": 0.1086001199921817,
+   "n": 98917
+  },
+  "D1|FB": {
+   "mean": 0.17617320671554482,
+   "sd": 0.06760224371180898,
+   "n": 811274
+  },
+  "D1|OS": {
+   "mean": 0.33178674400481545,
+   "sd": 0.11004130353882596,
+   "n": 184259
+  }
+ },
+ "scale_location": {
+  "D1|BB": {
+   "mean": 0.0028807036905274994,
+   "sd": 0.04002871582174493,
+   "n": 445322
+  },
+  "D1|CT": {
+   "mean": 0.0051405677814968945,
+   "sd": 0.04242597534740723,
+   "n": 98917
+  },
+  "D1|FB": {
+   "mean": 0.010307191862799653,
+   "sd": 0.04360169322155651,
+   "n": 811274
+  },
+  "D1|OS": {
+   "mean": 0.00795642753284132,
+   "sd": 0.04041754721344772,
+   "n": 184259
+  }
+ },
+ "scale_pitching": {
+  "FB": {
+   "mean": 0.010297958720874092,
+   "sd": 0.06604258081899399,
+   "n": 811059
+  },
+  "BB": {
+   "mean": 0.002880753820010393,
+   "sd": 0.07109231419856131,
+   "n": 445225
+  },
+  "OS": {
+   "mean": 0.007977227126582127,
+   "sd": 0.08894456265318247,
+   "n": 184158
+  },
+  "CT": {
+   "mean": 0.005170075945164745,
+   "sd": 0.11571449762262956,
+   "n": 98916
+  }
+ },
+ "train_z": {
+  "FB": {
+   "stuff_grade_mean": 99.99990963019174,
+   "stuff_grade_sd": 8.660140571670643,
+   "stuff_n": 811059,
+   "location_grade_mean": 99.99987270548418,
+   "location_grade_sd": 10.000046338978676,
+   "location_n": 811059
+  },
+  "BB": {
+   "stuff_grade_mean": 99.99926003836872,
+   "stuff_grade_sd": 8.92507002274093,
+   "stuff_n": 445225,
+   "location_grade_mean": 99.99978406406245,
+   "location_grade_sd": 10.000082119795506,
+   "location_n": 445225
+  },
+  "OS": {
+   "stuff_grade_mean": 99.99970211649513,
+   "stuff_grade_sd": 8.599277206624162,
+   "stuff_n": 184158,
+   "location_grade_mean": 100.00003334365908,
+   "location_grade_sd": 9.999929686489933,
+   "location_n": 184158
+  },
+  "CT": {
+   "stuff_grade_mean": 99.9999370792461,
+   "stuff_grade_sd": 8.0531921379288,
+   "stuff_n": 98916,
+   "location_grade_mean": 100.00017153313487,
+   "location_grade_sd": 9.9999052173546,
+   "location_n": 98916
+  }
+ },
+ "min_scale_n": 50,
+ "arm_angle": "degrees(atan2(RelSide, RelHeight)) after LHP RelSide flip",
+ "score_z": {
+  "BB": {
+   "n": 118665,
+   "stuff_mean": 100.78957287853417,
+   "stuff_sd": 8.86834984249559,
+   "location_mean": 100.37987240161657,
+   "location_sd": 9.675560326099795,
+   "muse_mean": -0.0010451893878221745,
+   "muse_sd": 0.005916737091884458
+  },
+  "CT": {
+   "n": 28186,
+   "stuff_mean": 99.91219102216958,
+   "stuff_sd": 7.0964439254527685,
+   "location_mean": 100.15195085973075,
+   "location_sd": 9.820556949911621,
+   "muse_mean": -0.0023060000985342267,
+   "muse_sd": 0.0028320170535216043
+  },
+  "FB": {
+   "n": 209991,
+   "stuff_mean": 100.06587237230389,
+   "stuff_sd": 8.289898814278839,
+   "location_mean": 100.29992006586194,
+   "location_sd": 9.801036630258169,
+   "muse_mean": 0.0013726236486463496,
+   "muse_sd": 0.008771229902711735
+  },
+  "OS": {
+   "n": 49515,
+   "stuff_mean": 100.4384219443775,
+   "stuff_sd": 8.120400454403175,
+   "location_mean": 100.29361482361132,
+   "location_sd": 9.784710599414288,
+   "muse_mean": -0.0017040175466758703,
+   "muse_sd": 0.0038415476740662757
+  }
+ },
+ "scored_pitches": 406357,
+ "d1_pitchers_at_least_50": 2425}
