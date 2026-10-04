@@ -5,6 +5,9 @@ on:
     - cron: '0 8 * * *'     # 08:00 UTC = 3-4 AM Eastern
   workflow_dispatch:         # adds a "Run workflow" button for manual runs
 
+permissions:
+  contents: write
+
 jobs:
   score:
     runs-on: ubuntu-24.04
@@ -24,3 +27,20 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           STUFF_TABLE: ${{ secrets.STUFF_TABLE }}
+      # Reads pitches (including stored grades) and refreshes data/seasons/*.json.
+      # Does not write Stuff+, Location+, or Pitching+.
+      - run: python season/build_season_files.py
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      - name: Commit refreshed season files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/seasons
+          if git diff --cached --quiet; then
+            echo "Season files unchanged"
+          else
+            git commit -m "Refresh prebuilt season files"
+            git push
+          fi

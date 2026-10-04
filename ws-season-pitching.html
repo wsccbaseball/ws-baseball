@@ -418,6 +418,16 @@ async function supaFetch(path){
   }
   return rows;
 }
+var seasonBundles={};
+async function loadSeasonBundle(season){
+  if(seasonBundles[season])return seasonBundles[season];
+  var res=await fetch('data/seasons/'+encodeURIComponent(season)+'.json',{cache:'no-cache'});
+  if(!res.ok)throw new Error('Season file is not ready for '+season+' ('+res.status+')');
+  var data=await res.json();
+  if(!data||!Array.isArray(data.pitches))throw new Error('Season file for '+season+' is unreadable');
+  seasonBundles[season]=data;
+  return data;
+}
 function setProgress(pct,msg){document.getElementById('progressFill').style.width=pct+'%';document.getElementById('loadMsg').textContent=msg;}
 
 // Reads the first key that actually exists on a box-score row, trying a few
@@ -1416,6 +1426,10 @@ async function loadSeasonData(){
   document.getElementById('main-screen').style.display='none';
   document.getElementById('bottomBar').style.display='none';
   var _saw=document.getElementById('saveAllWrap');if(_saw)_saw.classList.remove('is-open');
+  try{ await loadSeasonDataInner(_saw); }
+  catch(e){ document.getElementById('loadMsg').textContent='Error: '+e.message; console.error(e); }
+}
+async function loadSeasonDataInner(_saw){
   seasonPitching={};
   setProgress(5,'Loading season stats...');
   if(/-spring$/.test(CURRENT_SEASON)){
@@ -1437,12 +1451,13 @@ async function loadSeasonData(){
   setProgress(20,'Loading games...');
   gamesMeta=filterSeasonGames();
   populateGameFilter();
-  setProgress(30,'Loading pitch data...');
   allPitches=[];
-  for(var i=0;i<gamesMeta.length;i++){
-    var rows=await supaFetch('pitches?GameID=eq.'+encodeURIComponent(gamesMeta[i].game_id));
-    allPitches=allPitches.concat(rows);
-    setProgress(30+Math.round(((i+1)/gamesMeta.length)*60),'Loading game '+(i+1)+' of '+gamesMeta.length+'...');
+  if(gamesMeta.length){
+    setProgress(40,'Loading season file...');
+    var file=await loadSeasonBundle(CURRENT_SEASON);
+    var allow={};
+    gamesMeta.forEach(function(g){allow[g.game_id]=true;});
+    allPitches=(file.pitches||[]).filter(function(r){return allow[r.GameID];});
   }
   setProgress(96,'Building stats...');
   rebuildTableData(allPitches);populatePitcherFilter();renderTable();
