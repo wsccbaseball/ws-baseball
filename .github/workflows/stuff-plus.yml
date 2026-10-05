@@ -3,7 +3,16 @@ name: Stuff+, Location+, and Pitching+ nightly scoring
 on:
   schedule:
     - cron: '0 8 * * *'     # 08:00 UTC = 3-4 AM Eastern
-  workflow_dispatch:         # adds a "Run workflow" button for manual runs
+  workflow_dispatch:         # manual run; location_rescore=1 rewrites Location+ v3 and Pitching+
+    inputs:
+      location_rescore:
+        description: '1 rewrites every gradeable Location+ v3 and Pitching+ grade. 0 fills nulls only (nightly default).'
+        required: false
+        default: '0'
+        type: choice
+        options:
+          - '0'
+          - '1'
 
 permissions:
   contents: write
@@ -22,13 +31,18 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           STUFF_TABLE: ${{ secrets.STUFF_TABLE }}
+      # Location+ v3. Stuff+ above is untouched. Nightly null-fills Location+ and
+      # Pitching+. The first deploy after the v3 swap must be a manual run with
+      # location_rescore=1 so existing grades are rewritten. Scheduled runs pass 0.
       - run: python location/score_location.py
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           STUFF_TABLE: ${{ secrets.STUFF_TABLE }}
+          LOCATION_RESCORE: ${{ github.event.inputs.location_rescore || '0' }}
       # Reads pitches (including stored grades) and refreshes data/seasons/*.json.
-      # Does not write Stuff+, Location+, or Pitching+.
+      # Does not write Stuff+, Location+, or Pitching+. Season JSON copies Stuff+
+      # grades only; Location+ and Pitching+ stay on the pitches table.
       - run: python season/build_season_files.py
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
