@@ -1,0 +1,200 @@
+/* Weekly plan / review / throw grid. Scoped so the Quiet admin pages keep their own controls. */
+
+.avail-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-right: 4px;
+}
+.chip.ok { background: rgba(61, 139, 110, 0.15); color: #2a6b52; }
+.chip.limited { background: #f3eee4; color: #6a5428; }
+.chip.out { background: #f6e8e8; color: #8d3030; }
+.chip.muted { background: #eee; color: #666; }
+
+.week-wrap {
+  container-type: inline-size;
+  margin-bottom: 8px;
+}
+.week-wrap h2 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.week-wrap .card { margin-bottom: 10px; }
+
+.week-note {
+  background: #e8eef2;
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 4px);
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+.week-note.is-error {
+  background: #f6e8e8;
+  border-color: #e2c8c8;
+}
+.week-note.is-ok {
+  background: rgba(61, 139, 110, 0.12);
+  border-color: #c9ddd4;
+}
+
+.week-toolbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: end;
+  margin-bottom: 4px;
+}
+.week-range {
+  grid-column: 1 / -1;
+  margin-top: 2px;
+}
+
+.week-fields {
+  display: grid;
+  gap: 8px;
+}
+.week-fields label,
+.week-toolbar label {
+  display: grid;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.week-wrap input,
+.week-wrap select,
+.week-wrap textarea {
+  font: inherit;
+  font-size: 16px;
+  color: inherit;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius, 4px);
+  border: 1px solid var(--input-border, #ccc);
+  background: var(--surface, #fff);
+  min-height: 44px;
+}
+.week-wrap textarea {
+  min-height: 76px;
+  resize: vertical;
+}
+.week-grades {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.week-wrap .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  min-height: 44px;
+  border-radius: var(--radius, 4px);
+  border: none;
+  background: var(--navy, #0b1c2c);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  width: auto;
+}
+.week-wrap .btn:disabled { opacity: 0.6; cursor: default; }
+.week-wrap .btn.secondary {
+  background: var(--surface, #fff);
+  border: 1px solid var(--input-border, #ccc);
+  color: var(--text, #1a1a1a);
+}
+.week-save { margin: 4px 0 12px; }
+.week-save .btn { width: 100%; }
+
+.week-panels {
+  display: grid;
+  gap: 0;
+}
+
+.throw-kicker {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.throw-grid {
+  display: grid;
+  gap: 8px;
+}
+.throw-cell,
+.throw-total-cell {
+  display: grid;
+  grid-template-columns: 3.4rem minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+.throw-day,
+.throw-total-cell .throw-day {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.throw-grid input {
+  text-align: center;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+.throw-total {
+  font-weight: 700;
+  font-size: 1.15rem;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.throw-total-cell {
+  border-top: 1px solid var(--border, #ddd);
+  padding-top: 8px;
+  margin-top: 2px;
+}
+
+@container (min-width: 700px) {
+  .week-panels {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+  .week-panels .card { margin-bottom: 10px; }
+  .week-save .btn { width: auto; min-width: 180px; }
+}
+
+@container (min-width: 640px) {
+  .throw-grid {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 6px;
+    align-items: end;
+  }
+  .throw-cell,
+  .throw-total-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+  }
+  .throw-day { text-align: center; }
+  .throw-total {
+    justify-content: center;
+    min-height: 44px;
+    background: #e8eef2;
+    border-radius: var(--radius, 4px);
+  }
+}

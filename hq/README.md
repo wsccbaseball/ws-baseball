@@ -53,7 +53,7 @@ Schema migration already applied: **`hq_mvp_schema`**.
 | **Practice** | Today’s practice day create/edit |
 | **Knowledge** | List + add clippings |
 
-**Player stub** (`player.html`): improved copy, link back to `./index.html` Staff HQ, dropdown + tappable list of active players (not real auth). Shows that player’s plans, assignments, today’s practice, recent logs.
+**Player page** (`player.html`): link back to `./index.html` Staff HQ, dropdown + tappable list of active players (not real auth). Shows that player’s plans, assignments, today’s practice, and recent logs. Staff can edit the weekly plan, review notes, and Mon–Sun planned throw counts for the selected week. The same block is on the roster player screen in `index.html`. Rows live in `hq_weekly_plans` (migration in `hq/migrations/`, not applied yet — the page stays up with a blank week until it is).
 
 ## Seed stubs (Supabase REST / anon)
 
@@ -70,7 +70,7 @@ All stubs are labeled as placeholders — not coaching gospel.
 ## Known MVP limits
 
 - Unlock is a shared staff code, not per-user auth.
-- Player view is a stub dropdown — no real player login.
+- Player view is a roster dropdown — no real player login. Weekly plan edits use the same anon key as the rest of HQ.
 - No offline sync; needs network to Supabase.
 - Soft deletes / archive not fully wired; “active” filter on roster is `active = true`.
 - Practice blocks are textarea lines → `{ title, detail }` JSON (simple split).
