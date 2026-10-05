@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./weekly.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -364,6 +365,7 @@
   </div>
   <div class="toast" id="toast"></div>
 
+  <script src="./weekly.js"></script>
   <script>
 (function () {
   const SUPA_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
@@ -572,7 +574,7 @@
       <ul class="quick-links">
         <li><a href="../">TrackMan hub <small>Program home</small></a></li>
         <li><a href="../scout/">Scouting builder <small>Press Box packet builder</small></a></li>
-        <li><a href="./player.html">Player view <small>Read-only stub</small></a></li>
+        <li><a href="./player.html">Player view <small>Weekly plan, review, throw counts</small></a></li>
       </ul>
     `;
     $$('.resolve-alert', main).forEach((btn) => {
@@ -876,13 +878,28 @@
           ${p.weight ? ` / ${esc(p.weight)}` : ''}
           ${p.hometown ? `<div class="meta">${esc(p.hometown)}${p.previous_college ? ' · prev: '+esc(p.previous_college) : ''}</div>` : ''}
           ${p.notes ? `<div class="meta">${esc(p.notes)}</div>` : ''}
+          <div class="meta" style="margin-top:6px">
+            <span class="avail-label">Availability</span>
+            <span class="chip muted" id="player-availability" aria-label="Availability: Not set">Not set</span>
+          </div>
         </div>
       </div>
+      <div id="week-root"></div>
       <div class="tabs">
         ${tabs.map(([k, lab]) => `<button type="button" class="${tab===k?'active':''}" data-tab="${k}">${lab}</button>`).join('')}
       </div>
       <div id="tab-body"></div>
     `;
+    if (window.WSWeekly) {
+      window.WSWeekly.mount($('#week-root'), {
+        sb,
+        playerId: id,
+        availabilityEl: $('#player-availability'),
+      });
+    } else {
+      const weekRoot = $('#week-root');
+      if (weekRoot) weekRoot.innerHTML = `<div class="empty"><strong>Weekly plan didn’t load</strong>Refresh the page. The rest of this player still works.</div>`;
+    }
     $('#back-ros').addEventListener('click', () => { location.hash = 'roster'; });
     $$('.tabs button', main).forEach((b) => {
       b.addEventListener('click', () => { location.hash = `player/${id}/${b.dataset.tab}`; });

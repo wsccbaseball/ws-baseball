@@ -4,10 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b1c2c" />
-  <title>WS HQ — Player (stub)</title>
+  <title>WS HQ — Player</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./weekly.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -35,6 +36,9 @@
       padding-bottom: 32px;
       max-width: 560px;
       margin: 0 auto;
+    }
+    @media (min-width: 860px) {
+      body { max-width: 980px; }
     }
     h1, h2, h3 { font-family: Barlow, system-ui, sans-serif; font-weight: 600; }
     a { color: var(--navy); }
@@ -133,7 +137,7 @@
 </head>
 <body>
   <div class="banner">
-    <strong>Player view stub</strong> — not real player auth. Pick yourself from the roster for a read-only preview of plans, assignments, today’s practice, and logs. Staff still use the unlock gate on HQ.
+    <strong>Player view</strong> — not a separate login. Pick a player for plans, assignments, today’s practice, and logs. Weekly plan, review notes, and throw counts are editable and save per player and week.
   </div>
   <div class="top">
     <h1>WS <span>Player</span></h1>
@@ -151,9 +155,10 @@
   </div>
 
   <div id="view">
-    <div class="empty"><strong>Select a player</strong>Dev plans, assignments, today’s practice, and recent logs will show here.</div>
+    <div class="empty"><strong>Select a player</strong>Dev plans, assignments, today’s practice, recent logs, and the weekly plan will show here.</div>
   </div>
 
+  <script src="./weekly.js"></script>
   <script>
 (function () {
   const SUPA_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
@@ -207,11 +212,16 @@
         showPlayer(li.dataset.id);
       });
     });
+    const initialId = new URLSearchParams(location.search).get('player');
+    if (initialId && list.some((p) => p.id === initialId)) {
+      pick.value = initialId;
+      showPlayer(initialId);
+    }
   }
 
   async function showPlayer(id) {
     if (!id) {
-      view.innerHTML = `<div class="empty"><strong>Select a player</strong>Dev plans, assignments, today’s practice, and recent logs will show here.</div>`;
+      view.innerHTML = `<div class="empty"><strong>Select a player</strong>Dev plans, assignments, today’s practice, recent logs, and the weekly plan will show here.</div>`;
       return;
     }
     view.innerHTML = `<div class="empty">Loading…</div>`;
@@ -247,8 +257,11 @@
           ${p.throws ? `<span class="chip">T: ${esc(p.throws)}</span>` : ''}
           ${p.bats ? `<span class="chip">B: ${esc(p.bats)}</span>` : ''}
           ${p.class_year || ''}
+          <span class="avail-label">Availability</span>
+          <span class="chip muted" id="player-availability" aria-label="Availability: Not set">Not set</span>
         </div>
       </div>
+      <div id="week-root"></div>
 
       <h2 class="section-title">Dev plans</h2>
       ${plans.length ? plans.map((pl) => `
@@ -293,6 +306,17 @@
         </div>
       `).join('') : `<div class="empty"><strong>No recent logs</strong></div>`}
     `;
+    const weekRoot = document.getElementById('week-root');
+    if (window.WSWeekly && weekRoot) {
+      window.WSWeekly.mount(weekRoot, {
+        sb,
+        playerId: id,
+        availabilityEl: document.getElementById('player-availability'),
+      });
+    } else if (weekRoot) {
+      weekRoot.innerHTML = `<div class="empty"><strong>Weekly plan didn’t load</strong>Refresh the page. The rest of this player still works.</div>`;
+    }
+    view.scrollIntoView({ block: 'start' });
   }
 
   pick.addEventListener('change', () => showPlayer(pick.value));
