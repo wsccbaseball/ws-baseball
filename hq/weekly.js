@@ -12,6 +12,7 @@
     ['sun', 'Sun'],
   ];
   const WEEK_MEMORY = new Map();
+  const DRAFTS = new Map();
 
   function parseISODate(iso) {
     const [y, m, d] = String(iso).slice(0, 10).split('-').map(Number);
@@ -251,7 +252,40 @@
     const totalEl = rootEl.querySelector('[data-throw-total="planned"]');
     let currentWeek = WEEK_MEMORY.get(playerId) || toISODate(mondayOf(new Date()));
     let snapshot = '';
+    let blankSnapshot = '';
     let loadToken = 0;
+
+    function draftKey(week) {
+      return playerId + '|' + week;
+    }
+
+    function formState() {
+      const planned = {};
+      DAYS.forEach(([key]) => {
+        planned[key] = String(form.elements['planned_' + key].value || '');
+      });
+      return {
+        availability: String(form.elements.availability.value || ''),
+        weekly_focus: String(form.elements.weekly_focus.value || ''),
+        bullpen_focus: String(form.elements.bullpen_focus.value || ''),
+        plan_vs_rhh: String(form.elements.plan_vs_rhh.value || ''),
+        plan_vs_lhh: String(form.elements.plan_vs_lhh.value || ''),
+        attack_cue: String(form.elements.attack_cue.value || ''),
+        next_outing_goal: String(form.elements.next_outing_goal.value || ''),
+        self_grade: String(form.elements.self_grade.value || ''),
+        coach_grade: String(form.elements.coach_grade.value || ''),
+        what_played: String(form.elements.what_played.value || ''),
+        what_needs_work: String(form.elements.what_needs_work.value || ''),
+        recovery_focus: String(form.elements.recovery_focus.value || ''),
+        coach_notes: String(form.elements.coach_notes.value || ''),
+        throws_planned: planned,
+      };
+    }
+
+    function rememberDraft() {
+      if (readSnapshot(form) === blankSnapshot) DRAFTS.delete(draftKey(currentWeek));
+      else DRAFTS.set(draftKey(currentWeek), formState());
+    }
 
     function setStatus(text, kind) {
       if (!text) {
@@ -287,6 +321,17 @@
       snapshot = readSnapshot(form);
     }
 
+    function showDraftOrBlank(week, message, kind) {
+      const draft = DRAFTS.get(draftKey(week));
+      if (draft) {
+        apply(draft);
+        snapshot = blankSnapshot;
+      } else {
+        apply(emptyPlan());
+      }
+      setStatus(message, kind);
+    }
+
     function isDirty() {
       return readSnapshot(form) !== snapshot;
     }
@@ -319,16 +364,20 @@
         return;
       }
       if (error) {
-        apply(emptyPlan());
         if (isMissingRelation(error)) {
-          setStatus('Weekly plans can’t be loaded or saved yet (hq_weekly_plans is not on the database). These fields stay blank, and the rest of this page still works.', 'note');
+          showDraftOrBlank(week, 'Weekly plans can’t be loaded or saved yet (hq_weekly_plans is not on the database). Nothing is stored, and the rest of this page still works.', 'note');
         } else {
-          setStatus(error.message || 'Could not load this week.', 'error');
+          showDraftOrBlank(week, error.message || 'Could not load this week.', 'error');
         }
         return;
       }
-      apply(data || emptyPlan());
-      setStatus(data ? '' : 'Nothing saved for this week.');
+      if (data) {
+        DRAFTS.delete(draftKey(week));
+        apply(data);
+        setStatus('');
+        return;
+      }
+      showDraftOrBlank(week, 'Nothing saved for this week.');
     }
 
     function goTo(nextIso) {
@@ -341,6 +390,7 @@
         form.elements.week_of.value = currentWeek;
         return;
       }
+      DRAFTS.delete(draftKey(currentWeek));
       currentWeek = monday;
       snapshot = readSnapshot(form);
       setStatus('');
@@ -351,6 +401,7 @@
       setStatus('');
       paintAvailability(availabilityEl, form.elements.availability.value);
       updateTotal();
+      rememberDraft();
     });
     form.addEventListener('change', (e) => {
       if (e.target && e.target.name === 'week_of') goTo(e.target.value || currentWeek);
@@ -384,14 +435,17 @@
         }
         return;
       }
+      DRAFTS.delete(draftKey(currentWeek));
       apply(data || payload);
       setStatus('Saved for the week of ' + formatRange(currentWeek) + '.', 'ok');
     });
 
     apply(emptyPlan());
+    blankSnapshot = snapshot;
     form.elements.week_of.value = currentWeek;
     rangeEl.textContent = formatRange(currentWeek);
-    paintAvailability(availabilityEl, '');
+    const existingDraft = DRAFTS.get(draftKey(currentWeek));
+    if (existingDraft) apply(existingDraft);
     load();
   }
 
