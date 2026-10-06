@@ -379,12 +379,97 @@ async function supaFetch(path){
   return rows;
 }
 var seasonBundles={};
+// Columns this page reads, plus PAofInning / Inning / Top/Bottom for a future
+// plate-appearance count. PA and wOBA still come only from box scores.
+var HITTER_PITCH_SELECT=[
+  'id','GameID',
+  'Pitcher','PitcherThrows','PitcherTeam',
+  'Batter','BatterSide','BatterTeam',
+  'Inning','PitchofPA','PAofInning','"Top/Bottom"',
+  'Balls','Strikes',
+  'TaggedPitchType','AutoPitchType',
+  'PitchCall','KorBB','PlayResult',
+  'TaggedHitType','AutoHitType',
+  'RelSpeed','SpinRate',
+  'InducedVertBreak','HorzBreak',
+  'PlateLocHeight','PlateLocSide',
+  'ExitSpeed','Angle','Direction','Distance','Bearing',
+  'ContactPositionX','ContactPositionY','ContactPositionZ'
+].join(',');
+// This project's PostgREST max-rows is 1000: limit=1001 and limit=2000 both
+// come back as 1000 rows. A larger page size would look complete and drop the rest.
+var HITTER_PITCH_PAGE=1000;
+
+// Live pitches from public.pitches (anon SELECT). data/seasons/*.json stays in
+// place for Season Pitching; the nightly Stuff+ job rewrites those files, so
+// this page must not read them or a correction in pitches shows up a day late.
 async function loadSeasonBundle(season){
   if(seasonBundles[season])return seasonBundles[season];
-  var res=await fetch('data/seasons/'+encodeURIComponent(season)+'.json',{cache:'no-cache'});
-  if(!res.ok)throw new Error('Season file is not ready for '+season+' ('+res.status+')');
-  var data=await res.json();
-  if(!data||!Array.isArray(data.pitches))throw new Error('Season file for '+season+' is unreadable');
+  var ids=[],seenGame={};
+  allGamesMeta.forEach(function(g){
+    if((g.season||'unknown')!==season||!g.game_id||seenGame[g.game_id])return;
+    seenGame[g.game_id]=true;
+    ids.push(g.game_id);
+  });
+  var started=Date.now();
+  var pitches=[];
+  var seenId={};
+  // One IN() list per handful of games keeps the URL short. Each list is paged
+  // on id, the primary key, so limit/offset cannot skip or repeat a row.
+  var CHUNK=30;
+  for(var c=0;c<ids.length;c+=CHUNK){
+    var slice=ids.slice(c,c+CHUNK);
+    var filter='GameID=in.('+slice.map(function(id){return encodeURIComponent(id);}).join(',')+')';
+    var offset=0;
+    var expected=null;
+    var lastId=null;
+    while(true){
+      var url=SUPABASE_URL+'/rest/v1/pitches?select='+encodeURIComponent(HITTER_PITCH_SELECT)
+        +'&'+filter+'&order=id.asc&limit='+HITTER_PITCH_PAGE+'&offset='+offset;
+      var r=await fetch(url,{headers:{
+        'apikey':SUPABASE_KEY,
+        'Authorization':'Bearer '+SUPABASE_KEY,
+        'Prefer':'count=exact'
+      }});
+      if(!r.ok){
+        var errText='';
+        try{errText=await r.text();}catch(e){}
+        throw new Error('Pitches request failed ('+r.status+') '+errText.slice(0,180));
+      }
+      var batch=await r.json();
+      if(!Array.isArray(batch))throw new Error('Pitches response was not a list');
+      var range=r.headers.get('content-range')||'';
+      var totalMatch=range.match(/\/(\d+)\s*$/);
+      if(totalMatch){
+        var total=parseInt(totalMatch[1],10);
+        if(expected===null)expected=total;
+        else if(expected!==total)throw new Error('Pitch count changed while loading '+season);
+      }
+      for(var i=0;i<batch.length;i++){
+        var row=batch[i];
+        var rowId=Number(row.id);
+        if(!isFinite(rowId))throw new Error('Pitch row is missing id');
+        if(seenId[rowId])throw new Error('Duplicate pitch id '+rowId+' while loading '+season);
+        if(lastId!==null && !(rowId>lastId))throw new Error('Pitch page was not ordered by id; refusing to continue');
+        seenId[rowId]=true;
+        lastId=rowId;
+        pitches.push(row);
+      }
+      if(pitches.length>50000)throw new Error('Stopped loading pitches: more than 50000 rows');
+      if(!batch.length)break;
+      offset+=batch.length;
+      setProgress(Math.min(90,40+Math.round(pitches.length/80)),'Loading pitches... '+pitches.length.toLocaleString());
+      if(expected!==null && offset>=expected)break;
+      // A short page is the end only when it matches the reported total. If the
+      // server capped the page below 1000, keep going from the rows we received.
+      if(expected===null && batch.length<HITTER_PITCH_PAGE)break;
+    }
+    if(expected!==null && offset!==expected){
+      throw new Error('Loaded '+offset+' of '+expected+' pitches for '+season);
+    }
+  }
+  console.info('Loaded '+pitches.length+' pitches for '+season+' in '+((Date.now()-started)/1000).toFixed(1)+'s');
+  var data={pitches:pitches};
   seasonBundles[season]=data;
   return data;
 }
@@ -809,7 +894,7 @@ async function loadSeasonDataInner(_saw){
   populateGameFilter();
   allPitches=[];
   if(gamesMeta.length){
-    setProgress(40,'Loading season file...');
+    setProgress(40,'Loading pitches...');
     var file=await loadSeasonBundle(CURRENT_SEASON);
     var allow={};
     gamesMeta.forEach(function(g){allow[g.game_id]=true;});
