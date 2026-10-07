@@ -1,0 +1,411 @@
+{
+  "generated_at": "2026-10-07T02:52:36Z",
+  "games": [
+    {
+      "game_id": "20260318-WaltersStateCC-2",
+      "display_name": "Cleveland Community College Midweek Game 2",
+      "date": "2026-03-18",
+      "season": "2026-spring",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260320-WaltersStateCC-1",
+      "display_name": "Wabash Game 1",
+      "date": "2026-03-20",
+      "season": "2026-spring",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260320-WaltersStateCC-2",
+      "display_name": "Wabash Game 2",
+      "date": "2026-03-20",
+      "season": "2026-spring",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260321-WaltersStateCC-1",
+      "display_name": "Wabash Game 3",
+      "date": "2026-03-21",
+      "season": "2026-spring",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260326-WaltersStateCC-1",
+      "display_name": "Dyersburg Game 1",
+      "date": "2026-03-26",
+      "season": "2026-spring",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260327-WaltersStateCC-1",
+      "display_name": "Dyersburg Game 2",
+      "date": "2026-03-27",
+      "season": "2026-spring",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260327-WaltersStateCC-2",
+      "display_name": "Dyersburg Game 3",
+      "date": "2026-03-27",
+      "season": "2026-spring",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260331-WaltersStateCC-1",
+      "display_name": "Cleveland State Midweek Game 1",
+      "date": "2026-03-31",
+      "season": "2026-spring",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260331-WaltersStateCC-2",
+      "display_name": "Cleveland State Midweek Game 2",
+      "date": "2026-03-31",
+      "season": "2026-spring",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260407-WaltersStateCC-1",
+      "display_name": "Pellissippi State Midweek Game 1",
+      "date": "2026-04-07",
+      "season": "2026-spring",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260407-WaltersStateCC-2",
+      "display_name": "Pellissippi State Midweek Game 2",
+      "date": "2026-04-07",
+      "season": "2026-spring",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260410-WaltersStateCC-1",
+      "display_name": "Jackson State Game 1",
+      "date": "2026-04-10",
+      "season": "2026-spring",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260411-WaltersStateCC-1",
+      "display_name": "Jackson State Game 2",
+      "date": "2026-04-11",
+      "season": "2026-spring",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260411-WaltersStateCC-2",
+      "display_name": "Jackson State Game 3",
+      "date": "2026-04-11",
+      "season": "2026-spring",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260417-WaltersStateCC-1",
+      "display_name": "Vol State Game 1",
+      "date": "2026-04-17",
+      "season": "2026-spring",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260418-WaltersStateCC-1",
+      "display_name": "Vol State Game 2",
+      "date": "2026-04-18",
+      "season": "2026-spring",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260418-WaltersStateCC-2",
+      "display_name": "Vol State Game 3",
+      "date": "2026-04-18",
+      "season": "2026-spring",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260428-WaltersStateCC-1",
+      "display_name": "Southwest Virginia Game 1",
+      "date": "2026-04-28",
+      "season": "2026-spring",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260512-GAHighlandsCollegeBBField-1",
+      "display_name": "Georgia Highlands Game 1",
+      "date": "2026-05-12",
+      "season": "2026-spring",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260513-GAHighlandsCollegeBBField-1",
+      "display_name": "Georgia Highlands Game 2",
+      "date": "2026-05-13",
+      "season": "2026-spring",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260818-WaltersStateCC-Private-2",
+      "display_name": "Intersquad August 18 Game 1",
+      "date": "2026-08-18",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260818-WaltersStateCC-Private-3",
+      "display_name": "Intersquad August 18 Game 2",
+      "date": "2026-08-18",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260818-WaltersStateCC-Private-1",
+      "display_name": "Intersquad August 18 Game 3",
+      "date": "2026-08-18",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260823-WaltersStateCC-Private-1",
+      "display_name": "Intersquad August 23 Game 1",
+      "date": "2026-08-23",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260823-WaltersStateCC-Private-2",
+      "display_name": "Intersquad August 23 Game 2",
+      "date": "2026-08-23",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260823-WaltersStateCC-Private-3",
+      "display_name": "Intersquad August 23 Game 3",
+      "date": "2026-08-23",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260828-WaltersStateCC-Private-1",
+      "display_name": "Intersquad August 28 Game 1",
+      "date": "2026-08-28",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260828-WaltersStateCC-Private-2",
+      "display_name": "Intersquad August 28 Game 2",
+      "date": "2026-08-28",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260828-WaltersStateCC-Private-3",
+      "display_name": "Intersquad August 28 Game 3",
+      "date": "2026-08-28",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260829-WaltersStateCC-Private-1",
+      "display_name": "Intersquad August 29 Game 1",
+      "date": "2026-08-29",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260829-WaltersStateCC-Private-2",
+      "display_name": "Intersquad August 29 Game 2",
+      "date": "2026-08-29",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260829-WaltersStateCC-Private-3",
+      "display_name": "Intersquad August 29 Game 3",
+      "date": "2026-08-29",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260902-WaltersStateCC-Private-1",
+      "display_name": "Roane State Game 1",
+      "date": "2026-09-02",
+      "season": "2026-fall",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260902-WaltersStateCC-Private-2",
+      "display_name": "Roane State Game 2",
+      "date": "2026-09-02",
+      "season": "2026-fall",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260902-WaltersStateCC-Private-3",
+      "display_name": "Roane State Game 3",
+      "date": "2026-09-02",
+      "season": "2026-fall",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260903-WaltersStateCC-Private-2",
+      "display_name": "Intersquad September 3 Game 2",
+      "date": "2026-09-03",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260908-WaltersStateCC-Private-1",
+      "display_name": "Pellissippi State Game 1",
+      "date": "2026-09-08",
+      "season": "2026-fall",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260908-WaltersStateCC-Private-2",
+      "display_name": "Pellissippi State Game 2",
+      "date": "2026-09-08",
+      "season": "2026-fall",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260910-WaltersStateCC-Private-1",
+      "display_name": "Intersquad September 10 Game 1",
+      "date": "2026-09-10",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260910-WaltersStateCC-Private-2",
+      "display_name": "Intersquad September 10 Game 2",
+      "date": "2026-09-10",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260910-WaltersStateCC-Private-3",
+      "display_name": "Intersquad September 10 Game 3",
+      "date": "2026-09-10",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260913-WaltersStateCC-Private-1",
+      "display_name": "Intersquad September 13 Game 1",
+      "date": "2026-09-13",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260913-WaltersStateCC-Private-4",
+      "display_name": "Intersquad September 13 Game 2",
+      "date": "2026-09-13",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260913-WaltersStateCC-Private-5",
+      "display_name": "Intersquad September 13 Game 3",
+      "date": "2026-09-13",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260918-WaltersStateCC-Private-1",
+      "display_name": "Intersquad September 18",
+      "date": "2026-09-18",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260919-WaltersStateCC-Private-1",
+      "display_name": "Royals Scout Team Game 1",
+      "date": "2026-09-19",
+      "season": "2026-fall",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260919-WaltersStateCC-Private-2",
+      "display_name": "Royals Scout Team Game 2",
+      "date": "2026-09-19",
+      "season": "2026-fall",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260923-WaltersStateCC-Private-1",
+      "display_name": "Intersquad September 23",
+      "date": "2026-09-23",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260926-ReeseField-Private-3",
+      "display_name": "Columbia State",
+      "date": "2026-09-26",
+      "season": "2026-fall",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260926-ReeseField-Private-4",
+      "display_name": "Southwest Tennessee",
+      "date": "2026-09-26",
+      "season": "2026-fall",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260928-WaltersStateCC-Private-1",
+      "display_name": "Intersquad September 28",
+      "date": "2026-09-28",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20260929-HennonStadium-Private-1",
+      "display_name": "Western Carolina Game 1",
+      "date": "2026-09-29",
+      "season": "2026-fall",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20260929-HennonStadium-Private-2",
+      "display_name": "Western Carolina Game 2",
+      "date": "2026-09-29",
+      "season": "2026-fall",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20261002-UNC-Private-1",
+      "display_name": "UNC Game 1",
+      "date": "2026-10-02",
+      "season": "2026-fall",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20261002-UNC-Private-2",
+      "display_name": "UNC Game 2",
+      "date": "2026-10-02",
+      "season": "2026-fall",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20261005-WaltersStateCC-Private-1",
+      "display_name": "Intersquad October 5",
+      "date": "2026-10-05",
+      "season": "2026-fall",
+      "game_type": "intersquad"
+    },
+    {
+      "game_id": "20261006-EastTennesseeState-Private-1",
+      "display_name": "ETSU Game 1",
+      "date": "2026-10-06",
+      "season": "2026-fall",
+      "game_type": "game"
+    },
+    {
+      "game_id": "20261006-EastTennesseeState-Private-2",
+      "display_name": "ETSU Game 2",
+      "date": "2026-10-06",
+      "season": "2026-fall",
+      "game_type": "game"
+    }
+  ]
+}
