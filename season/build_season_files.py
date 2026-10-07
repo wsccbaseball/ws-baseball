@@ -173,6 +173,36 @@ def write_if_changed(season, payload):
     print(f'{season}: wrote {path} ({len(payload["pitches"])} pitches, {os.path.getsize(path)} bytes)')
 
 
+def write_manifest(games):
+    """Same-origin game list for the season pages.
+
+    Those pages used to block on a cross-origin games query. iOS Safari can
+    leave that fetch pending after Supabase has already answered, which sticks
+    the loading screen on "Loading games...". The nightly job already reads
+    games, so it publishes them next to the season files.
+    """
+    rows = [
+        _compact(game, ['game_id', 'display_name', 'date', 'season', 'game_type'])
+        for game in games
+    ]
+    path = os.path.join(OUT_DIR, 'manifest.json')
+    body = _dumps({'games': rows})
+    if os.path.exists(path):
+        previous = _loads(open(path, encoding='utf-8').read())
+        if _dumps({'games': previous.get('games')}) == body:
+            print(f'manifest: unchanged ({len(rows)} games)')
+            return
+    stamped = _dumps({
+        'generated_at': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+        'games': rows,
+    })
+    os.makedirs(OUT_DIR, exist_ok=True)
+    with open(path, 'w', encoding='utf-8') as handle:
+        handle.write(stamped)
+        handle.write('\n')
+    print(f'manifest: wrote {path} ({len(rows)} games, {os.path.getsize(path)} bytes)')
+
+
 def main():
     if not URL or not KEY:
         print('SUPABASE_URL and SUPABASE_SERVICE_KEY (or SUPABASE_ANON_KEY) are required')
@@ -181,8 +211,12 @@ def main():
         'select': 'game_id,display_name,date,season,game_type',
         'order': 'date.asc,display_name.asc',
     })
+    ordered_games = sorted(
+        games,
+        key=lambda g: (g.get('date') or '', g.get('display_name') or '', g.get('game_id') or ''),
+    )
     by_season = {}
-    for game in games:
+    for game in ordered_games:
         season = game.get('season') or 'unknown'
         if not season_ok(season):
             raise RuntimeError(f'unexpected season name {season!r}')
@@ -190,12 +224,9 @@ def main():
     if not by_season:
         print('no games')
         return
+    write_manifest(ordered_games)
     for season in sorted(by_season):
-        ordered = sorted(
-            by_season[season],
-            key=lambda g: (g.get('date') or '', g.get('display_name') or '', g.get('game_id') or ''),
-        )
-        write_if_changed(season, build_payload(season, ordered))
+        write_if_changed(season, build_payload(season, by_season[season]))
 
 
 if __name__ == '__main__':
