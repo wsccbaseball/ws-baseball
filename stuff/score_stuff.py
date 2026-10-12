@@ -1,4 +1,13 @@
-"""Nightly Stuff+ scoring (v5): grades any pitch in Supabase that doesn't have a grade yet.
+"""Nightly Stuff+ scoring (v6): grades pitches in Supabase and writes the grades.
+
+v6 vs v5:
+- Adds pitcher/batter handedness features PThrowL, BatL, SameHand (LHP mirroring unchanged)
+- Feature list/order comes from models/scaling.json "feats" (v6 = v5 feats + the 3 hand feats)
+- There is no separate +1.5 lefty board layer in this scorer
+
+Nightly runs fill null stuff_plus_juco only. STUFF_RESCORE=1 rewrites every
+gradeable Stuff+ grade in place through rpc/set_stuff_plus. It does not delete
+pitches or games, and it does not null a grade it cannot recompute.
 
 v5 vs v4:
 - Adds ArmAngle + pitcher-day FB diffs (dVelo_day, dIVB_day, dHB_day, dSpin_day)
@@ -46,6 +55,7 @@ stuff_models = load_boosters('stuff')
 whiff_models = load_boosters('whiff')
 cfg = json.load(open(os.path.join(MODEL_DIR, 'scaling.json')))
 FEATS = cfg['feats']
+assert cfg.get('version') == 'v6' and FEATS[-3:] == ['PThrowL', 'BatL', 'SameHand'], 'expected v6 scaling.json'
 scale_rv = cfg.get('scale_rv') or cfg['scale']
 scale_whiff = cfg['scale_whiff']
 blend_w = cfg.get('blend_weights') or {'rv': 0.5, 'whiff': 0.5, 'swstr': 0.0}
@@ -105,7 +115,7 @@ def pitcher_key(d):
 
 
 def build(d):
-    """Feature eng matching stuff_plus_training_v5.py live/WS path."""
+    """Feature eng matching the v6 live/WS path (v5 features plus hand)."""
     d = d.copy()
     for c in NUM:
         if c in d.columns:
@@ -157,6 +167,15 @@ def build(d):
     d['dHB_day'] = d['HorzBreak'] - d['hb_day'].fillna(d['hb'])
     d['dSpin_day'] = d['SpinRate'] - d['spin_day'].fillna(
         d.groupby('Key')['SpinRate'].transform('mean'))
+    # v6 handedness features (must match scaling.json hand_encoding).
+    # LHP mirroring above is unchanged. Hand features are in addition to it.
+    d['PThrowL'] = (d['PitcherThrows'] == 'Left').astype(float)
+    if 'BatterSide' in d.columns:
+        bs = d['BatterSide'].where(d['BatterSide'].isin(['Left', 'Right']))
+    else:
+        bs = pd.Series(np.nan, index=d.index)
+    d['BatL'] = np.where(bs.isna(), np.nan, (bs == 'Left').astype(float))
+    d['SameHand'] = np.where(bs.isna(), np.nan, (bs == d['PitcherThrows']).astype(float))
     return d
 
 
@@ -191,6 +210,22 @@ def score(d):
     return d
 
 
+def rescore_requested():
+    """True when STUFF_RESCORE is 1, true, or yes. Unset and 0 stay null-fill."""
+    return os.environ.get('STUFF_RESCORE', '').strip().lower() in {'1', 'true', 'yes'}
+
+
+def rows_to_score(built_all, unscored_ids, rescore):
+    """Grade every built pitch on a rescore. Otherwise only the still-null ids.
+
+    Rows that build() drops are not deleted and are not nulled. They keep the
+    grade already stored.
+    """
+    if rescore:
+        return built_all
+    return built_all[built_all['id'].isin(set(unscored_ids))].copy()
+
+
 def main():
     if not URL or not KEY:
         print('SUPABASE_URL and SUPABASE_SERVICE_KEY are required')
@@ -199,14 +234,23 @@ def main():
     if reason:
         print(f'Cutter model is not ready: {reason}. Cutter pitches will be left unscored.')
     pull = ['id', 'Pitcher', 'PitcherThrows', 'BatterSide', 'AutoPitchType', 'TaggedPitchType', 'Date'] + NUM
-    unscored = fetch({'select': ','.join(pull), 'stuff_plus_juco': 'is.null'})
-    print(f'{len(unscored)} unscored pitches')
-    if unscored.empty:
-        return
-    # Baselines from all pitches so primary FB / day FB are stable
-    all_pitches = fetch({'select': ','.join(pull)})
-    built_all = build(all_pitches)
-    built = built_all[built_all['id'].isin(set(unscored['id']))].copy()
+    rescore = rescore_requested()
+    # Baselines come from every pitch so primary FB / day FB stay stable.
+    # Rescore rewrites gradeable rows in place. It does not delete pitches.
+    if rescore:
+        print('STUFF_RESCORE=1: rewriting every gradeable Stuff+ v6 grade')
+        all_pitches = fetch({'select': ','.join(pull)})
+        print(f'{len(all_pitches)} pitches loaded for Stuff+ rescore')
+        if all_pitches.empty:
+            return
+        built = rows_to_score(build(all_pitches), [], True)
+    else:
+        unscored = fetch({'select': ','.join(pull), 'stuff_plus_juco': 'is.null'})
+        print(f'{len(unscored)} unscored pitches')
+        if unscored.empty:
+            return
+        all_pitches = fetch({'select': ','.join(pull)})
+        built = rows_to_score(build(all_pitches), set(unscored['id']), False)
     n_ct = int((built['PGroup'] == 'CT').sum())
     if n_ct and reason:
         print(f'Skipping {n_ct} cutter pitches this run (not scored as fastballs or breakers).')

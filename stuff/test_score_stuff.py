@@ -158,6 +158,51 @@ class PitchGroupTests(unittest.TestCase):
         self.assertAlmostEqual(row['RelSide'], -1.5)
         self.assertAlmostEqual(row['SpinAxis'], (360 - 200) % 360)
         self.assertAlmostEqual(row['ArmAngle'], float(np.degrees(np.arctan2(-1.5, 6.0))))
+        self.assertEqual(row['PThrowL'], 1.0)
+        self.assertEqual(row['BatL'], 0.0)
+        self.assertEqual(row['SameHand'], 0.0)
+
+    def test_hand_features_follow_batter_side(self):
+        rows = [
+            _pitch(id=1, PitcherThrows='Right', BatterSide='Right'),
+            _pitch(id=2, PitcherThrows='Right', BatterSide='Left'),
+            _pitch(id=3, PitcherThrows='Right', BatterSide='Switch'),
+            _pitch(id=4, PitcherThrows='Right', BatterSide=None),
+            _pitch(id=5, PitcherThrows='Right', BatterSide='Undefined'),
+            _pitch(id=6, PitcherThrows='Left', BatterSide='Left', RelSide=1.2, HorzBreak=8),
+            _pitch(id=7, PitcherThrows='Left', BatterSide='Right', RelSide=1.2, HorzBreak=8),
+        ]
+        d = s.build(pd.DataFrame(rows)).set_index('id')
+        self.assertEqual(list(d.loc[1, ['PThrowL', 'BatL', 'SameHand']]), [0.0, 0.0, 1.0])
+        self.assertEqual(list(d.loc[2, ['PThrowL', 'BatL', 'SameHand']]), [0.0, 1.0, 0.0])
+        for i in (3, 4, 5):
+            self.assertEqual(d.loc[i, 'PThrowL'], 0.0)
+            self.assertTrue(pd.isna(d.loc[i, 'BatL']))
+            self.assertTrue(pd.isna(d.loc[i, 'SameHand']))
+        self.assertEqual(list(d.loc[6, ['PThrowL', 'BatL', 'SameHand']]), [1.0, 1.0, 1.0])
+        self.assertEqual(list(d.loc[7, ['PThrowL', 'BatL', 'SameHand']]), [1.0, 0.0, 0.0])
+        # Mirroring still runs. Hand flags are added on top of it.
+        self.assertAlmostEqual(d.loc[6, 'HorzBreak'], -8)
+        self.assertAlmostEqual(d.loc[6, 'RelSide'], -1.2)
+
+    def test_missing_batter_side_stays_missing_and_still_scores(self):
+        raw = pd.DataFrame([_pitch()]).drop(columns=['BatterSide'])
+        d = s.build(raw)
+        self.assertEqual(d.iloc[0]['PThrowL'], 0.0)
+        self.assertTrue(pd.isna(d.iloc[0]['BatL']))
+        self.assertTrue(pd.isna(d.iloc[0]['SameHand']))
+        scored = s.score(d)
+        self.assertTrue(pd.notna(scored.iloc[0]['stuff_plus_d1']))
+        self.assertTrue(pd.notna(scored.iloc[0]['stuff_plus_juco']))
+
+    def test_same_shape_grades_differ_by_batter_hand(self):
+        d = s.score(s.build(pd.DataFrame([
+            _pitch(id=1, BatterSide='Left'),
+            _pitch(id=2, BatterSide='Right'),
+        ])))
+        left = float(d.loc[d['id'] == 1, 'stuff_plus_d1'].iloc[0])
+        right = float(d.loc[d['id'] == 2, 'stuff_plus_d1'].iloc[0])
+        self.assertNotAlmostEqual(left, right)
 
 
 def _blend(rv, whiff, sr, sw):
@@ -177,9 +222,17 @@ class ScoreTests(unittest.TestCase):
     def test_installed_models_share_feats_and_score_ct(self):
         want = ['RelSpeed', 'SpinRate', 'InducedVertBreak', 'HorzBreak', 'AxisSin', 'AxisCos',
                 'RelHeight', 'RelSide', 'Extension', 'dVelo', 'dIVB', 'dHB',
-                'ArmAngle', 'dVelo_day', 'dIVB_day', 'dHB_day', 'dSpin_day']
+                'ArmAngle', 'dVelo_day', 'dIVB_day', 'dHB_day', 'dSpin_day',
+                'PThrowL', 'BatL', 'SameHand']
         self.assertEqual(list(s.FEATS), want)
-        self.assertEqual(len(s.FEATS), 17)
+        self.assertEqual(len(s.FEATS), 20)
+        self.assertEqual(s.cfg.get('version'), 'v6')
+        for g in ('FB', 'BB', 'OS', 'CT'):
+            for models in (s.stuff_models, s.whiff_models):
+                names = models[g].feature_name()
+                imp = models[g].feature_importance()
+                for feat in ('PThrowL', 'BatL', 'SameHand'):
+                    self.assertGreater(imp[names.index(feat)], 0, f'{g} {feat}')
         for g in ('FB', 'BB', 'OS', 'CT'):
             self.assertIn(g, s.stuff_models)
             self.assertIn(g, s.whiff_models)
@@ -253,6 +306,43 @@ class ScoreTests(unittest.TestCase):
             s.whiff_models.clear(); s.whiff_models.update(saved_whiff)
             s.scale_rv.clear(); s.scale_rv.update(saved_rv)
             s.scale_whiff.clear(); s.scale_whiff.update(saved_wh)
+
+
+class RescoreTests(unittest.TestCase):
+    def test_rescore_env_defaults_off(self):
+        old = os.environ.get('STUFF_RESCORE')
+        try:
+            os.environ['STUFF_RESCORE'] = '1'
+            self.assertTrue(s.rescore_requested())
+            os.environ['STUFF_RESCORE'] = 'true'
+            self.assertTrue(s.rescore_requested())
+            os.environ['STUFF_RESCORE'] = 'yes'
+            self.assertTrue(s.rescore_requested())
+            os.environ['STUFF_RESCORE'] = '0'
+            self.assertFalse(s.rescore_requested())
+            os.environ['STUFF_RESCORE'] = ''
+            self.assertFalse(s.rescore_requested())
+            os.environ.pop('STUFF_RESCORE', None)
+            self.assertFalse(s.rescore_requested())
+        finally:
+            if old is None:
+                os.environ.pop('STUFF_RESCORE', None)
+            else:
+                os.environ['STUFF_RESCORE'] = old
+
+    def test_rows_to_score_rewrites_in_place_without_adding_dropped_ids(self):
+        built = pd.DataFrame([
+            {'id': 1, 'PGroup': 'FB'},
+            {'id': 2, 'PGroup': 'FB'},
+            {'id': 3, 'PGroup': 'CT'},
+        ])
+        nulls = s.rows_to_score(built, [2], False)
+        self.assertEqual(list(nulls['id']), [2])
+        # id 99 was pulled but build() dropped it. Rescore must not invent a
+        # write for it, and must not drop the grades already on 1 and 3.
+        full = s.rows_to_score(built, [1, 2, 99], True)
+        self.assertEqual(list(full['id']), [1, 2, 3])
+        self.assertNotIn(99, set(full['id']))
 
 
 if __name__ == '__main__':
