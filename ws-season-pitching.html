@@ -948,7 +948,7 @@ function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 // that array is only filled inside the InPlay branch — so foul balls with a
 // tracked ExitSpeed are excluded, matching standard hard-hit%.
 //
-// Stuff+ columns: StuffPlusD1 and StuffPlusJUCO are the mean graded value for
+// Stuff+ v6 columns: StuffPlusD1 and StuffPlusJUCO are the mean graded value for
 // that pitch type on that date. Both are already scaled (100 = average at that
 // level, 10 = one SD) so the mean is the right rollup — do not rescale.
 // Pitches with no grade write empty, not zero, so the pre-calibration sessions
@@ -1133,7 +1133,7 @@ function buildStuffTable(){
       '#stuffNote{font-family:Barlow,sans-serif;font-size:.78rem;color:#6b5f47;padding:8px 12px;background:#fffdf7;border-bottom:1px solid #e8e0d0}';
     document.head.appendChild(css);
     var note=document.createElement('div');note.id='stuffNote';
-    note.textContent='Stuff+ from pitch shape only. Each grade is already scaled in the model: 100 is an average pitch at that level and group, 110 is one standard deviation better. '+
+    note.textContent='Stuff+ v6. Each grade uses pitch shape plus pitcher and batter hand, and is already scaled in the model: 100 is an average pitch at that level and group, 110 is one standard deviation better. '+
       'D1 and JUCO columns are the average of those grades; a pitch-type column is the average D1 grade for that pitch. '+
       'Gray = too few pitches to trust (under '+MIN_OVERALL+' overall, under '+MIN_PT+' for a pitch type). Rows under '+MIN_OVERALL+' pitches are muted.';
     var scr=document.getElementById('stuff-screen');scr.insertBefore(note,scr.firstChild);

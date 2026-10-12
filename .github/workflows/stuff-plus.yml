@@ -3,10 +3,18 @@ name: Stuff+, Location+, and Pitching+ nightly scoring
 on:
   schedule:
     - cron: '0 8 * * *'     # 08:00 UTC = 3-4 AM Eastern
-  workflow_dispatch:         # manual run; location_rescore=1 rewrites Location+ v3 and Pitching+
+  workflow_dispatch:         # manual run; stuff_rescore / location_rescore rewrite stored grades
     inputs:
+      stuff_rescore:
+        description: '1 rewrites every gradeable Stuff+ v6 grade in place (no deletes). 0 fills nulls only (nightly default).'
+        required: false
+        default: '0'
+        type: choice
+        options:
+          - '0'
+          - '1'
       location_rescore:
-        description: '1 rewrites every gradeable Location+ v3 and Pitching+ grade. 0 fills nulls only (nightly default).'
+        description: '1 rewrites every gradeable Location+ v3 and Pitching+ grade. 0 fills nulls only (nightly default). Set to 1 in the same run as stuff_rescore=1 so Pitching+ picks up the new Stuff+ grades.'
         required: false
         default: '0'
         type: choice
@@ -26,14 +34,19 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install lightgbm pandas numpy requests
+      # Stuff+ v6. Scheduled runs null-fill. After this swap, run the workflow
+      # once by hand with stuff_rescore=1 so existing grades are rewritten in
+      # place. Set location_rescore=1 on that same run: Pitching+ v1 reads the
+      # stored Stuff+ grade and is not retrained here.
       - run: python stuff/score_stuff.py
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           STUFF_TABLE: ${{ secrets.STUFF_TABLE }}
-      # Location+ v3. Stuff+ above is untouched. Nightly null-fills Location+ and
-      # Pitching+. The first deploy after the v3 swap must be a manual run with
-      # location_rescore=1 so existing grades are rewritten. Scheduled runs pass 0.
+          STUFF_RESCORE: ${{ github.event.inputs.stuff_rescore || '0' }}
+      # Location+ v3 and Pitching+ v1. Models are unchanged. Nightly null-fills
+      # Location+ and Pitching+. location_rescore=1 rewrites them. Scheduled
+      # runs pass 0.
       - run: python location/score_location.py
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}

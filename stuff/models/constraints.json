@@ -5,27 +5,6 @@
     "OS": "free",
     "CT": "free"
   },
-  "ablation_oof_r": {
-    "FB": {
-      "RelSpeed": 0.033265749852460225,
-      "chosen": "RelSpeed"
-    },
-    "BB": {
-      "free": 0.03649409427648101,
-      "RelSpeed": 0.03731270711652071,
-      "chosen": "free"
-    },
-    "OS": {
-      "free": 0.03556056472950952,
-      "RelSpeed": 0.03365855784385596,
-      "chosen": "free"
-    },
-    "CT": {
-      "free": 0.010413843375215257,
-      "RelSpeed": 0.010239859304298559,
-      "chosen": "free"
-    }
-  },
   "feats": [
     "RelSpeed",
     "SpinRate",
@@ -43,68 +22,20 @@
     "dVelo_day",
     "dIVB_day",
     "dHB_day",
-    "dSpin_day"
+    "dSpin_day",
+    "PThrowL",
+    "BatL",
+    "SameHand"
   ],
   "blend_chosen": "50_50_rv_whiff",
-  "blend_results": {
-    "rv_only": {
-      "n_pitchers": 2008,
-      "stuff_to_future_whiff_r": 0.41404964024857305,
-      "whiff_to_future_whiff_r": 0.5143825719402815,
-      "stuff_to_future_rv_r": -0.28166623949242997,
-      "rv_to_future_rv_r": 0.20973896981177012,
-      "split_half_stuff_r": 0.9762657322278245
-    },
-    "whiff_only": {
-      "n_pitchers": 2008,
-      "stuff_to_future_whiff_r": 0.5159640204839167,
-      "whiff_to_future_whiff_r": 0.5143825719402815,
-      "stuff_to_future_rv_r": -0.2182771768875917,
-      "rv_to_future_rv_r": 0.20973896981177012,
-      "split_half_stuff_r": 0.989927498300152
-    },
-    "swstr_only": {
-      "n_pitchers": 2008,
-      "stuff_to_future_whiff_r": 0.5026317941381785,
-      "whiff_to_future_whiff_r": 0.5143825719402815,
-      "stuff_to_future_rv_r": -0.21637298783547707,
-      "rv_to_future_rv_r": 0.20973896981177012,
-      "split_half_stuff_r": 0.9890180689507329
-    },
-    "50_50_rv_whiff": {
-      "n_pitchers": 2008,
-      "stuff_to_future_whiff_r": 0.4959850297062821,
-      "whiff_to_future_whiff_r": 0.5143825719402815,
-      "stuff_to_future_rv_r": -0.25675078572029647,
-      "rv_to_future_rv_r": 0.20973896981177012,
-      "split_half_stuff_r": 0.987773218083978
-    },
-    "70_30_rv_whiff": {
-      "n_pitchers": 2008,
-      "stuff_to_future_whiff_r": 0.4727681299208053,
-      "whiff_to_future_whiff_r": 0.5143825719402815,
-      "stuff_to_future_rv_r": -0.27002907434626655,
-      "rv_to_future_rv_r": 0.20973896981177012,
-      "split_half_stuff_r": 0.9844991422979457
-    },
-    "60_40_rv_whiff": {
-      "n_pitchers": 2008,
-      "stuff_to_future_whiff_r": 0.4858134883933111,
-      "whiff_to_future_whiff_r": 0.5143825719402815,
-      "stuff_to_future_rv_r": -0.2637571848951628,
-      "rv_to_future_rv_r": 0.20973896981177012,
-      "split_half_stuff_r": 0.986354878536104
-    },
-    "50_50_rv_swstr": {
-      "n_pitchers": 2008,
-      "stuff_to_future_whiff_r": 0.4888899405766811,
-      "whiff_to_future_whiff_r": 0.5143825719402815,
-      "stuff_to_future_rv_r": -0.2571762750480742,
-      "rv_to_future_rv_r": 0.20973896981177012,
-      "split_half_stuff_r": 0.9871804214052754
-    }
-  },
   "typing": "tagged-first",
+  "version": "v6",
   "arm_angle": "degrees(atan2(RelSide, RelHeight)) after LHP RelSide flip; geometric proxy not sensor AA",
-  "day_diffs": "vs most-used FB/sinker on same pitcher-day; FB pitches get own diffs (primary\u22480)"
+  "hand_features": [
+    "PThrowL",
+    "BatL",
+    "SameHand"
+  ],
+  "day_diffs": "vs most-used FB/sinker on same pitcher-day; FB pitches get own diffs (primary\u22480)",
+  "validation": "trackman_stuffplus/results/v6_hand_fullseason (every4thweek + blocked_may holdouts)"
 }

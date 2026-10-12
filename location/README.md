@@ -1,8 +1,8 @@
 # Location+ v3 and Pitching+ v1
 
-`score_location.py` writes `location_plus_d1` and `pitching_plus` on `pitches`. It reads `stuff_plus_d1` and does not write `stuff_plus_d1` or `stuff_plus_juco`. Stuff+ v5 is unchanged. The TrackMan upload path is unchanged. New pitches stay null until this job runs.
+`score_location.py` writes `location_plus_d1` and `pitching_plus` on `pitches`. It reads `stuff_plus_d1` and does not write `stuff_plus_d1` or `stuff_plus_juco`. Stuff+ is scored separately and is now v6 (`stuff/score_stuff.py`). Location+ v3 and Pitching+ v1 models in this directory are unchanged. The TrackMan upload path is unchanged. New pitches stay null until this job runs.
 
-The nightly job fills null grades only. Replacing these models does not change a grade that is already stored. The first deploy has to be a manual run with `LOCATION_RESCORE=1` (see below).
+The nightly job fills null grades only. Replacing these models does not change a grade that is already stored. A manual run with `LOCATION_RESCORE=1` rewrites stored Location+ and Pitching+. The Stuff+ v6 deploy needs that flag in the same run as `STUFF_RESCORE=1`, because Pitching+ reads the stored Stuff+ grade. Location+ v3 does not.
 
 Models live in `location/models/`: one LightGBM text booster per pitch group, `location_scaling.json`, and the Pitching+ v1 second-stage files. Location+ v1 boosters and `location_scaling.json` are in `location/models_v1_backup/`.
 
@@ -27,7 +27,7 @@ The stored pitch grade is the unshrunk Colab `LocationPlus_raw` (`LocationPlus_u
 
 Pitching+ is still the second-stage booster `pitching_plus_v1_{FB,BB,OS,CT}.txt`. It was not retrained. It is not a 50/50 of Stuff+ and Location+. After this swap it consumes the v3 Location+ grade through the old z-score. A retrain of Pitching+ on v3 Location+ is recommended and is out of scope. Inputs, in order:
 
-1. `StuffZ100` — z-score the stored Stuff+ v5 grade (`stuff_plus_d1`) with the February–April `train_z` block (`stuff_grade_mean` / `stuff_grade_sd`), then `100 + 10z`. Not `score_z`. The production Stuff+ models are not replaced.
+1. `StuffZ100` — z-score the stored Stuff+ grade (`stuff_plus_d1`, v6 after the Stuff+ rescore) with the February–April `train_z` block (`stuff_grade_mean` / `stuff_grade_sd`), then `100 + 10z`. Not `score_z`. Pitching+ v1 was not retrained on v6 Stuff+. After Stuff+ grades are rewritten, rerun with `LOCATION_RESCORE=1` so Pitching+ is recomputed from the new stored grades. Location+ v3 does not read Stuff+.
 2. `LocationZ100` — the same transform of the Location+ v3 grade above, using `location_grade_mean` / `location_grade_sd` from `train_z`. Those means and sds were fit on Location+ v1 grades. This is the grade on the pitch, not a different location number.
 3. `Balls` — raw count, not z-scored. Pitching+ still accepts a count outside 0–3 / 0–2 when a Location+ grade is already stored. Location+ v3 will not create a new grade for that count.
 4. `Strikes` — raw count, not z-scored.
@@ -35,7 +35,7 @@ Pitching+ is still the second-stage booster `pitching_plus_v1_{FB,BB,OS,CT}.txt`
 
 The grade is `100 + 10 * (scale_pitching[group].mean - prediction) / sd`. Run value only. `scale_pitching` sd is the spread of pitch-level predictions, not of pitcher averages.
 
-With `LOCATION_RESCORE=1`, every Pitching+ grade that has Stuff+, Location+, count, hand, and batter side is recomputed from the new Location+ values.
+With `LOCATION_RESCORE=1`, every Pitching+ grade that has Stuff+, Location+, count, hand, and batter side is recomputed from the stored Stuff+ and Location+ grades.
 
 ## Rescore
 
@@ -43,7 +43,7 @@ Default (unset, `0`, or anything other than `1` / `true` / `yes`): fill null `lo
 
 `LOCATION_RESCORE=1`: load every pitch and rewrite every gradeable `location_plus_d1`, then every `pitching_plus` that the second stage can compute. Stuff+ columns are never in the write payload.
 
-The nightly workflow passes this from the **Run workflow** input `location_rescore`. The scheduled run leaves it at `0`. After this PR is merged, run the workflow once by hand and set that input to `1`. Later nights stay null-fill.
+The nightly workflow passes this from the **Run workflow** input `location_rescore`. The scheduled run leaves it at `0`. After the Stuff+ v6 deploy, run the workflow once by hand with `stuff_rescore` = `1` and `location_rescore` = `1`. Later nights stay null-fill.
 
 ## Card scale and shrink
 
