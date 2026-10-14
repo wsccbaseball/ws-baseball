@@ -64,6 +64,15 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
 .pitch-table tr:nth-child(odd) td { background:#f8fafd; }
 .pitch-table .total-row td { background:#e0eaf8 !important; font-weight:700; }
 .pname { font-weight:700; font-size:clamp(7px,2.2vw,9.5px); text-align:left !important; padding-left:3px !important; white-space:nowrap; overflow:hidden; }
+.stuff-row { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:6px; padding:3px 8px 5px; font-family:'Barlow Condensed',sans-serif; }
+.stuff-row-title { font-family:'Anton',sans-serif; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:#7a8faa; }
+#stuffChips { display:contents; }
+.stuff-chip { display:flex; gap:4px; padding:2px 8px; border-radius:4px; border:1px solid #dde4ef; font-size:12px; background:#fff; }
+.stuff-chip .t { font-weight:800; } .stuff-chip .v { font-weight:700; color:#1a1a2e; }
+.stuff-overall { display:flex; align-items:center; justify-content:center; gap:8px; padding:5px 10px; border-top:2px solid #b8cce0; background:#e8f0f8; font-family:'Barlow Condensed',sans-serif; }
+.stuff-overall-title { font-family:'Anton',sans-serif; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#1a3a5c; }
+.stuff-overall-val { padding:1px 10px; border-radius:4px; border:1.5px solid #1a3a5c; font-size:18px; font-weight:800; color:#1a1a2e; background:#fff; }
+.stuff-overall-note { font-size:10px; color:#7a8faa; font-style:italic; }
 .footer { padding:5px 10px 6px; display:flex; justify-content:space-between; align-items:center; border-top:1px solid #dde4ef; flex-wrap:wrap; gap:2px; }
 .footer-left, .footer-right { font-size:clamp(8px,2.2vw,11px); color:#666; }
 .footer-center { font-size:clamp(7px,1.9vw,10px); color:#888; text-align:center; flex:1; }
@@ -171,6 +180,14 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
       </tr></thead>
       <tbody id="cardPitchRows"></tbody>
     </table>
+  </div>
+  <div class="stuff-row" id="stuffRow" style="display:none;">
+    <span class="stuff-row-title">Stuff+ by Pitch</span><span id="stuffChips"></span>
+  </div>
+  <div class="stuff-overall" id="stuffOverall" style="display:none;">
+    <span class="stuff-overall-title">Overall Stuff+</span>
+    <span class="stuff-overall-val" id="stuffOverallVal">&#8212;</span>
+    <span class="stuff-overall-note">D1 average = 100</span>
   </div>
   <div class="footer">
     <div class="footer-left" id="cFootL">&#x26BE;</div>
@@ -457,7 +474,8 @@ async function generate() {
         rels:   parseFloat(r.RelSide)          || 0,
         ext:    parseFloat(r.Extension)        || 0,
         call:   CALL_MAP[r.PitchCall]          || 'Ball',
-        inning: parseInt(r.Inning)             || 0
+        inning: parseInt(r.Inning)             || 0,
+        stuff:  (r.stuff_plus_d1==null||r.stuff_plus_d1==='') ? null : parseFloat(r.stuff_plus_d1)
       };
     }).filter(function(d) { return d.velo > 0; });
 
@@ -537,6 +555,7 @@ async function generate() {
     document.getElementById('veloInningWrap').style.display = 'none';
 
     buildPitchTable(pitchData, types);
+    buildStuffRow(pitchData, types);
     document.getElementById('card').style.display = 'block';
     document.getElementById('saveBtnWrap').style.display = 'block';
     document.getElementById('saveStatus').textContent = '';
@@ -721,6 +740,21 @@ function buildPitchTable(data, types) {
     '<td>'+(allW/total*100).toFixed(1)+'%</td>'+
     '<td>'+(allSt/total*100).toFixed(1)+'%</td>';
   tbody.appendChild(tr);
+}
+
+// ── Stuff+ (D1 average = 100) ────────────────────────────────────────────────
+function buildStuffRow(data, types){
+  var row=document.getElementById('stuffRow'), ovWrap=document.getElementById('stuffOverall');
+  var all=data.filter(function(d){return d.stuff!=null && !isNaN(d.stuff);});
+  if(!all.length){ row.style.display='none'; ovWrap.style.display='none'; return; }
+  document.getElementById('stuffChips').innerHTML=types.map(function(t){
+    var s=data.filter(function(d){return d.type===t && d.stuff!=null && !isNaN(d.stuff);});
+    var v=s.length ? s.reduce(function(a,d){return a+d.stuff;},0)/s.length : null;
+    return '<span class="stuff-chip"><span class="t" style="color:'+(TC[t]||'#333')+'">'+(SHORT[t]||t)+'</span><span class="v">'+(v==null?'\u2014':Math.round(v))+'</span></span>';
+  }).join('');
+  var ov=all.reduce(function(a,d){return a+d.stuff;},0)/all.length;
+  var el=document.getElementById('stuffOverallVal'); el.textContent=Math.round(ov);
+  row.style.display='flex'; ovWrap.style.display='flex';
 }
 
 // ── Canvas helpers ───────────────────────────────────────────────────────────
