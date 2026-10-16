@@ -15,3 +15,7 @@ jobs:
           python-version: '3.12'
       - run: pip install lightgbm pandas numpy requests
       - run: python -m unittest stuff.test_score_stuff location.test_score_location
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test hitter-pa.test.js
