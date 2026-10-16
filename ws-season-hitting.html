@@ -80,7 +80,7 @@ table.stats-tbl tr.selected td:first-child{background:#e8f0fb!important}
 .card-type{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:#fff;margin-top:2px}
 .season-tag{font-size:10px;font-style:italic;color:#7bb3e0}
 .logo-box{width:42px;text-align:center}
-.stat-section{padding:4px 6px 2px;border-bottom:1px solid #e4eaf4;overflow:hidden}
+.stat-section{padding:4px 6px 4px;border-bottom:1px solid #e4eaf4;overflow:hidden}
 .stat-section-label{font-family:'Anton',sans-serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:#7a8faa;padding:3px 0 2px;display:block}
 .stat-row{display:flex;width:100%}
 .stat-box{flex:1;text-align:center;padding:3px 2px;border-right:1px solid #eef2f8}
@@ -90,6 +90,7 @@ table.stats-tbl tr.selected td:first-child{background:#e8f0fb!important}
 .stat-val.good{color:#2a7a3a}
 .stat-val.warn{color:#b05000}
 .stat-lbl{font-family:'Barlow Condensed',sans-serif;font-size:7.5px;font-weight:600;color:#9b8c9a;text-transform:uppercase;letter-spacing:.4px;display:block;margin-top:1px}
+.stat-team{font-family:'Barlow',sans-serif;font-size:6.5px;font-weight:500;color:#8a929c;display:block;line-height:1.1;margin-top:1px;min-height:8px;white-space:nowrap;letter-spacing:.01em}
 .hmap-section{padding:5px 6px 4px;border-bottom:1px solid #e4eaf4}
 canvas{display:block;border-radius:4px}
 .pitch-section{padding:4px 6px 5px}
@@ -238,7 +239,7 @@ canvas{display:block;border-radius:4px}
       </div>
       <div class="logo-box"><img src="WS-RGB.png" alt="WS" style="width:38px;height:38px;object-fit:contain;background:#fff;border-radius:6px;padding:2px"></div>
     </div>
-    <div class="stat-section">
+    <div class="stat-section" id="seasonStatsSection">
       <span class="stat-section-label">Season Stats</span>
       <div class="stat-row">
         <div class="stat-box"><span class="stat-val hi" id="sAVG">&#8212;</span><span class="stat-lbl">PA</span></div>
@@ -253,22 +254,22 @@ canvas{display:block;border-radius:4px}
     <div class="stat-section">
       <span class="stat-section-label">Contact Quality &middot; TrackMan</span>
       <div class="stat-row">
-        <div class="stat-box"><span class="stat-val" id="tHard">&#8212;</span><span class="stat-lbl">Hard%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tBarrel">&#8212;</span><span class="stat-lbl">Solid%</span></div>
-        <div class="stat-box"><span class="stat-val hi" id="tBestSpeed">&#8212;</span><span class="stat-lbl">Best Speed</span></div>
-        <div class="stat-box"><span class="stat-val" id="tMaxEV">&#8212;</span><span class="stat-lbl">Max EV</span></div>
-        <div class="stat-box"><span class="stat-val" id="tGB">&#8212;</span><span class="stat-lbl">GB%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tFB">&#8212;</span><span class="stat-lbl">FB%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tHard">&#8212;</span><span class="stat-lbl">Hard%</span><span class="stat-team" id="tHardTeam"></span></div>
+        <div class="stat-box"><span class="stat-val" id="tBarrel">&#8212;</span><span class="stat-lbl">Solid%</span><span class="stat-team" id="tBarrelTeam"></span></div>
+        <div class="stat-box"><span class="stat-val hi" id="tBestSpeed">&#8212;</span><span class="stat-lbl">Best Speed</span><span class="stat-team" id="tBestSpeedTeam"></span></div>
+        <div class="stat-box"><span class="stat-val" id="tMaxEV">&#8212;</span><span class="stat-lbl">Max EV</span><span class="stat-team" id="tMaxEVTeam"></span></div>
+        <div class="stat-box"><span class="stat-val" id="tGB">&#8212;</span><span class="stat-lbl">GB%</span><span class="stat-team" id="tGBTeam"></span></div>
+        <div class="stat-box"><span class="stat-val" id="tFB">&#8212;</span><span class="stat-lbl">FB%</span><span class="stat-team" id="tFBTeam"></span></div>
       </div>
     </div>
     <div class="stat-section">
       <span class="stat-section-label">Plate Discipline &middot; TrackMan</span>
       <div class="stat-row">
-        <div class="stat-box"><span class="stat-val" id="tSwing">&#8212;</span><span class="stat-lbl">Swing%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tChase">&#8212;</span><span class="stat-lbl">Chase%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tZSwing">&#8212;</span><span class="stat-lbl">Z-Swing%</span></div>
-        <div class="stat-box"><span class="stat-val" id="tWhiff">&#8212;</span><span class="stat-lbl">Whiff%</span></div>
-        <div class="stat-box"><span class="stat-val hi" id="tSGR">&#8212;</span><span class="stat-lbl">ZO%</span></div>
+        <div class="stat-box"><span class="stat-val" id="tSwing">&#8212;</span><span class="stat-lbl">Swing%</span><span class="stat-team" id="tSwingTeam"></span></div>
+        <div class="stat-box"><span class="stat-val" id="tChase">&#8212;</span><span class="stat-lbl">Chase%</span><span class="stat-team" id="tChaseTeam"></span></div>
+        <div class="stat-box"><span class="stat-val" id="tZSwing">&#8212;</span><span class="stat-lbl">Z-Swing%</span><span class="stat-team" id="tZSwingTeam"></span></div>
+        <div class="stat-box"><span class="stat-val" id="tWhiff">&#8212;</span><span class="stat-lbl">Whiff%</span><span class="stat-team" id="tWhiffTeam"></span></div>
+        <div class="stat-box"><span class="stat-val hi" id="tSGR">&#8212;</span><span class="stat-lbl">ZO%</span><span class="stat-team" id="tSGRTeam"></span></div>
       </div>
     </div>
     <div class="hmap-section">
@@ -286,7 +287,7 @@ canvas{display:block;border-radius:4px}
           <canvas id="zmapIso" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
         </div>
         <div>
-          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px">SwStr Zones</div>
+          <div style="font-family:'Anton',sans-serif;font-size:7px;letter-spacing:1px;text-transform:uppercase;color:#1a3a5c;text-align:center;margin-bottom:2px" id="zmapChaseLabel">Chase</div>
           <canvas id="zmapWhiff" width="400" height="320" style="width:100%;height:auto;border-radius:4px;border:1px solid #eef2f8"></canvas>
         </div>
       </div>
@@ -330,6 +331,7 @@ canvas{display:block;border-radius:4px}
   <button class="overlay-close" onclick="closeOverlay()">&#x2715; Close</button>
 </div>
 
+<script src="hitting-card-stats.js"></script>
 <script>
 var SUPABASE_URL='https://mghrapwhvihpwgqryail.supabase.co';
 var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
@@ -360,7 +362,7 @@ var PITCH_NORM={
 
 // Shared pitch-call classifications. FoulBallFieldable is a real TrackMan call;
 // omitting it silently deflates every swing-decision rate on this page.
-var SWING_CALLS=['StrikeSwinging','FoulBall','FoulBallNotFieldable','FoulBallFieldable','InPlay'];
+var SWING_CALLS=HittingCardStats.SWING_CALLS;
 var CONTACT_CALLS=['FoulBall','FoulBallNotFieldable','FoulBallFieldable','InPlay'];
 var STRIKE_CALLS=['StrikeCalled','StrikeSwinging','FoulBall','FoulBallNotFieldable','FoulBallFieldable','InPlay'];
 
@@ -534,9 +536,7 @@ function computeZOScore(zSwingPct, chasePct){
 function computeProfile(name,rows){
   var parts=name.split(','),lastName=(parts[0]||'').trim();
   var displayName=parts.length>1?(parts[1]||'').trim()+' '+parts[0].trim():name;
-  var swings=0,whiffs=0,inZone=0,inZoneSwings=0,ozPitches=0,ozSwings=0;
-  var bip=[],maxEV=0,evCount=0,allEVs=[];
-  var gbCount=0,fbCount=0,bipCount=0,solidContact=0;
+  var tm=HittingCardStats.trackmanRates(rows);
   var pitchTypes={};
 
   rows.forEach(function(r){
@@ -552,13 +552,11 @@ function computeProfile(name,rows){
     var isSwing=SWING_CALLS.includes(call);
     var isWhiff=call==='StrikeSwinging';
     var isContact=CONTACT_CALLS.includes(call);
-    var inside=!isNaN(side)&&!isNaN(height)&&Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
-    var outside=!isNaN(side)&&!isNaN(height)&&!inside;
-    if(isSwing){swings++;pitchTypes[pt].swings++;}
-    if(isWhiff){whiffs++;pitchTypes[pt].whiffs++;}
+    var outside=HittingCardStats.isOutOfZone(side,height);
+    if(isSwing)pitchTypes[pt].swings++;
+    if(isWhiff)pitchTypes[pt].whiffs++;
     if(isContact)pitchTypes[pt].contacts++;
-    if(inside){inZone++;if(isSwing)inZoneSwings++;}
-    if(outside){ozPitches++;pitchTypes[pt].ozPitches++;if(isSwing){ozSwings++;pitchTypes[pt].chases++;}}
+    if(outside){pitchTypes[pt].ozPitches++;if(isSwing)pitchTypes[pt].chases++;}
     if(r.KorBB==='Strikeout')pitchTypes[pt].ptKs++;
     if(r.KorBB==='Walk')pitchTypes[pt].ptBBs++;
     if(call==='HitByPitch')pitchTypes[pt].ptHBPs++;
@@ -571,28 +569,13 @@ function computeProfile(name,rows){
       else if(res==='HomeRun'||res==='Home Run')pitchTypes[pt].ptHRs++;
     }
     var ev=parseFloat(r.ExitSpeed);
-    var la=parseFloat(r.Angle||r.LaunchAngle||r.VertAngle||'NaN');
     if(!isNaN(ev)&&ev>0){
-      if(ev>maxEV)maxEV=ev;evCount++;allEVs.push(ev);
       pitchTypes[pt].ev.push(ev);
       if(!isNaN(side)&&!isNaN(height)){
-        bip.push({side:side,height:height,ev:ev,pt:pt,result:(r.PlayResult||'')});
         pitchTypes[pt].bip.push({side:side,height:height,ev:ev,result:(r.PlayResult||'')});
-      }
-      if(!isNaN(la)&&ev>=95&&la>=8&&la<=32)solidContact++;
-      if(call==='InPlay'){
-        bipCount++;
-        var ht=(r.TaggedHitType||r.HitType||'').toLowerCase();
-        if(ht.includes('ground'))gbCount++;
-        else if(ht.includes('fly')||ht.includes('popup'))fbCount++;
-        else if(!isNaN(la)){if(la<10)gbCount++;else if(la>=25)fbCount++;}
       }
     }
   });
-
-  allEVs.sort(function(a,b){return b-a;});
-  var topHalf=allEVs.slice(0,Math.ceil(allEVs.length/2));
-  var bestSpeed=topHalf.length>0?topHalf.reduce(function(a,b){return a+b;},0)/topHalf.length:0;
 
   var bs=null;
   if(seasonStats.batting)bs=seasonStats.batting.find(function(b){return b.name&&b.name.split(' ').pop().toLowerCase()===lastName.toLowerCase();});
@@ -620,16 +603,16 @@ function computeProfile(name,rows){
     bsK:bsK,bsBBval:bsBB,
     kPct:bsPA>0?bsK/bsPA:0,
     bbPct:bsPA>0?bsBB/bsPA:0,
-    swingPct:rows.length>0?swings/rows.length:0,
-    whiffPct:swings>0?whiffs/swings:0,
-    chasePct:ozPitches>0?ozSwings/ozPitches:0,
-    zSwingPct:inZone>0?inZoneSwings/inZone:0,
-    seagerScore:computeZOScore(inZone>0?inZoneSwings/inZone:0, ozPitches>0?ozSwings/ozPitches:0),
-    hardHit:evCount>0?bip.filter(function(b){return b.ev>=95;}).length/evCount:0,
-    solidPct:bipCount>0?solidContact/bipCount:0,
-    gbPct:bipCount>0?gbCount/bipCount:0,fbPct:bipCount>0?fbCount/bipCount:0,
-    bestSpeed:bestSpeed,maxEV:maxEV,totalPitches:rows.length,
-    pitchTypes:pitchTypes,bip:bip,rows:rows
+    swingPct:tm.swingPct,
+    whiffPct:tm.whiffPct,
+    chasePct:tm.chasePct,
+    zSwingPct:tm.zSwingPct,
+    seagerScore:computeZOScore(tm.zSwingPct, tm.chasePct),
+    hardHit:tm.hardHit,
+    solidPct:tm.solidPct,
+    gbPct:tm.gbPct,fbPct:tm.fbPct,
+    bestSpeed:tm.bestSpeed,maxEV:tm.maxEV,totalPitches:rows.length,
+    pitchTypes:pitchTypes,bip:tm.bip,rows:rows
   };
 }
 
@@ -766,11 +749,35 @@ function buildPitchTable(p){
     });
 }
 
+var teamProfile=null;
+function applyTeamLines(){
+  var t=teamProfile;
+  function setPct(id,rate){
+    var el=document.getElementById(id);if(!el)return;
+    el.textContent=t?HittingCardStats.formatTeamPct(rate):'';
+  }
+  setPct('tHardTeam',t&&t.hardHit);
+  setPct('tBarrelTeam',t&&t.solidPct);
+  setPct('tGBTeam',t&&t.gbPct);
+  setPct('tFBTeam',t&&t.fbPct);
+  setPct('tSwingTeam',t&&t.swingPct);
+  setPct('tChaseTeam',t&&t.chasePct);
+  setPct('tZSwingTeam',t&&t.zSwingPct);
+  setPct('tWhiffTeam',t&&t.whiffPct);
+  var zo=document.getElementById('tSGRTeam');
+  if(zo)zo.textContent=t?HittingCardStats.formatTeamPoints(t.seagerScore):'';
+  var spd=document.getElementById('tBestSpeedTeam');
+  if(spd)spd.textContent=t?HittingCardStats.formatTeamNumber(t.bestSpeed):'';
+  var mx=document.getElementById('tMaxEVTeam');
+  if(mx)mx.textContent='';
+}
 function buildCard(){
   var p=tableData.find(function(d){return d.name===selectedPlayer;});
   if(!p)return;
   document.getElementById('cardName').textContent=p.displayName;
   document.getElementById('cardPos').textContent='Walters State CC';
+  var seasonSec=document.getElementById('seasonStatsSection');
+  if(seasonSec)seasonSec.style.display=HittingCardStats.isFallSeason(CURRENT_SEASON, seasonLabel(CURRENT_SEASON))?'none':'';
   document.getElementById('sAVG').textContent=p.pa;
   document.getElementById('sOBP').textContent=fmt3(p.woba);
   document.getElementById('sSLG').textContent=p.iso>0?fmt3(p.iso):'--';
@@ -792,6 +799,7 @@ function buildCard(){
   document.getElementById('tZSwing').textContent=pct(p.zSwingPct);
   document.getElementById('tWhiff').textContent=pct(p.whiffPct);
   document.getElementById('tSGR').textContent=(p.seagerScore||0).toFixed(1)+'%';
+  applyTeamLines();
   setTimeout(function(){
     drawZoneGrid('zmapWoba',p.rows,wobaVal,0,1,'wOBA');
     var fbRows=p.rows.filter(function(r){return normPitch(r.TaggedPitchType||r.AutoPitchType)==='Fastball';});
@@ -807,7 +815,7 @@ function buildCard(){
       var ctx2=document.getElementById('zmapIso').getContext('2d');
       ctx2.clearRect(0,0,400,320);ctx2.fillStyle='#dce8f5';ctx2.fillRect(0,0,400,320);
     }
-    drawZoneGrid('zmapWhiff',p.rows,function(r){return r.PitchCall==='StrikeSwinging'?1:null;},0,1,'SwStr',null,null,null,null,true);
+    drawZoneGrid('zmapWhiff',p.rows,HittingCardStats.chaseHeatValue,0,1,'Chase');
     buildPitchTable(p);
   },30);
   document.getElementById('main-screen').style.display='none';
@@ -978,14 +986,15 @@ function rebuildTableData(pitches){
   var players={};
   wsPitches.forEach(function(r){var n=(r.Batter||'').trim();if(!n)return;if(!players[n])players[n]=[];players[n].push(r);});
   tableData=Object.values(players).map(function(rows){return computeProfile(rows[0].Batter,rows);});
+  // One pass over every WSCC pitch in this season and game filter. The card's
+  // team line is that pooled rate, not the average of the hitter rows above.
+  teamProfile=wsPitches.length?computeProfile('Team, __avg__', wsPitches):null;
 }
 function onFilterChange(){
   updateDDLabels();
   var selGames=getSelectedGames();
-  var filtered=allPitches.filter(function(r){return r.BatterTeam&&r.BatterTeam.toLowerCase().includes('wal')&&(!selGames.length||selGames.includes(r.GameID));});
-  var players={};
-  filtered.forEach(function(r){var n=(r.Batter||'').trim();if(!n)return;if(!players[n])players[n]=[];players[n].push(r);});
-  tableData=Object.values(players).map(function(rows){return computeProfile(rows[0].Batter,rows);});
+  var filtered=allPitches.filter(function(r){return !selGames.length||selGames.includes(r.GameID);});
+  rebuildTableData(filtered);
   renderTable();
 }
 function renderTable(){
