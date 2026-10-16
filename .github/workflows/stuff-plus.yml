@@ -56,6 +56,12 @@ jobs:
       # Reads pitches (including stored grades) and refreshes data/seasons/*.json.
       # Does not write Stuff+, Location+, or Pitching+. Season JSON copies Stuff+
       # grades only; Location+ and Pitching+ stay on the pitches table.
+      # Fold TrackMan operator split PAs (same batter, next PA starts mid-count)
+      # before the season files are built. Never deletes rows.
+      - run: python season/fix_split_pas.py
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
       - run: python season/build_season_files.py
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
