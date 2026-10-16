@@ -33,10 +33,195 @@
 
   // Swing rate on pitches outside the strike zone. In-zone pitches are omitted
   // so the map is chase rate, not overall swing rate. 1 = swing, 0 = take.
+  // This does not touch PlateLocSide. Every heat map, including chase, flips
+  // that sign once in buildHeatGrid (displaySide = -side) so the plot is the
+  // catcher's view the card captions as "looking toward the pitcher".
   function chaseHeatValue(row) {
     if (!row || !isOutOfZone(row.PlateLocSide, row.PlateLocHeight)) return null;
     var call = String(row.PitchCall || '').trim();
     return SWING_CALLS.indexOf(call) >= 0 ? 1 : 0;
+  }
+
+  // Same grid and Gaussian the season card used inline. sigma is multiplied by
+  // the grid width inside the kernel, matching the wOBA / whiff maps.
+  var HEAT_GRID = 40;
+  var HEAT_SIGMA_RATE = 0.10;
+  var HEAT_SIGMA_DENSITY = 0.14;
+  // Pseudo-pitches mixed into the local kernel weight. One real pitch adds
+  // weight 1 at its cell, so 8 pulls a lone swing most of the way back to the
+  // hitter's overall chase rate and lets a real cluster show through.
+  var CHASE_PRIOR_PITCHES = 8;
+  // Feet. Chase fades in across this band just outside the zone and is blank
+  // on and inside the zone, where chase is undefined.
+  var ZONE_FEATHER = 0.12;
+  var DENSITY_ALPHA_LO = 0.08;
+  var DENSITY_ALPHA_HI = 1.2;
+
+  function displayPlateSide(side) {
+    side = parseFloat(side);
+    return isNaN(side) ? NaN : -side;
+  }
+
+  function smoothstep(edge0, edge1, x) {
+    if (edge1 === edge0) return x >= edge1 ? 1 : 0;
+    var t = (x - edge0) / (edge1 - edge0);
+    if (t <= 0) return 0;
+    if (t >= 1) return 1;
+    return t * t * (3 - 2 * t);
+  }
+
+  // 0 inside and on the strike zone. Rises to 1 a feather-width outside it,
+  // including rounded corners, so the mask has no hard edge.
+  function outsideZoneDistance(side, height) {
+    side = parseFloat(side);
+    height = parseFloat(height);
+    if (isNaN(side) || isNaN(height)) return 0;
+    var ox = Math.max(Math.abs(side) - ZONE_HALF_W, 0);
+    var oy = height < ZONE_BOT ? ZONE_BOT - height : height > ZONE_TOP ? height - ZONE_TOP : 0;
+    if (ox === 0 && oy === 0) return 0;
+    return Math.sqrt(ox * ox + oy * oy);
+  }
+
+  function chaseZoneAlpha(side, height) {
+    return smoothstep(0, ZONE_FEATHER, outsideZoneDistance(side, height));
+  }
+
+  // Soft presence of the kernel. Zero weight is fully transparent. There is no
+  // hard cutoff, which is what stair-stepped the empty corner of a whiff map.
+  function lowDensityAlpha(weight) {
+    if (!(weight > 0)) return 0;
+    return smoothstep(DENSITY_ALPHA_LO, DENSITY_ALPHA_HI, weight);
+  }
+
+  // Outer footprint shared with the original maps: full color through the
+  // zone plus 0.15 ft, then a 0.12 ft linear fade.
+  function plotEdgeAlpha(x, y) {
+    var edge = ZONE_HALF_W + 0.15;
+    var eTop = ZONE_TOP + 0.15;
+    var eBot = ZONE_BOT - 0.15;
+    var dX = Math.max(0, Math.abs(x) - edge);
+    var dY = Math.max(0, Math.max(eBot - y, y - eTop));
+    var edgeDist = Math.max(dX, dY);
+    if (edgeDist <= 0) return 1;
+    return Math.max(0, 1 - edgeDist / 0.12);
+  }
+
+  function chasePriorRate(rows, playerRate, teamRate) {
+    var oz = 0;
+    (rows || []).forEach(function (r) {
+      if (isOutOfZone(r.PlateLocSide, r.PlateLocHeight)) oz++;
+    });
+    if (oz > 0 && playerRate != null && !isNaN(playerRate)) return playerRate;
+    if (teamRate != null && !isNaN(teamRate)) return teamRate;
+    return 0;
+  }
+
+  function colorScale(validVals, minVal, maxVal, minRange) {
+    var mn = validVals && validVals.length ? Math.min.apply(null, validVals) : minVal;
+    var mx = validVals && validVals.length ? Math.max.apply(null, validVals) : maxVal;
+    if (!(mx > mn)) {
+      mn = minVal;
+      mx = maxVal;
+    }
+    if (minRange && mx - mn < minRange) {
+      var mid = (mn + mx) / 2;
+      mn = mid - minRange / 2;
+      mx = mid + minRange / 2;
+    }
+    return { min: mn, max: mx };
+  }
+
+  function sampleBilinear(grid, gw, gh, gx, gy) {
+    if (!grid || gx < 0 || gy < 0 || gx > gw - 1 || gy > gh - 1) return NaN;
+    var x0 = Math.floor(gx);
+    var y0 = Math.floor(gy);
+    var x1 = Math.min(gw - 1, x0 + 1);
+    var y1 = Math.min(gh - 1, y0 + 1);
+    var tx = gx - x0;
+    var ty = gy - y0;
+    function at(x, y) { return grid[y * gw + x]; }
+    var v00 = at(x0, y0), v10 = at(x1, y0), v01 = at(x0, y1), v11 = at(x1, y1);
+    if (isNaN(v00) || isNaN(v10) || isNaN(v01) || isNaN(v11)) {
+      var nx = tx < 0.5 ? x0 : x1;
+      var ny = ty < 0.5 ? y0 : y1;
+      return at(nx, ny);
+    }
+    return v00 * (1 - tx) * (1 - ty) + v10 * tx * (1 - ty) + v01 * (1 - tx) * ty + v11 * tx * ty;
+  }
+
+  // Kernel-smoothed heat grid. PlateLocSide is negated once, for every map.
+  // mode 'rate' keeps the historical NaN cutoff (wOBA). mode 'density' keeps
+  // the raw kernel weight so low-density corners can fade instead of being
+  // extrapolated. mode 'chase' is the out-of-zone swing rate shrunk toward
+  // priorRate by priorPitches pseudo-observations.
+  function buildHeatGrid(rows, valueFn, opts) {
+    opts = opts || {};
+    var X_MIN = (opts.xMin === null || opts.xMin === undefined) ? -1.05 : opts.xMin;
+    var X_MAX = (opts.xMax === null || opts.xMax === undefined) ? 1.05 : opts.xMax;
+    var Y_MIN = (opts.yMin === null || opts.yMin === undefined) ? 1.2 : opts.yMin;
+    var Y_MAX = (opts.yMax === null || opts.yMax === undefined) ? 3.9 : opts.yMax;
+    var GW = opts.grid || HEAT_GRID;
+    var GH = GW;
+    var sigma = opts.sigma != null ? opts.sigma : (opts.densityMode ? HEAT_SIGMA_DENSITY : HEAT_SIGMA_RATE);
+    var weightGrid = new Float32Array(GW * GH);
+    var valueGrid = new Float32Array(GW * GH);
+    (rows || []).forEach(function (r) {
+      var side = parseFloat(r.PlateLocSide);
+      var height = parseFloat(r.PlateLocHeight);
+      var shown = displayPlateSide(side);
+      if (isNaN(shown) || isNaN(height)) return;
+      if (shown < X_MIN || shown > X_MAX || height < Y_MIN || height > Y_MAX) return;
+      if (Math.abs(shown) > (X_MAX - 0.05) || height < (Y_MIN + 0.05) || height > (Y_MAX - 0.05)) return;
+      var val = valueFn(r);
+      if (val === null || val === undefined || isNaN(val)) return;
+      var gx = (shown - X_MIN) / (X_MAX - X_MIN) * (GW - 1);
+      var gy = (Y_MAX - height) / (Y_MAX - Y_MIN) * (GH - 1);
+      var sig = sigma * GW;
+      var rad = Math.ceil(3 * sig);
+      for (var dy = -rad; dy <= rad; dy++) {
+        for (var dx = -rad; dx <= rad; dx++) {
+          var ix = Math.round(gx + dx), iy = Math.round(gy + dy);
+          if (ix < 0 || ix >= GW || iy < 0 || iy >= GH) continue;
+          var dist2 = (dx * dx + dy * dy) / (sig * sig);
+          var k = Math.exp(-0.5 * dist2);
+          weightGrid[iy * GW + ix] += k;
+          valueGrid[iy * GW + ix] += k * val;
+        }
+      }
+    });
+    var result = new Float32Array(GW * GH);
+    var validVals = [];
+    var chase = !opts.densityMode && opts.priorPitches > 0;
+    var smoothDensity = !!opts.densityMode && !opts.legacyCutoff;
+    for (var i = 0; i < GW * GH; i++) {
+      var gx = i % GW;
+      var gy = Math.floor(i / GW);
+      var x = X_MIN + gx / (GW - 1) * (X_MAX - X_MIN);
+      var y = Y_MAX - gy / (GH - 1) * (Y_MAX - Y_MIN);
+      if (chase) {
+        result[i] = (valueGrid[i] + opts.priorPitches * (opts.priorRate || 0)) / (weightGrid[i] + opts.priorPitches);
+        if (weightGrid[i] >= 0.85 && outsideZoneDistance(x, y) >= 0.02) validVals.push(result[i]);
+      } else if (smoothDensity) {
+        result[i] = weightGrid[i];
+        if (weightGrid[i] >= 0.45) validVals.push(weightGrid[i]);
+      } else if (weightGrid[i] > 0.01) {
+        result[i] = opts.densityMode ? weightGrid[i] : valueGrid[i] / weightGrid[i];
+        validVals.push(result[i]);
+      } else {
+        result[i] = NaN;
+      }
+    }
+    return {
+      grid: result,
+      weight: weightGrid,
+      gw: GW,
+      gh: GH,
+      xMin: X_MIN,
+      xMax: X_MAX,
+      yMin: Y_MIN,
+      yMax: Y_MAX,
+      validVals: validVals
+    };
   }
 
   function trackmanRates(rows) {
@@ -132,6 +317,21 @@
     isOutOfZone: isOutOfZone,
     isFallSeason: isFallSeason,
     chaseHeatValue: chaseHeatValue,
+    HEAT_GRID: HEAT_GRID,
+    HEAT_SIGMA_RATE: HEAT_SIGMA_RATE,
+    HEAT_SIGMA_DENSITY: HEAT_SIGMA_DENSITY,
+    CHASE_PRIOR_PITCHES: CHASE_PRIOR_PITCHES,
+    ZONE_FEATHER: ZONE_FEATHER,
+    displayPlateSide: displayPlateSide,
+    smoothstep: smoothstep,
+    outsideZoneDistance: outsideZoneDistance,
+    chaseZoneAlpha: chaseZoneAlpha,
+    lowDensityAlpha: lowDensityAlpha,
+    plotEdgeAlpha: plotEdgeAlpha,
+    chasePriorRate: chasePriorRate,
+    colorScale: colorScale,
+    sampleBilinear: sampleBilinear,
+    buildHeatGrid: buildHeatGrid,
     trackmanRates: trackmanRates,
     teamTrackman: teamTrackman,
     formatTeamPct: formatTeamPct,
