@@ -9,6 +9,12 @@ and the second PA's first pitch is not 0-0, fold it into the first PA:
     (KorBB/PlayResult -> 'Undefined'). OutsOnPlay and RunsScored stay
     as tagged: intersquad taggers use them as intentional inning-flip
     penalties.
+Only fold when the first PA's ending is PREMATURE, i.e. its tagged outcome
+is impossible for the count on its last pitch (Walk with Balls<3 or a non-ball
+pitch; Strikeout with Strikes<2 or a non-strike pitch; a PlayResult on a
+non-InPlay pitch; or no outcome at all). A legit ending (ball four at 3-x,
+strike three at x-2, ball in play, HBP) is a real PA: the next PA's nonzero
+count is just stale count fields, so it is left alone.
 Re-bats that start 0-0 are left alone. Placeholder batters whose name
 contains 'test' (any case) are skipped. Never deletes rows. Idempotent.
 Set SPLITPA_DRY_RUN=1 to only print what would change.
@@ -23,7 +29,7 @@ KEY = os.environ.get('SUPABASE_SERVICE_KEY', '')
 DRY = os.environ.get('SPLITPA_DRY_RUN', '0') == '1'
 SINCE = os.environ.get('SPLITPA_SINCE', '2026-08-01')
 H = {'apikey': KEY, 'Authorization': f'Bearer {KEY}', 'Content-Type': 'application/json'}
-COLS = 'id,GameID,Date,Inning,"Top/Bottom",PAofInning,PitchofPA,PitchNo,Batter,Balls,Strikes'
+COLS = 'id,GameID,Date,Inning,"Top/Bottom",PAofInning,PitchofPA,PitchNo,Batter,Balls,Strikes,PitchCall,KorBB,PlayResult'
 
 
 def fetch():
@@ -37,6 +43,29 @@ def fetch():
         if len(b) < 1000:
             return rows
         off += 1000
+
+
+BALLS = {'BallCalled', 'BallinDirt', 'BallIntentional', 'IntentionalBall'}
+STRIKES = {'StrikeCalled', 'StrikeSwinging', 'FoulTip'}
+
+
+def premature_end(last):
+    """True when the PA-ending tag on `last` is impossible for its count."""
+    call = last.get('PitchCall') or ''
+    k = last.get('KorBB') or 'Undefined'
+    res = last.get('PlayResult') or 'Undefined'
+    balls, strikes = last.get('Balls') or 0, last.get('Strikes') or 0
+    if call == 'HitByPitch':
+        return False
+    if k == 'Walk':
+        return balls < 3 or call not in BALLS
+    if k == 'Strikeout':
+        return strikes < 2 or call not in STRIKES
+    if res != 'Undefined':
+        return call != 'InPlay'
+    if call == 'InPlay':
+        return False
+    return True  # no outcome tagged and not in play: PA never actually ended
 
 
 def patch(ids, body):
@@ -65,7 +94,8 @@ def main():
             if any('test' in str(n or '').lower() for n in (batter, b[0]['Batter'])):
                 i += 1
                 continue
-            if batter == b[0]['Batter'] and (b[0]['Balls'], b[0]['Strikes']) != (0, 0):
+            if (batter == b[0]['Batter'] and (b[0]['Balls'], b[0]['Strikes']) != (0, 0)
+                    and premature_end(a[-1])):
                 first_pa = order[i - 1]
                 maxp = max(r['PitchofPA'] or 0 for r in a)
                 print(f'fold {key} {batter}: PA {order[i]} -> {first_pa}')
