@@ -9,6 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="hitter-pa.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { overflow-x: hidden; }
@@ -756,24 +757,8 @@ function drawPAZone(canvasId,paPitches){
   });
 }
 
-function getResult(paPitches){
-  const last=paPitches[paPitches.length-1];if(!last)return{text:'—',color:'#888'};
-  if(last.KorBB==='Strikeout')return{text:'K',color:'#e63946'};
-  if(last.KorBB==='Walk')return{text:'BB',color:'#2a9d8f'};
-  if(last.PitchCall==='HitByPitch')return{text:'HBP',color:'#f4a261'};
-  const pr=last.PlayResult;
-  if(pr==='HomeRun')return{text:'HR',color:'#e63946'};if(pr==='Triple')return{text:'3B',color:'#9b59b6'};
-  if(pr==='Double')return{text:'2B',color:'#2d5a8e'};if(pr==='Single')return{text:'1B',color:'#2a9d8f'};
-  if(['Out','FieldersChoice','Error','Sacrifice'].some(s=>pr&&pr.includes(s)))return{text:'OUT',color:'#7a8faa'};
-  return{text:pr||'?',color:'#888'};
-}
-function callCode(r){
-  if(r.PitchCall==='StrikeSwinging')return'S';if(r.PitchCall==='StrikeCalled')return'CS';
-  if(['FoulBall','FoulBallNotFieldable'].includes(r.PitchCall))return'F';
-  if(r.PitchCall==='BallCalled'||r.PitchCall==='Ball')return'B';
-  if(r.PitchCall==='InPlay')return'IP';if(r.PitchCall==='HitByPitch')return'HBP';
-  return r.PitchCall?.[0]||'?';
-}
+function getResult(paPitches){ return HitterPA.paResult(paPitches); }
+function callCode(r){ return HitterPA.callCode(r); }
 
 function generate(){
   const batterName=document.getElementById('batterSelect').value;
@@ -781,9 +766,7 @@ function generate(){
   const rows=allRows.filter(r=>r.Batter===batterName);
   if(!rows.length){alert('No pitches found for this batter.');return;}
   const np=rows.length;
-  const paList=[];let currentPA=[];
-  rows.forEach(r=>{if(parseInt(r.PitchofPA)===1&&currentPA.length>0){paList.push(currentPA);currentPA=[];}currentPA.push(r);});
-  if(currentPA.length)paList.push(currentPA);
+  const paList=HitterPA.groupPlateAppearances(rows);
   const k=rows.filter(r=>r.KorBB==='Strikeout').length,bb=rows.filter(r=>r.KorBB==='Walk').length;
   const hits=rows.filter(r=>['Single','Double','Triple','HomeRun'].includes(r.PlayResult)).length;
   const bip=rows.filter(r=>r.PitchCall==='InPlay').length;
@@ -852,11 +835,9 @@ function generate(){
     document.getElementById('evLegend').innerHTML=`<div class="ev-legend-item"><div class="ev-dot" style="background:#6ab0e0"></div>&lt;90</div><div class="ev-legend-item"><div class="ev-dot" style="background:#f4a261"></div>90–99</div><div class="ev-legend-item"><div class="ev-dot" style="background:#e63946"></div>100+</div>`;
     const grid=document.getElementById('paGrid');grid.innerHTML='';
     paList.forEach((paPitches,idx)=>{
-      const last=paPitches[paPitches.length-1],result=getResult(paPitches);
-      const pitcherLast=(last.Pitcher||'').split(',')[0].trim()||'—';
-      const hand=last.PitcherThrows==='Left'?'LHP':last.PitcherThrows==='Right'?'RHP':'';
-      const pitcherLabel=hand?`${pitcherLast} (${hand})`:pitcherLast;
-      const seq=paPitches.map(callCode).join('-');
+      const result=getResult(paPitches);
+      const pitcherLabel=HitterPA.pitcherLabel(paPitches);
+      const seq=HitterPA.pitchSequence(paPitches);
       const div=document.createElement('div');div.className='pa-card';
       const cid='pa_canvas_'+idx;
       div.innerHTML=`<div class="pa-header">${pitcherLabel}</div><canvas id="${cid}" width="140" height="140"></canvas><div class="pa-result" style="color:${result.color}">${result.text}</div><div class="pa-seq">${seq}</div>`;
