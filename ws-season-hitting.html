@@ -616,32 +616,14 @@ function computeProfile(name,rows){
   };
 }
 
-var HMAP_GRID=40;
+var HMAP_GRID=HittingCardStats.HEAT_GRID;
+// PlateLocSide is flipped once, inside HittingCardStats.buildHeatGrid, for
+// wOBA, whiff, and chase. Chase does not flip it again.
 function buildKDEGrid(rows,valueFn,sigma,xMin,xMax,yMin,yMax,densityMode){
-  var X_MIN=xMin||-1.05,X_MAX=xMax||1.05,Y_MIN=yMin||1.2,Y_MAX=yMax||3.9;
-  var GW=HMAP_GRID,GH=HMAP_GRID;
-  var weightGrid=new Float32Array(GW*GH);var valueGrid=new Float32Array(GW*GH);
-  rows.forEach(function(r){
-    var side=parseFloat(r.PlateLocSide);var height=parseFloat(r.PlateLocHeight);var displaySide=-side;
-    if(isNaN(displaySide)||isNaN(height))return;
-    if(displaySide<X_MIN||displaySide>X_MAX||height<Y_MIN||height>Y_MAX)return;
-    if(Math.abs(displaySide)>(X_MAX-0.05)||height<(Y_MIN+0.05)||height>(Y_MAX-0.05))return;
-    var val=valueFn(r);if(val===null||val===undefined||isNaN(val))return;
-    var gx=(displaySide-X_MIN)/(X_MAX-X_MIN)*(GW-1);var gy=(Y_MAX-height)/(Y_MAX-Y_MIN)*(GH-1);
-    var sig=sigma*GW;var rad=Math.ceil(3*sig);
-    for(var dy=-rad;dy<=rad;dy++){for(var dx=-rad;dx<=rad;dx++){
-      var ix=Math.round(gx+dx),iy=Math.round(gy+dy);
-      if(ix<0||ix>=GW||iy<0||iy>=GH)continue;
-      var dist2=(dx*dx+dy*dy)/(sig*sig);var k=Math.exp(-0.5*dist2);
-      weightGrid[iy*GW+ix]+=k;valueGrid[iy*GW+ix]+=k*val;
-    }}
+  return HittingCardStats.buildHeatGrid(rows,valueFn,{
+    sigma:sigma,xMin:xMin,xMax:xMax,yMin:yMin,yMax:yMax,
+    densityMode:!!densityMode,legacyCutoff:true
   });
-  var result=new Float32Array(GW*GH);var validVals=[];
-  for(var i=0;i<GW*GH;i++){
-    if(weightGrid[i]>0.01){result[i]=densityMode?weightGrid[i]:valueGrid[i]/weightGrid[i];validVals.push(result[i]);}
-    else result[i]=NaN;
-  }
-  return{grid:result,gw:GW,gh:GH,xMin:X_MIN,xMax:X_MAX,yMin:Y_MIN,yMax:Y_MAX,validVals:validVals};
 }
 function hotColdColor(t){
   t=Math.max(0,Math.min(1,t));var r,g,b;
@@ -649,46 +631,80 @@ function hotColdColor(t){
   else{var s=(t-0.5)*2;r=255;g=Math.round(255-s*255);b=Math.round(255-s*255);}
   return[r,g,b];
 }
-function drawZoneGrid(canvasId,rows,valueFn,minVal,maxVal,label,xMin,xMax,yMin,yMax,densityMode){
+function drawZoneGrid(canvasId,rows,valueFn,minVal,maxVal,label,xMin,xMax,yMin,yMax,densityMode,heatOpts){
   var cv=document.getElementById(canvasId);if(!cv)return;
   var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
   var PAD_L=8,PAD_R=8,PAD_T=8,PAD_B=8;
   var gridW=W-PAD_L-PAD_R,gridH=H-PAD_T-PAD_B;
   ctx.clearRect(0,0,W,H);ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);
-  var kdeResult=buildKDEGrid(rows,valueFn,densityMode?0.14:0.10,xMin,xMax,yMin,yMax,densityMode);
+  heatOpts=heatOpts||{};
+  // Chase and whiff density skip the neighbor-fill. That fill smeared sparse
+  // out-of-zone swings into wedges and left a stair-step where it ran out of
+  // cells (the blank corner on FB whiff).
+  var smooth=!!densityMode||!!heatOpts.maskZone;
+  var kdeResult=HittingCardStats.buildHeatGrid(rows,valueFn,{
+    sigma:densityMode?HittingCardStats.HEAT_SIGMA_DENSITY:HittingCardStats.HEAT_SIGMA_RATE,
+    xMin:xMin,xMax:xMax,yMin:yMin,yMax:yMax,
+    densityMode:!!densityMode,
+    legacyCutoff:!smooth,
+    priorRate:heatOpts.priorRate,
+    priorPitches:heatOpts.maskZone?(heatOpts.priorPitches||HittingCardStats.CHASE_PRIOR_PITCHES):0,
+    maskZone:!!heatOpts.maskZone
+  });
   var grid=kdeResult.grid;var GW=kdeResult.gw,GH=kdeResult.gh;
   var X_MIN=kdeResult.xMin,X_MAX=kdeResult.xMax,Y_MIN=kdeResult.yMin,Y_MAX=kdeResult.yMax;
-  var FILL_X=Math.min(X_MAX-0.05,0.833+0.25),FILL_Y_TOP=Math.min(Y_MAX-0.05,3.5+0.25),FILL_Y_BOT=Math.max(Y_MIN+0.05,1.5-0.25);
-  var filled=grid.slice();
-  for(var iter=0;iter<8;iter++){
-    for(var gy=0;gy<GH;gy++){for(var gx=0;gx<GW;gx++){
-      var fx=X_MIN+(gx+0.5)/GW*(X_MAX-X_MIN);var fy=Y_MAX-(gy+0.5)/GH*(Y_MAX-Y_MIN);
-      if(Math.abs(fx)>FILL_X||fy<FILL_Y_BOT||fy>FILL_Y_TOP){filled[gy*GW+gx]=NaN;continue;}
-      if(!isNaN(filled[gy*GW+gx]))continue;
-      var sum=0,cnt=0;
-      if(gx>0&&!isNaN(filled[gy*GW+gx-1])){sum+=filled[gy*GW+gx-1];cnt++;}
-      if(gx<GW-1&&!isNaN(filled[gy*GW+gx+1])){sum+=filled[gy*GW+gx+1];cnt++;}
-      if(gy>0&&!isNaN(filled[(gy-1)*GW+gx])){sum+=filled[(gy-1)*GW+gx];cnt++;}
-      if(gy<GH-1&&!isNaN(filled[(gy+1)*GW+gx])){sum+=filled[(gy+1)*GW+gx];cnt++;}
-      if(cnt>0)filled[gy*GW+gx]=sum/cnt;
-    }}
-  }
   var vv=kdeResult.validVals;
-  var mn=vv.length?Math.min.apply(null,vv):minVal;var mxv=vv.length?Math.max.apply(null,vv):maxVal;
+  var scale=smooth
+    ?HittingCardStats.colorScale(vv,minVal,maxVal,heatOpts.minRange||0)
+    :{min:vv.length?Math.min.apply(null,vv):minVal,max:vv.length?Math.max.apply(null,vv):maxVal};
+  var mn=scale.min,mxv=scale.max;
   var range=Math.max(mxv-mn,0.001);
   var imgData=ctx.createImageData(gridW,gridH);
-  var cellW=gridW/GW,cellH=gridH/GH;
-  for(var py=0;py<gridH;py++){for(var px=0;px<gridW;px++){
-    var gxi=Math.min(GW-1,Math.floor(px/cellW));var gyi=Math.min(GH-1,Math.floor(py/cellH));
-    var val=filled[gyi*GW+gxi];var pidx=(py*gridW+px)*4;
-    var pfx=X_MIN+(px/gridW)*(X_MAX-X_MIN);var pfy=Y_MAX-(py/gridH)*(Y_MAX-Y_MIN);
-    var EDGE=0.833+0.15,ETOP=3.5+0.15,EBOT=1.5-0.15;
-    var dX=Math.max(0,Math.abs(pfx)-EDGE);var dY=Math.max(0,Math.max(EBOT-pfy,pfy-ETOP));
-    var edgeDist=Math.max(dX,dY);var edgeAlpha=edgeDist<=0?1:Math.max(0,1-edgeDist/0.12);
-    if(isNaN(val)||edgeAlpha<=0){imgData.data[pidx]=imgData.data[pidx+1]=imgData.data[pidx+2]=imgData.data[pidx+3]=0;}
-    else{var t=(val-mn)/range;var col=hotColdColor(t);imgData.data[pidx]=col[0];imgData.data[pidx+1]=col[1];imgData.data[pidx+2]=col[2];imgData.data[pidx+3]=Math.round(edgeAlpha*255);}
-  }}
-  ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);ctx.putImageData(imgData,PAD_L,PAD_T);
+  if(!smooth){
+    var FILL_X=Math.min(X_MAX-0.05,0.833+0.25),FILL_Y_TOP=Math.min(Y_MAX-0.05,3.5+0.25),FILL_Y_BOT=Math.max(Y_MIN+0.05,1.5-0.25);
+    var filled=grid.slice();
+    for(var iter=0;iter<8;iter++){
+      for(var gy=0;gy<GH;gy++){for(var gx=0;gx<GW;gx++){
+        var fx=X_MIN+(gx+0.5)/GW*(X_MAX-X_MIN);var fy=Y_MAX-(gy+0.5)/GH*(Y_MAX-Y_MIN);
+        if(Math.abs(fx)>FILL_X||fy<FILL_Y_BOT||fy>FILL_Y_TOP){filled[gy*GW+gx]=NaN;continue;}
+        if(!isNaN(filled[gy*GW+gx]))continue;
+        var sum=0,cnt=0;
+        if(gx>0&&!isNaN(filled[gy*GW+gx-1])){sum+=filled[gy*GW+gx-1];cnt++;}
+        if(gx<GW-1&&!isNaN(filled[gy*GW+gx+1])){sum+=filled[gy*GW+gx+1];cnt++;}
+        if(gy>0&&!isNaN(filled[(gy-1)*GW+gx])){sum+=filled[(gy-1)*GW+gx];cnt++;}
+        if(gy<GH-1&&!isNaN(filled[(gy+1)*GW+gx])){sum+=filled[(gy+1)*GW+gx];cnt++;}
+        if(cnt>0)filled[gy*GW+gx]=sum/cnt;
+      }}
+    }
+    var cellW=gridW/GW,cellH=gridH/GH;
+    for(var py=0;py<gridH;py++){for(var px=0;px<gridW;px++){
+      var gxi=Math.min(GW-1,Math.floor(px/cellW));var gyi=Math.min(GH-1,Math.floor(py/cellH));
+      var val=filled[gyi*GW+gxi];var pidx=(py*gridW+px)*4;
+      var pfx=X_MIN+(px/gridW)*(X_MAX-X_MIN);var pfy=Y_MAX-(py/gridH)*(Y_MAX-Y_MIN);
+      var edgeAlpha=HittingCardStats.plotEdgeAlpha(pfx,pfy);
+      if(isNaN(val)||edgeAlpha<=0){imgData.data[pidx]=imgData.data[pidx+1]=imgData.data[pidx+2]=imgData.data[pidx+3]=0;}
+      else{var t=(val-mn)/range;var col=hotColdColor(t);imgData.data[pidx]=col[0];imgData.data[pidx+1]=col[1];imgData.data[pidx+2]=col[2];imgData.data[pidx+3]=Math.round(edgeAlpha*255);}
+    }}
+    ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);ctx.putImageData(imgData,PAD_L,PAD_T);
+  } else {
+    for(var sy=0;sy<gridH;sy++){for(var sx=0;sx<gridW;sx++){
+      var pfx2=X_MIN+(sx+0.5)/gridW*(X_MAX-X_MIN);var pfy2=Y_MAX-(sy+0.5)/gridH*(Y_MAX-Y_MIN);
+      var sgx=(pfx2-X_MIN)/(X_MAX-X_MIN)*(GW-1);var sgy=(Y_MAX-pfy2)/(Y_MAX-Y_MIN)*(GH-1);
+      var val2=HittingCardStats.sampleBilinear(grid,GW,GH,sgx,sgy);
+      var w2=HittingCardStats.sampleBilinear(kdeResult.weight,GW,GH,sgx,sgy);
+      var pidx2=(sy*gridW+sx)*4;
+      var edgeA=HittingCardStats.plotEdgeAlpha(pfx2,pfy2);
+      var densA=HittingCardStats.lowDensityAlpha(w2);
+      var zoneA=heatOpts.maskZone?HittingCardStats.chaseZoneAlpha(pfx2,pfy2):1;
+      var a=edgeA*densA*zoneA;
+      if(!isFinite(val2)||a<=0.004){imgData.data[pidx2]=imgData.data[pidx2+1]=imgData.data[pidx2+2]=imgData.data[pidx2+3]=0;}
+      else{var t2=(val2-mn)/range;var col2=hotColdColor(t2);imgData.data[pidx2]=col2[0];imgData.data[pidx2+1]=col2[1];imgData.data[pidx2+2]=col2[2];imgData.data[pidx2+3]=Math.round(Math.max(0,Math.min(1,a))*255);}
+    }}
+    var off=document.createElement('canvas');off.width=gridW;off.height=gridH;
+    off.getContext('2d').putImageData(imgData,0,0);
+    ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);
+    ctx.drawImage(off,PAD_L,PAD_T);
+  }
   function px2(x){return PAD_L+(x-X_MIN)/(X_MAX-X_MIN)*gridW;}
   function py2(y){return PAD_T+(Y_MAX-y)/(Y_MAX-Y_MIN)*gridH;}
   ctx.strokeStyle='rgba(0,0,0,0.75)';ctx.lineWidth=2;
@@ -815,7 +831,13 @@ function buildCard(){
       var ctx2=document.getElementById('zmapIso').getContext('2d');
       ctx2.clearRect(0,0,400,320);ctx2.fillStyle='#dce8f5';ctx2.fillRect(0,0,400,320);
     }
-    drawZoneGrid('zmapWhiff',p.rows,HittingCardStats.chaseHeatValue,0,1,'Chase');
+    var chasePrior=HittingCardStats.chasePriorRate(p.rows,p.chasePct,teamProfile&&teamProfile.chasePct);
+    drawZoneGrid('zmapWhiff',p.rows,HittingCardStats.chaseHeatValue,0,1,'Chase',null,null,null,null,false,{
+      priorRate:chasePrior,
+      priorPitches:HittingCardStats.CHASE_PRIOR_PITCHES,
+      maskZone:true,
+      minRange:0.12
+    });
     buildPitchTable(p);
   },30);
   document.getElementById('main-screen').style.display='none';
