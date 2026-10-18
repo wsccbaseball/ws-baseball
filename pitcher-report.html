@@ -31,7 +31,7 @@ body {
 .generate-btn:disabled { opacity:0.35; cursor:not-allowed; }
 .status-msg { font-size:.85rem; color:#2a8a4a; font-weight:600; margin:4px auto 0; text-align:center; min-height:16px; max-width:500px; display:block; font-family:'Barlow Condensed',sans-serif; }
 .status-msg.warn { color:#c0630a; }
-.card { background:#fff; width:100%; max-width:500px; margin:16px auto 20px; border-radius:10px; box-shadow:0 4px 24px rgba(0,0,0,0.12); overflow:hidden; }
+.card { background:#fff; width:100%; max-width:620px; margin:16px auto 20px; border-radius:10px; box-shadow:0 4px 24px rgba(0,0,0,0.12); overflow:hidden; }
 .header { background:linear-gradient(135deg,#1a3a5c 0%,#2d5a8e 100%); padding:12px 16px 10px; display:flex; align-items:center; justify-content:space-between; }
 .header-center { text-align:center; flex:1; padding:0 8px; }
 .player-name { font-family:'Barlow Condensed',sans-serif; font-size:clamp(22px,6vw,36px); font-weight:800; color:#fff; letter-spacing:1px; line-height:1; }
@@ -56,8 +56,8 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
 /* ── Velo by Inning ── */
 .velo-inning-wrap { padding:4px 8px 4px; border-top:1px solid #e8f0f8; border-bottom:1px solid #e8f0f8; background:#f8fafd; }
 .velo-inning-title { font-family:'Anton',sans-serif; font-size:clamp(7px,2vw,9px); letter-spacing:.1em; text-transform:uppercase; color:#7a8faa; text-align:center; margin-bottom:2px; }
-.pitch-table-wrap { padding:4px 4px; }
-.pitch-table { width:100%; border-collapse:collapse; font-family:'Barlow Condensed',sans-serif; table-layout:fixed; }
+.pitch-table-wrap { padding:4px 4px; overflow-x:auto; }
+.pitch-table { width:100%; min-width:600px; border-collapse:collapse; font-family:'Barlow Condensed',sans-serif; table-layout:fixed; }
 .pitch-table th { background:#2d5a8e; color:#fff; padding:4px 1px; text-align:center; font-size:clamp(6px,2vw,8.5px); font-weight:700; border:1px solid #1a3a5c; white-space:nowrap; overflow:hidden; }
 .pitch-table td { text-align:center; padding:4px 1px; border:1px solid #dde4ef; font-size:clamp(7px,2.2vw,9.5px); font-weight:500; }
 .pitch-table tr:nth-child(even) td { background:#f0f5fc; }
@@ -175,7 +175,7 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
       <thead><tr>
         <th style="text-align:left;padding-left:3px;">Pitch</th>
         <th>N</th><th>%</th><th>Avg</th><th>Max</th><th>iVB</th><th>HB</th>
-        <th>Spin</th><th>VAA</th><th>RelH</th><th>Ext</th>
+        <th>Spin</th><th>VAA</th><th>HAA</th><th>RelH</th><th>Ext</th>
         <th>Zn%</th><th>Whf%</th><th>Str%</th>
       </tr></thead>
       <tbody id="cardPitchRows"></tbody>
@@ -227,6 +227,7 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
   <button class="img-modal-close" onclick="document.getElementById('imgModal').classList.remove('active')">Close</button>
 </div>
 
+<script src="pitcher-card-stats.js"></script>
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
@@ -460,6 +461,7 @@ async function generate() {
     }
 
     var pitchData = rows.map(function(r) {
+      var approach = PitcherCardStats.approachFromPitch(r);
       return {
         type:   (function(t,a){var raw=(!t||t==='Undefined')?a:t;return TYPE_MAP[raw]||raw||'Other';})(r.TaggedPitchType,r.AutoPitchType),
         bs:     r.BatterSide,
@@ -469,7 +471,8 @@ async function generate() {
         ivb:    parseFloat(r.InducedVertBreak) || 0,
         hb:     parseFloat(r.HorzBreak)        || 0,
         spin:   parseFloat(r.SpinRate)         || 0,
-        vaa:    parseFloat(r.VertApprAngle)    || 0,
+        vaa:    approach.vaa,
+        haa:    approach.haa,
         relh:   parseFloat(r.RelHeight)        || 0,
         rels:   parseFloat(r.RelSide)          || 0,
         ext:    parseFloat(r.Extension)        || 0,
@@ -715,6 +718,7 @@ function buildPitchTable(data, types) {
     var wh=pts.filter(function(d){return d.call==='Whiff';}).length;
     var st=pts.filter(function(d){return['Strike','Whiff','InPlay','Foul'].indexOf(d.call)>-1;}).length;
     var col=TC[t]||'#888';
+    var angles=PitcherCardStats.angleCells(pts.map(function(d){return d.vaa;}), pts.map(function(d){return d.haa;}));
     var row=document.createElement('tr');
     row.innerHTML=
       '<td class="pname" style="color:'+col+';border-left:3px solid '+col+'">'+(SHORT[t]||t)+'</td>'+
@@ -722,7 +726,8 @@ function buildPitchTable(data, types) {
       '<td>'+avg('velo').toFixed(1)+'</td>'+
       '<td>'+Math.max.apply(null,veloArr).toFixed(1)+'</td>'+
       '<td>'+avg('ivb').toFixed(1)+'</td><td>'+avg('hb').toFixed(1)+'</td>'+
-      '<td>'+Math.round(avg('spin'))+'</td><td>'+avg('vaa').toFixed(1)+'</td>'+
+      '<td>'+Math.round(avg('spin'))+'</td>'+
+      '<td>'+angles.vaa+'</td><td>'+angles.haa+'</td>'+
       '<td>'+avg('relh').toFixed(2)+'</td><td>'+avg('ext').toFixed(2)+'</td>'+
       '<td style="background:'+(zc[t]||'#fff')+' !important">'+(iz/pts.length*100).toFixed(1)+'%</td>'+
       '<td style="background:'+(wc[t]||'#fff')+' !important">'+(wh/pts.length*100).toFixed(1)+'%</td>'+
@@ -732,10 +737,13 @@ function buildPitchTable(data, types) {
   var allZ=data.filter(function(d){return d.y>=1.5&&d.y<=3.5&&d.x>=-0.83&&d.x<=0.83;}).length;
   var allW=data.filter(function(d){return d.call==='Whiff';}).length;
   var allSt=data.filter(function(d){return['Strike','Whiff','InPlay','Foul'].indexOf(d.call)>-1;}).length;
+  var allAngles=PitcherCardStats.angleCells(data.map(function(d){return d.vaa;}), data.map(function(d){return d.haa;}));
   var tr=document.createElement('tr'); tr.className='total-row';
   tr.innerHTML=
     '<td class="pname">All</td><td>'+total+'</td><td>100%</td>'+
-    '<td>\u2014</td><td>\u2014</td><td>\u2014</td><td>\u2014</td><td>\u2014</td><td>\u2014</td><td>\u2014</td><td>\u2014</td>'+
+    '<td>\u2014</td><td>\u2014</td><td>\u2014</td><td>\u2014</td><td>\u2014</td>'+
+    '<td>'+allAngles.vaa+'</td><td>'+allAngles.haa+'</td>'+
+    '<td>\u2014</td><td>\u2014</td>'+
     '<td>'+(allZ/total*100).toFixed(1)+'%</td>'+
     '<td>'+(allW/total*100).toFixed(1)+'%</td>'+
     '<td>'+(allSt/total*100).toFixed(1)+'%</td>';
