@@ -12,7 +12,7 @@
 
   // TJStats order: VAA then HAA sit after Spin and before release height.
   var PITCH_TABLE_COLUMNS = [
-    'Pitch', 'N', '%', 'Avg', 'Max', 'iVB', 'HB', 'Spin', 'VAA', 'HAA', 'RelH', 'Ext', 'Zn%', 'Whf%', 'Str%'
+    'Pitch', 'N', '%', 'Avg', 'Max', 'iVB', 'HB', 'Spin', 'VAA', 'HAA', 'RelH', 'Ext', 'Zn%', 'Whf%'
   ];
 
   function finiteOrNull(v) {

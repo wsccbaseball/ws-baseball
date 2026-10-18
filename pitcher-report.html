@@ -136,11 +136,11 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
   <div class="game-line" id="cardGameLine">&#8212;</div>
   <div class="stat-table-wrap">
     <table class="stat-table">
-      <thead><tr><th>IP</th><th>NP</th><th>PA</th><th>ER</th><th>H</th><th>K</th><th>BB</th><th>HBP</th><th>Strike%</th><th>Whiffs</th><th>WEGS</th></tr></thead>
+      <thead><tr><th>IP</th><th>NP</th><th>PA</th><th>ER</th><th>H</th><th>K</th><th>BB</th><th>HBP</th><th>Whiffs</th><th>WEGS</th></tr></thead>
       <tbody><tr>
         <td id="cIP">&#8212;</td><td id="cNP">&#8212;</td><td id="cPA">&#8212;</td><td id="cER">&#8212;</td>
         <td id="cH">&#8212;</td><td id="cK">&#8212;</td><td id="cBB">&#8212;</td><td id="cHBP">&#8212;</td>
-        <td id="cSP">&#8212;</td><td id="cWH">&#8212;</td><td id="cWEGS">&#8212;</td>
+        <td id="cWH">&#8212;</td><td id="cWEGS">&#8212;</td>
       </tr></tbody>
     </table>
   </div>
@@ -176,7 +176,7 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
         <th style="text-align:left;padding-left:3px;">Pitch</th>
         <th>N</th><th>%</th><th>Avg</th><th>Max</th><th>iVB</th><th>HB</th>
         <th>Spin</th><th>VAA</th><th>HAA</th><th>RelH</th><th>Ext</th>
-        <th>Zn%</th><th>Whf%</th><th>Str%</th>
+        <th>Zn%</th><th>Whf%</th>
       </tr></thead>
       <tbody id="cardPitchRows"></tbody>
     </table>
@@ -483,9 +483,7 @@ async function generate() {
     }).filter(function(d) { return d.velo > 0; });
 
     var np    = pitchData.length;
-    var allS  = pitchData.filter(function(d) { return ['Strike','Whiff','InPlay','Foul'].indexOf(d.call)>-1; }).length;
     var allW  = pitchData.filter(function(d) { return d.call==='Whiff'; }).length;
-    var strPct = np > 0 ? (allS/np*100).toFixed(1)+'%' : '\u2014';
     var paVal  = rows.filter(function(r) { return r.PitchofPA==='1'; }).length;
 
     var hand = rows[0].PitcherThrows || 'R';
@@ -536,7 +534,6 @@ async function generate() {
     document.getElementById('cK').textContent   = bs ? bs.k   : '\u2014';
     document.getElementById('cBB').textContent  = bs ? bs.bb  : '\u2014';
     document.getElementById('cHBP').textContent = bs ? bs.hbp : '\u2014';
-    document.getElementById('cSP').textContent  = strPct;
     document.getElementById('cWH').textContent  = allW;
 
     var wegs = '\u2014';
@@ -702,21 +699,18 @@ function buildPitchTable(data, types) {
     var pts=data.filter(function(d){return d.type===t;}); if(!pts.length)return;
     sm[t]={
       z:pts.filter(function(d){return d.y>=1.5&&d.y<=3.5&&d.x>=-0.83&&d.x<=0.83;}).length/pts.length*100,
-      w:pts.filter(function(d){return d.call==='Whiff';}).length/pts.length*100,
-      s:pts.filter(function(d){return['Strike','Whiff','InPlay','Foul'].indexOf(d.call)>-1;}).length/pts.length*100
+      w:pts.filter(function(d){return d.call==='Whiff';}).length/pts.length*100
     };
   });
-  var pr=types.filter(function(t){return sm[t];}),zc={},wc={},sc={};
+  var pr=types.filter(function(t){return sm[t];}),zc={},wc={};
   pr.slice().sort(function(a,b){return sm[b].z-sm[a].z;}).forEach(function(t,i){zc[t]=tier[Math.min(i,3)];});
   pr.slice().sort(function(a,b){return sm[b].w-sm[a].w;}).forEach(function(t,i){wc[t]=tier[Math.min(i,3)];});
-  pr.slice().sort(function(a,b){return sm[b].s-sm[a].s;}).forEach(function(t,i){sc[t]=tier[Math.min(i,3)];});
   sortedTypes.forEach(function(t){
     var pts=data.filter(function(d){return d.type===t;}); if(!pts.length)return;
     function avg(k){return pts.reduce(function(s,d){return s+d[k];},0)/pts.length;}
     var veloArr=pts.map(function(d){return d.velo;});
     var iz=pts.filter(function(d){return d.y>=1.5&&d.y<=3.5&&d.x>=-0.83&&d.x<=0.83;}).length;
     var wh=pts.filter(function(d){return d.call==='Whiff';}).length;
-    var st=pts.filter(function(d){return['Strike','Whiff','InPlay','Foul'].indexOf(d.call)>-1;}).length;
     var col=TC[t]||'#888';
     var angles=PitcherCardStats.angleCells(pts.map(function(d){return d.vaa;}), pts.map(function(d){return d.haa;}));
     var row=document.createElement('tr');
@@ -730,13 +724,11 @@ function buildPitchTable(data, types) {
       '<td>'+angles.vaa+'</td><td>'+angles.haa+'</td>'+
       '<td>'+avg('relh').toFixed(2)+'</td><td>'+avg('ext').toFixed(2)+'</td>'+
       '<td style="background:'+(zc[t]||'#fff')+' !important">'+(iz/pts.length*100).toFixed(1)+'%</td>'+
-      '<td style="background:'+(wc[t]||'#fff')+' !important">'+(wh/pts.length*100).toFixed(1)+'%</td>'+
-      '<td style="background:'+(sc[t]||'#fff')+' !important">'+(st/pts.length*100).toFixed(1)+'%</td>';
+      '<td style="background:'+(wc[t]||'#fff')+' !important">'+(wh/pts.length*100).toFixed(1)+'%</td>';
     tbody.appendChild(row);
   });
   var allZ=data.filter(function(d){return d.y>=1.5&&d.y<=3.5&&d.x>=-0.83&&d.x<=0.83;}).length;
   var allW=data.filter(function(d){return d.call==='Whiff';}).length;
-  var allSt=data.filter(function(d){return['Strike','Whiff','InPlay','Foul'].indexOf(d.call)>-1;}).length;
   var allAngles=PitcherCardStats.angleCells(data.map(function(d){return d.vaa;}), data.map(function(d){return d.haa;}));
   var tr=document.createElement('tr'); tr.className='total-row';
   tr.innerHTML=
@@ -745,8 +737,7 @@ function buildPitchTable(data, types) {
     '<td>'+allAngles.vaa+'</td><td>'+allAngles.haa+'</td>'+
     '<td>\u2014</td><td>\u2014</td>'+
     '<td>'+(allZ/total*100).toFixed(1)+'%</td>'+
-    '<td>'+(allW/total*100).toFixed(1)+'%</td>'+
-    '<td>'+(allSt/total*100).toFixed(1)+'%</td>';
+    '<td>'+(allW/total*100).toFixed(1)+'%</td>';
   tbody.appendChild(tr);
 }
 
