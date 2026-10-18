@@ -64,7 +64,8 @@ test('the game card header and rows use those columns and means', function () {
   assert.match(html, /src="pitcher-card-stats\.js"/);
   assert.equal(stats.PITCH_TABLE_COLUMNS.indexOf('Str%'), -1);
   assert.equal(stats.PITCH_TABLE_COLUMNS[stats.PITCH_TABLE_COLUMNS.length - 1], 'Whf%');
-  assert.equal(html.indexOf('Strike%'), -1);
+  assert.match(html, /<th>HBP<\/th><th>Strike%<\/th><th>Whiffs<\/th>/);
+  assert.match(html, /id="cSP"/);
   assert.equal(html.indexOf('Str%'), -1);
-  assert.equal(html.indexOf('id="cSP"'), -1);
+  assert.equal(html.indexOf('>Str%<'), -1);
 });
