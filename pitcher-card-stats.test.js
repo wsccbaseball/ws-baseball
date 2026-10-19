@@ -77,6 +77,30 @@ test('the game card header and rows use those columns and means', function () {
   assert.match(html, /<col style="width:6%">/);
 });
 
+test('movement labels follow the arm and leave HorzBreak unflipped', function () {
+  assert.deepEqual(stats.movementLabels('Right'), { left: '\u2190 Glove', right: 'Arm \u2192' });
+  assert.deepEqual(stats.movementLabels('R'), { left: '\u2190 Glove', right: 'Arm \u2192' });
+  assert.deepEqual(stats.movementLabels('RHP'), { left: '\u2190 Glove', right: 'Arm \u2192' });
+  assert.deepEqual(stats.movementLabels(''), { left: '\u2190 Glove', right: 'Arm \u2192' });
+  assert.deepEqual(stats.movementLabels(null), { left: '\u2190 Glove', right: 'Arm \u2192' });
+  assert.deepEqual(stats.movementLabels('Left'), { left: '\u2190 Arm', right: 'Glove \u2192' });
+  assert.deepEqual(stats.movementLabels('L'), { left: '\u2190 Arm', right: 'Glove \u2192' });
+  assert.deepEqual(stats.movementLabels(' lhp '), { left: '\u2190 Arm', right: 'Glove \u2192' });
+
+  // Martell FB HB -6.3 is left of center. That side is his arm.
+  // Burgess FB HB +6.2 is right of center. That side is his arm.
+  assert.equal(stats.movementLabels('Left').left.indexOf('Arm') > -1, true);
+  assert.equal(stats.movementLabels('Left').right.indexOf('Glove') > -1, true);
+  assert.equal(stats.movementLabels('Right').right.indexOf('Arm') > -1, true);
+  assert.equal(stats.movementLabels('Right').left.indexOf('Glove') > -1, true);
+
+  var html = fs.readFileSync(__dirname + '/pitcher-report.html', 'utf8');
+  assert.match(html, /PitcherCardStats\.movementLabels\(hand\)/);
+  assert.match(html, /drawBrk\('cBrk',pitchData,hand\)/);
+  assert.match(html, /mx\(d\.hb\)/);
+  assert.equal(html.indexOf('mx(-d.hb)'), -1);
+});
+
 test('any PitchCall starting with Foul is a foul, and a plain FoulBall counts in Strike%', function () {
   assert.equal(stats.classifyPitchCall('FoulBall'), 'Foul');
   assert.equal(stats.classifyPitchCall('FoulBallNotFieldable'), 'Foul');
