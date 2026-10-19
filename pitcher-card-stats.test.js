@@ -73,6 +73,8 @@ test('the game card header and rows use those columns and means', function () {
   assert.match(html, /PitcherCardStats\.classifyPitchCall/);
   assert.match(html, /PitcherCardStats\.strikePct/);
   assert.equal(html.indexOf('CALL_MAP'), -1);
+  assert.match(html, /\.pitch-table td \{[^}]*font-size:10px/);
+  assert.match(html, /<col style="width:6%">/);
 });
 
 test('any PitchCall starting with Foul is a foul, and a plain FoulBall counts in Strike%', function () {
