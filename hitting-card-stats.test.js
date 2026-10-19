@@ -29,6 +29,8 @@ test('chase heat value is swing rate outside the Chase% zone', function () {
   assert.equal(stats.chaseHeatValue(pitch({ PlateLocSide: 0, PlateLocHeight: 3.5, PitchCall: 'FoulBall' })), null);
   assert.equal(stats.chaseHeatValue(pitch({ PlateLocSide: 0.834, PlateLocHeight: 2.5, PitchCall: 'StrikeSwinging' })), 1);
   assert.equal(stats.chaseHeatValue(pitch({ PlateLocSide: -1.2, PlateLocHeight: 2.5, PitchCall: 'FoulBallFieldable' })), 1);
+  assert.equal(stats.chaseHeatValue(pitch({ PlateLocSide: -1.2, PlateLocHeight: 2.5, PitchCall: 'FoulBall' })), 1);
+  assert.equal(stats.chaseHeatValue(pitch({ PlateLocSide: -1.2, PlateLocHeight: 2.5, PitchCall: 'FoulTip' })), 1);
   assert.equal(stats.chaseHeatValue(pitch({ PlateLocSide: 1.1, PlateLocHeight: 1.2, PitchCall: 'BallCalled' })), 0);
   assert.equal(stats.chaseHeatValue(pitch({ PlateLocSide: 1.1, PlateLocHeight: 4.2, PitchCall: 'StrikeCalled' })), 0);
   assert.equal(stats.chaseHeatValue(pitch({ PlateLocSide: '', PlateLocHeight: 0.5, PitchCall: 'InPlay' })), null);

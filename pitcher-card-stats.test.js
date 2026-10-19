@@ -59,6 +59,8 @@ test('an All row uses the same pitch-weighted mean as a pitch-type row', functio
 test('the game card header and rows use those columns and means', function () {
   var html = fs.readFileSync(__dirname + '/pitcher-report.html', 'utf8');
   assert.match(html, /<th>Spin<\/th><th>VAA<\/th><th>HAA<\/th><th>RelH<\/th>/);
+  assert.match(html, /<th>Zn%<\/th><th>Whf%<\/th>/);
+  assert.equal(html.indexOf('min-width:600px'), -1);
   assert.match(html, /PitcherCardStats\.approachFromPitch/);
   assert.match(html, /PitcherCardStats\.angleCells/);
   assert.match(html, /src="pitcher-card-stats\.js"/);
@@ -68,4 +70,45 @@ test('the game card header and rows use those columns and means', function () {
   assert.match(html, /id="cSP"/);
   assert.equal(html.indexOf('Str%'), -1);
   assert.equal(html.indexOf('>Str%<'), -1);
+  assert.match(html, /PitcherCardStats\.classifyPitchCall/);
+  assert.match(html, /PitcherCardStats\.strikePct/);
+  assert.equal(html.indexOf('CALL_MAP'), -1);
 });
+
+test('any PitchCall starting with Foul is a foul, and a plain FoulBall counts in Strike%', function () {
+  assert.equal(stats.classifyPitchCall('FoulBall'), 'Foul');
+  assert.equal(stats.classifyPitchCall('FoulBallNotFieldable'), 'Foul');
+  assert.equal(stats.classifyPitchCall('FoulBallFieldable'), 'Foul');
+  assert.equal(stats.classifyPitchCall(' FoulTip '), 'Foul');
+  assert.equal(stats.classifyPitchCall('StrikeCalled'), 'Strike');
+  assert.equal(stats.classifyPitchCall('StrikeSwinging'), 'Whiff');
+  assert.equal(stats.classifyPitchCall('InPlay'), 'InPlay');
+  assert.equal(stats.classifyPitchCall('BallCalled'), 'Ball');
+  assert.equal(stats.classifyPitchCall('HitByPitch'), 'Ball');
+  assert.equal(stats.classifyPitchCall('BallIntentional'), 'Ball');
+  assert.equal(stats.classifyPitchCall(null), 'Ball');
+  assert.equal(stats.classifyPitchCall(''), 'Ball');
+
+  // Colton Richards, Vanderbilt Game 1, 2026-10-18: 25 pitches.
+  // BallCalled 11, FoulBall 6, InPlay 4, StrikeSwinging 2, StrikeCalled 1, HBP 1.
+  // Called + swinging + foul + in play = 13/25 = 52.0%. Dropping the fouls is 28.0%.
+  var richards = []
+    .concat(repeat('BallCalled', 11))
+    .concat(repeat('FoulBall', 6))
+    .concat(repeat('InPlay', 4))
+    .concat(repeat('StrikeSwinging', 2))
+    .concat(repeat('StrikeCalled', 1))
+    .concat(repeat('HitByPitch', 1));
+  assert.equal(richards.length, 25);
+  var labels = richards.map(stats.classifyPitchCall);
+  assert.equal(stats.strikePct(labels), '52.0%');
+  var withoutFouls = labels.map(function (label) { return label === 'Foul' ? 'Ball' : label; });
+  assert.equal(stats.strikePct(withoutFouls), '28.0%');
+  assert.equal(stats.strikePct([]), '\u2014');
+});
+
+function repeat(value, n) {
+  var out = [];
+  for (var i = 0; i < n; i++) out.push(value);
+  return out;
+}

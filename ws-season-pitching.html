@@ -343,6 +343,7 @@ canvas{display:block;border-radius:4px}
   <button class="overlay-close" onclick="closeOverlay()">&#x2715; Close</button>
 </div>
 
+<script src="pitch-type.js"></script>
 <script>
 var SUPABASE_URL='https://mghrapwhvihpwgqryail.supabase.co';
 var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
@@ -359,6 +360,7 @@ var GAME_TYPE_MODE=_qs.get('type')||'all';
 // counted one way in one metric and another way somewhere else.
 var SWING_CALLS=['StrikeSwinging','FoulBall','FoulBallNotFieldable','FoulBallFieldable','InPlay'];
 var STRIKE_CALLS=['StrikeCalled','StrikeSwinging','FoulBall','FoulBallNotFieldable','FoulBallFieldable','InPlay'];
+function isFoulCall(c){return /^Foul/i.test(c||'');}
 
 var PITCH_COLORS={
   'Fastball':'#e63946','Four-Seam':'#e63946','FourSeamFastBall':'#e63946',
@@ -378,13 +380,15 @@ var PITCH_NORM={
 };
 var WOBA_WEIGHTS={'Single':0.88,'Double':1.24,'Triple':1.56,'HomeRun':2.08,'Home Run':2.08};
 
-function normPitch(t,a){var raw=(!t||t==='Undefined')?a:t;return PITCH_NORM[raw]||raw||'Other';}
+function normPitch(t,a){
+  var raw=PitchType.resolvePitchType(t,a);
+  return PITCH_NORM[raw]||raw||'Other';
+}
 function stuffType(r){
-  // Tagged first, same rule as stuff/score_stuff.py and ws-stuff.html.
-  // Auto is only the fallback when tagged is blank, Undefined, or Other.
-  // No Auto=Cutter override.
-  var t=r.TaggedPitchType;
-  if(!t||t==='Undefined'||t==='Other')t=r.AutoPitchType;
+  // Tagged wins. Auto fills in only when the tag is blank, Undefined, or missing.
+  // A tag of Other stays Other. Scoring still treats Other as missing; that
+  // pipeline is unchanged.
+  var t=PitchType.resolvePitchType(r);
   var canon={'Cut Fastball':'Cutter','FC':'Cutter','CT':'Cutter'};
   t=canon[t]||t;
   return PITCH_NORM[t]||t||'Other';
@@ -487,9 +491,9 @@ function computePitcherProfile(name, rows){
     if(!isNaN(d1))pitchTypes[spt].stuffD1.push(d1);
     var velo=parseFloat(r.RelSpeed||r.PitchSpeed||r.StartSpeed||'NaN');
     if(!isNaN(velo)&&velo>0)pitchTypes[pt].velos.push(velo);
-    var isSwing=SWING_CALLS.includes(call);
+    var isSwing=SWING_CALLS.includes(call)||isFoulCall(call);
     var isWhiff=call==='StrikeSwinging';
-    var isStrike=STRIKE_CALLS.includes(call);
+    var isStrike=STRIKE_CALLS.includes(call)||isFoulCall(call);
     var side=parseFloat(r.PlateLocSide),height=parseFloat(r.PlateLocHeight);
     var inside=!isNaN(side)&&!isNaN(height)&&Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
     var outside=!isNaN(side)&&!isNaN(height)&&!inside;
@@ -993,8 +997,8 @@ function exportAggregate(){
              ext:num(r.Extension),relh:num(r.RelHeight),rels:num(r.RelSide)};
       Object.keys(f).forEach(function(key){if(f[key]!==null)b[key].push(f[key]);});
       var call=(r.PitchCall||'').trim();
-      if(STRIKE_CALLS.includes(call))b.strikes++;
-      if(SWING_CALLS.includes(call))b.swings++;
+      if(STRIKE_CALLS.includes(call)||isFoulCall(call))b.strikes++;
+      if(SWING_CALLS.includes(call)||isFoulCall(call))b.swings++;
       if(call==='StrikeSwinging')b.whiffs++;
       if(call==='StrikeCalled')b.called++;
       var side=parseFloat(r.PlateLocSide),ht=parseFloat(r.PlateLocHeight);
@@ -1345,9 +1349,9 @@ function buildTrendTable(){
         if(res==='HomeRun'||res==='Home Run')hrs++;
       }
       if(r.PitchCall==='HitByPitch')bbs++;
-      // Pitch type follows stuffType, the same tagged-first rule as the
-      // season-card arsenal and the scorer. Each grade is the pitch-count
-      // mean of the stored value. Missing grades are left out, not treated as 0.
+      // Pitch type follows stuffType: tagged, then auto only when the tag is
+      // blank or Undefined. Each grade is the pitch-count mean of the stored
+      // value. Missing grades are left out, not treated as 0.
       var pt=stuffType(r);
       if(!byPt[pt])byPt[pt]=newGradeBucket();
       pushGrade(byPt[pt],r);

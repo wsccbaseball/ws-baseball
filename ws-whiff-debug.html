@@ -52,6 +52,7 @@ td.hi{color:#c00;font-weight:bold}
   <div id="tblWhiff"></div>
 </div>
 
+<script src="pitch-type.js"></script>
 <script>
 var SUPABASE_URL='https://mghrapwhvihpwgqryail.supabase.co';
 var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
@@ -200,7 +201,7 @@ function drawWhiff(pts){
     var inzone=Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
     var color=inzone?'rgba(200,0,0,.8)':'rgba(60,100,220,.8)';
     drawDot(c.ctx,c.mx,c.my,side,height,color);
-    rows.push([side.toFixed(2),height.toFixed(2),p.TaggedPitchType||p.AutoPitchType||'--',p.Balls||'--',p.Strikes||'--',inzone?'YES':'no']);
+    rows.push([side.toFixed(2),height.toFixed(2),PitchType.resolvePitchType(p)||'--',p.Balls||'--',p.Strikes||'--',inzone?'YES':'no']);
   });
   c.ctx.fillStyle='#333';c.ctx.font='9px sans-serif';c.ctx.textAlign='left';
   c.ctx.fillText('Whiffs: '+pts.length,6,14);

@@ -10,6 +10,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="hitter-pa.js"></script>
+<script src="pitch-type.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { overflow-x: hidden; }
@@ -596,10 +597,12 @@ function extractXBHFromNotes(text, csvName) {
 }
 
 const inZone = r => { const x=parseFloat(r.PlateLocSide),y=parseFloat(r.PlateLocHeight); return !isNaN(x)&&!isNaN(y)&&y>=1.5&&y<=3.5&&x>=-0.83&&x<=0.83; };
-const isSwing  = r => ['StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(r.PitchCall);
+function isFoulCall(call){return /^Foul/i.test(String(call||'').trim());}
+const isSwing  = r => r.PitchCall==='StrikeSwinging' || r.PitchCall==='InPlay' || isFoulCall(r.PitchCall);
 const isWhiff  = r => r.PitchCall === 'StrikeSwinging';
-const isStrike = r => ['StrikeCalled','StrikeSwinging','FoulBall','FoulBallNotFieldable','InPlay'].includes(r.PitchCall);
+const isStrike = r => r.PitchCall==='StrikeCalled' || isSwing(r);
 function normPitch(t) { return PITCH_NORM[t] || t || 'Other'; }
+function pitchTypeOf(r) { return normPitch(PitchType.resolvePitchType(r)); }
 function pitchColor(t) { return PITCH_COLORS[t] || '#888'; }
 function pct(n, d, dec=1) { if (!d) return '—'; return (n/d*100).toFixed(dec)+'%'; }
 
@@ -625,7 +628,7 @@ function drawCountZone(canvas, swings) {
   swings.forEach(r => {
     const x=parseFloat(r.PlateLocSide), y=parseFloat(r.PlateLocHeight);
     if(isNaN(x)||isNaN(y)) return;
-    const col = pitchColor(normPitch(r.TaggedPitchType));
+    const col = pitchColor(pitchTypeOf(r));
     const cx=mx(x), cy=my(y);
     ctx.beginPath(); ctx.arc(cx,cy,7,0,Math.PI*2);
     ctx.fillStyle=col; ctx.fill();
@@ -719,7 +722,7 @@ function drawSprayChart(canvasId,pitches){
 function drawPieChart(pitches){
   const cv=document.getElementById('pieChart'),ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
   ctx.clearRect(0,0,W,H);
-  const counts={};pitches.forEach(r=>{const t=normPitch(r.TaggedPitchType);counts[t]=(counts[t]||0)+1;});
+  const counts={};pitches.forEach(r=>{const t=pitchTypeOf(r);counts[t]=(counts[t]||0)+1;});
   const total=pitches.length,types=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
   const cx=W/2,cy=H/2,r=Math.min(W,H)/2-8;let startAngle=-Math.PI/2;
   types.forEach(([t,n])=>{
@@ -742,11 +745,11 @@ function drawPAZone(canvasId,paPitches){
   const R=7.6;
   paPitches.forEach((r,idx)=>{
     const x=parseFloat(r.PlateLocSide),y=parseFloat(r.PlateLocHeight);if(isNaN(x)||isNaN(y))return;
-    const col=pitchColor(normPitch(r.TaggedPitchType)),cx=mx(x),cy=my(y),call=r.PitchCall;
+    const col=pitchColor(pitchTypeOf(r)),cx=mx(x),cy=my(y),call=r.PitchCall;
     ctx.fillStyle=col;ctx.strokeStyle='rgba(0,0,0,0.25)';ctx.lineWidth=1.2;
     if(call==='InPlay'){ctx.beginPath();ctx.moveTo(cx,cy-R);ctx.lineTo(cx+R,cy+R*0.7);ctx.lineTo(cx-R,cy+R*0.7);ctx.closePath();ctx.fill();ctx.stroke();}
-    else if(call==='FoulBall'||call==='FoulBallNotFieldable'){ctx.beginPath();ctx.rect(cx-R,cy-R,R*2,R*2);ctx.fill();ctx.stroke();}
-    else if(/ball/i.test(call)){ctx.beginPath();ctx.moveTo(cx,cy+R);ctx.lineTo(cx+R,cy-R*0.7);ctx.lineTo(cx-R,cy-R*0.7);ctx.closePath();ctx.fill();ctx.stroke();}
+    else if(isFoulCall(call)){ctx.beginPath();ctx.rect(cx-R,cy-R,R*2,R*2);ctx.fill();ctx.stroke();}
+    else if(/ball/i.test(call||'')){ctx.beginPath();ctx.moveTo(cx,cy+R);ctx.lineTo(cx+R,cy-R*0.7);ctx.lineTo(cx-R,cy-R*0.7);ctx.closePath();ctx.fill();ctx.stroke();}
     else{ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.fill();ctx.stroke();}
     ctx.fillStyle='#fff';ctx.font='bold 10px Barlow, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(idx+1,cx,cy);
     if(call==='StrikeSwinging'){
@@ -824,7 +827,7 @@ function generate(){
   else{sm.textContent='✓ Card generated — using TrackMan data.';sm.className='status-msg';}
   document.getElementById('rSwing').textContent=pct(swings.length,np);document.getElementById('rZSwing').textContent=pct(zSwings.length,zRows.length);
   document.getElementById('rChase').textContent=pct(ozSwings.length,ozRows.length);document.getElementById('rWhiff').textContent=pct(whiffs.length,swings.length);
-  document.getElementById('rStrike').textContent=pct(strikes.length,np);document.getElementById('rBall').textContent=pct(rows.filter(r=>/ball/i.test(r.PitchCall)).length,np);
+  document.getElementById('rStrike').textContent=pct(strikes.length,np);document.getElementById('rBall').textContent=pct(rows.filter(r=>/ball/i.test(r.PitchCall||'')&&!isFoulCall(r.PitchCall)).length,np);
   document.getElementById('footL').textContent='⚾ '+opp;
   document.getElementById('footC').textContent='Data: TrackMan · Walters State CC · '+date;
   document.getElementById('card').style.display='block';

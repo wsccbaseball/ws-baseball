@@ -91,6 +91,7 @@ tr.thin td{color:var(--muted)}
   </section>
 </main>
 
+<script src="pitch-type.js"></script>
 <script>
 const SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
@@ -139,10 +140,9 @@ async function supaFetch(path){
 }
 
 function ptype(p){
-  // Tagged first, same rule as stuff/score_stuff.py. Auto is only the fallback
-  // when tagged is blank, Undefined, or Other. No Auto=Cutter override.
-  var t = p.TaggedPitchType;
-  if (!t || t === 'Undefined' || t === 'Other') t = p.AutoPitchType;
+  // Tagged wins. Auto fills in only when the tag is blank, Undefined, or missing.
+  // A tag of Other stays Other. The nightly scorer still treats Other as missing.
+  var t = PitchType.resolvePitchType(p);
   return CANON[t] || t;
 }
 function gradeOf(p){ return p.stuff_plus_d1; }

@@ -113,13 +113,6 @@ table.rep td.dim{color:#9b8c74}
         <option value="opp">Opponent only</option>
       </select>
     </div>
-    <div class="fg" style="min-width:118px">
-      <label>Pitch Types</label>
-      <select id="tagSel">
-        <option value="auto">TrackMan auto</option>
-        <option value="tagged">Live tags</option>
-      </select>
-    </div>
     <div class="filter-count" id="filterCount"></div>
   </div>
   <div id="out-screen">
@@ -133,6 +126,7 @@ table.rep td.dim{color:#9b8c74}
   <button class="gen-btn" id="xlsxBtn" disabled onclick="saveExcel()">Save Excel</button>
 </div>
 
+<script src="pitch-type.js"></script>
 <script>
 var SUPABASE_URL='https://mghrapwhvihpwgqryail.supabase.co';
 var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
@@ -142,7 +136,6 @@ var XLBLOB=null, XLNAME='Game_Report.xlsx';
 var _qs=new URLSearchParams(location.search);
 var CURRENT_SEASON=_qs.get('season')||'2026-spring';
 var GAME_TYPE_MODE=_qs.get('type')||'all';
-var TAGSRC='auto';
 
 var PITCH_NORM={
   'Four-Seam':'Fastball','FourSeamFastBall':'Fastball','Fastball':'Fastball',
@@ -199,8 +192,8 @@ function tracked(r){return num(G(r,'velo'))!==null;}
 function clean(v){return(!v||v==='Undefined')?null:(PITCH_NORM[v]||v);}
 function PT(r){
   if(!tracked(r))return 'Untracked';
-  var a=clean(pick(r,['AutoPitchType'])), t=clean(pick(r,['TaggedPitchType']));
-  return (TAGSRC==='tagged'?(t||a):(a||t))||'Untagged';
+  var raw=PitchType.resolvePitchType(pick(r,['TaggedPitchType']), pick(r,['AutoPitchType']));
+  return clean(raw)||'Untagged';
 }
 
 /* ---------- zone + classification ---------- */
@@ -421,8 +414,8 @@ function noteText(){
   return'Percentages show the count behind them. Uncolored cells had too few chances to judge. '+
         'FB Velo falls back to the fastest pitch type when no fastball is classified. '+
         'Gray rows are small samples (under 10 pitches / 2 PA). Zone - Chase band: green +'+zoBand()[0]+
-        ', red +'+zoBand()[1]+' (scaled to '+(SEL_GAMES||1)+' game'+((SEL_GAMES||1)>1?'s':'')+'). Pitch types from '+
-        (TAGSRC==='tagged'?'live tags':'TrackMan auto-classification')+'.';
+        ', red +'+zoBand()[1]+' (scaled to '+(SEL_GAMES||1)+' game'+((SEL_GAMES||1)>1?'s':'')+'). '+
+        'Pitch types come from live tags. TrackMan auto is used only when a tag is blank or Undefined.';
 }
 function flagNote(){
   return'(!) Release height varies more than one arm slot allows - these pitches may be logged under the wrong pitcher.';
@@ -564,7 +557,6 @@ async function buildReport(){
   if(!ids.length)return;
   var picked=gamesMeta.filter(function(g){return ids.indexOf(g.game_id)>-1;});
   if(!picked.length){setMsg('No games matched');return;}
-  TAGSRC=document.getElementById('tagSel').value;
   var btn=document.getElementById('buildBtn'), orig='Build Report \u2192';
   var xbtn=document.getElementById('xlsxBtn');
   btn.disabled=true;xbtn.disabled=true;XLBLOB=null;

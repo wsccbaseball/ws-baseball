@@ -56,14 +56,22 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
 /* ── Velo by Inning ── */
 .velo-inning-wrap { padding:4px 8px 4px; border-top:1px solid #e8f0f8; border-bottom:1px solid #e8f0f8; background:#f8fafd; }
 .velo-inning-title { font-family:'Anton',sans-serif; font-size:clamp(7px,2vw,9px); letter-spacing:.1em; text-transform:uppercase; color:#7a8faa; text-align:center; margin-bottom:2px; }
-.pitch-table-wrap { padding:4px 4px; overflow-x:auto; }
-.pitch-table { width:100%; min-width:600px; border-collapse:collapse; font-family:'Barlow Condensed',sans-serif; table-layout:fixed; }
-.pitch-table th { background:#2d5a8e; color:#fff; padding:4px 1px; text-align:center; font-size:clamp(6px,2vw,8.5px); font-weight:700; border:1px solid #1a3a5c; white-space:nowrap; overflow:hidden; }
-.pitch-table td { text-align:center; padding:4px 1px; border:1px solid #dde4ef; font-size:clamp(7px,2.2vw,9.5px); font-weight:500; }
+/* The card clips overflow. The pitch table has to live inside that width,
+   including on a phone and in the html2canvas save. No min-width.
+   Phone sizes are plain px so the saved image uses the same fit. */
+.pitch-table-wrap { width:100%; max-width:100%; min-width:0; padding:3px 1px 4px; overflow:hidden; }
+.pitch-table { width:100%; max-width:100%; border-collapse:collapse; font-family:'Barlow Condensed',sans-serif; table-layout:fixed; }
+.pitch-table th { background:#2d5a8e; color:#fff; padding:3px 0; text-align:center; font-size:7px; font-weight:700; border:1px solid #1a3a5c; white-space:nowrap; overflow:hidden; letter-spacing:-0.02em; line-height:1.1; }
+.pitch-table td { text-align:center; padding:2px 0; border:1px solid #dde4ef; font-size:8px; font-weight:600; white-space:nowrap; overflow:hidden; letter-spacing:-0.03em; line-height:1.15; }
 .pitch-table tr:nth-child(even) td { background:#f0f5fc; }
 .pitch-table tr:nth-child(odd) td { background:#f8fafd; }
 .pitch-table .total-row td { background:#e0eaf8 !important; font-weight:700; }
-.pname { font-weight:700; font-size:clamp(7px,2.2vw,9.5px); text-align:left !important; padding-left:3px !important; white-space:nowrap; overflow:hidden; }
+.pname { font-weight:700; font-size:8px; text-align:left !important; padding-left:2px !important; white-space:nowrap; overflow:hidden; }
+@media (min-width:540px) {
+  .pitch-table th { font-size:10px; padding:4px 0; }
+  .pitch-table td { font-size:11px; padding:3px 0; }
+  .pname { font-size:11px; }
+}
 .stuff-row { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:6px; padding:3px 8px 5px; font-family:'Barlow Condensed',sans-serif; }
 .stuff-row-title { font-family:'Anton',sans-serif; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:#7a8faa; }
 #stuffChips { display:contents; }
@@ -172,8 +180,15 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
 
   <div class="pitch-table-wrap">
     <table class="pitch-table">
+      <colgroup>
+        <col style="width:7%"><col style="width:5.5%"><col style="width:8.5%">
+        <col style="width:7%"><col style="width:7%"><col style="width:7%"><col style="width:7%">
+        <col style="width:8%"><col style="width:7%"><col style="width:7%">
+        <col style="width:7%"><col style="width:6.5%">
+        <col style="width:8%"><col style="width:7.5%">
+      </colgroup>
       <thead><tr>
-        <th style="text-align:left;padding-left:3px;">Pitch</th>
+        <th style="text-align:left;padding-left:2px;">Pitch</th>
         <th>N</th><th>%</th><th>Avg</th><th>Max</th><th>iVB</th><th>HB</th>
         <th>Spin</th><th>VAA</th><th>HAA</th><th>RelH</th><th>Ext</th>
         <th>Zn%</th><th>Whf%</th>
@@ -228,6 +243,7 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
 </div>
 
 <script src="pitcher-card-stats.js"></script>
+<script src="pitch-type.js"></script>
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
@@ -252,12 +268,10 @@ var TC = {
   Knuckleball:'#888888'
 };
 var SHORT = {Fastball:'FB',Sinker:'SI',Curveball:'CB',Slider:'SL',Cutter:'CT',ChangeUp:'CH',Splitter:'SP'};
-var CALL_MAP = {
-  StrikeCalled:'Strike', StrikeSwinging:'Whiff', BallCalled:'Ball',
-  FoulBallNotFieldable:'Foul', FoulBallFieldable:'Foul',
-  InPlay:'InPlay', HitByPitch:'Ball', BallIntentional:'Ball'
-};
-
+function pitchTypeOf(r) {
+  var raw = PitchType.resolvePitchType(r.TaggedPitchType, r.AutoPitchType);
+  return TYPE_MAP[raw] || raw || 'Other';
+}
 var pdfOpponent = '';
 
 function flipName(n) {
@@ -463,7 +477,7 @@ async function generate() {
     var pitchData = rows.map(function(r) {
       var approach = PitcherCardStats.approachFromPitch(r);
       return {
-        type:   (function(t,a){var raw=(!t||t==='Undefined')?a:t;return TYPE_MAP[raw]||raw||'Other';})(r.TaggedPitchType,r.AutoPitchType),
+        type:   pitchTypeOf(r),
         bs:     r.BatterSide,
         x:      parseFloat(r.PlateLocSide)     || 0,
         y:      parseFloat(r.PlateLocHeight)   || 0,
@@ -476,16 +490,15 @@ async function generate() {
         relh:   parseFloat(r.RelHeight)        || 0,
         rels:   parseFloat(r.RelSide)          || 0,
         ext:    parseFloat(r.Extension)        || 0,
-        call:   CALL_MAP[r.PitchCall]          || 'Ball',
+        call:   PitcherCardStats.classifyPitchCall(r.PitchCall),
         inning: parseInt(r.Inning)             || 0,
         stuff:  (r.stuff_plus_d1==null||r.stuff_plus_d1==='') ? null : parseFloat(r.stuff_plus_d1)
       };
     }).filter(function(d) { return d.velo > 0; });
 
     var np    = pitchData.length;
-    var allS  = pitchData.filter(function(d) { return ['Strike','Whiff','InPlay','Foul'].indexOf(d.call)>-1; }).length;
     var allW  = pitchData.filter(function(d) { return d.call==='Whiff'; }).length;
-    var strPct = np > 0 ? (allS/np*100).toFixed(1)+'%' : '\u2014';
+    var strPct = PitcherCardStats.strikePct(pitchData.map(function(d) { return d.call; }));
     var paVal  = rows.filter(function(r) { return r.PitchofPA==='1'; }).length;
 
     var hand = rows[0].PitcherThrows || 'R';
