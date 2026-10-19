@@ -332,6 +332,7 @@ canvas{display:block;border-radius:4px}
 </div>
 
 <script src="hitting-card-stats.js"></script>
+<script src="pitch-type.js"></script>
 <script>
 var SUPABASE_URL='https://mghrapwhvihpwgqryail.supabase.co';
 var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
@@ -367,6 +368,7 @@ var CONTACT_CALLS=['FoulBall','FoulBallNotFieldable','FoulBallFieldable','InPlay
 var STRIKE_CALLS=['StrikeCalled','StrikeSwinging','FoulBall','FoulBallNotFieldable','FoulBallFieldable','InPlay'];
 
 function normPitch(t){return PITCH_NORM[t]||t||'Other';}
+function rowPitch(r){return normPitch(PitchType.resolvePitchType(r.TaggedPitchType, r.AutoPitchType));}
 function pitchColor(t){return PITCH_COLORS[normPitch(t)]||PITCH_COLORS[t]||'#888888';}
 
 function fetchWithTimeout(url,options,ms){
@@ -542,7 +544,7 @@ function computeProfile(name,rows){
   rows.forEach(function(r){
     var call=(r.PitchCall||'').trim();
     var side=parseFloat(r.PlateLocSide),height=parseFloat(r.PlateLocHeight);
-    var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||'Other');
+    var pt=rowPitch(r);
     if(!pitchTypes[pt])pitchTypes[pt]={
       total:0,swings:0,whiffs:0,chases:0,ozPitches:0,ev:[],contacts:0,bip:[],
       ptInPlay:0,ptSingles:0,ptDoubles:0,ptTriples:0,ptHRs:0,
@@ -818,13 +820,13 @@ function buildCard(){
   applyTeamLines();
   setTimeout(function(){
     drawZoneGrid('zmapWoba',p.rows,wobaVal,0,1,'wOBA');
-    var fbRows=p.rows.filter(function(r){return normPitch(r.TaggedPitchType||r.AutoPitchType)==='Fastball';});
+    var fbRows=p.rows.filter(function(r){return rowPitch(r)==='Fastball';});
     drawZoneGrid('zmapHard',fbRows,function(r){return r.PitchCall==='StrikeSwinging'?1:null;},0,1,'FB Whiff',null,null,null,null,true);
     var breakTypes=['Curveball','Slider','Cutter'];
     var primaryBreak=null,primaryCount=0;
     breakTypes.forEach(function(bt){var cnt=(p.pitchTypes[bt]&&p.pitchTypes[bt].total)||0;if(cnt>primaryCount){primaryCount=cnt;primaryBreak=bt;}});
     if(primaryBreak&&primaryCount>=3){
-      var breakRows=p.rows.filter(function(r){return normPitch(r.TaggedPitchType||r.AutoPitchType)===primaryBreak;});
+      var breakRows=p.rows.filter(function(r){return rowPitch(r)===primaryBreak;});
       var lbl=document.getElementById('zmapBreakLabel');if(lbl)lbl.textContent=primaryBreak+' Whiff';
       drawZoneGrid('zmapIso',breakRows,function(r){return r.PitchCall==='StrikeSwinging'?1:null;},0,1,primaryBreak+' Whiff',null,null,null,null,true);
     } else {
@@ -1104,7 +1106,7 @@ function generateVisuals(){
 
   // Build pitch type legend
   var ptSeen={};
-  rows.forEach(function(r){var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||'Other');ptSeen[pt]=true;});
+  rows.forEach(function(r){var pt=rowPitch(r);ptSeen[pt]=true;});
   var legendHtml=Object.keys(ptSeen).map(function(pt){
     return '<div class="vis-leg-item"><div class="vis-leg-dot" style="background:'+pitchColor(pt)+'"></div>'+pt+'</div>';
   }).join('');
@@ -1241,7 +1243,7 @@ function drawContactPoint(canvasId, rows, batterSide, pullLabel, oppoLabel){
     var cx=parseFloat(r.ContactPositionZ||r.contact_position_z||'NaN'); // lateral
     var cy=parseFloat(r.ContactPositionX||r.contact_position_x||'NaN'); // out front
     if(isNaN(cx)||isNaN(cy))return;
-    var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||'Other');
+    var pt=rowPitch(r);
     var col=pitchColor(pt);
     var px2=toCanvasX(cx), py2=toCanvasY(cy);
     ctx.globalAlpha=0.75;
@@ -1355,7 +1357,7 @@ function drawSprayChart(canvasId, rows, batterSide){
     if(dist<15||dist>500)return;          // filter bunts/bad reads
     if(Math.abs(dir)>75)return;           // filter tracking errors (>75° is foul territory)
     bipCount++;
-    var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||'Other');
+    var pt=rowPitch(r);
     var col=pitchColor(pt);
     var res=(r.PlayResult||'').toLowerCase();
     var isHit=res.includes('single')||res.includes('double')||res.includes('triple')||res.includes('homerun')||res.includes('home');
@@ -1446,7 +1448,7 @@ function exportSwings(){
     var B={};
     rows.forEach(function(r){
       var m=_gameMeta(r.GameID);
-      var pt=normPitch(r.TaggedPitchType||r.AutoPitchType||'Other');
+      var pt=rowPitch(r);
       var k=[m.date,r.Batter,pt].join('||');
       if(!B[k])B[k]={date:m.date,gtype:m.type,gname:m.name,batter:r.Batter,side:r.BatterSide||'',
         pt:pt,n:0,arms:{},sw:0,wh:0,called:0,zn:0,zsw:0,zwh:0,oz:0,ozsw:0,bip:0,
@@ -1521,7 +1523,7 @@ function exportBattedBalls(){
       var m=_gameMeta(r.GameID);
       out.push([_csvQ(m.date),_csvQ(m.type),_csvQ(m.name),_csvQ(r.Batter),_csvQ(r.BatterSide||''),
         _csvQ(r.Pitcher||''),_csvQ(r.PitcherThrows||''),
-        _csvQ(normPitch(r.TaggedPitchType||r.AutoPitchType||'Other')),
+        _csvQ(rowPitch(r)),
         _f1(r.RelSpeed),_f1(r.SpinRate),_f1(r.InducedVertBreak),_f1(r.HorzBreak),
         _f2(r.PlateLocHeight),_f2(r.PlateLocSide),
         (r.Balls==null?'':r.Balls),(r.Strikes==null?'':r.Strikes),

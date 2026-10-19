@@ -136,6 +136,7 @@ tbody tr:hover { background: #ede5d0; }
   </div>
 </div>
 
+<script src="pitch-type.js"></script>
 <script>
 var SUPABASE_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1naHJhcHdodmlocHdncXJ5YWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MjQ0NzUsImV4cCI6MjA5MTAwMDQ3NX0.ilNGmGOOc-TIpwQx0e1cTK1YjYF9TvdL7nEGUEXiWFc';
@@ -159,8 +160,7 @@ var PITCH_META = {
 
 function getMeta(t) { return PITCH_META[t] || { abbr:(t||'??').substring(0,2).toUpperCase(), label:t||'Unknown', color:'#aaaaaa' }; }
 function resolvedType(p) {
-  if (p.TaggedPitchType && p.TaggedPitchType !== 'Undefined' && p.TaggedPitchType.trim() !== '') return p.TaggedPitchType;
-  return p.AutoPitchType || 'Undefined';
+  return PitchType.resolvePitchType(p) || 'Undefined';
 }
 function avg(arr) { var v=arr.filter(function(x){return x!=null&&!isNaN(x);}); if(!v.length)return null; return v.reduce(function(a,b){return a+b;},0)/v.length; }
 function fmt(val,dec) { if(val==null||isNaN(val))return '—'; return val.toFixed(dec!=null?dec:1); }
