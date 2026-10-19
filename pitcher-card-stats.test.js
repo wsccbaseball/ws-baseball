@@ -59,6 +59,8 @@ test('an All row uses the same pitch-weighted mean as a pitch-type row', functio
 test('the game card header and rows use those columns and means', function () {
   var html = fs.readFileSync(__dirname + '/pitcher-report.html', 'utf8');
   assert.match(html, /<th>Spin<\/th><th>VAA<\/th><th>HAA<\/th><th>RelH<\/th>/);
+  assert.match(html, /<th>Zn%<\/th><th>Whf%<\/th>/);
+  assert.equal(html.indexOf('min-width:600px'), -1);
   assert.match(html, /PitcherCardStats\.approachFromPitch/);
   assert.match(html, /PitcherCardStats\.angleCells/);
   assert.match(html, /src="pitcher-card-stats\.js"/);
