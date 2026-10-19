@@ -59,18 +59,20 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
 /* The card clips overflow. The pitch table has to live inside that width,
    including on a phone and in the html2canvas save. No min-width.
    Phone sizes are plain px so the saved image uses the same fit. */
-.pitch-table-wrap { width:100%; max-width:100%; min-width:0; padding:3px 1px 4px; overflow:hidden; }
+.pitch-table-wrap { width:100%; max-width:100%; min-width:0; padding:2px 1px 3px; overflow:hidden; }
 .pitch-table { width:100%; max-width:100%; border-collapse:collapse; font-family:'Barlow Condensed',sans-serif; table-layout:fixed; }
-.pitch-table th { background:#2d5a8e; color:#fff; padding:3px 0; text-align:center; font-size:7px; font-weight:700; border:1px solid #1a3a5c; white-space:nowrap; overflow:hidden; letter-spacing:-0.02em; line-height:1.1; }
-.pitch-table td { text-align:center; padding:2px 0; border:1px solid #dde4ef; font-size:8px; font-weight:600; white-space:nowrap; overflow:hidden; letter-spacing:-0.03em; line-height:1.15; }
+.pitch-table th { background:#2d5a8e; color:#fff; padding:1px 0; text-align:center; font-size:9px; font-weight:700; border:1px solid #1a3a5c; white-space:nowrap; overflow:hidden; letter-spacing:-0.04em; line-height:1.05; }
+.pitch-table td { text-align:center; padding:1px 0; border:1px solid #dde4ef; font-size:10px; font-weight:600; white-space:nowrap; overflow:hidden; letter-spacing:-0.03em; line-height:1.05; }
 .pitch-table tr:nth-child(even) td { background:#f0f5fc; }
 .pitch-table tr:nth-child(odd) td { background:#f8fafd; }
 .pitch-table .total-row td { background:#e0eaf8 !important; font-weight:700; }
-.pname { font-weight:700; font-size:8px; text-align:left !important; padding-left:2px !important; white-space:nowrap; overflow:hidden; }
+.pitch-table th:first-child { font-size:8px; letter-spacing:-0.14em; padding-left:1px; }
+.pname { font-weight:700; font-size:10px; text-align:left !important; padding-left:2px !important; white-space:nowrap; overflow:hidden; }
 @media (min-width:540px) {
-  .pitch-table th { font-size:10px; padding:4px 0; }
-  .pitch-table td { font-size:11px; padding:3px 0; }
-  .pname { font-size:11px; }
+  .pitch-table th { font-size:12px; padding:2px 0; letter-spacing:-0.02em; }
+  .pitch-table td { font-size:13px; padding:1px 0; }
+  .pitch-table th:first-child { font-size:12px; letter-spacing:-0.04em; }
+  .pname { font-size:13px; }
 }
 .stuff-row { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:6px; padding:3px 8px 5px; font-family:'Barlow Condensed',sans-serif; }
 .stuff-row-title { font-family:'Anton',sans-serif; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:#7a8faa; }
@@ -181,11 +183,11 @@ canvas { display:block; margin:0 auto; width:100% !important; height:auto !impor
   <div class="pitch-table-wrap">
     <table class="pitch-table">
       <colgroup>
-        <col style="width:7%"><col style="width:5.5%"><col style="width:8.5%">
-        <col style="width:7%"><col style="width:7%"><col style="width:7%"><col style="width:7%">
-        <col style="width:8%"><col style="width:7%"><col style="width:7%">
-        <col style="width:7%"><col style="width:6.5%">
-        <col style="width:8%"><col style="width:7.5%">
+        <col style="width:6%"><col style="width:4.6%"><col style="width:9.3%">
+        <col style="width:6.6%"><col style="width:6.6%"><col style="width:7.3%"><col style="width:7.3%">
+        <col style="width:7.3%"><col style="width:6.6%"><col style="width:6.6%">
+        <col style="width:7.3%"><col style="width:6.6%">
+        <col style="width:9.3%"><col style="width:8.6%">
       </colgroup>
       <thead><tr>
         <th style="text-align:left;padding-left:2px;">Pitch</th>
