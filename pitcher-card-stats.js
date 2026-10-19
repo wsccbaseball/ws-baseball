@@ -90,6 +90,21 @@
     return (strikes / n * 100).toFixed(1) + '%';
   }
 
+  // Movement plot x is raw HorzBreak: negative on the left, positive on the
+  // right. That is the pitcher's view, same direction as the location plots
+  // (positive PlateLocSide to the pitcher's right). A righty's arm is on the
+  // right; a lefty's arm is on the left. The words flip. The dots do not, so
+  // the axis still matches the raw HB column and both hands share one plot.
+  function isLeftHand(throws) {
+    var hand = String(throws == null ? '' : throws).trim().toLowerCase();
+    return hand === 'left' || hand === 'l' || hand === 'lhp';
+  }
+
+  function movementLabels(throws) {
+    if (isLeftHand(throws)) return { left: '\u2190 Arm', right: 'Glove \u2192' };
+    return { left: '\u2190 Glove', right: 'Arm \u2192' };
+  }
+
   return {
     VAA_FIELD: VAA_FIELD,
     HAA_FIELD: HAA_FIELD,
@@ -101,6 +116,8 @@
     angleCells: angleCells,
     classifyPitchCall: classifyPitchCall,
     STRIKE_CLASSES: STRIKE_CLASSES,
-    strikePct: strikePct
+    strikePct: strikePct,
+    isLeftHand: isLeftHand,
+    movementLabels: movementLabels
   };
 });

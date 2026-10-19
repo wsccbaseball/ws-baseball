@@ -582,7 +582,7 @@ async function generate() {
     setTimeout(function() {
       document.getElementById('cLHHn').textContent = drawLoc('cLHH','Left',pitchData)+' Pitches';
       document.getElementById('cRHHn').textContent = drawLoc('cRHH','Right',pitchData)+' Pitches';
-      drawBrk('cBrk',pitchData);
+      drawBrk('cBrk',pitchData,hand);
       drawVeloByInning(pitchData);
       document.getElementById('card').scrollIntoView({behavior:'smooth'});
     }, 80);
@@ -826,7 +826,7 @@ function drawLoc(id,side,data){
   return n;
 }
 
-function drawBrk(id,data){
+function drawBrk(id,data,hand){
   var s=setupCanvas(id,200,185);
   var ctx=s.ctx,W=s.W,H=s.H;
   var xMin=-25,xMax=25,yMin=-20,yMax=30;
@@ -842,8 +842,9 @@ function drawBrk(id,data){
   ctx.setLineDash([]);
   var fs=Math.max(7,W*0.045);
   ctx.fillStyle='#666';ctx.font=fs+'px Barlow Condensed,sans-serif';ctx.textAlign='center';
-  ctx.fillText('\u2190 Glove',mx(-13),H-4);
-  ctx.fillText('Arm \u2192',mx(13),H-4);
+  var sideLabels=PitcherCardStats.movementLabels(hand);
+  ctx.fillText(sideLabels.left,mx(-13),H-4);
+  ctx.fillText(sideLabels.right,mx(13),H-4);
   ctx.save();ctx.translate(10,my(5));ctx.rotate(-Math.PI/2);
   ctx.fillText('iVB (in)',0,0);ctx.restore();
   ctx.font=Math.max(6,W*0.038)+'px Barlow,sans-serif';ctx.fillStyle='#aaa';
