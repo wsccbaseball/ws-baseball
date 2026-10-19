@@ -58,6 +58,38 @@
     };
   }
 
+  // TrackMan spells a foul three ways (FoulBall, FoulBallNotFieldable,
+  // FoulBallFieldable) and has used the plain spelling in some exports.
+  // Any call that starts with Foul is a foul. Anything else stays on the map;
+  // an unknown call stays a ball, which is what the card did before.
+  var CALL_MAP = {
+    StrikeCalled: 'Strike',
+    StrikeSwinging: 'Whiff',
+    BallCalled: 'Ball',
+    InPlay: 'InPlay',
+    HitByPitch: 'Ball',
+    BallIntentional: 'Ball'
+  };
+  var STRIKE_CLASSES = ['Strike', 'Whiff', 'InPlay', 'Foul'];
+
+  function classifyPitchCall(pitchCall) {
+    var call = pitchCall == null ? '' : String(pitchCall).trim();
+    if (/^foul/i.test(call)) return 'Foul';
+    return CALL_MAP[call] || 'Ball';
+  }
+
+  // Strike% counts called strikes, whiffs, fouls, and balls in play.
+  // labels are already classified (Strike / Whiff / InPlay / Foul / Ball).
+  function strikePct(labels) {
+    var n = labels ? labels.length : 0;
+    if (!n) return '\u2014';
+    var strikes = 0;
+    for (var i = 0; i < n; i++) {
+      if (STRIKE_CLASSES.indexOf(labels[i]) >= 0) strikes++;
+    }
+    return (strikes / n * 100).toFixed(1) + '%';
+  }
+
   return {
     VAA_FIELD: VAA_FIELD,
     HAA_FIELD: HAA_FIELD,
@@ -66,6 +98,9 @@
     mean: mean,
     formatAngle: formatAngle,
     approachFromPitch: approachFromPitch,
-    angleCells: angleCells
+    angleCells: angleCells,
+    classifyPitchCall: classifyPitchCall,
+    STRIKE_CLASSES: STRIKE_CLASSES,
+    strikePct: strikePct
   };
 });

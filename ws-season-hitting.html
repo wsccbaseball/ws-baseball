@@ -366,6 +366,7 @@ var PITCH_NORM={
 var SWING_CALLS=HittingCardStats.SWING_CALLS;
 var CONTACT_CALLS=['FoulBall','FoulBallNotFieldable','FoulBallFieldable','InPlay'];
 var STRIKE_CALLS=['StrikeCalled','StrikeSwinging','FoulBall','FoulBallNotFieldable','FoulBallFieldable','InPlay'];
+function isFoulCall(c){return HittingCardStats.isFoulCall(c);}
 
 function normPitch(t){return PITCH_NORM[t]||t||'Other';}
 function rowPitch(r){return normPitch(PitchType.resolvePitchType(r.TaggedPitchType, r.AutoPitchType));}
@@ -551,9 +552,9 @@ function computeProfile(name,rows){
       ptKs:0,ptBBs:0,ptHBPs:0
     };
     pitchTypes[pt].total++;
-    var isSwing=SWING_CALLS.includes(call);
+    var isSwing=SWING_CALLS.includes(call)||isFoulCall(call);
     var isWhiff=call==='StrikeSwinging';
-    var isContact=CONTACT_CALLS.includes(call);
+    var isContact=CONTACT_CALLS.includes(call)||isFoulCall(call);
     var outside=HittingCardStats.isOutOfZone(side,height);
     if(isSwing)pitchTypes[pt].swings++;
     if(isWhiff)pitchTypes[pt].whiffs++;
@@ -1457,7 +1458,7 @@ function exportSwings(){
       b.n++;
       if(r.Pitcher)b.arms[r.Pitcher]=1;
       var call=(r.PitchCall||'').trim();
-      var sw=SWING_CALLS.includes(call), wh=(call==='StrikeSwinging');
+      var sw=SWING_CALLS.includes(call)||isFoulCall(call), wh=(call==='StrikeSwinging');
       if(sw)b.sw++;
       if(wh)b.wh++;
       if(call==='StrikeCalled')b.called++;

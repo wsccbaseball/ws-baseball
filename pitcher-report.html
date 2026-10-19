@@ -272,12 +272,6 @@ function pitchTypeOf(r) {
   var raw = PitchType.resolvePitchType(r.TaggedPitchType, r.AutoPitchType);
   return TYPE_MAP[raw] || raw || 'Other';
 }
-var CALL_MAP = {
-  StrikeCalled:'Strike', StrikeSwinging:'Whiff', BallCalled:'Ball',
-  FoulBallNotFieldable:'Foul', FoulBallFieldable:'Foul',
-  InPlay:'InPlay', HitByPitch:'Ball', BallIntentional:'Ball'
-};
-
 var pdfOpponent = '';
 
 function flipName(n) {
@@ -496,16 +490,15 @@ async function generate() {
         relh:   parseFloat(r.RelHeight)        || 0,
         rels:   parseFloat(r.RelSide)          || 0,
         ext:    parseFloat(r.Extension)        || 0,
-        call:   CALL_MAP[r.PitchCall]          || 'Ball',
+        call:   PitcherCardStats.classifyPitchCall(r.PitchCall),
         inning: parseInt(r.Inning)             || 0,
         stuff:  (r.stuff_plus_d1==null||r.stuff_plus_d1==='') ? null : parseFloat(r.stuff_plus_d1)
       };
     }).filter(function(d) { return d.velo > 0; });
 
     var np    = pitchData.length;
-    var allS  = pitchData.filter(function(d) { return ['Strike','Whiff','InPlay','Foul'].indexOf(d.call)>-1; }).length;
     var allW  = pitchData.filter(function(d) { return d.call==='Whiff'; }).length;
-    var strPct = np > 0 ? (allS/np*100).toFixed(1)+'%' : '\u2014';
+    var strPct = PitcherCardStats.strikePct(pitchData.map(function(d) { return d.call; }));
     var paVal  = rows.filter(function(r) { return r.PitchofPA==='1'; }).length;
 
     var hand = rows[0].PitcherThrows || 'R';

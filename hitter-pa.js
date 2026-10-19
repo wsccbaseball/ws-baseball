@@ -154,7 +154,7 @@
   function callCode(r) {
     if (r.PitchCall === 'StrikeSwinging') return 'S';
     if (r.PitchCall === 'StrikeCalled') return 'CS';
-    if (r.PitchCall === 'FoulBall' || r.PitchCall === 'FoulBallNotFieldable' || r.PitchCall === 'FoulBallFieldable') return 'F';
+    if (/^Foul/i.test(r.PitchCall || '')) return 'F';
     if (r.PitchCall === 'BallCalled' || r.PitchCall === 'Ball' || r.PitchCall === 'BallinDirt') return 'B';
     if (r.PitchCall === 'InPlay') return 'IP';
     if (r.PitchCall === 'HitByPitch') return 'HBP';

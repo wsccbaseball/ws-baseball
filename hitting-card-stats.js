@@ -6,8 +6,19 @@
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (root) root.HittingCardStats = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
-  // Same calls the season card treats as a swing. FoulBallFieldable counts.
+  // Same calls the season card treats as a swing. Any PitchCall that starts
+  // with Foul counts, including FoulBall, FoulBallNotFieldable, and
+  // FoulBallFieldable. A new TrackMan spelling must not fall through.
   var SWING_CALLS = ['StrikeSwinging', 'FoulBall', 'FoulBallNotFieldable', 'FoulBallFieldable', 'InPlay'];
+
+  function isFoulCall(call) {
+    return /^Foul/i.test(String(call == null ? '' : call).trim());
+  }
+
+  function isSwingCall(call) {
+    call = String(call == null ? '' : call).trim();
+    return isFoulCall(call) || SWING_CALLS.indexOf(call) >= 0;
+  }
   // The rectangle Chase% uses. A pitch on the edge is in the zone.
   var ZONE_HALF_W = 0.833;
   var ZONE_BOT = 1.5;
@@ -39,7 +50,7 @@
   function chaseHeatValue(row) {
     if (!row || !isOutOfZone(row.PlateLocSide, row.PlateLocHeight)) return null;
     var call = String(row.PitchCall || '').trim();
-    return SWING_CALLS.indexOf(call) >= 0 ? 1 : 0;
+    return isSwingCall(call) ? 1 : 0;
   }
 
   // Same grid and Gaussian the season card used inline. sigma is multiplied by
@@ -233,7 +244,7 @@
     rows.forEach(function (r) {
       var call = (r.PitchCall || '').trim();
       var side = parseFloat(r.PlateLocSide), height = parseFloat(r.PlateLocHeight);
-      var isSwing = SWING_CALLS.indexOf(call) >= 0;
+      var isSwing = isSwingCall(call);
       var isWhiff = call === 'StrikeSwinging';
       var inside = isInZone(side, height);
       var outside = isOutOfZone(side, height);
@@ -310,6 +321,8 @@
 
   return {
     SWING_CALLS: SWING_CALLS,
+    isFoulCall: isFoulCall,
+    isSwingCall: isSwingCall,
     ZONE_HALF_W: ZONE_HALF_W,
     ZONE_BOT: ZONE_BOT,
     ZONE_TOP: ZONE_TOP,

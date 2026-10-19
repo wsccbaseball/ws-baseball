@@ -166,4 +166,15 @@ test('hitter card groups live pitches and does not read season prebuild files', 
   assert.match(html, /HitterPA\.groupPlateAppearances/);
   assert.doesNotMatch(html, /parseInt\(r\.PitchofPA\)===1/);
   assert.equal(html.includes('data/seasons'), false);
+  assert.match(html, /function isFoulCall/);
+  assert.match(html, /!isFoulCall\(r\.PitchCall\)/);
+});
+
+test('any PitchCall starting with Foul is a foul in the plate-appearance sequence', function () {
+  assert.equal(pa.callCode({ PitchCall: 'FoulBall' }), 'F');
+  assert.equal(pa.callCode({ PitchCall: 'FoulBallNotFieldable' }), 'F');
+  assert.equal(pa.callCode({ PitchCall: 'FoulBallFieldable' }), 'F');
+  assert.equal(pa.callCode({ PitchCall: 'FoulTip' }), 'F');
+  assert.equal(pa.callCode({ PitchCall: 'BallCalled' }), 'B');
+  assert.equal(pa.callCode({ PitchCall: 'BallinDirt' }), 'B');
 });

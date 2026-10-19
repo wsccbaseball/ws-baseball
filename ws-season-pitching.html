@@ -360,6 +360,7 @@ var GAME_TYPE_MODE=_qs.get('type')||'all';
 // counted one way in one metric and another way somewhere else.
 var SWING_CALLS=['StrikeSwinging','FoulBall','FoulBallNotFieldable','FoulBallFieldable','InPlay'];
 var STRIKE_CALLS=['StrikeCalled','StrikeSwinging','FoulBall','FoulBallNotFieldable','FoulBallFieldable','InPlay'];
+function isFoulCall(c){return /^Foul/i.test(c||'');}
 
 var PITCH_COLORS={
   'Fastball':'#e63946','Four-Seam':'#e63946','FourSeamFastBall':'#e63946',
@@ -490,9 +491,9 @@ function computePitcherProfile(name, rows){
     if(!isNaN(d1))pitchTypes[spt].stuffD1.push(d1);
     var velo=parseFloat(r.RelSpeed||r.PitchSpeed||r.StartSpeed||'NaN');
     if(!isNaN(velo)&&velo>0)pitchTypes[pt].velos.push(velo);
-    var isSwing=SWING_CALLS.includes(call);
+    var isSwing=SWING_CALLS.includes(call)||isFoulCall(call);
     var isWhiff=call==='StrikeSwinging';
-    var isStrike=STRIKE_CALLS.includes(call);
+    var isStrike=STRIKE_CALLS.includes(call)||isFoulCall(call);
     var side=parseFloat(r.PlateLocSide),height=parseFloat(r.PlateLocHeight);
     var inside=!isNaN(side)&&!isNaN(height)&&Math.abs(side)<=0.833&&height>=1.5&&height<=3.5;
     var outside=!isNaN(side)&&!isNaN(height)&&!inside;
@@ -996,8 +997,8 @@ function exportAggregate(){
              ext:num(r.Extension),relh:num(r.RelHeight),rels:num(r.RelSide)};
       Object.keys(f).forEach(function(key){if(f[key]!==null)b[key].push(f[key]);});
       var call=(r.PitchCall||'').trim();
-      if(STRIKE_CALLS.includes(call))b.strikes++;
-      if(SWING_CALLS.includes(call))b.swings++;
+      if(STRIKE_CALLS.includes(call)||isFoulCall(call))b.strikes++;
+      if(SWING_CALLS.includes(call)||isFoulCall(call))b.swings++;
       if(call==='StrikeSwinging')b.whiffs++;
       if(call==='StrikeCalled')b.called++;
       var side=parseFloat(r.PlateLocSide),ht=parseFloat(r.PlateLocHeight);
