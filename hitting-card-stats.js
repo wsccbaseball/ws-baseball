@@ -1,6 +1,9 @@
-// Season Hitting Summary rates. The card and the team line share this so a
-// hitter's Chase% and the CHASE map use one strike zone, and team averages are
-// pitch- or BIP-weighted over the pooled rows rather than a mean of players.
+// Season Hitting Summary rates. Chase%, Whiff%, and the gray team lines use
+// the 0.833 ft strike zone and do not follow the heat-map box. All four heat
+// maps share one window and a 1.0 ft zone box. Chase is a density normalized
+// on that card. Whiff color is an absolute 0–50% scale. wOBA color is an
+// absolute 0–0.90 scale on balls in play. Team lines are pitch- or
+// BIP-weighted over the pooled rows rather than a mean of players.
 (function (root, factory) {
   var api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -19,10 +22,42 @@
     call = String(call == null ? '' : call).trim();
     return isFoulCall(call) || SWING_CALLS.indexOf(call) >= 0;
   }
-  // The rectangle Chase% uses. A pitch on the edge is in the zone.
+  // The rectangle Chase% and Z-Swing% use. A pitch on the edge is in the zone.
   var ZONE_HALF_W = 0.833;
   var ZONE_BOT = 1.5;
   var ZONE_TOP = 3.5;
+  // Shared heat-map box. Wider than the strike zone. A pitch on the edge is
+  // inside the box. Chase dots are swings outside it; the box is drawn on
+  // every map.
+  var CHASE_BOX_HALF_W = 1.0;
+  var CHASE_X_MIN = -2.6;
+  var CHASE_X_MAX = 2.6;
+  var CHASE_Z_MIN = 0.2;
+  var CHASE_Z_MAX = 5.0;
+  // Feet. Isotropic Gaussian, about half the smear of the old cell kernel on a
+  // ~30-swing cloud (scipy gaussian_kde bw_method=0.45 lands near this).
+  var CHASE_SIGMA_FT = 0.35;
+  var CHASE_DOT_FILL = '#1a202c';
+  var CHASE_DOT_STROKE = '#ffffff';
+  var CHASE_DOT_ALPHA = 0.75;
+  var CHASE_DOT_RADIUS = 5;
+  var CHASE_CMAP = ['#2f6db3', '#7aa7d9', '#ffffff', '#f0a3a3', '#c53030'];
+  // wOBA weights on balls in play. Outs are 0. Same scale the pitch table uses.
+  var WOBA_WEIGHTS = { 'Single': 0.88, 'Double': 1.24, 'Triple': 1.56, 'HomeRun': 2.08, 'Home Run': 2.08 };
+  // Absolute color scales. The five stops run from t=0 (blue) to t=1 (red).
+  // Whiff: 0% blue, 25% white, 50% and above red.
+  // wOBA on balls in play: 0.00 blue (out), 0.45 white, 0.90 and above red
+  // (about a single). Wider than the chase kernel.
+  var WHIFF_SCALE_MAX = 0.50;
+  var WOBA_SCALE_MAX = 0.90;
+  var WOBA_SIGMA_FT = 0.45;
+  // Smoothed pitch count. One pitch peaks near weight 1. Heat fades in from
+  // about 3 to 5 and is masked below that.
+  var COUNT_FADE_LO = 3;
+  var COUNT_FADE_HI = 5;
+  // Fewer events than this: dots and the zone box, no heat.
+  var HEAT_MIN_EVENTS = 8;
+  var WHIFF_RING = '#c53030';
 
   function isInZone(side, height) {
     side = parseFloat(side);
@@ -51,6 +86,88 @@
     if (!row || !isOutOfZone(row.PlateLocSide, row.PlateLocHeight)) return null;
     var call = String(row.PitchCall || '').trim();
     return isSwingCall(call) ? 1 : 0;
+  }
+
+  // Inside the drawn chase box, edges included. This is not the Chase% zone.
+  function isInsideChaseBox(side, height) {
+    side = parseFloat(side);
+    height = parseFloat(height);
+    return !isNaN(side) && !isNaN(height) && Math.abs(side) <= CHASE_BOX_HALF_W && height >= ZONE_BOT && height <= ZONE_TOP;
+  }
+
+  // A chase swing for the heat map: StrikeSwinging, any foul, or InPlay,
+  // located outside the 1.0 ft box. Takes are not chase swings.
+  function isChaseSwing(row) {
+    if (!row || !isSwingCall(row.PitchCall)) return false;
+    var side = parseFloat(row.PlateLocSide);
+    var height = parseFloat(row.PlateLocHeight);
+    if (isNaN(side) || isNaN(height)) return false;
+    return !isInsideChaseBox(side, height);
+  }
+
+  // Catcher-view dots, one per chase swing that falls inside the map window.
+  function chaseSwingDots(rows) {
+    var dots = [];
+    (rows || []).forEach(function (r) {
+      if (!isChaseSwing(r)) return;
+      var x = displayPlateSide(r.PlateLocSide);
+      var z = parseFloat(r.PlateLocHeight);
+      if (isNaN(x) || x < CHASE_X_MIN || x > CHASE_X_MAX || z < CHASE_Z_MIN || z > CHASE_Z_MAX) return;
+      dots.push({ x: x, z: z });
+    });
+    return dots;
+  }
+
+  function hexRgb(hex) {
+    return [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
+  }
+
+  var CHASE_CMAP_RGB = CHASE_CMAP.map(hexRgb);
+
+  // Five stops, t=0 blue through white to t=1 red. t is a density already
+  // divided by that map's own maximum.
+  function chaseColor(t) {
+    if (!(t > 0)) return CHASE_CMAP_RGB[0].slice();
+    if (t >= 1) return CHASE_CMAP_RGB[CHASE_CMAP_RGB.length - 1].slice();
+    var scaled = t * (CHASE_CMAP_RGB.length - 1);
+    var i = Math.min(CHASE_CMAP_RGB.length - 2, Math.floor(scaled));
+    var f = scaled - i;
+    var a = CHASE_CMAP_RGB[i];
+    var b = CHASE_CMAP_RGB[i + 1];
+    return [
+      Math.round(a[0] + (b[0] - a[0]) * f),
+      Math.round(a[1] + (b[1] - a[1]) * f),
+      Math.round(a[2] + (b[2] - a[2]) * f)
+    ];
+  }
+
+  // Largest equal-aspect rectangle inside the canvas. One foot is the same
+  // number of pixels in x and z. There are no axis ticks; the caller draws
+  // only the zone box and the dots.
+  function chasePlotLayout(width, height, pad) {
+    pad = pad == null ? 0 : pad;
+    var availW = Math.max(1, width - pad * 2);
+    var availH = Math.max(1, height - pad * 2);
+    var spanX = CHASE_X_MAX - CHASE_X_MIN;
+    var spanZ = CHASE_Z_MAX - CHASE_Z_MIN;
+    var dataAspect = spanX / spanZ;
+    var plotW;
+    var plotH;
+    if (availW / availH > dataAspect) {
+      plotH = availH;
+      plotW = plotH * dataAspect;
+    } else {
+      plotW = availW;
+      plotH = plotW / dataAspect;
+    }
+    return {
+      left: (width - plotW) / 2,
+      top: (height - plotH) / 2,
+      width: plotW,
+      height: plotH,
+      spanX: spanX,
+      spanZ: spanZ
+    };
   }
 
   // Same grid and Gaussian the season card used inline. sigma is multiplied by
@@ -174,29 +291,52 @@
     var GW = opts.grid || HEAT_GRID;
     var GH = GW;
     var sigma = opts.sigma != null ? opts.sigma : (opts.densityMode ? HEAT_SIGMA_DENSITY : HEAT_SIGMA_RATE);
+    var sigmaFeet = opts.sigmaFeet == null ? null : (typeof opts.sigmaFeet === 'number' ? { x: opts.sigmaFeet, z: opts.sigmaFeet } : opts.sigmaFeet);
     var weightGrid = new Float32Array(GW * GH);
     var valueGrid = new Float32Array(GW * GH);
+    var cellX = (X_MAX - X_MIN) / (GW - 1);
+    var cellZ = (Y_MAX - Y_MIN) / (GH - 1);
     (rows || []).forEach(function (r) {
       var side = parseFloat(r.PlateLocSide);
       var height = parseFloat(r.PlateLocHeight);
       var shown = displayPlateSide(side);
       if (isNaN(shown) || isNaN(height)) return;
       if (shown < X_MIN || shown > X_MAX || height < Y_MIN || height > Y_MAX) return;
-      if (Math.abs(shown) > (X_MAX - 0.05) || height < (Y_MIN + 0.05) || height > (Y_MAX - 0.05)) return;
+      if (!opts.keepEdge && (Math.abs(shown) > (X_MAX - 0.05) || height < (Y_MIN + 0.05) || height > (Y_MAX - 0.05))) return;
       var val = valueFn(r);
       if (val === null || val === undefined || isNaN(val)) return;
       var gx = (shown - X_MIN) / (X_MAX - X_MIN) * (GW - 1);
       var gy = (Y_MAX - height) / (Y_MAX - Y_MIN) * (GH - 1);
+      if (sigmaFeet) {
+        var sx = sigmaFeet.x;
+        var sz = sigmaFeet.z;
+        var radX = Math.ceil(3 * sx / cellX) + 1;
+        var radZ = Math.ceil(3 * sz / cellZ) + 1;
+        var cx = Math.round(gx);
+        var cy = Math.round(gy);
+        for (var dy = -radZ; dy <= radZ; dy++) {
+          for (var dx = -radX; dx <= radX; dx++) {
+            var ix = cx + dx, iy = cy + dy;
+            if (ix < 0 || ix >= GW || iy < 0 || iy >= GH) continue;
+            var ex = (X_MIN + ix * cellX - shown) / sx;
+            var ez = (Y_MAX - iy * cellZ - height) / sz;
+            var kFt = Math.exp(-0.5 * (ex * ex + ez * ez));
+            weightGrid[iy * GW + ix] += kFt;
+            valueGrid[iy * GW + ix] += kFt * val;
+          }
+        }
+        return;
+      }
       var sig = sigma * GW;
       var rad = Math.ceil(3 * sig);
-      for (var dy = -rad; dy <= rad; dy++) {
-        for (var dx = -rad; dx <= rad; dx++) {
-          var ix = Math.round(gx + dx), iy = Math.round(gy + dy);
-          if (ix < 0 || ix >= GW || iy < 0 || iy >= GH) continue;
-          var dist2 = (dx * dx + dy * dy) / (sig * sig);
+      for (var dy2 = -rad; dy2 <= rad; dy2++) {
+        for (var dx2 = -rad; dx2 <= rad; dx2++) {
+          var ix2 = Math.round(gx + dx2), iy2 = Math.round(gy + dy2);
+          if (ix2 < 0 || ix2 >= GW || iy2 < 0 || iy2 >= GH) continue;
+          var dist2 = (dx2 * dx2 + dy2 * dy2) / (sig * sig);
           var k = Math.exp(-0.5 * dist2);
-          weightGrid[iy * GW + ix] += k;
-          valueGrid[iy * GW + ix] += k * val;
+          weightGrid[iy2 * GW + ix2] += k;
+          valueGrid[iy2 * GW + ix2] += k * val;
         }
       }
     });
@@ -233,6 +373,162 @@
       yMax: Y_MAX,
       validVals: validVals
     };
+  }
+
+  // Density of chase swings only. Each swing contributes a Gaussian of
+  // CHASE_SIGMA_FT in both x and z. The grid is divided by its own max so the
+  // densest cluster is 1 (full red) on every card.
+  function buildChaseDensity(rows, opts) {
+    opts = opts || {};
+    var built = buildHeatGrid(rows, function (r) {
+      return isChaseSwing(r) ? 1 : null;
+    }, {
+      xMin: CHASE_X_MIN,
+      xMax: CHASE_X_MAX,
+      yMin: CHASE_Z_MIN,
+      yMax: CHASE_Z_MAX,
+      sigmaFeet: CHASE_SIGMA_FT,
+      densityMode: true,
+      keepEdge: true,
+      grid: opts.grid || 96
+    });
+    var max = 0;
+    for (var i = 0; i < built.grid.length; i++) {
+      if (built.grid[i] > max) max = built.grid[i];
+    }
+    var norm = new Float32Array(built.grid.length);
+    if (max > 0) {
+      for (var j = 0; j < built.grid.length; j++) norm[j] = built.grid[j] / max;
+    }
+    built.density = built.grid;
+    built.grid = norm;
+    built.max = max;
+    return built;
+  }
+
+  // Nadaraya-Watson rate on the shared window. valueFn returns the outcome for
+  // a denominator event and null for every other pitch. grid[i] is
+  // smoothed numerator / smoothed denominator. weight[i] is the denominator.
+  function buildRateSurface(rows, valueFn, opts) {
+    opts = opts || {};
+    return buildHeatGrid(rows, valueFn, {
+      xMin: CHASE_X_MIN,
+      xMax: CHASE_X_MAX,
+      yMin: CHASE_Z_MIN,
+      yMax: CHASE_Z_MAX,
+      sigmaFeet: opts.sigmaFeet != null ? opts.sigmaFeet : CHASE_SIGMA_FT,
+      keepEdge: true,
+      grid: opts.grid || 96
+    });
+  }
+
+  // Smoothed count of the pitches includeFn keeps. Peak of one pitch is ~1,
+  // so the grid is a local pitch count, not a rate.
+  function buildCountSurface(rows, includeFn, opts) {
+    opts = opts || {};
+    return buildHeatGrid(rows, function (r) {
+      if (includeFn && !includeFn(r)) return null;
+      var side = parseFloat(r && r.PlateLocSide);
+      var height = parseFloat(r && r.PlateLocHeight);
+      if (isNaN(side) || isNaN(height)) return null;
+      return 1;
+    }, {
+      xMin: CHASE_X_MIN,
+      xMax: CHASE_X_MAX,
+      yMin: CHASE_Z_MIN,
+      yMax: CHASE_Z_MAX,
+      sigmaFeet: opts.sigmaFeet != null ? opts.sigmaFeet : CHASE_SIGMA_FT,
+      densityMode: true,
+      keepEdge: true,
+      grid: opts.grid || 96
+    });
+  }
+
+  function showsHeat(eventCount) {
+    return eventCount >= HEAT_MIN_EVENTS;
+  }
+
+  function wobaWeight(row) {
+    if (!row || String(row.PitchCall || '').trim() !== 'InPlay') return null;
+    return WOBA_WEIGHTS[row.PlayResult || ''] || 0;
+  }
+
+  // 1 on a whiff, 0 on any other swing, null on a take. Denominator is swings.
+  function whiffRateValue(row) {
+    if (!row || !isSwingCall(row.PitchCall)) return null;
+    return String(row.PitchCall).trim() === 'StrikeSwinging' ? 1 : 0;
+  }
+
+  // 0 at 0% whiff, 0.5 at 25%, 1 at 50% and above.
+  function whiffScaleT(rate) {
+    if (!isFinite(rate) || !(rate > 0)) return 0;
+    var t = rate / WHIFF_SCALE_MAX;
+    return t > 1 ? 1 : t;
+  }
+
+  // 0 at an out, 0.5 at 0.45, 1 at 0.90 and above.
+  function wobaScaleT(value) {
+    if (!isFinite(value) || !(value > 0)) return 0;
+    var t = value / WOBA_SCALE_MAX;
+    return t > 1 ? 1 : t;
+  }
+
+  function countFadeAlpha(weight) {
+    if (!(weight > 0)) return 0;
+    return smoothstep(COUNT_FADE_LO, COUNT_FADE_HI, weight);
+  }
+
+  function meanWobaOnBip(rows) {
+    var n = 0, sum = 0;
+    (rows || []).forEach(function (r) {
+      var v = wobaWeight(r);
+      if (v == null) return;
+      n++;
+      sum += v;
+    });
+    return n ? sum / n : null;
+  }
+
+  function whiffRateOnSwings(rows) {
+    var n = 0, w = 0;
+    (rows || []).forEach(function (r) {
+      if (!r || !isSwingCall(r.PitchCall)) return;
+      n++;
+      if (String(r.PitchCall).trim() === 'StrikeSwinging') w++;
+    });
+    return n ? w / n : null;
+  }
+
+  function plotDot(row) {
+    if (!row) return null;
+    var x = displayPlateSide(row.PlateLocSide);
+    var z = parseFloat(row.PlateLocHeight);
+    if (isNaN(x) || isNaN(z) || x < CHASE_X_MIN || x > CHASE_X_MAX || z < CHASE_Z_MIN || z > CHASE_Z_MAX) return null;
+    return { x: x, z: z };
+  }
+
+  // Balls in play inside the window. These are the wOBA denominator.
+  function wobaDots(rows) {
+    var dots = [];
+    (rows || []).forEach(function (r) {
+      if (wobaWeight(r) == null) return;
+      var dot = plotDot(r);
+      if (dot) dots.push(dot);
+    });
+    return dots;
+  }
+
+  // Swings inside the window. whiff marks the misses so the card can ring them.
+  function swingDots(rows) {
+    var dots = [];
+    (rows || []).forEach(function (r) {
+      if (!r || !isSwingCall(r.PitchCall)) return;
+      var dot = plotDot(r);
+      if (!dot) return;
+      dot.whiff = String(r.PitchCall).trim() === 'StrikeSwinging';
+      dots.push(dot);
+    });
+    return dots;
   }
 
   function trackmanRates(rows) {
@@ -326,8 +622,45 @@
     ZONE_HALF_W: ZONE_HALF_W,
     ZONE_BOT: ZONE_BOT,
     ZONE_TOP: ZONE_TOP,
+    CHASE_BOX_HALF_W: CHASE_BOX_HALF_W,
+    CHASE_X_MIN: CHASE_X_MIN,
+    CHASE_X_MAX: CHASE_X_MAX,
+    CHASE_Z_MIN: CHASE_Z_MIN,
+    CHASE_Z_MAX: CHASE_Z_MAX,
+    CHASE_SIGMA_FT: CHASE_SIGMA_FT,
+    CHASE_DOT_FILL: CHASE_DOT_FILL,
+    CHASE_DOT_STROKE: CHASE_DOT_STROKE,
+    CHASE_DOT_ALPHA: CHASE_DOT_ALPHA,
+    CHASE_DOT_RADIUS: CHASE_DOT_RADIUS,
+    CHASE_CMAP: CHASE_CMAP,
     isInZone: isInZone,
     isOutOfZone: isOutOfZone,
+    isInsideChaseBox: isInsideChaseBox,
+    isChaseSwing: isChaseSwing,
+    chaseSwingDots: chaseSwingDots,
+    chaseColor: chaseColor,
+    chasePlotLayout: chasePlotLayout,
+    buildChaseDensity: buildChaseDensity,
+    WOBA_WEIGHTS: WOBA_WEIGHTS,
+    WHIFF_SCALE_MAX: WHIFF_SCALE_MAX,
+    WOBA_SCALE_MAX: WOBA_SCALE_MAX,
+    WOBA_SIGMA_FT: WOBA_SIGMA_FT,
+    COUNT_FADE_LO: COUNT_FADE_LO,
+    COUNT_FADE_HI: COUNT_FADE_HI,
+    HEAT_MIN_EVENTS: HEAT_MIN_EVENTS,
+    WHIFF_RING: WHIFF_RING,
+    buildRateSurface: buildRateSurface,
+    buildCountSurface: buildCountSurface,
+    showsHeat: showsHeat,
+    wobaWeight: wobaWeight,
+    whiffRateValue: whiffRateValue,
+    whiffScaleT: whiffScaleT,
+    wobaScaleT: wobaScaleT,
+    countFadeAlpha: countFadeAlpha,
+    meanWobaOnBip: meanWobaOnBip,
+    whiffRateOnSwings: whiffRateOnSwings,
+    wobaDots: wobaDots,
+    swingDots: swingDots,
     isFallSeason: isFallSeason,
     chaseHeatValue: chaseHeatValue,
     HEAT_GRID: HEAT_GRID,
