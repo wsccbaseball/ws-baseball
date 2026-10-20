@@ -295,19 +295,26 @@ test('chase colormap and plot geometry match the map spec', function () {
   assert.deepEqual(stats.chaseColor(0), stats.chaseColor(-1));
 });
 
-test('rate maps are Nadaraya-Watson on a fixed team-centered scale', function () {
-  assert.equal(stats.rateScaleT(0.46, 0.46, 0.45), 0.5);
-  assert.equal(stats.rateScaleT(0.46 + 0.45, 0.46, 0.45), 1);
-  assert.equal(stats.rateScaleT(0.46 - 0.45, 0.46, 0.45), 0);
-  assert.equal(stats.rateScaleT(2, 0.46, 0.45), 1);
-  assert.equal(stats.rateScaleT(0, 0.46, 0.45), 0);
-  assert.deepEqual(stats.chaseColor(stats.rateScaleT(0.20, 0.20, 0.25)), [255, 255, 255]);
-  assert.ok(stats.chaseColor(stats.rateScaleT(0.40, 0.20, 0.25))[0] > 200);
-  assert.ok(stats.chaseColor(stats.rateScaleT(0.02, 0.20, 0.25))[2] > 150);
-  assert.equal(stats.rateFadeAlpha(0), 0);
-  assert.equal(stats.rateFadeAlpha(stats.RATE_FADE_LO), 0);
-  assert.equal(stats.rateFadeAlpha(stats.RATE_FADE_HI), 1);
-  assert.ok(stats.rateFadeAlpha(1) > 0.15 && stats.rateFadeAlpha(1) < 0.7);
+test('rate maps use absolute scales and mask thin smoothed counts', function () {
+  assert.equal(stats.whiffScaleT(0), 0);
+  assert.equal(stats.whiffScaleT(0.25), 0.5);
+  assert.equal(stats.whiffScaleT(0.50), 1);
+  assert.equal(stats.whiffScaleT(0.80), 1);
+  assert.deepEqual(stats.chaseColor(stats.whiffScaleT(0.25)), [255, 255, 255]);
+  assert.deepEqual(stats.chaseColor(stats.whiffScaleT(0.50)), [0xc5, 0x30, 0x30]);
+  assert.deepEqual(stats.chaseColor(stats.whiffScaleT(0)), [0x2f, 0x6d, 0xb3]);
+  assert.equal(stats.wobaScaleT(0), 0);
+  assert.ok(Math.abs(stats.wobaScaleT(0.45) - 0.5) < 1e-9);
+  assert.equal(stats.wobaScaleT(0.90), 1);
+  assert.equal(stats.wobaScaleT(2.08), 1);
+  assert.equal(stats.countFadeAlpha(0), 0);
+  assert.equal(stats.countFadeAlpha(stats.COUNT_FADE_LO), 0);
+  assert.equal(stats.countFadeAlpha(2), 0);
+  assert.equal(stats.countFadeAlpha(stats.COUNT_FADE_HI), 1);
+  assert.equal(stats.countFadeAlpha(8), 1);
+  assert.equal(stats.showsHeat(7), false);
+  assert.equal(stats.showsHeat(8), true);
+  assert.equal(stats.HEAT_MIN_EVENTS, 8);
 
   var same = pitch({ PlateLocSide: 1.4, PlateLocHeight: 2.2, PitchCall: 'StrikeSwinging' });
   var foul = pitch({ PlateLocSide: 1.4, PlateLocHeight: 2.2, PitchCall: 'FoulBall' });
@@ -353,8 +360,28 @@ test('rate maps are Nadaraya-Watson on a fixed team-centered scale', function ()
   assert.equal(bip.length, 2);
   assert.equal(stats.meanWobaOnBip([out, single, foul]), 0.44);
   assert.equal(stats.whiffRateOnSwings([same, foul, take]), 0.5);
-  assert.equal(stats.WOBA_HALF_RANGE, 0.45);
-  assert.equal(stats.WHIFF_HALF_RANGE, 0.25);
+  assert.equal(stats.WHIFF_SCALE_MAX, 0.5);
+  assert.equal(stats.WOBA_SCALE_MAX, 0.9);
+  assert.equal(stats.WOBA_SIGMA_FT, 0.45);
+
+  var pile = [];
+  for (var k = 0; k < 5; k++) pile.push(pitch({ PlateLocSide: 1.4, PlateLocHeight: 2.2, PitchCall: 'BallCalled' }));
+  var counted = stats.buildCountSurface(pile, function () { return true; }, { grid: 97, sigmaFeet: stats.CHASE_SIGMA_FT });
+  var cx = (x - counted.xMin) / (counted.xMax - counted.xMin) * (counted.gw - 1);
+  var cy = (counted.yMax - 2.2) / (counted.yMax - counted.yMin) * (counted.gh - 1);
+  var count = stats.sampleBilinear(counted.weight, counted.gw, counted.gh, cx, cy);
+  assert.ok(count > 4.2 && count < 5.4, 'five stacked pitches count near 5, got ' + count);
+  assert.ok(stats.countFadeAlpha(count) > 0.99, 'five stacked pitches are opaque, fade ' + stats.countFadeAlpha(count));
+
+  var wide = stats.buildRateSurface([single], stats.wobaWeight, { grid: 97, sigmaFeet: stats.WOBA_SIGMA_FT });
+  var tight = stats.buildRateSurface([single], stats.wobaWeight, { grid: 97, sigmaFeet: stats.CHASE_SIGMA_FT });
+  function weightAt(built, dx) {
+    var px = stats.displayPlateSide(1.8) + dx;
+    var ix = (px - built.xMin) / (built.xMax - built.xMin) * (built.gw - 1);
+    var iy = (built.yMax - 3.2) / (built.yMax - built.yMin) * (built.gh - 1);
+    return stats.sampleBilinear(built.weight, built.gw, built.gh, ix, iy);
+  }
+  assert.ok(weightAt(wide, 0.45) > weightAt(tight, 0.45), 'wOBA kernel is wider than chase');
 });
 
 test('team rates are pitch-weighted, not the mean of player rates', function () {

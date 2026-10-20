@@ -1,9 +1,9 @@
 // Season Hitting Summary rates. Chase%, Whiff%, and the gray team lines use
 // the 0.833 ft strike zone and do not follow the heat-map box. All four heat
 // maps share one window and a 1.0 ft zone box. Chase is a density normalized
-// on that card. wOBA and whiff are Nadaraya-Watson rates on a fixed scale
-// centered on the team average. Team lines are pitch- or BIP-weighted over
-// the pooled rows rather than a mean of players.
+// on that card. Whiff color is an absolute 0–50% scale. wOBA color is an
+// absolute 0–0.90 scale on balls in play. Team lines are pitch- or
+// BIP-weighted over the pooled rows rather than a mean of players.
 (function (root, factory) {
   var api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -44,18 +44,19 @@
   var CHASE_CMAP = ['#2f6db3', '#7aa7d9', '#ffffff', '#f0a3a3', '#c53030'];
   // wOBA weights on balls in play. Outs are 0. Same scale the pitch table uses.
   var WOBA_WEIGHTS = { 'Single': 0.88, 'Double': 1.24, 'Triple': 1.56, 'HomeRun': 2.08, 'Home Run': 2.08 };
-  // Fixed half-widths around the team average. White is the team rate.
-  // Full blue is this far below it, full red this far above it.
-  // wOBA ±0.45: with a team BIP wOBA near 0.46, blue is an out and red is a single.
-  // Whiff ±0.25: a 25-point miss-rate gap from the team saturates the scale.
-  var WOBA_HALF_RANGE = 0.45;
-  var WHIFF_HALF_RANGE = 0.25;
-  var WOBA_SCALE_CENTER = 0.45;
-  var WHIFF_SCALE_CENTER = 0.25;
-  // Smoothed-denominator fade. One pitch peaks near weight 1, so a lone event
-  // stays translucent and a tight pair of events is opaque.
-  var RATE_FADE_LO = 0.45;
-  var RATE_FADE_HI = 1.75;
+  // Absolute color scales. The five stops run from t=0 (blue) to t=1 (red).
+  // Whiff: 0% blue, 25% white, 50% and above red.
+  // wOBA on balls in play: 0.00 blue (out), 0.45 white, 0.90 and above red
+  // (about a single). Wider than the chase kernel.
+  var WHIFF_SCALE_MAX = 0.50;
+  var WOBA_SCALE_MAX = 0.90;
+  var WOBA_SIGMA_FT = 0.45;
+  // Smoothed pitch count. One pitch peaks near weight 1. Heat fades in from
+  // about 3 to 5 and is masked below that.
+  var COUNT_FADE_LO = 3;
+  var COUNT_FADE_HI = 5;
+  // Fewer events than this: dots and the zone box, no heat.
+  var HEAT_MIN_EVENTS = 8;
   var WHIFF_RING = '#c53030';
 
   function isInZone(side, height) {
@@ -415,10 +416,36 @@
       xMax: CHASE_X_MAX,
       yMin: CHASE_Z_MIN,
       yMax: CHASE_Z_MAX,
-      sigmaFeet: CHASE_SIGMA_FT,
+      sigmaFeet: opts.sigmaFeet != null ? opts.sigmaFeet : CHASE_SIGMA_FT,
       keepEdge: true,
       grid: opts.grid || 96
     });
+  }
+
+  // Smoothed count of the pitches includeFn keeps. Peak of one pitch is ~1,
+  // so the grid is a local pitch count, not a rate.
+  function buildCountSurface(rows, includeFn, opts) {
+    opts = opts || {};
+    return buildHeatGrid(rows, function (r) {
+      if (includeFn && !includeFn(r)) return null;
+      var side = parseFloat(r && r.PlateLocSide);
+      var height = parseFloat(r && r.PlateLocHeight);
+      if (isNaN(side) || isNaN(height)) return null;
+      return 1;
+    }, {
+      xMin: CHASE_X_MIN,
+      xMax: CHASE_X_MAX,
+      yMin: CHASE_Z_MIN,
+      yMax: CHASE_Z_MAX,
+      sigmaFeet: opts.sigmaFeet != null ? opts.sigmaFeet : CHASE_SIGMA_FT,
+      densityMode: true,
+      keepEdge: true,
+      grid: opts.grid || 96
+    });
+  }
+
+  function showsHeat(eventCount) {
+    return eventCount >= HEAT_MIN_EVENTS;
   }
 
   function wobaWeight(row) {
@@ -432,19 +459,23 @@
     return String(row.PitchCall).trim() === 'StrikeSwinging' ? 1 : 0;
   }
 
-  // t = 0.5 at the team average. Clamped so values past the fixed half-range
-  // sit on the end stops.
-  function rateScaleT(value, center, halfRange) {
-    if (!isFinite(value) || !isFinite(center) || !(halfRange > 0)) return 0.5;
-    var t = 0.5 + 0.5 * (value - center) / halfRange;
-    if (t < 0) return 0;
-    if (t > 1) return 1;
-    return t;
+  // 0 at 0% whiff, 0.5 at 25%, 1 at 50% and above.
+  function whiffScaleT(rate) {
+    if (!isFinite(rate) || !(rate > 0)) return 0;
+    var t = rate / WHIFF_SCALE_MAX;
+    return t > 1 ? 1 : t;
   }
 
-  function rateFadeAlpha(weight) {
+  // 0 at an out, 0.5 at 0.45, 1 at 0.90 and above.
+  function wobaScaleT(value) {
+    if (!isFinite(value) || !(value > 0)) return 0;
+    var t = value / WOBA_SCALE_MAX;
+    return t > 1 ? 1 : t;
+  }
+
+  function countFadeAlpha(weight) {
     if (!(weight > 0)) return 0;
-    return smoothstep(RATE_FADE_LO, RATE_FADE_HI, weight);
+    return smoothstep(COUNT_FADE_LO, COUNT_FADE_HI, weight);
   }
 
   function meanWobaOnBip(rows) {
@@ -611,18 +642,21 @@
     chasePlotLayout: chasePlotLayout,
     buildChaseDensity: buildChaseDensity,
     WOBA_WEIGHTS: WOBA_WEIGHTS,
-    WOBA_HALF_RANGE: WOBA_HALF_RANGE,
-    WHIFF_HALF_RANGE: WHIFF_HALF_RANGE,
-    WOBA_SCALE_CENTER: WOBA_SCALE_CENTER,
-    WHIFF_SCALE_CENTER: WHIFF_SCALE_CENTER,
-    RATE_FADE_LO: RATE_FADE_LO,
-    RATE_FADE_HI: RATE_FADE_HI,
+    WHIFF_SCALE_MAX: WHIFF_SCALE_MAX,
+    WOBA_SCALE_MAX: WOBA_SCALE_MAX,
+    WOBA_SIGMA_FT: WOBA_SIGMA_FT,
+    COUNT_FADE_LO: COUNT_FADE_LO,
+    COUNT_FADE_HI: COUNT_FADE_HI,
+    HEAT_MIN_EVENTS: HEAT_MIN_EVENTS,
     WHIFF_RING: WHIFF_RING,
     buildRateSurface: buildRateSurface,
+    buildCountSurface: buildCountSurface,
+    showsHeat: showsHeat,
     wobaWeight: wobaWeight,
     whiffRateValue: whiffRateValue,
-    rateScaleT: rateScaleT,
-    rateFadeAlpha: rateFadeAlpha,
+    whiffScaleT: whiffScaleT,
+    wobaScaleT: wobaScaleT,
+    countFadeAlpha: countFadeAlpha,
     meanWobaOnBip: meanWobaOnBip,
     whiffRateOnSwings: whiffRateOnSwings,
     wobaDots: wobaDots,
