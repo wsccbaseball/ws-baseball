@@ -623,9 +623,9 @@ function computeProfile(name,rows){
 // All four maps. PlateLocSide is flipped once inside buildHeatGrid.
 // scale null: chase density, already 0..1 and opaque.
 // scale.kind 'whiff' or 'woba': absolute rate color, faded where scale.count
-// (smoothed pitch count) is under about 5. scale.kind 'dots': zone and dots
-// only. No axis ticks.
-function drawSharedMap(canvasId,built,dots,scale){
+// (smoothed pitch count) is under about 5. scale.kind 'dots': zone box and a
+// "Not enough data" label, no heat. No pitch dots. No axis ticks.
+function drawSharedMap(canvasId,built,scale){
   var cv=document.getElementById(canvasId);if(!cv)return;
   var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
   var S=HittingCardStats;
@@ -636,10 +636,11 @@ function drawSharedMap(canvasId,built,dots,scale){
   var top=Math.round((H-plotH)/2);
   var X_MIN=S.CHASE_X_MIN,X_MAX=S.CHASE_X_MAX,Y_MIN=S.CHASE_Z_MIN,Y_MAX=S.CHASE_Z_MAX;
   var spanX=X_MAX-X_MIN,spanZ=Y_MAX-Y_MIN;
+  var showHeat=!!(built&&(!scale||scale.kind!=='dots'));
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#dce8f5';
   ctx.fillRect(0,0,W,H);
-  if(built&&(!scale||scale.kind!=='dots')){
+  if(showHeat){
     var GW=built.gw,GH=built.gh;
     var count=scale&&scale.count;
     var img=ctx.createImageData(plotW,plotH);
@@ -687,37 +688,25 @@ function drawSharedMap(canvasId,built,dots,scale){
   }
   ctx.strokeStyle='#000000';ctx.lineWidth=2;
   ctx.strokeRect(px2(boxL),py2(boxT),px2(boxR)-px2(boxL),py2(boxB)-py2(boxT));
-  var dotR=S.CHASE_DOT_RADIUS;
-  (dots||[]).forEach(function(d){
-    if(!d.whiff)return;
-    ctx.globalAlpha=0.95;
-    ctx.strokeStyle=S.WHIFF_RING;
-    ctx.lineWidth=2;
-    ctx.beginPath();
-    ctx.arc(px2(d.x),py2(d.z),dotR+3.5,0,Math.PI*2);
-    ctx.stroke();
-  });
-  ctx.globalAlpha=S.CHASE_DOT_ALPHA;
-  ctx.fillStyle=S.CHASE_DOT_FILL;
-  ctx.strokeStyle=S.CHASE_DOT_STROKE;
-  ctx.lineWidth=1.25;
-  (dots||[]).forEach(function(d){
-    ctx.beginPath();
-    ctx.arc(px2(d.x),py2(d.z),dotR,0,Math.PI*2);
-    ctx.fill();
-    ctx.stroke();
-  });
+  if(!showHeat){
+    ctx.globalAlpha=1;
+    ctx.fillStyle='#4a5568';
+    ctx.font="600 13px 'Barlow Condensed', sans-serif";
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText('Not enough data',left+plotW/2,top+plotH/2);
+  }
   ctx.restore();
 }
 function drawWhiffMap(canvasId,rows){
   var S=HittingCardStats;
   var dots=S.swingDots(rows);
   if(!S.showsHeat(dots.length)){
-    drawSharedMap(canvasId,null,dots,{kind:'dots'});
+    drawSharedMap(canvasId,null,{kind:'dots'});
     return;
   }
   var opts={sigmaFeet:S.CHASE_SIGMA_FT};
-  drawSharedMap(canvasId,S.buildRateSurface(rows,S.whiffRateValue,opts),dots,{
+  drawSharedMap(canvasId,S.buildRateSurface(rows,S.whiffRateValue,opts),{
     kind:'whiff',
     count:S.buildCountSurface(rows,function(){return true;},opts)
   });
@@ -727,11 +716,11 @@ function drawWobaMap(canvasId,rows){
   var pas=S.wobaPaPitches(rows);
   var dots=S.wobaDots(rows);
   if(!S.showsHeat(dots.length)){
-    drawSharedMap(canvasId,null,dots,{kind:'dots'});
+    drawSharedMap(canvasId,null,{kind:'dots'});
     return;
   }
   var opts={sigmaFeet:S.WOBA_SIGMA_FT};
-  drawSharedMap(canvasId,S.buildRateSurface(pas,S.wobaPaWeight,opts),dots,{
+  drawSharedMap(canvasId,S.buildRateSurface(pas,S.wobaPaWeight,opts),{
     kind:'woba',
     count:S.buildCountSurface(pas,function(){return true;},opts)
   });
@@ -740,10 +729,10 @@ function drawChaseMap(canvasId,rows){
   var S=HittingCardStats;
   var dots=S.chaseSwingDots(rows);
   if(!S.showsHeat(dots.length)){
-    drawSharedMap(canvasId,null,dots,{kind:'dots'});
+    drawSharedMap(canvasId,null,{kind:'dots'});
     return;
   }
-  drawSharedMap(canvasId,S.buildChaseDensity(rows),dots,null);
+  drawSharedMap(canvasId,S.buildChaseDensity(rows),null);
 }
 
 function buildPitchTable(p){
