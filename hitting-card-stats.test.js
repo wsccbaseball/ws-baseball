@@ -401,3 +401,75 @@ test('team rates are pitch-weighted, not the mean of player rates', function () 
   assert.equal(pooled.hardHit, 1);
   assert.equal((stats.trackmanRates(chaser).hardHit + stats.trackmanRates(patient).hardHit) / 2, 0.5);
 });
+
+test('wOBA map uses the final pitch of every completed plate appearance', function () {
+  var fs = require('fs');
+  var path = require('path');
+  var pa = require('./hitter-pa');
+  assert.equal(stats.WOBA_BB, 0.69);
+  assert.equal(stats.WOBA_HBP, 0.72);
+  assert.equal(stats.wobaPaWeight(pitch({ PitchCall: 'StrikeSwinging', KorBB: 'Strikeout' })), 0);
+  assert.equal(stats.wobaPaWeight(pitch({ PitchCall: 'StrikeCalled', KorBB: 'Strikeout' })), 0);
+  assert.equal(stats.wobaPaWeight(pitch({ PitchCall: 'BallCalled', KorBB: 'Walk' })), 0.69);
+  assert.equal(stats.wobaPaWeight(pitch({ PitchCall: 'HitByPitch' })), 0.72);
+  assert.equal(stats.wobaPaWeight(pitch({ HitByPitch: 'True', PitchCall: 'BallCalled' })), 0.72);
+  assert.equal(stats.wobaPaWeight(pitch({ PitchCall: 'InPlay', PlayResult: 'Single' })), 0.88);
+  assert.equal(stats.wobaPaWeight(pitch({ PitchCall: 'InPlay', PlayResult: 'Double' })), 1.24);
+  assert.equal(stats.wobaPaWeight(pitch({ PitchCall: 'InPlay', PlayResult: 'Triple' })), 1.56);
+  assert.equal(stats.wobaPaWeight(pitch({ PitchCall: 'InPlay', PlayResult: 'HomeRun' })), 2.08);
+  assert.equal(stats.wobaPaWeight(pitch({ PitchCall: 'InPlay', PlayResult: 'Out' })), 0);
+  assert.equal(stats.wobaPaWeight(pitch({ PitchCall: 'InPlay', PlayResult: 'Error' })), 0);
+  assert.equal(stats.wobaPaWeight(pitch({ PitchCall: 'InPlay', PlayResult: 'Sacrifice' })), 0);
+  assert.equal(stats.wobaPaWeight(pitch({ PitchCall: 'FoulBall' })), null);
+  assert.equal(stats.wobaPaWeight(pitch({ PitchCall: 'BallCalled' })), null);
+  assert.equal(stats.wobaPaWeight(pitch({ PitchCall: 'StrikeSwinging' })), null);
+  assert.equal(stats.wobaWeight(pitch({ PitchCall: 'BallCalled', KorBB: 'Walk' })), null);
+
+  function paPitch(over) {
+    return Object.assign({
+      GameID: 'G', Inning: 1, 'Top/Bottom': 'Top', PAofInning: 1,
+      PitchCall: 'BallCalled', KorBB: 'Undefined', PlayResult: 'Undefined',
+      PlateLocSide: 0.2, PlateLocHeight: 2.4
+    }, over);
+  }
+  var rows = [
+    paPitch({ PitchofPA: 1, PlateLocSide: -0.4, PlateLocHeight: 3.2 }),
+    paPitch({ PitchofPA: 2, PlateLocSide: 1.1, PlateLocHeight: 1.8, PitchCall: 'StrikeSwinging', KorBB: 'Strikeout' }),
+    paPitch({ PAofInning: 2, PitchofPA: 1, PlateLocSide: 0.4, PlateLocHeight: 2.2, PitchCall: 'FoulBall' }),
+    paPitch({ PAofInning: 2, PitchofPA: 2, PlateLocSide: -1.5, PlateLocHeight: 0.8, PitchCall: 'InPlay', PlayResult: 'Single' }),
+    paPitch({ PAofInning: 3, PitchofPA: 1, PitchCall: 'BallIntentional', KorBB: 'Undefined' }),
+    paPitch({ PAofInning: 3, PitchofPA: 2, PlateLocSide: 1.6, PlateLocHeight: 3.6, PitchCall: 'BallCalled', KorBB: 'Walk' }),
+    paPitch({ PAofInning: 4, PitchofPA: 1, PlateLocSide: 0.1, PlateLocHeight: 2.0, KorBB: 'IntentionalWalk' }),
+    paPitch({ PAofInning: 5, PitchofPA: 1, PlateLocSide: -0.2, PlateLocHeight: 1.6, PitchCall: 'HitByPitch' })
+  ];
+  var terminals = stats.wobaPaPitches(rows);
+  assert.deepEqual(terminals.map(function (r) { return r.PAofInning + ':' + r.PitchofPA; }), ['1:2', '2:2', '5:1']);
+  assert.deepEqual(terminals.map(stats.wobaPaWeight), [0, 0.88, 0.72]);
+  var dots = stats.wobaDots(rows);
+  assert.equal(dots.length, 3);
+  assert.equal(dots[0].whiff, undefined);
+  assert.equal(dots[0].x, stats.displayPlateSide(1.1));
+  assert.equal(dots[0].z, 1.8);
+  assert.equal(dots[1].x, stats.displayPlateSide(-1.5));
+  var surface = stats.buildRateSurface(terminals, stats.wobaPaWeight, { grid: 97, sigmaFeet: stats.WOBA_SIGMA_FT });
+  function at(side, height) {
+    var px = stats.displayPlateSide(side);
+    var ix = (px - surface.xMin) / (surface.xMax - surface.xMin) * (surface.gw - 1);
+    var iy = (surface.yMax - height) / (surface.yMax - surface.yMin) * (surface.gh - 1);
+    return stats.sampleBilinear(surface.grid, surface.gw, surface.gh, ix, iy);
+  }
+  assert.ok(Math.abs(at(1.1, 1.8) - 0) < 0.05, 'strikeout stays near 0');
+  assert.ok(Math.abs(at(-1.5, 0.8) - 0.88) < 0.05, 'single stays near 0.88');
+  assert.ok(isNaN(at(-0.4, 3.2)) || Math.abs(at(1.1, 1.8) - 0) < 0.05);
+  var early = at(-0.4, 3.2);
+  assert.ok(isNaN(early) || early < 0.15, 'the pitch before the strikeout is not its own event, got ' + early);
+
+  var beck = JSON.parse(fs.readFileSync(path.join(__dirname, 'test/fixtures/beck-20261015-api-order.json'), 'utf8'));
+  var grouped = pa.groupPlateAppearances(beck);
+  var expectedIds = grouped.map(function (pitches) { return pitches[pitches.length - 1].id; });
+  var got = stats.wobaPaPitches(beck);
+  assert.deepEqual(got.map(function (r) { return r.id; }).sort(function (a, b) { return a - b; }), expectedIds.slice().sort(function (a, b) { return a - b; }));
+  assert.equal(got.length, 7);
+  assert.ok(got.every(function (r) { return stats.wobaPaWeight(r) != null; }));
+  assert.equal(stats.wobaDots(beck).length, 0);
+});

@@ -331,6 +331,7 @@ canvas{display:block;border-radius:4px}
   <button class="overlay-close" onclick="closeOverlay()">&#x2715; Close</button>
 </div>
 
+<script src="hitter-pa.js"></script>
 <script src="hitting-card-stats.js"></script>
 <script src="pitch-type.js"></script>
 <script>
@@ -406,8 +407,8 @@ async function loadGamesMeta(){
   return await supaFetch('games?select=game_id,display_name,date,season,game_type&order=date.asc,display_name.asc');
 }
 var seasonBundles={};
-// Columns this page reads, plus PAofInning / Inning / Top/Bottom for a future
-// plate-appearance count. PA and wOBA still come only from box scores.
+// Columns this page reads. PAofInning, Inning, and Top/Bottom group the wOBA
+// map into plate appearances. The PA and wOBA numbers still come only from box scores.
 var HITTER_PITCH_SELECT=[
   'id','GameID',
   'Pitcher','PitcherThrows','PitcherTeam',
@@ -723,15 +724,16 @@ function drawWhiffMap(canvasId,rows){
 }
 function drawWobaMap(canvasId,rows){
   var S=HittingCardStats;
+  var pas=S.wobaPaPitches(rows);
   var dots=S.wobaDots(rows);
   if(!S.showsHeat(dots.length)){
     drawSharedMap(canvasId,null,dots,{kind:'dots'});
     return;
   }
   var opts={sigmaFeet:S.WOBA_SIGMA_FT};
-  drawSharedMap(canvasId,S.buildRateSurface(rows,S.wobaWeight,opts),dots,{
+  drawSharedMap(canvasId,S.buildRateSurface(pas,S.wobaPaWeight,opts),dots,{
     kind:'woba',
-    count:S.buildCountSurface(rows,function(r){return S.wobaWeight(r)!=null;},opts)
+    count:S.buildCountSurface(pas,function(){return true;},opts)
   });
 }
 function drawChaseMap(canvasId,rows){
