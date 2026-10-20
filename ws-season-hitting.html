@@ -720,6 +720,74 @@ function drawZoneGrid(canvasId,rows,valueFn,minVal,maxVal,label,xMin,xMax,yMin,y
   }
 }
 
+// Chase only. Density of swings outside the 1.0 ft box, normalized to this
+// map's own max, with a dot on every chase swing. wOBA and whiff stay on
+// drawZoneGrid. No axis ticks. Equal aspect, catcher view (PlateLocSide flipped
+// once inside buildChaseDensity, same direction as the other maps).
+function drawChaseMap(canvasId,rows){
+  var cv=document.getElementById(canvasId);if(!cv)return;
+  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  var S=HittingCardStats;
+  var layout=S.chasePlotLayout(W,H,8);
+  var plotW=Math.max(1,Math.round(layout.width));
+  var plotH=Math.max(1,Math.round(layout.height));
+  var left=Math.round((W-plotW)/2);
+  var top=Math.round((H-plotH)/2);
+  var built=S.buildChaseDensity(rows);
+  var X_MIN=built.xMin,X_MAX=built.xMax,Y_MIN=built.yMin,Y_MAX=built.yMax;
+  var GW=built.gw,GH=built.gh;
+  var spanX=X_MAX-X_MIN,spanZ=Y_MAX-Y_MIN;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#dce8f5';
+  ctx.fillRect(0,0,W,H);
+  var img=ctx.createImageData(plotW,plotH);
+  for(var py=0;py<plotH;py++){
+    for(var px=0;px<plotW;px++){
+      var x=X_MIN+(px+0.5)/plotW*spanX;
+      var z=Y_MAX-(py+0.5)/plotH*spanZ;
+      var sgx=(x-X_MIN)/spanX*(GW-1);
+      var sgy=(Y_MAX-z)/spanZ*(GH-1);
+      var val=S.sampleBilinear(built.grid,GW,GH,sgx,sgy);
+      if(!isFinite(val))val=0;
+      var col=S.chaseColor(val);
+      var pidx=(py*plotW+px)*4;
+      img.data[pidx]=col[0];img.data[pidx+1]=col[1];img.data[pidx+2]=col[2];img.data[pidx+3]=255;
+    }
+  }
+  var off=document.createElement('canvas');
+  off.width=plotW;off.height=plotH;
+  off.getContext('2d').putImageData(img,0,0);
+  ctx.drawImage(off,left,top);
+  function px2(x){return left+(x-X_MIN)/spanX*plotW;}
+  function py2(y){return top+(Y_MAX-y)/spanZ*plotH;}
+  var boxL=-S.CHASE_BOX_HALF_W,boxR=S.CHASE_BOX_HALF_W,boxB=S.ZONE_BOT,boxT=S.ZONE_TOP;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(left,top,plotW,plotH);
+  ctx.clip();
+  ctx.strokeStyle='rgba(0,0,0,0.22)';ctx.lineWidth=0.5;
+  var zW=(px2(boxR)-px2(boxL))/3,zH=(py2(boxB)-py2(boxT))/3;
+  for(var i=1;i<3;i++){
+    ctx.beginPath();ctx.moveTo(px2(boxL)+zW*i,py2(boxT));ctx.lineTo(px2(boxL)+zW*i,py2(boxB));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(px2(boxL),py2(boxT)+zH*i);ctx.lineTo(px2(boxR),py2(boxT)+zH*i);ctx.stroke();
+  }
+  ctx.strokeStyle='#000000';ctx.lineWidth=2;
+  ctx.strokeRect(px2(boxL),py2(boxT),px2(boxR)-px2(boxL),py2(boxB)-py2(boxT));
+  var dots=S.chaseSwingDots(rows);
+  ctx.globalAlpha=S.CHASE_DOT_ALPHA;
+  ctx.fillStyle=S.CHASE_DOT_FILL;
+  ctx.strokeStyle=S.CHASE_DOT_STROKE;
+  ctx.lineWidth=1.25;
+  var dotR=S.CHASE_DOT_RADIUS;
+  dots.forEach(function(d){
+    ctx.beginPath();
+    ctx.arc(px2(d.x),py2(d.z),dotR,0,Math.PI*2);
+    ctx.fill();
+    ctx.stroke();
+  });
+  ctx.restore();
+}
+
 var WOBA_WEIGHTS={'Single':0.88,'Double':1.24,'Triple':1.56,'HomeRun':2.08,'Home Run':2.08};
 function wobaVal(r){if(r.PitchCall!=='InPlay')return null;return WOBA_WEIGHTS[r.PlayResult||'']||0;}
 
@@ -834,13 +902,7 @@ function buildCard(){
       var ctx2=document.getElementById('zmapIso').getContext('2d');
       ctx2.clearRect(0,0,400,320);ctx2.fillStyle='#dce8f5';ctx2.fillRect(0,0,400,320);
     }
-    var chasePrior=HittingCardStats.chasePriorRate(p.rows,p.chasePct,teamProfile&&teamProfile.chasePct);
-    drawZoneGrid('zmapWhiff',p.rows,HittingCardStats.chaseHeatValue,0,1,'Chase',null,null,null,null,false,{
-      priorRate:chasePrior,
-      priorPitches:HittingCardStats.CHASE_PRIOR_PITCHES,
-      maskZone:true,
-      minRange:0.12
-    });
+    drawChaseMap('zmapWhiff',p.rows);
     buildPitchTable(p);
   },30);
   document.getElementById('main-screen').style.display='none';

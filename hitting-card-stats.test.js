@@ -201,6 +201,100 @@ test('chase prior uses the hitter rate, then the team rate', function () {
   assert.ok(Math.abs(wide.max - 0.6) < 1e-9);
 });
 
+test('chase map swings sit outside the 1.0 ft box, not the Chase% zone', function () {
+  assert.equal(stats.isInsideChaseBox(1, 1.5), true);
+  assert.equal(stats.isInsideChaseBox(1, 3.5), true);
+  assert.equal(stats.isInsideChaseBox(0, 2.5), true);
+  assert.equal(stats.isInsideChaseBox(1.01, 2.5), false);
+  assert.equal(stats.isInsideChaseBox(0, 1.49), false);
+  assert.equal(stats.isChaseSwing(pitch({ PlateLocSide: 0.9, PlateLocHeight: 2.5, PitchCall: 'StrikeSwinging' })), false);
+  assert.equal(stats.isOutOfZone(0.9, 2.5), true);
+  assert.equal(stats.isChaseSwing(pitch({ PlateLocSide: 1.01, PlateLocHeight: 2.5, PitchCall: 'StrikeSwinging' })), true);
+  assert.equal(stats.isChaseSwing(pitch({ PlateLocSide: -1.2, PlateLocHeight: 2.5, PitchCall: 'FoulBall' })), true);
+  assert.equal(stats.isChaseSwing(pitch({ PlateLocSide: -1.2, PlateLocHeight: 2.5, PitchCall: 'FoulBallNotFieldable' })), true);
+  assert.equal(stats.isChaseSwing(pitch({ PlateLocSide: -1.2, PlateLocHeight: 2.5, PitchCall: 'FoulBallFieldable' })), true);
+  assert.equal(stats.isChaseSwing(pitch({ PlateLocSide: 0, PlateLocHeight: 0.4, PitchCall: 'InPlay' })), true);
+  assert.equal(stats.isChaseSwing(pitch({ PlateLocSide: 1.5, PlateLocHeight: 2.2, PitchCall: 'BallCalled' })), false);
+  assert.equal(stats.isChaseSwing(pitch({ PlateLocSide: 1.5, PlateLocHeight: 2.2, PitchCall: 'StrikeCalled' })), false);
+  assert.equal(stats.isChaseSwing(pitch({ PlateLocSide: '', PlateLocHeight: 0.4, PitchCall: 'InPlay' })), false);
+  var dots = stats.chaseSwingDots([
+    pitch({ PlateLocSide: 1.2, PlateLocHeight: 2.5, PitchCall: 'StrikeSwinging' }),
+    pitch({ PlateLocSide: 0.9, PlateLocHeight: 2.5, PitchCall: 'InPlay' }),
+    pitch({ PlateLocSide: 0, PlateLocHeight: 1.2, PitchCall: 'FoulBallFieldable' }),
+    pitch({ PlateLocSide: 3.2, PlateLocHeight: 2.5, PitchCall: 'InPlay' }),
+    pitch({ PlateLocSide: -1.4, PlateLocHeight: 4.2, PitchCall: 'BallCalled' })
+  ]);
+  assert.deepEqual(dots, [
+    { x: -1.2, z: 2.5 },
+    { x: -0, z: 1.2 }
+  ]);
+  // A swing between the strike zone and the chase box still counts in Chase%.
+  var edge = [pitch({ PlateLocSide: 0.9, PlateLocHeight: 2.5, PitchCall: 'StrikeSwinging' })];
+  assert.equal(stats.trackmanRates(edge).chasePct, 1);
+  assert.equal(stats.isChaseSwing(edge[0]), false);
+});
+
+test('chase density is a 0.35 ft gaussian normalized by its own max', function () {
+  var swing = pitch({ PlateLocSide: 1.5, PlateLocHeight: 2.0, PitchCall: 'StrikeSwinging' });
+  var built = stats.buildChaseDensity([swing], { grid: 121 });
+  assert.equal(built.xMin, -2.6);
+  assert.equal(built.xMax, 2.6);
+  assert.equal(built.yMin, 0.2);
+  assert.equal(built.yMax, 5.0);
+  var max = 0, maxI = 0;
+  for (var i = 0; i < built.grid.length; i++) {
+    if (built.grid[i] > max) { max = built.grid[i]; maxI = i; }
+  }
+  assert.ok(Math.abs(max - 1) < 1e-5);
+  var col = maxI % built.gw;
+  var row = Math.floor(maxI / built.gw);
+  var x = built.xMin + col / (built.gw - 1) * (built.xMax - built.xMin);
+  var z = built.yMax - row / (built.gh - 1) * (built.yMax - built.yMin);
+  assert.ok(Math.abs(x - (-1.5)) < 0.05, 'peak x ' + x);
+  assert.ok(Math.abs(z - 2.0) < 0.05, 'peak z ' + z);
+  function at(dx, dz) {
+    var gx = (x + dx - built.xMin) / (built.xMax - built.xMin) * (built.gw - 1);
+    var gy = (built.yMax - (z + dz)) / (built.yMax - built.yMin) * (built.gh - 1);
+    return stats.sampleBilinear(built.grid, built.gw, built.gh, gx, gy);
+  }
+  var side = at(stats.CHASE_SIGMA_FT, 0);
+  var up = at(0, stats.CHASE_SIGMA_FT);
+  var far = at(1.15, 0);
+  assert.ok(Math.abs(side - Math.exp(-0.5)) < 0.06, 'sigma ft, got ' + side);
+  assert.ok(Math.abs(up - side) < 0.06, 'x and z sigma differ: ' + side + ' vs ' + up);
+  assert.ok(far < 0.02, 'kernel still wide, far=' + far);
+
+  var cluster = [];
+  for (var n = 0; n < 8; n++) cluster.push(pitch({ PlateLocSide: 1.6, PlateLocHeight: 2.4, PitchCall: 'InPlay' }));
+  cluster.push(pitch({ PlateLocSide: -1.8, PlateLocHeight: 0.7, PitchCall: 'FoulBall' }));
+  var mixed = stats.buildChaseDensity(cluster, { grid: 96 });
+  assert.ok(Math.abs(Math.max.apply(null, mixed.grid) - 1) < 1e-5);
+  var loneX = stats.displayPlateSide(-1.8);
+  var lgx = (loneX - mixed.xMin) / (mixed.xMax - mixed.xMin) * (mixed.gw - 1);
+  var lgy = (mixed.yMax - 0.7) / (mixed.yMax - mixed.yMin) * (mixed.gh - 1);
+  var lone = stats.sampleBilinear(mixed.grid, mixed.gw, mixed.gh, lgx, lgy);
+  assert.ok(lone > 0.08 && lone < 0.25, 'isolated swing should not read full red, got ' + lone);
+});
+
+test('chase colormap and plot geometry match the map spec', function () {
+  assert.deepEqual(stats.chaseColor(0), [0x2f, 0x6d, 0xb3]);
+  assert.deepEqual(stats.chaseColor(0.25), [0x7a, 0xa7, 0xd9]);
+  assert.deepEqual(stats.chaseColor(0.5), [255, 255, 255]);
+  assert.deepEqual(stats.chaseColor(0.75), [0xf0, 0xa3, 0xa3]);
+  assert.deepEqual(stats.chaseColor(1), [0xc5, 0x30, 0x30]);
+  assert.equal(stats.CHASE_DOT_FILL, '#1a202c');
+  assert.equal(stats.CHASE_DOT_STROKE, '#ffffff');
+  assert.equal(stats.CHASE_DOT_ALPHA, 0.75);
+  var lay = stats.chasePlotLayout(400, 320, 8);
+  var ftX = (stats.CHASE_X_MAX - stats.CHASE_X_MIN) / lay.width;
+  var ftZ = (stats.CHASE_Z_MAX - stats.CHASE_Z_MIN) / lay.height;
+  assert.ok(Math.abs(ftX - ftZ) < 1e-9);
+  assert.ok(lay.left >= 8 - 1e-6 && lay.top >= 8 - 1e-6);
+  assert.ok(lay.left + lay.width <= 400 + 1e-6);
+  assert.ok(lay.top + lay.height <= 320 + 1e-6);
+  assert.deepEqual(stats.chaseColor(0), stats.chaseColor(-1));
+});
+
 test('team rates are pitch-weighted, not the mean of player rates', function () {
   var chaser = [pitch({ PitchCall: 'InPlay', PlateLocSide: 1.5, PlateLocHeight: 2.5, ExitSpeed: 100, Angle: 20, TaggedHitType: 'FlyBall' })];
   var patient = [];
