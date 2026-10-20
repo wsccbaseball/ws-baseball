@@ -2,8 +2,9 @@
 // the 0.833 ft strike zone and do not follow the heat-map box. All four heat
 // maps share one window and a 1.0 ft zone box. Chase is a density normalized
 // on that card. Whiff color is an absolute 0–50% scale. wOBA color is an
-// absolute 0–0.90 scale on balls in play. Team lines are pitch- or
-// BIP-weighted over the pooled rows rather than a mean of players.
+// absolute 0–0.90 scale on completed plate appearances, plotted at the final
+// pitch. Team lines are pitch- or BIP-weighted over the pooled rows rather
+// than a mean of players.
 (function (root, factory) {
   var api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -42,11 +43,15 @@
   var CHASE_DOT_ALPHA = 0.75;
   var CHASE_DOT_RADIUS = 5;
   var CHASE_CMAP = ['#2f6db3', '#7aa7d9', '#ffffff', '#f0a3a3', '#c53030'];
-  // wOBA weights on balls in play. Outs are 0. Same scale the pitch table uses.
+  // wOBA weights on balls in play. Outs, errors, fielder's choices, and
+  // sacrifices are 0. Walk and hit-by-pitch match the box-score wOBA on this
+  // card (0.69 and 0.72).
   var WOBA_WEIGHTS = { 'Single': 0.88, 'Double': 1.24, 'Triple': 1.56, 'HomeRun': 2.08, 'Home Run': 2.08 };
+  var WOBA_BB = 0.69;
+  var WOBA_HBP = 0.72;
   // Absolute color scales. The five stops run from t=0 (blue) to t=1 (red).
   // Whiff: 0% blue, 25% white, 50% and above red.
-  // wOBA on balls in play: 0.00 blue (out), 0.45 white, 0.90 and above red
+  // wOBA: 0.00 blue (strikeout or out), 0.45 white, 0.90 and above red
   // (about a single). Wider than the chase kernel.
   var WHIFF_SCALE_MAX = 0.50;
   var WOBA_SCALE_MAX = 0.90;
@@ -453,6 +458,74 @@
     return WOBA_WEIGHTS[row.PlayResult || ''] || 0;
   }
 
+  function blankResult(v) {
+    if (v == null) return true;
+    var s = String(v).trim().toLowerCase();
+    return !s || s === 'undefined' || s === 'none' || s === 'null' || s === 'nan';
+  }
+
+  function isHitByPitchRow(row) {
+    if (!row) return false;
+    if (String(row.PitchCall || '').trim() === 'HitByPitch') return true;
+    if (blankResult(row.HitByPitch)) return false;
+    var s = String(row.HitByPitch).trim().toLowerCase();
+    return s !== '0' && s !== 'false' && s !== 'no';
+  }
+
+  function isIntentionalWalkText(v) {
+    var s = blankResult(v) ? '' : String(v).trim().toLowerCase();
+    return s === 'intentionalwalk' || s === 'intentional walk' || s === 'ibb';
+  }
+
+  // An intentional walk is dropped from wOBA. TrackMan marks the pitches
+  // BallIntentional, or the final KorBB / PlayResult as an intentional walk.
+  function isIntentionalWalk(pitches) {
+    var last = pitches && pitches[pitches.length - 1];
+    if (!last) return false;
+    if (isIntentionalWalkText(last.KorBB) || isIntentionalWalkText(last.PlayResult)) return true;
+    var kor = blankResult(last.KorBB) ? '' : String(last.KorBB).trim();
+    if (kor !== 'Walk') return false;
+    return pitches.some(function (r) {
+      return String(r && r.PitchCall || '').trim() === 'BallIntentional';
+    });
+  }
+
+  // Same plate-appearance split as the hitter card. Rows that cannot be keyed
+  // stay in their own group, so a terminal pitch is still counted.
+  function plateGroups(rows) {
+    var api = typeof HitterPA !== 'undefined' ? HitterPA : null;
+    if (!api && typeof require === 'function') {
+      try { api = require('./hitter-pa.js'); } catch (e) { api = null; }
+    }
+    if (api && api.groupPlateAppearances) return api.groupPlateAppearances(rows);
+    return (rows || []).map(function (r) { return [r]; });
+  }
+
+  // Weight of the pitch that ended a plate appearance. Null when this pitch
+  // did not end one. Strikeout and out are 0, so they stay in the denominator.
+  function wobaPaWeight(row) {
+    if (!row || isIntentionalWalk([row])) return null;
+    var kor = blankResult(row.KorBB) ? '' : String(row.KorBB).trim();
+    if (kor === 'Strikeout') return 0;
+    if (kor === 'Walk') return WOBA_BB;
+    if (isHitByPitchRow(row)) return WOBA_HBP;
+    if (String(row.PitchCall || '').trim() === 'InPlay') return wobaWeight(row);
+    return null;
+  }
+
+  // Final pitch of each completed plate appearance. Earlier pitches in the
+  // same PA are omitted. Intentional walks are omitted.
+  function wobaPaPitches(rows) {
+    var out = [];
+    plateGroups(rows).forEach(function (pitches) {
+      if (!pitches || !pitches.length || isIntentionalWalk(pitches)) return;
+      var last = pitches[pitches.length - 1];
+      if (wobaPaWeight(last) == null) return;
+      out.push(last);
+    });
+    return out;
+  }
+
   // 1 on a whiff, 0 on any other swing, null on a take. Denominator is swings.
   function whiffRateValue(row) {
     if (!row || !isSwingCall(row.PitchCall)) return null;
@@ -507,11 +580,11 @@
     return { x: x, z: z };
   }
 
-  // Balls in play inside the window. These are the wOBA denominator.
+  // Completed plate appearances inside the window, at the final pitch.
+  // Plain dots. Whiff rings stay on the whiff maps.
   function wobaDots(rows) {
     var dots = [];
-    (rows || []).forEach(function (r) {
-      if (wobaWeight(r) == null) return;
+    wobaPaPitches(rows).forEach(function (r) {
       var dot = plotDot(r);
       if (dot) dots.push(dot);
     });
@@ -642,6 +715,8 @@
     chasePlotLayout: chasePlotLayout,
     buildChaseDensity: buildChaseDensity,
     WOBA_WEIGHTS: WOBA_WEIGHTS,
+    WOBA_BB: WOBA_BB,
+    WOBA_HBP: WOBA_HBP,
     WHIFF_SCALE_MAX: WHIFF_SCALE_MAX,
     WOBA_SCALE_MAX: WOBA_SCALE_MAX,
     WOBA_SIGMA_FT: WOBA_SIGMA_FT,
@@ -653,6 +728,8 @@
     buildCountSurface: buildCountSurface,
     showsHeat: showsHeat,
     wobaWeight: wobaWeight,
+    wobaPaWeight: wobaPaWeight,
+    wobaPaPitches: wobaPaPitches,
     whiffRateValue: whiffRateValue,
     whiffScaleT: whiffScaleT,
     wobaScaleT: wobaScaleT,
