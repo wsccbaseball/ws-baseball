@@ -295,6 +295,68 @@ test('chase colormap and plot geometry match the map spec', function () {
   assert.deepEqual(stats.chaseColor(0), stats.chaseColor(-1));
 });
 
+test('rate maps are Nadaraya-Watson on a fixed team-centered scale', function () {
+  assert.equal(stats.rateScaleT(0.46, 0.46, 0.45), 0.5);
+  assert.equal(stats.rateScaleT(0.46 + 0.45, 0.46, 0.45), 1);
+  assert.equal(stats.rateScaleT(0.46 - 0.45, 0.46, 0.45), 0);
+  assert.equal(stats.rateScaleT(2, 0.46, 0.45), 1);
+  assert.equal(stats.rateScaleT(0, 0.46, 0.45), 0);
+  assert.deepEqual(stats.chaseColor(stats.rateScaleT(0.20, 0.20, 0.25)), [255, 255, 255]);
+  assert.ok(stats.chaseColor(stats.rateScaleT(0.40, 0.20, 0.25))[0] > 200);
+  assert.ok(stats.chaseColor(stats.rateScaleT(0.02, 0.20, 0.25))[2] > 150);
+  assert.equal(stats.rateFadeAlpha(0), 0);
+  assert.equal(stats.rateFadeAlpha(stats.RATE_FADE_LO), 0);
+  assert.equal(stats.rateFadeAlpha(stats.RATE_FADE_HI), 1);
+  assert.ok(stats.rateFadeAlpha(1) > 0.15 && stats.rateFadeAlpha(1) < 0.7);
+
+  var same = pitch({ PlateLocSide: 1.4, PlateLocHeight: 2.2, PitchCall: 'StrikeSwinging' });
+  var foul = pitch({ PlateLocSide: 1.4, PlateLocHeight: 2.2, PitchCall: 'FoulBall' });
+  var take = pitch({ PlateLocSide: 1.4, PlateLocHeight: 2.2, PitchCall: 'BallCalled' });
+  var whiff = stats.buildRateSurface([same, foul, take], stats.whiffRateValue, { grid: 97 });
+  var x = stats.displayPlateSide(1.4);
+  var gx = (x - whiff.xMin) / (whiff.xMax - whiff.xMin) * (whiff.gw - 1);
+  var gy = (whiff.yMax - 2.2) / (whiff.yMax - whiff.yMin) * (whiff.gh - 1);
+  var rate = stats.sampleBilinear(whiff.grid, whiff.gw, whiff.gh, gx, gy);
+  var weight = stats.sampleBilinear(whiff.weight, whiff.gw, whiff.gh, gx, gy);
+  assert.ok(Math.abs(rate - 0.5) < 0.05, 'whiff rate ' + rate);
+  assert.ok(weight > 1.2, 'two swings should thicken the denominator, weight ' + weight);
+
+  var out = pitch({ PlateLocSide: -1.7, PlateLocHeight: 1.0, PitchCall: 'InPlay', PlayResult: 'Out' });
+  var single = pitch({ PlateLocSide: 1.8, PlateLocHeight: 3.2, PitchCall: 'InPlay', PlayResult: 'Single' });
+  var surface = stats.buildRateSurface([out, out, single, single], stats.wobaWeight, { grid: 97 });
+  function at(side, height) {
+    var px = stats.displayPlateSide(side);
+    var ix = (px - surface.xMin) / (surface.xMax - surface.xMin) * (surface.gw - 1);
+    var iy = (surface.yMax - height) / (surface.yMax - surface.yMin) * (surface.gh - 1);
+    return stats.sampleBilinear(surface.grid, surface.gw, surface.gh, ix, iy);
+  }
+  assert.ok(Math.abs(at(-1.7, 1.0) - 0) < 0.05, 'outs stay near 0');
+  assert.ok(Math.abs(at(1.8, 3.2) - 0.88) < 0.05, 'singles stay near 0.88');
+
+  assert.equal(stats.wobaWeight(pitch({ PitchCall: 'InPlay', PlayResult: 'HomeRun' })), 2.08);
+  assert.equal(stats.wobaWeight(pitch({ PitchCall: 'FoulBall' })), null);
+  assert.equal(stats.whiffRateValue(pitch({ PitchCall: 'InPlay' })), 0);
+  assert.equal(stats.whiffRateValue(pitch({ PitchCall: 'StrikeSwinging' })), 1);
+  assert.equal(stats.whiffRateValue(take), null);
+
+  var dots = stats.swingDots([
+    same,
+    foul,
+    take,
+    pitch({ PlateLocSide: 4, PlateLocHeight: 2, PitchCall: 'StrikeSwinging' })
+  ]);
+  assert.equal(dots.length, 2);
+  assert.equal(dots[0].whiff, true);
+  assert.equal(dots[0].x, stats.displayPlateSide(1.4));
+  assert.equal(dots[1].whiff, false);
+  var bip = stats.wobaDots([out, single, foul]);
+  assert.equal(bip.length, 2);
+  assert.equal(stats.meanWobaOnBip([out, single, foul]), 0.44);
+  assert.equal(stats.whiffRateOnSwings([same, foul, take]), 0.5);
+  assert.equal(stats.WOBA_HALF_RANGE, 0.45);
+  assert.equal(stats.WHIFF_HALF_RANGE, 0.25);
+});
+
 test('team rates are pitch-weighted, not the mean of player rates', function () {
   var chaser = [pitch({ PitchCall: 'InPlay', PlateLocSide: 1.5, PlateLocHeight: 2.5, ExitSpeed: 100, Angle: 20, TaggedHitType: 'FlyBall' })];
   var patient = [];

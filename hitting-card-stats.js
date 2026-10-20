@@ -1,8 +1,9 @@
-// Season Hitting Summary rates. Chase% and the team line use the 0.833 ft
-// strike zone, the same box as Z-Swing% and the wOBA / whiff maps. The CHASE
-// heat map is a density of swings outside a wider box (|PlateLocSide| <= 1.0
-// ft) and does not change that percentage. Team averages are pitch- or
-// BIP-weighted over the pooled rows rather than a mean of players.
+// Season Hitting Summary rates. Chase%, Whiff%, and the gray team lines use
+// the 0.833 ft strike zone and do not follow the heat-map box. All four heat
+// maps share one window and a 1.0 ft zone box. Chase is a density normalized
+// on that card. wOBA and whiff are Nadaraya-Watson rates on a fixed scale
+// centered on the team average. Team lines are pitch- or BIP-weighted over
+// the pooled rows rather than a mean of players.
 (function (root, factory) {
   var api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -25,8 +26,9 @@
   var ZONE_HALF_W = 0.833;
   var ZONE_BOT = 1.5;
   var ZONE_TOP = 3.5;
-  // The CHASE map's box. Wider than the strike zone so a pitch between 0.833
-  // and 1.0 ft is inside the drawn box and is not a dot. Height matches Chase%.
+  // Shared heat-map box. Wider than the strike zone. A pitch on the edge is
+  // inside the box. Chase dots are swings outside it; the box is drawn on
+  // every map.
   var CHASE_BOX_HALF_W = 1.0;
   var CHASE_X_MIN = -2.6;
   var CHASE_X_MAX = 2.6;
@@ -40,6 +42,21 @@
   var CHASE_DOT_ALPHA = 0.75;
   var CHASE_DOT_RADIUS = 5;
   var CHASE_CMAP = ['#2f6db3', '#7aa7d9', '#ffffff', '#f0a3a3', '#c53030'];
+  // wOBA weights on balls in play. Outs are 0. Same scale the pitch table uses.
+  var WOBA_WEIGHTS = { 'Single': 0.88, 'Double': 1.24, 'Triple': 1.56, 'HomeRun': 2.08, 'Home Run': 2.08 };
+  // Fixed half-widths around the team average. White is the team rate.
+  // Full blue is this far below it, full red this far above it.
+  // wOBA ±0.45: with a team BIP wOBA near 0.46, blue is an out and red is a single.
+  // Whiff ±0.25: a 25-point miss-rate gap from the team saturates the scale.
+  var WOBA_HALF_RANGE = 0.45;
+  var WHIFF_HALF_RANGE = 0.25;
+  var WOBA_SCALE_CENTER = 0.45;
+  var WHIFF_SCALE_CENTER = 0.25;
+  // Smoothed-denominator fade. One pitch peaks near weight 1, so a lone event
+  // stays translucent and a tight pair of events is opaque.
+  var RATE_FADE_LO = 0.45;
+  var RATE_FADE_HI = 1.75;
+  var WHIFF_RING = '#c53030';
 
   function isInZone(side, height) {
     side = parseFloat(side);
@@ -388,6 +405,101 @@
     return built;
   }
 
+  // Nadaraya-Watson rate on the shared window. valueFn returns the outcome for
+  // a denominator event and null for every other pitch. grid[i] is
+  // smoothed numerator / smoothed denominator. weight[i] is the denominator.
+  function buildRateSurface(rows, valueFn, opts) {
+    opts = opts || {};
+    return buildHeatGrid(rows, valueFn, {
+      xMin: CHASE_X_MIN,
+      xMax: CHASE_X_MAX,
+      yMin: CHASE_Z_MIN,
+      yMax: CHASE_Z_MAX,
+      sigmaFeet: CHASE_SIGMA_FT,
+      keepEdge: true,
+      grid: opts.grid || 96
+    });
+  }
+
+  function wobaWeight(row) {
+    if (!row || String(row.PitchCall || '').trim() !== 'InPlay') return null;
+    return WOBA_WEIGHTS[row.PlayResult || ''] || 0;
+  }
+
+  // 1 on a whiff, 0 on any other swing, null on a take. Denominator is swings.
+  function whiffRateValue(row) {
+    if (!row || !isSwingCall(row.PitchCall)) return null;
+    return String(row.PitchCall).trim() === 'StrikeSwinging' ? 1 : 0;
+  }
+
+  // t = 0.5 at the team average. Clamped so values past the fixed half-range
+  // sit on the end stops.
+  function rateScaleT(value, center, halfRange) {
+    if (!isFinite(value) || !isFinite(center) || !(halfRange > 0)) return 0.5;
+    var t = 0.5 + 0.5 * (value - center) / halfRange;
+    if (t < 0) return 0;
+    if (t > 1) return 1;
+    return t;
+  }
+
+  function rateFadeAlpha(weight) {
+    if (!(weight > 0)) return 0;
+    return smoothstep(RATE_FADE_LO, RATE_FADE_HI, weight);
+  }
+
+  function meanWobaOnBip(rows) {
+    var n = 0, sum = 0;
+    (rows || []).forEach(function (r) {
+      var v = wobaWeight(r);
+      if (v == null) return;
+      n++;
+      sum += v;
+    });
+    return n ? sum / n : null;
+  }
+
+  function whiffRateOnSwings(rows) {
+    var n = 0, w = 0;
+    (rows || []).forEach(function (r) {
+      if (!r || !isSwingCall(r.PitchCall)) return;
+      n++;
+      if (String(r.PitchCall).trim() === 'StrikeSwinging') w++;
+    });
+    return n ? w / n : null;
+  }
+
+  function plotDot(row) {
+    if (!row) return null;
+    var x = displayPlateSide(row.PlateLocSide);
+    var z = parseFloat(row.PlateLocHeight);
+    if (isNaN(x) || isNaN(z) || x < CHASE_X_MIN || x > CHASE_X_MAX || z < CHASE_Z_MIN || z > CHASE_Z_MAX) return null;
+    return { x: x, z: z };
+  }
+
+  // Balls in play inside the window. These are the wOBA denominator.
+  function wobaDots(rows) {
+    var dots = [];
+    (rows || []).forEach(function (r) {
+      if (wobaWeight(r) == null) return;
+      var dot = plotDot(r);
+      if (dot) dots.push(dot);
+    });
+    return dots;
+  }
+
+  // Swings inside the window. whiff marks the misses so the card can ring them.
+  function swingDots(rows) {
+    var dots = [];
+    (rows || []).forEach(function (r) {
+      if (!r || !isSwingCall(r.PitchCall)) return;
+      var dot = plotDot(r);
+      if (!dot) return;
+      dot.whiff = String(r.PitchCall).trim() === 'StrikeSwinging';
+      dots.push(dot);
+    });
+    return dots;
+  }
+
   function trackmanRates(rows) {
     rows = rows || [];
     var swings = 0, whiffs = 0, inZone = 0, inZoneSwings = 0, ozPitches = 0, ozSwings = 0;
@@ -498,6 +610,23 @@
     chaseColor: chaseColor,
     chasePlotLayout: chasePlotLayout,
     buildChaseDensity: buildChaseDensity,
+    WOBA_WEIGHTS: WOBA_WEIGHTS,
+    WOBA_HALF_RANGE: WOBA_HALF_RANGE,
+    WHIFF_HALF_RANGE: WHIFF_HALF_RANGE,
+    WOBA_SCALE_CENTER: WOBA_SCALE_CENTER,
+    WHIFF_SCALE_CENTER: WHIFF_SCALE_CENTER,
+    RATE_FADE_LO: RATE_FADE_LO,
+    RATE_FADE_HI: RATE_FADE_HI,
+    WHIFF_RING: WHIFF_RING,
+    buildRateSurface: buildRateSurface,
+    wobaWeight: wobaWeight,
+    whiffRateValue: whiffRateValue,
+    rateScaleT: rateScaleT,
+    rateFadeAlpha: rateFadeAlpha,
+    meanWobaOnBip: meanWobaOnBip,
+    whiffRateOnSwings: whiffRateOnSwings,
+    wobaDots: wobaDots,
+    swingDots: swingDots,
     isFallSeason: isFallSeason,
     chaseHeatValue: chaseHeatValue,
     HEAT_GRID: HEAT_GRID,

@@ -619,113 +619,12 @@ function computeProfile(name,rows){
   };
 }
 
-var HMAP_GRID=HittingCardStats.HEAT_GRID;
-// PlateLocSide is flipped once, inside HittingCardStats.buildHeatGrid, for
-// wOBA, whiff, and chase. Chase does not flip it again.
-function buildKDEGrid(rows,valueFn,sigma,xMin,xMax,yMin,yMax,densityMode){
-  return HittingCardStats.buildHeatGrid(rows,valueFn,{
-    sigma:sigma,xMin:xMin,xMax:xMax,yMin:yMin,yMax:yMax,
-    densityMode:!!densityMode,legacyCutoff:true
-  });
-}
-function hotColdColor(t){
-  t=Math.max(0,Math.min(1,t));var r,g,b;
-  if(t<0.5){var s=t*2;r=Math.round(59+s*(255-59));g=Math.round(113+s*(255-113));b=Math.round(204+s*(255-204));}
-  else{var s=(t-0.5)*2;r=255;g=Math.round(255-s*255);b=Math.round(255-s*255);}
-  return[r,g,b];
-}
-function drawZoneGrid(canvasId,rows,valueFn,minVal,maxVal,label,xMin,xMax,yMin,yMax,densityMode,heatOpts){
-  var cv=document.getElementById(canvasId);if(!cv)return;
-  var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
-  var PAD_L=8,PAD_R=8,PAD_T=8,PAD_B=8;
-  var gridW=W-PAD_L-PAD_R,gridH=H-PAD_T-PAD_B;
-  ctx.clearRect(0,0,W,H);ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);
-  heatOpts=heatOpts||{};
-  // Chase and whiff density skip the neighbor-fill. That fill smeared sparse
-  // out-of-zone swings into wedges and left a stair-step where it ran out of
-  // cells (the blank corner on FB whiff).
-  var smooth=!!densityMode||!!heatOpts.maskZone;
-  var kdeResult=HittingCardStats.buildHeatGrid(rows,valueFn,{
-    sigma:densityMode?HittingCardStats.HEAT_SIGMA_DENSITY:HittingCardStats.HEAT_SIGMA_RATE,
-    xMin:xMin,xMax:xMax,yMin:yMin,yMax:yMax,
-    densityMode:!!densityMode,
-    legacyCutoff:!smooth,
-    priorRate:heatOpts.priorRate,
-    priorPitches:heatOpts.maskZone?(heatOpts.priorPitches||HittingCardStats.CHASE_PRIOR_PITCHES):0,
-    maskZone:!!heatOpts.maskZone
-  });
-  var grid=kdeResult.grid;var GW=kdeResult.gw,GH=kdeResult.gh;
-  var X_MIN=kdeResult.xMin,X_MAX=kdeResult.xMax,Y_MIN=kdeResult.yMin,Y_MAX=kdeResult.yMax;
-  var vv=kdeResult.validVals;
-  var scale=smooth
-    ?HittingCardStats.colorScale(vv,minVal,maxVal,heatOpts.minRange||0)
-    :{min:vv.length?Math.min.apply(null,vv):minVal,max:vv.length?Math.max.apply(null,vv):maxVal};
-  var mn=scale.min,mxv=scale.max;
-  var range=Math.max(mxv-mn,0.001);
-  var imgData=ctx.createImageData(gridW,gridH);
-  if(!smooth){
-    var FILL_X=Math.min(X_MAX-0.05,0.833+0.25),FILL_Y_TOP=Math.min(Y_MAX-0.05,3.5+0.25),FILL_Y_BOT=Math.max(Y_MIN+0.05,1.5-0.25);
-    var filled=grid.slice();
-    for(var iter=0;iter<8;iter++){
-      for(var gy=0;gy<GH;gy++){for(var gx=0;gx<GW;gx++){
-        var fx=X_MIN+(gx+0.5)/GW*(X_MAX-X_MIN);var fy=Y_MAX-(gy+0.5)/GH*(Y_MAX-Y_MIN);
-        if(Math.abs(fx)>FILL_X||fy<FILL_Y_BOT||fy>FILL_Y_TOP){filled[gy*GW+gx]=NaN;continue;}
-        if(!isNaN(filled[gy*GW+gx]))continue;
-        var sum=0,cnt=0;
-        if(gx>0&&!isNaN(filled[gy*GW+gx-1])){sum+=filled[gy*GW+gx-1];cnt++;}
-        if(gx<GW-1&&!isNaN(filled[gy*GW+gx+1])){sum+=filled[gy*GW+gx+1];cnt++;}
-        if(gy>0&&!isNaN(filled[(gy-1)*GW+gx])){sum+=filled[(gy-1)*GW+gx];cnt++;}
-        if(gy<GH-1&&!isNaN(filled[(gy+1)*GW+gx])){sum+=filled[(gy+1)*GW+gx];cnt++;}
-        if(cnt>0)filled[gy*GW+gx]=sum/cnt;
-      }}
-    }
-    var cellW=gridW/GW,cellH=gridH/GH;
-    for(var py=0;py<gridH;py++){for(var px=0;px<gridW;px++){
-      var gxi=Math.min(GW-1,Math.floor(px/cellW));var gyi=Math.min(GH-1,Math.floor(py/cellH));
-      var val=filled[gyi*GW+gxi];var pidx=(py*gridW+px)*4;
-      var pfx=X_MIN+(px/gridW)*(X_MAX-X_MIN);var pfy=Y_MAX-(py/gridH)*(Y_MAX-Y_MIN);
-      var edgeAlpha=HittingCardStats.plotEdgeAlpha(pfx,pfy);
-      if(isNaN(val)||edgeAlpha<=0){imgData.data[pidx]=imgData.data[pidx+1]=imgData.data[pidx+2]=imgData.data[pidx+3]=0;}
-      else{var t=(val-mn)/range;var col=hotColdColor(t);imgData.data[pidx]=col[0];imgData.data[pidx+1]=col[1];imgData.data[pidx+2]=col[2];imgData.data[pidx+3]=Math.round(edgeAlpha*255);}
-    }}
-    ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);ctx.putImageData(imgData,PAD_L,PAD_T);
-  } else {
-    for(var sy=0;sy<gridH;sy++){for(var sx=0;sx<gridW;sx++){
-      var pfx2=X_MIN+(sx+0.5)/gridW*(X_MAX-X_MIN);var pfy2=Y_MAX-(sy+0.5)/gridH*(Y_MAX-Y_MIN);
-      var sgx=(pfx2-X_MIN)/(X_MAX-X_MIN)*(GW-1);var sgy=(Y_MAX-pfy2)/(Y_MAX-Y_MIN)*(GH-1);
-      var val2=HittingCardStats.sampleBilinear(grid,GW,GH,sgx,sgy);
-      var w2=HittingCardStats.sampleBilinear(kdeResult.weight,GW,GH,sgx,sgy);
-      var pidx2=(sy*gridW+sx)*4;
-      var edgeA=HittingCardStats.plotEdgeAlpha(pfx2,pfy2);
-      var densA=HittingCardStats.lowDensityAlpha(w2);
-      var zoneA=heatOpts.maskZone?HittingCardStats.chaseZoneAlpha(pfx2,pfy2):1;
-      var a=edgeA*densA*zoneA;
-      if(!isFinite(val2)||a<=0.004){imgData.data[pidx2]=imgData.data[pidx2+1]=imgData.data[pidx2+2]=imgData.data[pidx2+3]=0;}
-      else{var t2=(val2-mn)/range;var col2=hotColdColor(t2);imgData.data[pidx2]=col2[0];imgData.data[pidx2+1]=col2[1];imgData.data[pidx2+2]=col2[2];imgData.data[pidx2+3]=Math.round(Math.max(0,Math.min(1,a))*255);}
-    }}
-    var off=document.createElement('canvas');off.width=gridW;off.height=gridH;
-    off.getContext('2d').putImageData(imgData,0,0);
-    ctx.fillStyle='#dce8f5';ctx.fillRect(0,0,W,H);
-    ctx.drawImage(off,PAD_L,PAD_T);
-  }
-  function px2(x){return PAD_L+(x-X_MIN)/(X_MAX-X_MIN)*gridW;}
-  function py2(y){return PAD_T+(Y_MAX-y)/(Y_MAX-Y_MIN)*gridH;}
-  ctx.strokeStyle='rgba(0,0,0,0.75)';ctx.lineWidth=2;
-  ctx.strokeRect(px2(-0.833),py2(3.5),px2(0.833)-px2(-0.833),py2(1.5)-py2(3.5));
-  ctx.strokeStyle='rgba(0,0,0,0.15)';ctx.lineWidth=0.5;
-  var zW=(px2(0.833)-px2(-0.833))/3,zH=(py2(1.5)-py2(3.5))/3;
-  for(var i=1;i<3;i++){
-    ctx.beginPath();ctx.moveTo(px2(-0.833)+zW*i,py2(3.5));ctx.lineTo(px2(-0.833)+zW*i,py2(1.5));ctx.stroke();
-    ctx.beginPath();ctx.moveTo(px2(-0.833),py2(3.5)+zH*i);ctx.lineTo(px2(0.833),py2(3.5)+zH*i);ctx.stroke();
-  }
-}
-
-// Chase only. Density of swings outside the 1.0 ft box, normalized to this
-// map's own max, with a dot on every chase swing. wOBA and whiff stay on
-// drawZoneGrid. No axis ticks. Equal aspect, catcher view (PlateLocSide flipped
-// once inside buildChaseDensity, same direction as the other maps).
-function drawChaseMap(canvasId,rows){
-  var cv=document.getElementById(canvasId);if(!cv)return;
+// All four maps. PlateLocSide is flipped once inside buildHeatGrid.
+// scale is null for the chase density (values already 0..1, opaque).
+// A rate scale is {center, half}: white at the team average, faded where
+// the smoothed denominator is thin. No axis ticks.
+function drawSharedMap(canvasId,built,dots,scale){
+  var cv=document.getElementById(canvasId);if(!cv||!built)return;
   var ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
   var S=HittingCardStats;
   var layout=S.chasePlotLayout(W,H,8);
@@ -733,7 +632,6 @@ function drawChaseMap(canvasId,rows){
   var plotH=Math.max(1,Math.round(layout.height));
   var left=Math.round((W-plotW)/2);
   var top=Math.round((H-plotH)/2);
-  var built=S.buildChaseDensity(rows);
   var X_MIN=built.xMin,X_MAX=built.xMax,Y_MIN=built.yMin,Y_MAX=built.yMax;
   var GW=built.gw,GH=built.gh;
   var spanX=X_MAX-X_MIN,spanZ=Y_MAX-Y_MIN;
@@ -748,10 +646,19 @@ function drawChaseMap(canvasId,rows){
       var sgx=(x-X_MIN)/spanX*(GW-1);
       var sgy=(Y_MAX-z)/spanZ*(GH-1);
       var val=S.sampleBilinear(built.grid,GW,GH,sgx,sgy);
-      if(!isFinite(val))val=0;
-      var col=S.chaseColor(val);
       var pidx=(py*plotW+px)*4;
-      img.data[pidx]=col[0];img.data[pidx+1]=col[1];img.data[pidx+2]=col[2];img.data[pidx+3]=255;
+      var col,alpha;
+      if(!scale){
+        if(!isFinite(val))val=0;
+        col=S.chaseColor(val);
+        alpha=255;
+      } else {
+        var wt=S.sampleBilinear(built.weight,GW,GH,sgx,sgy);
+        var fade=S.rateFadeAlpha(isFinite(wt)?wt:0);
+        if(!isFinite(val)||fade<=0.004){col=[0,0,0];alpha=0;}
+        else{col=S.chaseColor(S.rateScaleT(val,scale.center,scale.half));alpha=Math.round(fade*255);}
+      }
+      img.data[pidx]=col[0];img.data[pidx+1]=col[1];img.data[pidx+2]=col[2];img.data[pidx+3]=alpha;
     }
   }
   var off=document.createElement('canvas');
@@ -773,13 +680,21 @@ function drawChaseMap(canvasId,rows){
   }
   ctx.strokeStyle='#000000';ctx.lineWidth=2;
   ctx.strokeRect(px2(boxL),py2(boxT),px2(boxR)-px2(boxL),py2(boxB)-py2(boxT));
-  var dots=S.chaseSwingDots(rows);
+  var dotR=S.CHASE_DOT_RADIUS;
+  (dots||[]).forEach(function(d){
+    if(!d.whiff)return;
+    ctx.globalAlpha=0.95;
+    ctx.strokeStyle=S.WHIFF_RING;
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.arc(px2(d.x),py2(d.z),dotR+3.5,0,Math.PI*2);
+    ctx.stroke();
+  });
   ctx.globalAlpha=S.CHASE_DOT_ALPHA;
   ctx.fillStyle=S.CHASE_DOT_FILL;
   ctx.strokeStyle=S.CHASE_DOT_STROKE;
   ctx.lineWidth=1.25;
-  var dotR=S.CHASE_DOT_RADIUS;
-  dots.forEach(function(d){
+  (dots||[]).forEach(function(d){
     ctx.beginPath();
     ctx.arc(px2(d.x),py2(d.z),dotR,0,Math.PI*2);
     ctx.fill();
@@ -787,9 +702,12 @@ function drawChaseMap(canvasId,rows){
   });
   ctx.restore();
 }
-
-var WOBA_WEIGHTS={'Single':0.88,'Double':1.24,'Triple':1.56,'HomeRun':2.08,'Home Run':2.08};
-function wobaVal(r){if(r.PitchCall!=='InPlay')return null;return WOBA_WEIGHTS[r.PlayResult||'']||0;}
+function drawRateMap(canvasId,rows,valueFn,dots,center,half){
+  drawSharedMap(canvasId,HittingCardStats.buildRateSurface(rows,valueFn),dots,{center:center,half:half});
+}
+function drawChaseMap(canvasId,rows){
+  drawSharedMap(canvasId,HittingCardStats.buildChaseDensity(rows),HittingCardStats.chaseSwingDots(rows),null);
+}
 
 function buildPitchTable(p){
   var tbody=document.getElementById('pitchTableBody');if(!tbody)return;
@@ -888,16 +806,22 @@ function buildCard(){
   document.getElementById('tSGR').textContent=(p.seagerScore||0).toFixed(1)+'%';
   applyTeamLines();
   setTimeout(function(){
-    drawZoneGrid('zmapWoba',p.rows,wobaVal,0,1,'wOBA');
+    var S=HittingCardStats;
+    var teamRows=(teamProfile&&teamProfile.rows)||[];
+    function center(rate,fallback){return rate==null||!isFinite(rate)?fallback:rate;}
+    var wobaCenter=center(S.meanWobaOnBip(teamRows),S.WOBA_SCALE_CENTER);
+    drawRateMap('zmapWoba',p.rows,S.wobaWeight,S.wobaDots(p.rows),wobaCenter,S.WOBA_HALF_RANGE);
     var fbRows=p.rows.filter(function(r){return rowPitch(r)==='Fastball';});
-    drawZoneGrid('zmapHard',fbRows,function(r){return r.PitchCall==='StrikeSwinging'?1:null;},0,1,'FB Whiff',null,null,null,null,true);
+    var fbTeam=teamRows.filter(function(r){return rowPitch(r)==='Fastball';});
+    drawRateMap('zmapHard',fbRows,S.whiffRateValue,S.swingDots(fbRows),center(S.whiffRateOnSwings(fbTeam),S.WHIFF_SCALE_CENTER),S.WHIFF_HALF_RANGE);
     var breakTypes=['Curveball','Slider','Cutter'];
     var primaryBreak=null,primaryCount=0;
     breakTypes.forEach(function(bt){var cnt=(p.pitchTypes[bt]&&p.pitchTypes[bt].total)||0;if(cnt>primaryCount){primaryCount=cnt;primaryBreak=bt;}});
     if(primaryBreak&&primaryCount>=3){
       var breakRows=p.rows.filter(function(r){return rowPitch(r)===primaryBreak;});
+      var breakTeam=teamRows.filter(function(r){return rowPitch(r)===primaryBreak;});
       var lbl=document.getElementById('zmapBreakLabel');if(lbl)lbl.textContent=primaryBreak+' Whiff';
-      drawZoneGrid('zmapIso',breakRows,function(r){return r.PitchCall==='StrikeSwinging'?1:null;},0,1,primaryBreak+' Whiff',null,null,null,null,true);
+      drawRateMap('zmapIso',breakRows,S.whiffRateValue,S.swingDots(breakRows),center(S.whiffRateOnSwings(breakTeam),S.WHIFF_SCALE_CENTER),S.WHIFF_HALF_RANGE);
     } else {
       var ctx2=document.getElementById('zmapIso').getContext('2d');
       ctx2.clearRect(0,0,400,320);ctx2.fillStyle='#dce8f5';ctx2.fillRect(0,0,400,320);
