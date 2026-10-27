@@ -9,6 +9,10 @@ Nightly runs fill null stuff_plus_juco only. STUFF_RESCORE=1 rewrites every
 gradeable Stuff+ grade in place through rpc/set_stuff_plus. It does not delete
 pitches or games, and it does not null a grade it cannot recompute.
 
+Pitches with a null or blank GameID are not scored. They never get a games
+row. They still sit in the fastball baseline so grades for real games do not
+move. The skip is logged.
+
 v5 vs v4:
 - Adds ArmAngle + pitcher-day FB diffs (dVelo_day, dIVB_day, dHB_day, dSpin_day)
 - Loads stuff_{g}.txt and whiff_{g}.txt; 50/50 rv/whiff blend in z-space
@@ -16,6 +20,11 @@ v5 vs v4:
 """
 import os, json, sys
 import numpy as np, pandas as pd, requests, lightgbm as lgb
+
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+import scoring_game_id
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 MODEL_DIR = os.path.join(HERE, 'models')
@@ -37,6 +46,7 @@ CANON = {'Four-Seam': 'Fastball', 'FourSeamFastBall': 'Fastball', 'ChangeUp': 'C
 NUM = ['RelSpeed', 'SpinRate', 'SpinAxis', 'InducedVertBreak', 'HorzBreak', 'RelHeight',
        'RelSide', 'Extension', 'VertApprAngle', 'HorzApprAngle']
 REQUIRED = ['RelSpeed', 'SpinRate', 'SpinAxis', 'InducedVertBreak', 'HorzBreak', 'RelHeight', 'RelSide', 'Extension']
+PULL_COLS = ['id', 'Pitcher', 'PitcherThrows', 'BatterSide', 'AutoPitchType', 'TaggedPitchType', 'Date', 'GameID'] + NUM
 
 
 def load_boosters(prefix):
@@ -226,6 +236,18 @@ def rows_to_score(built_all, unscored_ids, rescore):
     return built_all[built_all['id'].isin(set(unscored_ids))].copy()
 
 
+def _keep_game_pitches(frame):
+    """Drop null GameID rows. Exit if GameID was not pulled, so we cannot score blindly."""
+    try:
+        return scoring_game_id.exclude_missing_game_id(frame)
+    except KeyError as exc:
+        print(
+            'SKIP null GameID: refusing to score. Missing column '
+            f'{exc}. Pitches would be graded with no games row.'
+        )
+        sys.exit(1)
+
+
 def main():
     if not URL or not KEY:
         print('SUPABASE_URL and SUPABASE_SERVICE_KEY are required')
@@ -233,9 +255,10 @@ def main():
     reason = ct_block_reason()
     if reason:
         print(f'Cutter model is not ready: {reason}. Cutter pitches will be left unscored.')
-    pull = ['id', 'Pitcher', 'PitcherThrows', 'BatterSide', 'AutoPitchType', 'TaggedPitchType', 'Date'] + NUM
+    pull = PULL_COLS
     rescore = rescore_requested()
-    # Baselines come from every pitch so primary FB / day FB stay stable.
+    # Baselines come from every pitch, including null GameID rows, so primary
+    # FB / day FB stay stable. Those rows are removed from the write set.
     # Rescore rewrites gradeable rows in place. It does not delete pitches.
     if rescore:
         print('STUFF_RESCORE=1: rewriting every gradeable Stuff+ v6 grade')
@@ -243,14 +266,25 @@ def main():
         print(f'{len(all_pitches)} pitches loaded for Stuff+ rescore')
         if all_pitches.empty:
             return
+        scored_only, skipped, skipped_ids = _keep_game_pitches(all_pitches)
+        scoring_game_id.log_null_game_id(skipped, skipped_ids, 'Stuff+ rescore')
+        if scored_only.empty:
+            print('No pitches with a GameID left to score')
+            return
         built = rows_to_score(build(all_pitches), [], True)
+        built = built[built['id'].isin(set(scored_only['id']))].copy()
     else:
         unscored = fetch({'select': ','.join(pull), 'stuff_plus_juco': 'is.null'})
         print(f'{len(unscored)} unscored pitches')
         if unscored.empty:
             return
+        scored_only, skipped, skipped_ids = _keep_game_pitches(unscored)
+        scoring_game_id.log_null_game_id(skipped, skipped_ids, 'unscored Stuff+')
+        if scored_only.empty:
+            print('No unscored pitches with a GameID. Nothing to score.')
+            return
         all_pitches = fetch({'select': ','.join(pull)})
-        built = rows_to_score(build(all_pitches), set(unscored['id']), False)
+        built = rows_to_score(build(all_pitches), set(scored_only['id']), False)
     n_ct = int((built['PGroup'] == 'CT').sum())
     if n_ct and reason:
         print(f'Skipping {n_ct} cutter pitches this run (not scored as fastballs or breakers).')

@@ -16,13 +16,21 @@ non-InPlay pitch; or no outcome at all). A legit ending (ball four at 3-x,
 strike three at x-2, ball in play, HBP) is a real PA: the next PA's nonzero
 count is just stale count fields, so it is left alone.
 Re-bats that start 0-0 are left alone. Placeholder batters whose name
-contains 'test' (any case) are skipped. Never deletes rows. Idempotent.
+contains 'test' (any case) are skipped. Pitches with a null or blank GameID
+are skipped too: they are not a game, and folding them would patch rows that
+never get a games row. Never deletes rows. Idempotent.
 Set SPLITPA_DRY_RUN=1 to only print what would change.
 """
 import os
+import sys
 from collections import defaultdict
 
 import requests
+
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+import scoring_game_id
 
 URL = os.environ.get('SUPABASE_URL', '').rstrip('/')
 KEY = os.environ.get('SUPABASE_SERVICE_KEY', '')
@@ -76,11 +84,27 @@ def patch(ids, body):
     r.raise_for_status()
 
 
+def rows_for_fold(rows):
+    """Split off pitches with no GameID. Those are logged and not patched."""
+    kept, skipped = [], []
+    for row in rows:
+        if scoring_game_id.game_id_missing(row.get('GameID')):
+            skipped.append(row)
+        else:
+            kept.append(row)
+    return kept, skipped
+
+
 def main():
     if not URL or not KEY:
         raise SystemExit('SUPABASE_URL and SUPABASE_SERVICE_KEY are required')
+    kept, skipped = rows_for_fold(fetch())
+    skipped_ids = [int(row['id']) for row in skipped if row.get('id') is not None]
+    scoring_game_id.log_null_game_id(
+        len(skipped), skipped_ids, 'split-PA',
+        'They are not folded and will not get a games row.')
     halves = defaultdict(lambda: defaultdict(list))
-    for r in fetch():
+    for r in kept:
         halves[(r['GameID'], r['Inning'], r['Top/Bottom'])][r['PAofInning']].append(r)
     folded = 0
     for key, pas in halves.items():
