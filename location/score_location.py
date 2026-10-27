@@ -9,6 +9,9 @@ and platoon. This script never writes stuff_plus_d1 or stuff_plus_juco.
 Nightly runs fill null grades only. LOCATION_RESCORE=1 rewrites every gradeable
 Location+ and every Pitching+ that can be computed from it. The first deploy
 needs that manual pass; swapping the boosters does not change stored grades.
+
+Pitches with a null or blank GameID are not scored and are not rewritten.
+They never get a games row. Any grade already stored on them is left alone.
 """
 import os
 import json
@@ -18,6 +21,11 @@ import numpy as np
 import pandas as pd
 import requests
 import lightgbm as lgb
+
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+import scoring_game_id
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 MODEL_DIR = os.path.join(HERE, 'models')
@@ -38,7 +46,7 @@ CANON = {'Four-Seam': 'Fastball', 'FourSeamFastBall': 'Fastball', 'ChangeUp': 'C
          'TwoSeamFastBall': 'Sinker', 'Split-Finger': 'Splitter',
          'Cut Fastball': 'Cutter', 'FC': 'Cutter', 'CT': 'Cutter'}
 PITCHING_FEATS = ['StuffZ100', 'LocationZ100', 'Balls', 'Strikes', 'Platoon']
-SELECT_COLS = ['id', 'PitcherThrows', 'BatterSide', 'AutoPitchType', 'TaggedPitchType',
+SELECT_COLS = ['id', 'GameID', 'PitcherThrows', 'BatterSide', 'AutoPitchType', 'TaggedPitchType',
                'PlateLocHeight', 'PlateLocSide', 'Balls', 'Strikes', 'stuff_plus_d1',
                'location_plus_d1', 'pitching_plus']
 MIN_GRADE_N = 100  # card display only; scoring still writes every gradeable pitch
@@ -338,6 +346,18 @@ def main():
     else:
         print(f'{len(pending)} pitches missing Location+ or Pitching+')
     if pending.empty:
+        return
+    try:
+        pending, skipped, skipped_ids = scoring_game_id.exclude_missing_game_id(pending)
+    except KeyError as exc:
+        print(
+            'SKIP null GameID: refusing to score. Missing column '
+            f'{exc}. Pitches would be graded with no games row.'
+        )
+        sys.exit(1)
+    scoring_game_id.log_null_game_id(skipped, skipped_ids, 'Location+ / Pitching+')
+    if pending.empty:
+        print('No pitches with a GameID left to score')
         return
     before = pending.copy()
     for c in ('location_plus_d1', 'pitching_plus', 'stuff_plus_d1'):

@@ -1,8 +1,16 @@
 name: Stuff+, Location+, and Pitching+ nightly scoring
 
+# 08:00 UTC remains the backup. repository_dispatch (event pitches-uploaded)
+# is what Supabase calls after a pitches upload goes quiet. See
+# supabase/PITCH_SCORING_DISPATCH.md. One run at a time: a burst keeps the
+# in-progress run and replaces any run still waiting, so overlapping
+# triggers collapse to a single follow-up. That follow-up null-fills
+# whatever is still unscored.
 on:
   schedule:
     - cron: '0 8 * * *'     # 08:00 UTC = 3-4 AM Eastern
+  repository_dispatch:
+    types: [pitches-uploaded]
   workflow_dispatch:         # manual run; stuff_rescore / location_rescore rewrite stored grades
     inputs:
       stuff_rescore:
@@ -22,6 +30,12 @@ on:
           - '0'
           - '1'
 
+# cancel-in-progress false: the running job finishes. GitHub keeps at most
+# one pending run in the group and cancels the previous pending run.
+concurrency:
+  group: stuff-plus-scoring
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -29,6 +43,17 @@ jobs:
   score:
     runs-on: ubuntu-24.04
     steps:
+      - name: Why this run started
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          STUFF_RESCORE: ${{ github.event.inputs.stuff_rescore || github.event.client_payload.stuff_rescore || '0' }}
+          LOCATION_RESCORE: ${{ github.event.inputs.location_rescore || github.event.client_payload.location_rescore || '0' }}
+          DISPATCH_SOURCE: ${{ github.event.client_payload.source }}
+        run: |
+          echo "event=${EVENT_NAME}"
+          echo "stuff_rescore=${STUFF_RESCORE}"
+          echo "location_rescore=${LOCATION_RESCORE}"
+          echo "dispatch_source=${DISPATCH_SOURCE}"
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
@@ -43,7 +68,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           STUFF_TABLE: ${{ secrets.STUFF_TABLE }}
-          STUFF_RESCORE: ${{ github.event.inputs.stuff_rescore || '0' }}
+          STUFF_RESCORE: ${{ github.event.inputs.stuff_rescore || github.event.client_payload.stuff_rescore || '0' }}
       # Location+ v3 and Pitching+ v1. Models are unchanged. Nightly null-fills
       # Location+ and Pitching+. location_rescore=1 rewrites them. Scheduled
       # runs pass 0.
@@ -52,7 +77,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           STUFF_TABLE: ${{ secrets.STUFF_TABLE }}
-          LOCATION_RESCORE: ${{ github.event.inputs.location_rescore || '0' }}
+          LOCATION_RESCORE: ${{ github.event.inputs.location_rescore || github.event.client_payload.location_rescore || '0' }}
       # Reads pitches (including stored grades) and refreshes data/seasons/*.json.
       # Does not write Stuff+, Location+, or Pitching+. Season JSON copies Stuff+
       # grades only; Location+ and Pitching+ stay on the pitches table.
