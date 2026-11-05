@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:wght@400;500;600;700&family=Spectral:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="../scout-packet.js"></script>
 <style>
   :root{--cream:#faf8f3;--cream-deep:#f2ead8;--navy:#16243a;--navy-ink:#13283f;--rule:#d8cdb4;--accent:#9a3b2e;--good:#2e5a2a;--good-bg:#e9f1e7;--attack:#2e5a2a;--avoid:#9a3b2e;}
   *{box-sizing:border-box;}html,body{margin:0;padding:0;}
@@ -140,7 +141,10 @@
     .block b{color:#111!important;}
     .miss-note{background:none!important;border-left:2pt solid #111;padding:1mm 0 1mm 2mm;color:#111;font-size:8.5pt;}
     .hand-note{color:#444;font-size:8.5pt;}
-    table.staff{width:100%;margin:3mm 0 0;font-size:8.5pt;break-inside:avoid;page-break-inside:avoid;}
+    /* The staff table must be allowed to split. break-inside:avoid on the whole
+       table pushed a too-tall table onto page 2 and left page 1 as a bare title. */
+    table.staff{width:100%;margin:3mm 0 0;font-size:8.5pt;}
+    table.staff tr{break-inside:avoid;page-break-inside:avoid;}
     table.staff th{background:none!important;color:#111!important;font-family:'IBM Plex Mono',monospace;border-bottom:1pt solid #111;}
     table.staff td{border-bottom:.5pt solid #ccc;font-family:'IBM Plex Mono',monospace;}
     table.staff tr.full td:nth-child(2){color:#111!important;font-weight:700;}
@@ -453,9 +457,7 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
 
   function numv(x){return (x==='-'||x===''||x==null)?0:(String(x).indexOf('.')>=0?parseFloat(x):parseInt(x,10));}
   function intsOf(line){return line.split(/\s+/).filter(function(t){return /^\d+$/.test(t);}).map(Number);}
-  function keyOf(name){name=String(name).replace(/\.+$/,'').trim();var last,first;
-    if(name.indexOf(',')>=0){var p=name.split(',');last=p[0].trim();first=(p[1]||'').trim();}else{var t=name.split(/\s+/);last=t[t.length-1];first=t.slice(0,-1).join(' ');}
-    return (last+'|'+(first?first[0]:'')).toLowerCase();}
+  function keyOf(name){return ScoutPacket.keyOf(name);}
   function d3(x){x=parseFloat(x);if(isNaN(x))return '—';return (x>=1?x.toFixed(3):x.toFixed(3).replace(/^0/,''));}
   function coreOf(name){return String(name||'').toLowerCase().replace(/[^a-z ]/g,' ').replace(/\s+/g,' ').trim().split(' ').slice(0,2).join(' ');}
 
@@ -503,7 +505,7 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
       t.totH=t.totH||s.totH;t.totP=t.totP||s.totP;t.record=t.record||s.record;};
     files.forEach(function(f){if(f.type!=='stats')return;add(parseOneStatSheet(f.rowsText),'Sheet '+(++idx));});
     if(pastedStats)add(parseOneStatSheet(pastedStats),'Pasted sheet');
-    return Object.keys(byTeam).map(function(k){return byTeam[k];});}
+    return Object.keys(byTeam).map(function(k){var t=byTeam[k];t.hit=ScoutPacket.dedupeHitters(t.hit);return t;});}
   function opponentCore(){var core=null;files.forEach(function(f){if(core)return;if(f.type==='synergyHit'||f.type==='synergyPit'){var r=parseSynergy(f.rowsText);if(r.team)core=coreOf(r.team);}});return core;}
   function rosterThrows(){var map={};files.forEach(function(f){if(f.type!=='roster')return;f.rowsText.split('\n').forEach(function(ln){var m=ln.match(/^(\d+)\s+.*?\b(LHP|RHP)\b/);if(m)map[m[1]]=(m[2]==='LHP'?'L':'R');});});return map;}
   function rosterRows(){var out=[];files.forEach(function(f){if(f.type!=='roster')return;f.rowsText.split('\n').forEach(function(ln){if(/^\d+\s+\S/.test(ln))out.push(ln);});});return out;}
@@ -905,9 +907,9 @@ var TIERS=[{k:'SP',label:'Starters',badge:'STARTER'},
     html+='<p class="bp line m-dia"><span class="lbl">Notes</span>'+note+'</p>';return html+'</div>';}
 
   function staffTable(hitters,hitArr){var rows=hitArr.map(function(s){return {pa:(s.ab||0)+(s.bb||0)+(s.hbp||0)+(s.sf||0)+(s.sh||0),s:s,full:hitters.some(function(h){return h.jersey===s.num;})};});
-    rows.sort(function(a,b){return b.pa-a.pa;});var h='<table class="staff"><tr><th>PA</th><th>Hitter</th><th>AVG</th><th>OBP</th><th>SLG</th><th>HR</th><th>AB</th><th>BB</th><th>K</th><th>SB</th></tr>';
+    rows.sort(function(a,b){return b.pa-a.pa;});var h='<table class="staff"><thead><tr><th>PA</th><th>Hitter</th><th>AVG</th><th>OBP</th><th>SLG</th><th>HR</th><th>AB</th><th>BB</th><th>K</th><th>SB</th></tr></thead><tbody>';
     rows.forEach(function(r){var s=r.s;h+='<tr class="'+(r.full?'full':'')+'"><td class="pa">'+r.pa+'</td><td>'+s.name+(r.full?' ●':'')+'</td><td>'+d3(s.avg)+'</td><td>'+d3(s.obp)+'</td><td>'+d3(s.slg)+'</td><td>'+s.hr+'</td><td>'+s.ab+'</td><td>'+s.bb+'</td><td>'+s.k+'</td><td>'+s.sb+'</td></tr>';});
-    return h+'</table><p class="legend">Sorted by plate appearances (PA = AB+BB+HBP+SF+SH). ● = full Synergy detail uploaded.</p>';}
+    return h+'</tbody></table><p class="legend">Sorted by plate appearances (PA = AB+BB+HBP+SF+SH). ● = full Synergy detail uploaded.</p>';}
 
   function buildBook(kind){var team=currentTeam();var opp=cleanDisplayName((team&&team.team)||'Opponent');
     var html='<p class="kicker">ADVANCE SCOUT · 2026 · PRE-GAME</p><h1 class="title">'+opp.toUpperCase()+' — ADVANCE BOOK</h1><div class="subline">Generated from your uploads · counting stats from the official sheet, reads from Synergy.</div>';
