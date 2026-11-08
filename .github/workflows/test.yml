@@ -24,4 +24,4 @@ jobs:
         with:
           node-version: '22'
       - run: npm ci
-      - run: node --test hitter-pa.test.js hitting-card-stats.test.js pitcher-card-stats.test.js pitch-type.test.js scout-packet.test.js scout-stat-sheet.test.js
+      - run: node --test hitter-pa.test.js hitting-card-stats.test.js pitcher-card-stats.test.js pitch-type.test.js scout-packet.test.js scout-stat-sheet.test.js scout-roster.test.js

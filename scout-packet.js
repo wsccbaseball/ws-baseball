@@ -518,6 +518,268 @@
     return 'No hitters or pitchers were read. Upload the official team cumulative PDF (a Presto print sheet or a Sidearm cumulative such as the Murray State College baseball stats PDF). Batting and pitching can be in the same file. A roster or a blank export will not fill the books — or paste the cumulative table below.';
   }
 
+  // Roster B/T is per team. Jersey 5 on Murray and jersey 5 on Walters are
+  // different people. A roster that is not tied to exactly one loaded stat
+  // team lends its hands to nobody. A blank B/T cell stays unknown.
+  var ROSTER_GENERIC = { state: 1, college: 1, university: 1, community: 1, baseball: 1, the: 1, of: 1, and: 1, jc: 1, juco: 1, team: 1 };
+  var ROSTER_POS = /^(?:OF|INF|IF|C|P|UTL|UTIL|1B|2B|3B|SS|DH|LHP|RHP|MIF|CF|LF|RF)(?:\/(?:OF|INF|IF|C|P|UTL|UTIL|1B|2B|3B|SS|DH|LHP|RHP|MIF|CF|LF|RF))*$/i;
+
+  function distinctiveTokens(name) {
+    return String(name || '').toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(function (w) {
+      return w && w.length > 1 && !ROSTER_GENERIC[w];
+    });
+  }
+
+  function rosterTeamHint(text) {
+    var lines = String(text || '').split(/\r?\n/);
+    for (var i = 0; i < lines.length; i++) {
+      var ln = lines[i].trim();
+      // A title ends with Roster. Comma rows are tables, not titles
+      // ("archived roster list" must not become the school name).
+      if (!ln || /coaching staff/i.test(ln) || /,/.test(ln)) continue;
+      if (!/\bRoster\s*$/i.test(ln)) continue;
+      var m = ln.match(/^(?:(?:19|20)\d{2}(?:-\d{2})?\s+)?(.+?)\s+Roster\s*$/i);
+      if (!m) continue;
+      var name = m[1].replace(/\bBaseball\b/ig, ' ').replace(/\s+/g, ' ').trim();
+      if (name && name.length > 2 && !/^no\.?$/i.test(name)) return name;
+    }
+    if (/mscaggies\.com/i.test(text)) return 'Murray State College';
+    return null;
+  }
+
+  function parseCsvRows(text) {
+    var rows = [];
+    var row = [];
+    var cur = '';
+    var q = false;
+    var s = String(text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    for (var i = 0; i < s.length; i++) {
+      var c = s.charAt(i);
+      if (q) {
+        if (c === '"') {
+          if (s.charAt(i + 1) === '"') { cur += '"'; i++; }
+          else q = false;
+        } else cur += c;
+      } else if (c === '"') q = true;
+      else if (c === ',') { row.push(cur); cur = ''; }
+      else if (c === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+      else cur += c;
+    }
+    if (cur.length || row.length) { row.push(cur); rows.push(row); }
+    return rows.filter(function (r) { return r.some(function (cell) { return String(cell).trim(); }); });
+  }
+
+  function parseHandToken(tok) {
+    var m = String(tok || '').trim().match(/^([LRS])\/([LR])$/);
+    if (!m) return null;
+    return { bats: m[1], throws: m[2] };
+  }
+
+  function isRosterNameWord(w) {
+    return /^[A-Za-z][A-Za-z'.-]*$/.test(w) && !ROSTER_POS.test(w);
+  }
+
+  function headerIndex(heads, names) {
+    for (var i = 0; i < names.length; i++) {
+      var ix = heads.indexOf(names[i]);
+      if (ix >= 0) return ix;
+    }
+    return -1;
+  }
+
+  function parseRosterSheet(rowsText) {
+    var text = String(rowsText || '');
+    var teamHint = rosterTeamHint(text);
+    var players = [];
+    var lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+    var headerAt = -1;
+    for (var h = 0; h < lines.length && h < 6; h++) {
+      var head = lines[h].toLowerCase();
+      if (/number/.test(head) && /name/.test(head) && /,/.test(lines[h])) { headerAt = h; break; }
+    }
+    if (headerAt >= 0) {
+      var table = parseCsvRows(lines.slice(headerAt).join('\n'));
+      if (table.length) {
+        var heads = table[0].map(function (h) { return String(h).trim().toLowerCase(); });
+        var iNum = headerIndex(heads, ['number', 'no', 'no.', 'jersey', '#']);
+        var iName = headerIndex(heads, ['name', 'player']);
+        var iBt = headerIndex(heads, ['bats_throws', 'b/t', 'bt', 'bats/throws', 'hand']);
+        var iTeam = headerIndex(heads, ['team', 'school']);
+        if (!teamHint && iTeam >= 0) {
+          for (var r = 1; r < table.length; r++) {
+            var tv = String(table[r][iTeam] || '').trim();
+            if (tv) { teamHint = tv; break; }
+          }
+        }
+        if (iNum >= 0 && iName >= 0) {
+          for (var j = 1; j < table.length; j++) {
+            var num = String(table[j][iNum] || '').trim();
+            var name = String(table[j][iName] || '').replace(/\s+/g, ' ').trim();
+            if (!num || !name) continue;
+            var hand = iBt >= 0 ? parseHandToken(table[j][iBt]) : null;
+            players.push({ num: num, name: name, bats: hand ? hand.bats : null, throws: hand ? hand.throws : null });
+          }
+          return { teamHint: teamHint, players: players };
+        }
+      }
+    }
+    lines.forEach(function (ln) {
+      var raw = String(ln || '').trim();
+      if (!raw || /^=== /.test(raw)) return;
+      var m = raw.match(/^(\d+)\s+(.+)$/);
+      if (!m) return;
+      var rest = m[2];
+      var bt = rest.match(/\b([LRS])\/([LR])\b/);
+      var before = bt ? rest.slice(0, bt.index).trim() : rest;
+      var name = '';
+      if (before.length <= 48) {
+        var tokens = before.split(/\s+/).filter(Boolean);
+        while (tokens.length && ROSTER_POS.test(tokens[tokens.length - 1])) tokens.pop();
+        if (tokens.length && tokens.length <= 4 && tokens.every(isRosterNameWord)) name = tokens.join(' ');
+      }
+      var bats = bt ? bt[1] : null;
+      var throws = bt ? bt[2] : null;
+      if (!throws && before.length <= 48) {
+        var arm = rest.match(/\b(LHP|RHP)\b/);
+        if (arm) throws = arm[1] === 'LHP' ? 'L' : 'R';
+      }
+      if (!name && !bats && !throws) return;
+      players.push({ num: m[1], name: name, bats: bats, throws: throws });
+    });
+    return { teamHint: teamHint, players: players };
+  }
+
+  function matchRosterTeam(hint, statTeamNames) {
+    var names = statTeamNames || [];
+    if (!hint) return { team: null, status: 'unassigned', options: [] };
+    var hintTok = distinctiveTokens(hint);
+    if (!hintTok.length) return { team: null, status: 'unassigned', options: [] };
+    var hits = names.filter(function (n) {
+      var tok = distinctiveTokens(n);
+      return hintTok.every(function (h) { return tok.indexOf(h) >= 0; });
+    });
+    if (hits.length === 1) return { team: hits[0], status: 'matched', options: hits };
+    if (hits.length > 1) return { team: null, status: 'ambiguous', options: hits };
+    return { team: null, status: 'unassigned', options: [] };
+  }
+
+  // rosterLock 'user' keeps a coach's choice. Anything else is rematched from
+  // the file each time, so a removed stat sheet cannot leave its hands behind.
+  function effectiveRosterTeam(file, statTeamNames) {
+    var names = statTeamNames || [];
+    file = file || {};
+    if (file.rosterLock === 'user') {
+      if (file.rosterTeam && names.indexOf(file.rosterTeam) >= 0) return { team: file.rosterTeam, status: 'user' };
+      if (file.rosterTeam) return { team: null, status: 'missing', missing: file.rosterTeam };
+      return { team: null, status: 'unassigned' };
+    }
+    var parsed = parseRosterSheet(file.rowsText || '');
+    var m = matchRosterTeam(parsed.teamHint, names);
+    if (m.status === 'matched') return { team: m.team, status: 'auto' };
+    return { team: null, status: m.status, options: m.options || [] };
+  }
+
+  function handsForTeam(rosterFiles, teamName, statTeamNames) {
+    var byNum = {};
+    var conflicts = [];
+    var players = [];
+    (rosterFiles || []).forEach(function (file) {
+      if (!file || (file.type && file.type !== 'roster')) return;
+      var eff = effectiveRosterTeam(file, statTeamNames);
+      if (!teamName || eff.team !== teamName) return;
+      parseRosterSheet(file.rowsText || '').players.forEach(function (p) {
+        players.push(p);
+        var prev = byNum[p.num];
+        if (!prev) {
+          byNum[p.num] = { num: String(p.num), name: p.name || '', bats: p.bats || null, throws: p.throws || null, conflict: false };
+          return;
+        }
+        var incoming = p.bats || p.throws;
+        var already = prev.bats || prev.throws;
+        if (incoming && already && !prev.conflict && (prev.bats !== (p.bats || null) || prev.throws !== (p.throws || null))) {
+          conflicts.push({
+            num: String(p.num),
+            team: teamName,
+            a: { bats: prev.bats, throws: prev.throws },
+            b: { bats: p.bats || null, throws: p.throws || null }
+          });
+          prev.bats = null;
+          prev.throws = null;
+          prev.conflict = true;
+          return;
+        }
+        if (prev.conflict) return;
+        if (!prev.bats && p.bats) prev.bats = p.bats;
+        if (!prev.throws && p.throws) prev.throws = p.throws;
+        if (!prev.name && p.name) prev.name = p.name;
+      });
+    });
+    return { team: teamName || '', byNum: byNum, conflicts: conflicts, players: players };
+  }
+
+  function handFor(bundle, num, statName) {
+    var row = bundle && bundle.byNum ? bundle.byNum[String(num)] : null;
+    if (!row) return { bats: null, throws: null, reason: 'missing' };
+    if (row.conflict) return { bats: null, throws: null, reason: 'conflict' };
+    if (statName && row.name && keyOf(statName) !== keyOf(row.name)) {
+      return { bats: null, throws: null, reason: 'name', rosterName: row.name, statName: statName };
+    }
+    if (!row.bats && !row.throws) return { bats: null, throws: null, reason: 'unknown', name: row.name || '' };
+    return { bats: row.bats || null, throws: row.throws || null, reason: 'ok', name: row.name || '' };
+  }
+
+  function rosterHandLabel(b, t) {
+    if (b && t) return b + '/' + t;
+    if (t) return '–/' + t;
+    if (b) return b + '/–';
+    return 'no B/T';
+  }
+
+  function rosterNotices(rosterFiles, statTeamNames) {
+    var notes = [];
+    var files = (rosterFiles || []).filter(function (f) { return f && (!f.type || f.type === 'roster'); });
+    var names = statTeamNames || [];
+    files.forEach(function (file) {
+      var label = file.name || 'Roster';
+      var eff = effectiveRosterTeam(file, names);
+      var parsed = parseRosterSheet(file.rowsText || '');
+      if (!eff.team) {
+        var choices = names.length ? names.join(' or ') : 'a team once the stat sheets are loaded';
+        var text = eff.status === 'missing'
+          ? (label + ' was assigned to ' + eff.missing + ', which is not loaded. Choose a loaded team. Its B/T is not used.')
+          : (label + ' is not tied to one team, so its B/T is not used on anyone. Choose ' + choices + '.');
+        notes.push({ level: 'err', text: text });
+        return;
+      }
+      var withHand = parsed.players.filter(function (p) { return p.bats || p.throws; }).length;
+      var five = null;
+      parsed.players.forEach(function (p) { if (String(p.num) === '5') five = p; });
+      var fiveBit = five ? (' Jersey 5 ' + (five.name ? five.name + ' ' : '') + (five.bats ? rosterHandLabel(five.bats, five.throws) : 'no B/T') + '.') : '';
+      if (parsed.players.length && !withHand) {
+        notes.push({ level: 'info', text: label + ' → ' + eff.team + ': ' + parsed.players.length + ' players, no B/T on the sheet. Hands stay unknown.' + fiveBit });
+      } else if (parsed.players.length) {
+        notes.push({ level: 'info', text: label + ' → ' + eff.team + ': ' + parsed.players.length + ' players, ' + withHand + ' with B/T.' + fiveBit });
+      }
+    });
+    names.forEach(function (team) {
+      handsForTeam(files, team, names).conflicts.forEach(function (c) {
+        notes.push({
+          level: 'err',
+          text: '#' + c.num + ' on ' + team + ' has two different B/T values (' + rosterHandLabel(c.a.bats, c.a.throws) + ' and ' + rosterHandLabel(c.b.bats, c.b.throws) + '). Neither hand is used until one roster file is removed.'
+        });
+      });
+    });
+    return notes;
+  }
+
+  function looksLikeRosterTable(text) {
+    var lines = String(text || '').split(/\r?\n/).slice(0, 6);
+    return lines.some(function (line) {
+      var head = line.toLowerCase();
+      return /number/.test(head) && /name/.test(head) && /,/.test(line) && (/bat/.test(head) || /position/.test(head) || /b\/t/.test(head));
+    });
+  }
+
   // Same keyword sort the page has always used. Kept here so both copies of
   // the builder and the tests share one classifier.
   function classifyUpload(text) {
@@ -535,6 +797,7 @@
     }
     if (ros >= 2 && ros >= sta) return { type: 'roster', conf: ros };
     if (sta >= 2) return { type: 'stats', conf: sta };
+    if (sta < 2 && looksLikeRosterTable(text)) return { type: 'roster', conf: Math.max(ros, 2) };
     return { type: 'unknown', conf: 0 };
   }
 
@@ -549,6 +812,12 @@
     parseStatSheet: parseStatSheet,
     assembleStatTeams: assembleStatTeams,
     statSheetProblem: statSheetProblem,
-    classifyUpload: classifyUpload
+    classifyUpload: classifyUpload,
+    parseRosterSheet: parseRosterSheet,
+    matchRosterTeam: matchRosterTeam,
+    effectiveRosterTeam: effectiveRosterTeam,
+    handsForTeam: handsForTeam,
+    handFor: handFor,
+    rosterNotices: rosterNotices
   };
 });
