@@ -68,11 +68,17 @@ test('plate appearances count walks and sacrifices, not just at-bats', function 
 });
 
 test('both packet pages dedupe hitters and let the staff table break', function () {
+  var src = fs.readFileSync(path.join(__dirname, 'scout-packet.js'), 'utf8');
+  assert.match(src, /t\.hit = dedupeHitters\(t\.hit\)/);
+  assert.match(src, /t\.pit = dedupePitchers\(t\.pit\)/);
   ['tools/scouting-ingest.html', 'scout/index.html'].forEach(function (file) {
     var html = fs.readFileSync(path.join(__dirname, file), 'utf8');
     assert.match(html, /src="\.\.\/scout-packet\.js"/);
     assert.match(html, /function keyOf\(name\)\{return ScoutPacket\.keyOf\(name\);\}/);
-    assert.match(html, /t\.hit=ScoutPacket\.dedupeHitters\(t\.hit\)/);
+    assert.match(html, /ScoutPacket\.assembleStatTeams\(entries\)/);
+    assert.match(html, /ScoutPacket\.buildViews\(items\)/);
+    assert.match(html, /ScoutPacket\.statSheetProblem\(/);
+    assert.match(html, /w:it\.width\|\|0/);
     var tableRules = html.match(/table\.staff\{[^}]+\}/g) || [];
     assert.ok(tableRules.length >= 1, file);
     tableRules.forEach(function (rule) {
