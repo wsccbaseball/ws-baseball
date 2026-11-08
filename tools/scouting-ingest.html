@@ -33,6 +33,12 @@
   .frow:last-child{border-bottom:none;}
   .fname{-webkit-box-flex:1;-webkit-flex:1;flex:1;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .fname .conf{display:block;font-size:11px;color:#8a96a2;}
+  .roster-assign{margin:0 0 8px 0;padding:0 0 8px;border-bottom:1px solid var(--rule);font-size:12.5px;color:#5d6b78;}
+  .roster-assign select{font-family:'Barlow',sans-serif;font-size:13px;margin-left:6px;max-width:70%;padding:4px 6px;border:1px solid var(--rule);background:#fff;color:var(--navy);}
+  .roster-assign .note{display:block;margin-top:4px;}
+  .roster-assign.warn,.roster-notes .warn{color:var(--accent);}
+  .roster-notes{font-size:13px;margin:8px 0 0;}
+  .roster-notes p{margin:0 0 6px;}
   .fname .kind{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#aeb6bf;}
   select.ftype{font-family:'Barlow',sans-serif;font-size:13px;padding:6px 8px;border:1px solid var(--rule);border-radius:2px;background:#fff;color:var(--navy);-webkit-appearance:none;appearance:none;max-width:46%;}
   select.ftype.unknown{border-color:var(--accent);color:var(--accent);}
@@ -217,7 +223,7 @@
   </div>
 
   <section class="card"><p class="step-eyebrow"><span class="num">01</span> &nbsp;Upload</p><h2 class="step">Drop in the files</h2>
-    <p class="hint">PDF or Excel — Synergy reports, roster, and the opponent stat sheet.</p>
+    <p class="hint">PDF or Excel — Synergy reports, roster, and the team cumulative. A Presto print sheet or a Sidearm cumulative both work, and one file can include batting and pitching.</p>
     <label class="filebtn"><span class="tag">Add files</span><span class="label" id="addLabel">No files yet</span>
       <input type="file" id="files" multiple accept="application/pdf,.pdf,.xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"></label>
     <div class="status" id="upStatus"></div>
@@ -225,9 +231,9 @@
       <summary>What files do I need?</summary>
       <div class="soft-body">
         <ul class="need-list">
-          <li><b>Core (enough to Build):</b> opponent hitter Synergy + pitcher Synergy + official counting-stats sheet (print-version PDF works best). Roster helps. You do <i>not</i> need every player file to get a usable book.</li>
+          <li><b>Core (enough to Build):</b> opponent hitter Synergy + pitcher Synergy + the official cumulative (Presto print PDF or Sidearm team PDF, batting and pitching together is fine). Roster helps. You do <i>not</i> need every player file to get a usable book.</li>
           <li><b>Extras (richer cards):</b> per-pitch (vs FB / SL / CB / CH) and zone (infield / outfield) files when you have time. Skip them and the book still builds — those sections stay thinner and note what’s missing.</li>
-          <li><b>Game plan:</b> also upload <b>your</b> program’s <b>stats sheet</b> <b>and</b> <b>roster with B/T</b> (e.g. R/R) in the same file drop as the opponent — not stats alone. Handedness comes from the roster.</li>
+          <li><b>Game plan:</b> also upload <b>your</b> program’s <b>stats sheet</b>. A roster is matched to one team. B/T is used only when that sheet actually has it; missing hands stay blank and the book still builds.</li>
         </ul>
       </div>
     </details>
@@ -235,7 +241,8 @@
 
   <section class="card"><p class="step-eyebrow"><span class="num">02</span> &nbsp;Confirm</p><h2 class="step">What each file is</h2>
     <p class="hint">We guess the type — fix anything wrong or remove a stray file.</p>
-    <div class="triage" id="triage"><p class="emptyfiles">Files you add will be listed here for review.</p></div></section>
+    <div class="triage" id="triage"><p class="emptyfiles">Files you add will be listed here for review.</p></div>
+    <div class="roster-notes" id="rosterNotes"></div></section>
 
   <section class="card"><p class="step-eyebrow"><span class="num">03</span> &nbsp;Build</p><h2 class="step">Reports</h2>
     <div class="inv" id="inventory"></div><div id="teampick"></div><div id="reports"></div><div class="status" id="genStatus"></div>
@@ -282,7 +289,25 @@
     var g=document.getElementById('gate'); if(g) g.classList.add('hidden');
     var a=document.getElementById('appRoot'); if(a) a.classList.remove('locked');
     var b=document.getElementById('lockAgainBtn'); if(b) b.classList.add('show');
-    idbGet().then(function(snap){ if(snap && ((snap.files&&snap.files.length)||snap.pastedStats)) applySession(snap); else updateSessionBar(null); }).catch(function(){});
+    // The reload can observe IndexedDB before the previous page's commit is
+    // visible, so an empty read is retried. Saves are ignored until this
+    // settles, which keeps the empty first paint from deleting the session.
+    (function restoreSession(attempt){
+      idbGet().then(function(snap){
+        var hadLocal=files.length||pastedStats;
+        var has=snap && ((snap.files&&snap.files.length)||snap.pastedStats);
+        if(!has && !hadLocal && attempt<12){ setTimeout(function(){ restoreSession(attempt+1); }, 100); return; }
+        sessionReady=true;
+        try{
+          if(!hadLocal && has) applySession(snap);
+          else if(!hadLocal) updateSessionBar(null);
+          if(hadLocal) scheduleSessionSave();
+        }catch(err){
+          var el=document.getElementById('upStatus');
+          if(el) setStatus(el,'err','Could not restore the saved session. '+err.message);
+        }
+      }).catch(function(){ sessionReady=true; });
+    })(0);
   }
   function gateShowLock(){
     var g=document.getElementById('gate'); if(g) g.classList.remove('hidden');
@@ -320,12 +345,11 @@
   var TYPES={synergyHit:'Synergy — hitter report',synergyPit:'Synergy — pitcher report',roster:'Roster',stats:'Cumulative stats',unknown:'Unknown — pick one'};
   var REPORTS=[{id:'hitbook',name:'Pre-Game Hitter Book',needs:['synergyHit','stats'],build:'hit'},
     {id:'pitbook',name:'Opponent Pitcher Report',needs:['synergyPit','stats'],build:'pit'},
-    // The Game Plan is the ONLY file that crosses both rosters (SPEC §2), so it is the only
-    // one that deliberately opens the contamination firewall — and it needs BOTH stat sheets
-    // plus our roster to do it. Gated harder than the opponent-only books on purpose.
+    // Game Plan is the only book that names both teams. It still needs both stat
+    // sheets. Roster B/T is optional: unknown hands are omitted, never borrowed
+    // from the other team's same jersey, and never block the book.
     {id:'gameplan',name:'Game Plan (Us vs Opponent)',needs:['synergyPit','stats'],build:'gp',
-      extra:function(){var miss=[];if(statTeams().length<2)miss.push("your program's stats sheet (so we have Us + Opponent)");
-        var bt=rosterBT();if(!Object.keys(bt).length)miss.push('your roster with B/T (e.g. R/R)');return miss;}},
+      extra:function(){var miss=[];if(statTeams().length<2)miss.push("your program's stats sheet (so we have Us + Opponent)");return miss;}},
     {id:'matrix',name:'Hitter Pitch Matrix',needs:['synergyHit'],build:'soon'},
     {id:'cards',name:'Hitter Index Cards',needs:['synergyHit','stats'],build:'soon'}];
   var NEED_LABEL={synergyHit:'hitter reports',synergyPit:'pitcher reports',roster:'roster',stats:'stat sheet'};
@@ -377,10 +401,15 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
       selectedTeam: selectedTeam,
       pastedStats: pastedStats||'',
       nextId: nextId,
-      files: files.map(function(f){ return {id:f.id,name:f.name,kind:f.kind,type:f.type,conf:f.conf,rowsText:f.rowsText||'',rawText:f.rawText||''}; })
+      files: files.map(function(f){ return {id:f.id,name:f.name,kind:f.kind,type:f.type,conf:f.conf,rowsText:f.rowsText||'',rawText:f.rawText||'',rosterTeam:f.rosterTeam||'',rosterLock:f.rosterLock||''}; })
     };
   }
+  var sessionReady=false;
   function scheduleSessionSave(){
+    // The first paint has no files yet. Restoring the saved session is async,
+    // so a clear scheduled from that empty paint would wipe IndexedDB before
+    // the restore arrives.
+    if(!sessionReady) return;
     if(_saveTimer) clearTimeout(_saveTimer);
     _saveTimer=setTimeout(function(){
       if(!files.length && !pastedStats){ updateSessionBar(null); idbClear(); return; }
@@ -404,7 +433,7 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
   }
   function applySession(snap){
     if(!snap) return false;
-    files=(snap.files||[]).map(function(f){ return {id:f.id,name:f.name,kind:f.kind,type:f.type,conf:f.conf,rowsText:f.rowsText||'',rawText:f.rawText||''}; });
+    files=(snap.files||[]).map(function(f){ return {id:f.id,name:f.name,kind:f.kind,type:f.type,conf:f.conf,rowsText:f.rowsText||'',rawText:f.rawText||'',rosterTeam:f.rosterTeam||'',rosterLock:f.rosterLock||''}; });
     pastedStats=snap.pastedStats||'';
     selectedTeam=snap.selectedTeam||null;
     nextId=Math.max(snap.nextId||1, files.reduce(function(m,f){return Math.max(m,(f.id||0)+1);},1));
@@ -432,30 +461,18 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
   }
 
 
-  function classify(text){var t=(text||'').toLowerCase();function hits(ws){var n=0;for(var i=0;i<ws.length;i++)if(t.indexOf(ws[i])>=0)n++;return n;}
-    var common=hits(['fastball','slider','curveball','changeup','sinker','cutter','whiff','chase','synergy','heat map','spray','swing %','put away']);
-    var pit=hits([' ip ','era','k/9','bb/9','whip','velocity','velo','release','vs rhh','vs lhh','innings','pitch count','strikeouts','pitcher:']);
-    var hit=hits(['vs rhp','vs lhp','at bat','at-bat','plate appearance','exit velo','bip','hitter:']);
-    var ros=hits(['bats/throws','b/t','roster','height','weight','class','jersey','hometown',' fr ',' so ',' jr ',' sr ']);
-    var sta=hits(['avg','obp','slg','ops',' ab ',' rbi',' hr ','batting','hitting statistics','totals',' gp ',' gs ','at bats','overall statistics']);
-    if(common>=2){if(t.indexOf('hitter:')>=0)return {type:'synergyHit',conf:common};if(t.indexOf('pitcher:')>=0)return {type:'synergyPit',conf:common};return {type:(pit>hit?'synergyPit':'synergyHit'),conf:common};}
-    if(ros>=2&&ros>=sta)return {type:'roster',conf:ros};
-    if(sta>=2)return {type:'stats',conf:sta};return {type:'unknown',conf:0};}
+  function classify(text){return ScoutPacket.classifyUpload(text);}
 
-  function buildViews(items){var s=items.slice().sort(function(a,b){return b.y-a.y;}),lines=[],cur=null;
-    s.forEach(function(it){if(!cur||Math.abs(it.y-cur.y)>3){cur={y:it.y,items:[it]};lines.push(cur);}else cur.items.push(it);});
-    var rowText=lines.map(function(l){return l.items.slice().sort(function(a,b){return a.x-b.x;}).map(function(i){return i.str;}).join(' ').replace(/[ \t]+/g,' ').trim();}).filter(function(t){return t.length;}).join('\n');
-    var rawText=items.map(function(it){return 'x'+Math.round(it.x)+' y'+Math.round(it.y)+'  '+it.str;}).join('\n');return {rowText:rowText,rawText:rawText};}
+  function buildViews(items){return ScoutPacket.buildViews(items);}
   function extractPdf(file){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){
     pdfjsLib.getDocument({data:new Uint8Array(r.result)}).promise.then(function(pdf){var rows=[],raw=[],ch=Promise.resolve();
       for(var p=1;p<=pdf.numPages;p++){(function(n){ch=ch.then(function(){return pdf.getPage(n).then(function(pg){return pg.getTextContent().then(function(c){
-        var items=c.items.map(function(it){return {x:it.transform[4],y:it.transform[5],str:it.str};});var v=buildViews(items);rows.push(v.rowText);raw.push('=== PAGE '+n+' ===\n'+v.rawText);});});});})(p);}
+        var items=c.items.map(function(it){return {x:it.transform[4],y:it.transform[5],w:it.width||0,str:it.str};});var v=buildViews(items);rows.push(v.rowText);raw.push('=== PAGE '+n+' ===\n'+v.rawText);});});});})(p);}
       ch.then(function(){res({rows:rows.join('\n'),raw:raw.join('\n\n')});});}).catch(rej);};r.onerror=rej;r.readAsArrayBuffer(file);});}
   function extractSheet(file){return new Promise(function(res,rej){if(!window.XLSX){rej();return;}var r=new FileReader();r.onload=function(){try{
     var wb=XLSX.read(new Uint8Array(r.result),{type:'array'});res({rows:wb.SheetNames.map(function(nm){return XLSX.utils.sheet_to_csv(wb.Sheets[nm]);}).join('\n'),raw:''});}catch(e){rej(e);}};r.onerror=rej;r.readAsArrayBuffer(file);});}
   function kindOf(name){return /\.(xlsx|xls|csv)$/i.test(name)?'sheet':'pdf';}
 
-  function numv(x){return (x==='-'||x===''||x==null)?0:(String(x).indexOf('.')>=0?parseFloat(x):parseInt(x,10));}
   function intsOf(line){return line.split(/\s+/).filter(function(t){return /^\d+$/.test(t);}).map(Number);}
   function keyOf(name){return ScoutPacket.keyOf(name);}
   function d3(x){x=parseFloat(x);if(isNaN(x))return '—';return (x>=1?x.toFixed(3):x.toFixed(3).replace(/^0/,''));}
@@ -476,46 +493,20 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
     var bip={};[['Ground Ball','gb'],['Fly Ball','fb'],['Line Drive','ld']].forEach(function(p){var mm=txt.match(new RegExp(p[0]+'\\s+\\d+\\s+(\\d+)%'));if(mm)bip[p[1]]=parseInt(mm[1],10);});
     return {role:role,name:name,team:team,sub:sub,basic:basic,mix:mix,bip:bip};}
 
-  function parseOneStatSheet(rowsText){var R=rowsText.split('\n');var hit=[],pit=[],cat=[],m=null,team=null,fhdr=null,
-      totH=null,totP=null,record=null;
-    R.forEach(function(ln){if(!team){var tm=ln.match(/Baseball Statistics\s*-\s*(.+?)(?:\s*-\s*Official|\s*$)/);if(tm)team=tm[1].trim();}
-      if(!record){var rm=ln.match(/Record:\s*(\d+\s*-\s*\d+)/);if(rm)record=rm[1].replace(/\s+/g,'');}
-      if(/Player\s+AVG\b/.test(ln)){m='h';return;}if(/Player\s+ERA\b/.test(ln)){m='p';return;}
-      // Catching table: column order varies by sheet, so index by HEADER NAME, not position.
-      if(/Player\b.*\bFLD%/.test(ln)){m='f';fhdr=ln.replace(/^.*?Player\s+/,'').trim().split(/\s+/);return;}
-      if(/Player\s+G\s+TC\b/.test(ln)){m=null;return;}
-      // Totals rows carry no jersey number — matched separately, and they are the only
-      // legitimate source for the Game Plan's side-by-side team comparison line.
-      var tt=ln.match(/^Totals?\s*\.{2,}\s*(.*)$/);
-      if(tt){var tf=tt[1].split(/\s+/),tv=tf.map(numv);
-        if(m==='h'&&tv.length>=20)totH={avg:tf[0],ab:tv[3],hr:tv[8],slg:tf[11],bb:tv[12],hbp:tv[13],k:tv[14],gdp:tv[15],obp:tf[16],sb:tv[19]};
-        else if(m==='p'&&tv.length>=18)totP={era:tf[0],ip:tf[8],k:tv[13],bb:tv[12],hr:tv[16],baa:tf[18],hbp:tv[20]};
-        return;}
-      if(/^Total/.test(ln)||/^Opp/.test(ln))return;var mm=ln.match(/^(\d+)\s+(.+?)\.{2,}\s+(.*)$/);if(!mm)return;
-      var num=mm[1],nm=mm[2].trim(),rest=mm[3].split(/\s+/),f=rest.map(numv);
-      if(m==='h'&&f.length>=20)hit.push({num:num,name:nm,avg:rest[0],ab:f[3],h:f[5],db:f[6],hr:f[8],slg:rest[11],bb:f[12],hbp:f[13],k:f[14],gdp:f[15],obp:rest[16],sf:f[17],sh:f[18],sb:f[19]});
-      else if(m==='p'&&f.length>=18)pit.push({num:num,name:nm,era:rest[0],w:f[1],l:f[2],app:f[3],gs:f[4],sv:f[7],ip:rest[8],k:f[13],bb:f[12],hr:f[16],baa:rest[18],wp:f[19],hbp:f[20]});
-      else if(m==='f'&&fhdr){var col={};fhdr.forEach(function(h,i){col[h.toUpperCase()]=rest[i];});
-        var sba=numv(col['SBA']),csb=numv(col['CSB']);
-        if(sba||csb)cat.push({num:num,name:nm,sba:sba||0,csb:csb||0});}});
-    return {team:team,hit:hit,pit:pit,cat:cat,totH:totH,totP:totP,record:record};}
-  function statTeams(){var byTeam={},idx=0;
-    var add=function(s,fallback){var name=s.team||fallback;var t=byTeam[name]=byTeam[name]||{team:name,hit:[],pit:[],cat:[]};
-      t.hit=t.hit.concat(s.hit);t.pit=t.pit.concat(s.pit);t.cat=(t.cat||[]).concat(s.cat||[]);
-      t.totH=t.totH||s.totH;t.totP=t.totP||s.totP;t.record=t.record||s.record;};
-    files.forEach(function(f){if(f.type!=='stats')return;add(parseOneStatSheet(f.rowsText),'Sheet '+(++idx));});
-    if(pastedStats)add(parseOneStatSheet(pastedStats),'Pasted sheet');
-    return Object.keys(byTeam).map(function(k){var t=byTeam[k];t.hit=ScoutPacket.dedupeHitters(t.hit);return t;});}
+  function parseOneStatSheet(rowsText){return ScoutPacket.parseStatSheet(rowsText);}
+  function statTeams(){
+    var entries=[];
+    files.forEach(function(f){if(f.type!=='stats')return;entries.push({rowsText:f.rowsText||''});});
+    if(pastedStats)entries.push({rowsText:pastedStats});
+    return ScoutPacket.assembleStatTeams(entries);
+  }
   function opponentCore(){var core=null;files.forEach(function(f){if(core)return;if(f.type==='synergyHit'||f.type==='synergyPit'){var r=parseSynergy(f.rowsText);if(r.team)core=coreOf(r.team);}});return core;}
-  function rosterThrows(){var map={};files.forEach(function(f){if(f.type!=='roster')return;f.rowsText.split('\n').forEach(function(ln){var m=ln.match(/^(\d+)\s+.*?\b(LHP|RHP)\b/);if(m)map[m[1]]=(m[2]==='LHP'?'L':'R');});});return map;}
-  function rosterRows(){var out=[];files.forEach(function(f){if(f.type!=='roster')return;f.rowsText.split('\n').forEach(function(ln){if(/^\d+\s+\S/.test(ln))out.push(ln);});});return out;}
-  // B/T column, e.g. "R/R", "L/R", "S/R". Bats = first char, throws = second, keyed by jersey.
-  // Single parse of the column; suppressed (absent) when the player isn't on the uploaded
-  // roster — handedness is NEVER guessed or defaulted (SPEC).
-  function rosterBT(){var map={};rosterRows().forEach(function(ln){var m=ln.match(/^(\d+)\s+.*?\b([LRS])\/([LR])\b/);if(m)map[m[1]]={b:m[2],t:m[3]};});return map;}
-  // Bats-only view. Drives every platoon call in the Game Plan (§8-D) — and is the ONLY
-  // place our own hitters may be named (§8-B). Thin wrapper so rosterBT() stays the one parse.
-  function rosterBats(){var bt=rosterBT(),map={};Object.keys(bt).forEach(function(j){map[j]=bt[j].b;});return map;}
+  function rosterFiles(){return files.filter(function(f){return f.type==='roster';}).map(function(f){return {id:f.id,name:f.name,type:'roster',rowsText:f.rowsText||'',rosterTeam:f.rosterTeam||'',rosterLock:f.rosterLock||''};});}
+  function statTeamNames(){return statTeams().map(function(t){return t.team;});}
+  // Hands for one stat team only. Another team's same jersey is not consulted.
+  function handsBundle(teamName){return ScoutPacket.handsForTeam(rosterFiles(), teamName, statTeamNames());}
+  function handOn(teamName, num, statName){if(!teamName)return {bats:null,throws:null,reason:'missing'};return ScoutPacket.handFor(handsBundle(teamName), num, statName);}
+  function ourBatsMap(us){var map={};if(!us)return map;(us.hit||[]).forEach(function(h){var hand=handOn(us.team, h.num, h.name);if(hand.bats)map[h.num]=hand.bats;});return map;}
   // Header B/T label — full pair when both known, one side when only one is, '' when neither.
   // Never fills a missing side with a guess; an empty return means "don't show the chip".
   function btLabel(b,t){if(b&&t)return b+'/'+t;if(t)return '\u2013/'+t;if(b)return b+'/\u2013';return '';}
@@ -529,7 +520,7 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
   function fmtSlash(b){return (b&&b.avg!=null)?d3(b.avg)+'/'+d3(b.obp)+'/'+d3(b.slg):null;}
 
   function assembleHitters(){
-    var team=currentTeam()||{hit:[]};var idx=indexByKey(team.hit);var rep=synergyByPlayer('synergyHit');var bt=rosterBT();var out=[];
+    var team=currentTeam()||{hit:[]};var idx=indexByKey(team.hit);var rep=synergyByPlayer('synergyHit');var out=[];
     var maxSlg=0,teamSh=0;team.hit.forEach(function(s){var v=parseFloat(s.slg)||0;if(v>maxSlg)maxSlg=v;teamSh+=(s.sh||0);});
     Object.keys(rep).forEach(function(k){var r=rep[k],cs=idx[k]||{},ov=r.Overall||{mix:{},bip:{}};
       var nm=cs.name||r[Object.keys(r)[0]].name,last,first;
@@ -543,7 +534,8 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
           n:b.n!=null?b.n:null,avg:b.avg!=null?parseFloat(b.avg):null,obp:b.obp!=null?parseFloat(b.obp):null,slg:b.slg!=null?parseFloat(b.slg):null,gb:(rep2.bip||{}).gb});});
       var want=['Overall','vsFB','vsSL','vsCB','vsCH'];var missing=want.filter(function(s){return !r[s];});
       var mySlg=parseFloat(cs.slg)||0;
-      out.push({last:(last||'').toUpperCase(),first:first||'',jersey:cs.num||'?',bats:(bt[cs.num]||{}).b||null,throws:(bt[cs.num]||{}).t||null,
+      var hand=handOn(team.team, cs.num, cs.name||nm);
+      out.push({last:(last||'').toUpperCase(),first:first||'',jersey:cs.num||'?',bats:hand.bats||null,throws:hand.throws||null,
         slash:(cs.avg!=null?d3(cs.avg)+' / '+d3(cs.obp)+' / '+d3(cs.slg):'—'),
         counts:{hr:cs.hr||0,db:cs.db||0,k:cs.k||0,bb:cs.bb||0,sb:cs.sb||0,sh:cs.sh||0,gdp:(cs.gdp==null?null:cs.gdp)},
         chase:(ov.mix.Overall||{}).chase||0,obp:parseFloat(cs.obp)||0,avg:parseFloat(cs.avg)||0,
@@ -553,7 +545,7 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
     return out.sort(function(a,b){return b.pa-a.pa;});}
 
   function assemblePitchers(){
-    var team=currentTeam()||{pit:[]};var idx=indexByKey(team.pit);var rep=synergyByPlayer('synergyPit');var thr=rosterThrows();var bt=rosterBT();var out=[];
+    var team=currentTeam()||{pit:[]};var idx=indexByKey(team.pit);var rep=synergyByPlayer('synergyPit');var out=[];
     Object.keys(rep).forEach(function(k){var r=rep[k],cs=idx[k]||{},ov=r.Overall||{mix:{}};
       var nm=cs.name||r[Object.keys(r)[0]].name,last,first;
       if((cs.name||'').indexOf(' ')>=0){var p=cs.name.split(/\s+/);last=p[p.length-1];first=p.slice(0,-1).join(' ');}else if(nm.indexOf(',')>=0){last=nm.split(',')[0].trim();first=(nm.split(',')[1]||'').trim();}else last=nm;
@@ -562,7 +554,8 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
       var tkr=r.TwoK||{},tkmix=tkr.mix||null,twoStrike=null;
       if(tkmix){twoStrike=[];['Fastball','Sinker','Cutter','Slider','Curveball','Changeup','Splitter'].forEach(function(pp){var o=tkmix[pp];if(o&&o.usage!=null)twoStrike.push({p:pp,usage:o.usage,whiff:o.whiff});});twoStrike.sort(function(a,b){return b.usage-a.usage;});}
       var role='';
-      out.push({role:role,last:(last||'').toUpperCase(),first:first||'',jersey:cs.num||'?',throws:thr[cs.num]||(bt[cs.num]||{}).t||'?',bats:(bt[cs.num]||{}).b||null,
+      var hand=handOn(team.team, cs.num, cs.name||nm);
+      out.push({role:role,last:(last||'').toUpperCase(),first:first||'',jersey:cs.num||'?',throws:hand.throws||'?',bats:hand.bats||null,
         line:(cs.era!=null?cs.w+'–'+cs.l+', '+cs.era+' · '+cs.ip+' IP · '+cs.k+' K / '+cs.bb+' BB · '+cs.baa:'—'),
         counts:{hr:cs.hr||0,hbp:cs.hbp||0,wp:cs.wp||0,app:cs.app||0,gs:cs.gs||0,sv:cs.sv||0,ipRaw:cs.ip,era:cs.era},arsenal:ars,
         twoStrike:twoStrike,twoKAvg:(tkr.basic||{}).avg,
@@ -818,7 +811,7 @@ var TIERS=[{k:'SP',label:'Starters',badge:'STARTER'},
     var lowPower=bySlg[0]&&bySlg[0].hr<=5;
     return {list:pick,lowPower:lowPower};}
   function buildGamePlan(opp,us,P,base){
-    var bats=rosterBats(),mine=ourBats(us,bats),html='';
+    var bats=ourBatsMap(us),mine=ourBats(us,bats),html='';
     var oppName=cleanDisplayName(opp.team||'Opponent'),usName=cleanDisplayName(us&&us.team?us.team:'Us');
     // Same categories both sides, or it isn't a comparison (§6).
     var cu=cmpLine(us),co=cmpLine(opp);
@@ -939,21 +932,39 @@ var TIERS=[{k:'SP',label:'Starters',badge:'STARTER'},
   var upStatus=document.getElementById('upStatus'),triage=document.getElementById('triage'),inventory=document.getElementById('inventory'),teampick=document.getElementById('teampick'),reportsEl=document.getElementById('reports'),genStatus=document.getElementById('genStatus'),output=document.getElementById('output');
   function setStatus(el,k,m){el.className='status show '+k;el.textContent=m;}
   function countType(t){return files.filter(function(f){return f.type===t;}).length;}
-  function present(){return {synergyHit:countType('synergyHit'),synergyPit:countType('synergyPit'),roster:countType('roster'),stats:countType('stats')+(pastedStats?1:0)};}
+  function pastedCounts(){if(!pastedStats||!String(pastedStats).trim())return 0;var s=parseOneStatSheet(pastedStats);return ((s.hit&&s.hit.length)||(s.pit&&s.pit.length))?1:0;}
+  function present(){return {synergyHit:countType('synergyHit'),synergyPit:countType('synergyPit'),roster:countType('roster'),stats:countType('stats')+pastedCounts()};}
+  function escText(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function renderRosterNotes(){var el=document.getElementById('rosterNotes');if(!el)return;var notes=ScoutPacket.rosterNotices(rosterFiles(), statTeamNames());if(!notes.length){el.innerHTML='';return;}
+    el.innerHTML=notes.map(function(n){return '<p class="'+(n.level==='err'?'warn':'')+'">'+escText(n.text)+'</p>';}).join('');}
+  function rosterAssignRow(f){var box=document.createElement('div');box.className='roster-assign';
+    var names=statTeamNames();var eff=ScoutPacket.effectiveRosterTeam({type:'roster',rowsText:f.rowsText||'',rosterTeam:f.rosterTeam||'',rosterLock:f.rosterLock||''}, names);
+    var label=document.createElement('label');label.textContent='This roster belongs to';
+    var sel=document.createElement('select');sel.className='rteam';
+    var auto=document.createElement('option');auto.value='__auto__';auto.textContent='Use the team named in the file';if(f.rosterLock!=='user')auto.selected=true;sel.appendChild(auto);
+    var none=document.createElement('option');none.value='';none.textContent='Do not use these hands';if(f.rosterLock==='user'&&!f.rosterTeam)none.selected=true;sel.appendChild(none);
+    names.forEach(function(n){var o=document.createElement('option');o.value=n;o.textContent=n;if(f.rosterLock==='user'&&f.rosterTeam===n)o.selected=true;sel.appendChild(o);});
+    sel.addEventListener('change',function(){if(sel.value==='__auto__'){f.rosterLock='';f.rosterTeam='';}else{f.rosterLock='user';f.rosterTeam=sel.value;}renderTriage();});
+    var note=document.createElement('span');note.className='note';
+    if(!eff.team){box.className+=' warn';note.textContent=eff.status==='missing'?('Was for '+eff.missing+', which is not loaded. Hands are not used.'):(eff.status==='ambiguous'?'The name matches more than one team. Pick one. Hands are not used.':'No single team matched. Pick one. Hands are not used.');}
+    else note.textContent=(eff.status==='user'?'Using ':'Matched to ')+eff.team+'. Another team’s same jersey is not used.';
+    label.appendChild(sel);box.appendChild(label);box.appendChild(note);return box;}
   function renderTriage(){if(!files.length){triage.innerHTML='<p class="emptyfiles">Files you add will be listed here for review.</p>';renderReports();scheduleSessionSave();return;}
     triage.innerHTML='';files.forEach(function(f){var row=document.createElement('div');row.className='frow';
       var name=document.createElement('div');name.className='fname';name.innerHTML=f.name+'<span class="kind">'+(f.kind==='sheet'?'Excel':'PDF')+'</span><span class="conf">'+(f.type==='unknown'?'couldn\u2019t identify':'detected · '+f.conf)+'</span>';
       var sel=document.createElement('select');sel.className='ftype'+(f.type==='unknown'?' unknown':'');Object.keys(TYPES).forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=TYPES[k];if(k===f.type)o.selected=true;sel.appendChild(o);});
-      sel.addEventListener('change',function(){f.type=sel.value;sel.className='ftype'+(f.type==='unknown'?' unknown':'');renderReports();scheduleSessionSave();});
+      sel.addEventListener('change',function(){f.type=sel.value;sel.className='ftype'+(f.type==='unknown'?' unknown':'');renderReports();scheduleSessionSave();var probs=statFileProblems();if(probs.length)setStatus(upStatus,'err',probs.join(' '));});
       var view=document.createElement('button');view.className='iconbtn view';view.textContent='View';view.addEventListener('click',function(){inspect.rows=f.rowsText;inspect.raw=f.rawText;renderInspect();document.querySelector('details.inspector').open=true;});
       var del=document.createElement('button');del.className='iconbtn';del.innerHTML='&times;';del.addEventListener('click',function(){files=files.filter(function(x){return x.id!==f.id;});renderTriage();});
-      row.appendChild(name);row.appendChild(sel);row.appendChild(view);row.appendChild(del);triage.appendChild(row);});renderReports();scheduleSessionSave();}
+      row.appendChild(name);row.appendChild(sel);row.appendChild(view);row.appendChild(del);triage.appendChild(row);
+      if(f.type==='roster')triage.appendChild(rosterAssignRow(f));});renderReports();scheduleSessionSave();}
   function renderTeamPicker(){var teams=statTeams();if(teams.length<=0){teampick.innerHTML='';return;}var cur=currentTeam();
-    var opts=teams.map(function(t){return '<option value="'+t.team.replace(/"/g,'')+'"'+(t.team===cur.team?' selected':'')+'>'+t.team+' ('+t.hit.length+' batters)</option>';}).join('');
+    var opts=teams.map(function(t){var bits=t.hit.length+' batter'+(t.hit.length===1?'':'s')+(t.pit&&t.pit.length?(', '+t.pit.length+' pitcher'+(t.pit.length===1?'':'s')):'');return '<option value="'+t.team.replace(/"/g,'')+'"'+(t.team===cur.team?' selected':'')+'>'+t.team+' ('+bits+')</option>';}).join('');
     var others=teams.filter(function(t){return t.team!==cur.team;}).map(function(t){return t.team;});
     teampick.innerHTML='<div class="teampick"><span class="lbl">Scouting — team this report is about</span><select id="teamSel">'+opts+'</select>'+(others.length?'<p class="mine">Held aside for the gameplan: '+others.join(', ')+'</p>':'')+'</div>';
     document.getElementById('teamSel').addEventListener('change',function(){selectedTeam=this.value;renderReports();scheduleSessionSave();});}
   function renderReports(){var p=present();inventory.innerHTML='<span class="chip"><b>'+p.synergyHit+'</b> hitter</span><span class="chip"><b>'+p.synergyPit+'</b> pitcher</span><span class="chip"><b>'+p.roster+'</b> roster</span><span class="chip"><b>'+p.stats+'</b> stats</span>';
+    renderRosterNotes();
     renderTeamPicker();reportsEl.innerHTML='';
     REPORTS.forEach(function(r){var missing=r.needs.filter(function(n){return p[n]<=0;}).map(function(n){return NEED_LABEL[n];});
       if(r.extra)missing=missing.concat(r.extra());
@@ -973,15 +984,21 @@ var TIERS=[{k:'SP',label:'Starters',badge:'STARTER'},
     var q=chosen.reduce(function(ch,file){return ch.then(function(){var kind=kindOf(file.name);var pr=(kind==='sheet')?extractSheet(file):extractPdf(file);return pr.then(function(res){var c=classify(res.rows);files.push({id:nextId++,name:file.name,kind:kind,type:c.type,conf:c.conf,rowsText:res.rows,rawText:res.raw});}).catch(function(){files.push({id:nextId++,name:file.name,kind:kind,type:'unknown',conf:0,rowsText:'',rawText:'(could not read this file)'});});});},Promise.resolve());
     q.then(function(){selectedTeam=null;renderTriage();var u=countType('unknown');
       if(labelEl)labelEl.textContent=files.length+' file'+(files.length===1?'':'s')+' loaded';
-      if(u)setStatus(statusEl,'err','Loaded — '+u+' couldn\u2019t be identified. Set the type under Confirm.');
+      var probs=statFileProblems();
+      if(probs.length)setStatus(statusEl,'err',probs.join(' '));
+      else if(u)setStatus(statusEl,'err','Loaded — '+u+' couldn\u2019t be identified. Set the type under Confirm.');
       else setStatus(statusEl,'ok',doneMsg||'Loaded and sorted. Confirm types, then Build.');
     });
   }
+  function statFileProblems(){var msgs=[];
+    files.forEach(function(f){if(f.type!=='stats')return;var msg=ScoutPacket.statSheetProblem(ScoutPacket.parseStatSheet(f.rowsText||''));if(msg)msgs.push(f.name+': '+msg);});
+    if(pastedStats&&String(pastedStats).trim()){var pm=ScoutPacket.statSheetProblem(ScoutPacket.parseStatSheet(pastedStats));if(pm)msgs.push('Pasted stats: '+pm);}
+    return msgs;}
   document.getElementById('files').addEventListener('change',function(e){
     var chosen=Array.prototype.slice.call(e.target.files); e.target.value='';
     ingestChosen(chosen, upStatus, document.getElementById('addLabel'), 'Loaded. Confirm types — include your stats + roster for Game Plan — then Build.');
   });
-  document.getElementById('pasteBtn').addEventListener('click',function(){var v=document.getElementById('statPaste').value;if(!v.trim())return;pastedStats=v.replace(/\r/g,'');selectedTeam=null;renderReports();scheduleSessionSave();setStatus(genStatus,'ok','Pasted stats saved.');});
+  document.getElementById('pasteBtn').addEventListener('click',function(){var v=document.getElementById('statPaste').value;if(!v.trim())return;pastedStats=v.replace(/\r/g,'');selectedTeam=null;renderReports();scheduleSessionSave();var msg=ScoutPacket.statSheetProblem(ScoutPacket.parseStatSheet(pastedStats));if(msg)setStatus(genStatus,'err','Pasted stats: '+msg);else setStatus(genStatus,'ok','Pasted stats saved.');});
   var scb=document.getElementById('sessionClearBtn');
   if(scb) scb.addEventListener('click',function(){ if(confirm('Clear the saved session on this device?')) clearSavedSession(); });
   renderTriage();

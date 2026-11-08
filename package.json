@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "description": "Static site. pdfjs-dist is only here so tests can extract PDFs with the same PDF.js 3.11.174 the Press Box page loads.",
+  "devDependencies": {
+    "pdfjs-dist": "3.11.174"
+  }
+}
