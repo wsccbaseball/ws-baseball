@@ -353,8 +353,7 @@
     {id:'matrix',name:'Hitter Pitch Matrix',needs:['synergyHit'],build:'soon'},
     {id:'cards',name:'Hitter Index Cards',needs:['synergyHit','stats'],build:'soon'}];
   var NEED_LABEL={synergyHit:'hitter reports',synergyPit:'pitcher reports',roster:'roster',stats:'stat sheet'};
-  var PITCHES=['Fastball','Sinker','Cutter','Slider','Curveball','Changeup','Splitter','Four-Seam','Unknown'];
-  
+
 var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',selectedTeam=null;
   var SESSION_DB='pb_scouting_session_v1', SESSION_STORE='session', _saveTimer=null, _sessionMeta=null;
 
@@ -473,25 +472,11 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
     var wb=XLSX.read(new Uint8Array(r.result),{type:'array'});res({rows:wb.SheetNames.map(function(nm){return XLSX.utils.sheet_to_csv(wb.Sheets[nm]);}).join('\n'),raw:''});}catch(e){rej(e);}};r.onerror=rej;r.readAsArrayBuffer(file);});}
   function kindOf(name){return /\.(xlsx|xls|csv)$/i.test(name)?'sheet':'pdf';}
 
-  function intsOf(line){return line.split(/\s+/).filter(function(t){return /^\d+$/.test(t);}).map(Number);}
   function keyOf(name){return ScoutPacket.keyOf(name);}
   function d3(x){x=parseFloat(x);if(isNaN(x))return '—';return (x>=1?x.toFixed(3):x.toFixed(3).replace(/^0/,''));}
   function coreOf(name){return String(name||'').toLowerCase().replace(/[^a-z ]/g,' ').replace(/\s+/g,' ').trim().split(' ').slice(0,2).join(' ');}
 
-  function parseSynergy(rowsText){
-    var R=rowsText.split('\n').filter(function(l){return l.indexOf('=== PAGE')<0;});var txt=R.join('\n');
-    var role=/\bHitter:/.test(txt)?'hitter':(/\bPitcher:/.test(txt)?'pitcher':'?');
-    var nm=txt.match(/(?:Hitter|Pitcher):\s*([^,]+,\s*[^\-\n]+?)\s*-/);var name=nm?nm[1].trim():'?';
-    var tm=txt.match(/(?:Hitter|Pitcher):\s*[^-]+-\s*([^,\n]+?),\s*(?:19|20)\d{2}/);var team=tm?tm[1].trim():null;
-    var sub='Overall';var rules=[[/Pitch Type \/ Velocity:\s*Fastball/,'vsFB'],[/Pitch Type \/ Velocity:\s*Slider/,'vsSL'],[/Pitch Type \/ Velocity:\s*Curveball/,'vsCB'],[/Pitch Type \/ Velocity:\s*Changeup/,'vsCH'],[/BIP Zone:[\s\S]*?Infield/,'INF'],[/BIP Zone:[\s\S]*?Outfield/,'OF'],[/Count:\s*Pitcher Ahead/,'Ahead'],[/Count:\s*Hitter Ahead/,'Behind'],[/Count:\s*2\s*Strikes?/i,'TwoK'],[/Left\/Right:\s*LHH/,'vsLHH'],[/Left\/Right:\s*RHH/,'vsRHH']];
-    for(var i=0;i<rules.length;i++){if(rules[i][0].test(txt)){sub=rules[i][1];break;}}
-    var basic={};
-    for(var j=0;j<R.length;j++){var ln=R[j];var dec=ln.match(/\d*\.\d{3}/g);if(dec&&dec.length>=4&&ln.indexOf('AVG')<0){var ii=intsOf(ln);basic.avg=dec[dec.length-4];basic.obp=dec[dec.length-3];basic.slg=dec[dec.length-2];basic.ops=dec[dec.length-1];if(ii.length>=4){basic.n=ii[0];basic.bb=ii[1];basic.k=ii[3];}break;}}
-    for(var j2=0;j2<R.length;j2++){var l2=R[j2];if(/^\d+ \d+ \d+/.test(l2)&&l2.indexOf('%')<0&&l2.indexOf('Events')<0){var ii2=intsOf(l2);if(ii2.length>=11){basic.xbh=ii2[7]+ii2[8]+ii2[9];basic.hr=ii2[9];break;}}}
-    var mix={};var re=new RegExp('^(Overall|'+PITCHES.join('|')+')\\s*\\(([-\\d.]+)\\)\\s+(.*)$');
-    R.forEach(function(ln){var m=ln.match(re);if(!m)return;var pcts=(m[3].match(/(\d+)%/g)||[]).map(function(p){return parseInt(p,10);});if(pcts.length>=6)mix[m[1]]={velo:m[2],usage:pcts[0],whiff:pcts[4],chase:pcts[5]};});
-    var bip={};[['Ground Ball','gb'],['Fly Ball','fb'],['Line Drive','ld']].forEach(function(p){var mm=txt.match(new RegExp(p[0]+'\\s+\\d+\\s+(\\d+)%'));if(mm)bip[p[1]]=parseInt(mm[1],10);});
-    return {role:role,name:name,team:team,sub:sub,basic:basic,mix:mix,bip:bip};}
+  function parseSynergy(rowsText){return ScoutPacket.parseSynergy(rowsText);}
 
   function parseOneStatSheet(rowsText){return ScoutPacket.parseStatSheet(rowsText);}
   function statTeams(){
@@ -545,7 +530,7 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
     return out.sort(function(a,b){return b.pa-a.pa;});}
 
   function assemblePitchers(){
-    var team=currentTeam()||{pit:[]};var idx=indexByKey(team.pit);var rep=synergyByPlayer('synergyPit');var out=[];
+    var team=currentTeam()||{pit:[]};var idx=indexByKey(team.pit);var rep=synergyByPlayer('synergyPit');var rosterPlayers=(handsBundle(team.team).players)||[];var out=[];
     Object.keys(rep).forEach(function(k){var r=rep[k],cs=idx[k]||{},ov=r.Overall||{mix:{}};
       var nm=cs.name||r[Object.keys(r)[0]].name,last,first;
       if((cs.name||'').indexOf(' ')>=0){var p=cs.name.split(/\s+/);last=p[p.length-1];first=p.slice(0,-1).join(' ');}else if(nm.indexOf(',')>=0){last=nm.split(',')[0].trim();first=(nm.split(',')[1]||'').trim();}else last=nm;
@@ -554,8 +539,11 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
       var tkr=r.TwoK||{},tkmix=tkr.mix||null,twoStrike=null;
       if(tkmix){twoStrike=[];['Fastball','Sinker','Cutter','Slider','Curveball','Changeup','Splitter'].forEach(function(pp){var o=tkmix[pp];if(o&&o.usage!=null)twoStrike.push({p:pp,usage:o.usage,whiff:o.whiff});});twoStrike.sort(function(a,b){return b.usage-a.usage;});}
       var role='';
+      // Hands stay on the pitching-sheet number. A roster fallback fills the
+      // missing jersey only — it does not invent B/T, and it does not add a
+      // card for an arm who has no Synergy pitcher file.
       var hand=handOn(team.team, cs.num, cs.name||nm);
-      out.push({role:role,last:(last||'').toUpperCase(),first:first||'',jersey:cs.num||'?',throws:hand.throws||'?',bats:hand.bats||null,
+      out.push({role:role,last:(last||'').toUpperCase(),first:first||'',jersey:ScoutPacket.pitcherJersey(cs.num, rosterPlayers, cs.name||nm),throws:hand.throws||'?',bats:hand.bats||null,
         line:(cs.era!=null?cs.w+'–'+cs.l+', '+cs.era+' · '+cs.ip+' IP · '+cs.k+' K / '+cs.bb+' BB · '+cs.baa:'—'),
         counts:{hr:cs.hr||0,hbp:cs.hbp||0,wp:cs.wp||0,app:cs.app||0,gs:cs.gs||0,sv:cs.sv||0,ipRaw:cs.ip,era:cs.era},arsenal:ars,
         twoStrike:twoStrike,twoKAvg:(tkr.basic||{}).avg,
@@ -592,9 +580,9 @@ var files=[],pastedStats='',nextId=1,inspect={rows:'',raw:''},mode='rows',select
     return disc+battedBallTrait(h)+'<b>'+h.counts.hr+' HR, '+h.counts.db+' 2B, '+h.counts.k+' K, '+h.counts.bb+' BB, '+h.counts.sb+' SB.</b>';
   }
   function hasSlg(h){return h.mix.some(function(m){return m.slg!=null;});}
-  // Sample gate: parseSynergy stores slash-line leading int as basic.n (AB/PA-eq; mix has no pitch-N). Danger/OF-deep need n>=8; if n absent, usage!=null may list Danger but color language stays off.
-  function mixN(m){return m.n!=null?m.n:(m.pitches!=null?m.pitches:(m.pa!=null?m.pa:(m.ab!=null?m.ab:null)));}
-  function mixDangerEligible(m){var n=mixN(m);if(n!=null)return n>=8;return m.usage!=null;}
+  // Sample gate: basic.n is AB (else PA) on the two-row Synergy sheet, or the slash row's leading int on older sheets. ROE is not a sample. Danger/OF-deep need n>=8; if n is absent, usage may name the pitch but color language stays off.
+  function mixN(m){return ScoutPacket.mixSampleN(m);}
+  function mixDangerEligible(m){return ScoutPacket.mixDangerEligible(m);}
   function mixColorOk(m){var n=mixN(m);return n!=null&&n>=8;}
   function outLine(h){if(!hasSlg(h))return 'Per-pitch slash data not uploaded — add the vs-FB/SL/CB/CH files for the out read.';
     var weak=h.mix.filter(function(m){return m.slg!=null&&m.slg<.350;}).slice().sort(function(a,b){return a.slg-b.slg;});
