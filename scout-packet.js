@@ -801,6 +801,182 @@
     return { type: 'unknown', conf: 0 };
   }
 
+  var SYNERGY_PITCHES = ['Fastball', 'Sinker', 'Cutter', 'Slider', 'Curveball', 'Changeup', 'Splitter', 'Four-Seam', 'Unknown'];
+
+  function intsOf(line) {
+    return String(line || '').split(/\s+/).filter(function (t) { return /^\d+$/.test(t); }).map(Number);
+  }
+
+  function headerTokens(line) {
+    return String(line || '').trim().split(/\s+/).filter(function (t) {
+      return t && !/^\([^)]*\)$/.test(t);
+    });
+  }
+
+  function lineAbove(lines, idx) {
+    for (var i = idx - 1; i >= 0; i--) {
+      if (String(lines[i]).trim()) return lines[i];
+    }
+    return '';
+  }
+
+  function columnIndex(tokens, name) {
+    var want = String(name).toLowerCase();
+    for (var i = 0; i < tokens.length; i++) {
+      if (String(tokens[i]).toLowerCase() === want) return i;
+    }
+    return -1;
+  }
+
+  // Current Synergy Basic Statistics is two rows. The slash row is
+  // ROE BB IBB K HBP SH SF AVG OBP SLG OPS, so its first integer is
+  // reached-on-error, not the sample. The counting row above is
+  // Events G PA (BF) AB BIP H 1B 2B 3B HR RBI. SLG is an at-bat rate,
+  // so the sample is AB when that column is on the header, otherwise PA.
+  // Older sheets still lead the slash row with the sample (AB or PA),
+  // then BB, then K as the fourth integer. That leading integer stays.
+  function slashLeadsWithRoe(lines, slashIdx) {
+    var tokens = headerTokens(lineAbove(lines, slashIdx));
+    if (!tokens.length || String(tokens[0]).toLowerCase() !== 'roe') return false;
+    return tokens.some(function (t) {
+      var x = String(t).toLowerCase();
+      return x === 'avg' || x === 'obp' || x === 'slg' || x === 'ops' || x === 'bb';
+    });
+  }
+
+  function countingSample(lines, countIdx) {
+    var nums = intsOf(lines[countIdx]);
+    var tokens = headerTokens(lineAbove(lines, countIdx));
+    var ab = columnIndex(tokens, 'AB');
+    var pa = columnIndex(tokens, 'PA');
+    if (ab >= 0 && ab < nums.length) return nums[ab];
+    if (pa >= 0 && pa < nums.length) return nums[pa];
+    // Header names Events but not AB/PA (a clipped "PA (BF)" line). The
+    // counting row the XBH parser already uses is Events G PA AB ... HR.
+    if (columnIndex(tokens, 'Events') >= 0 && nums.length >= 4) return nums[3];
+    return null;
+  }
+
+  function parseSynergy(rowsText) {
+    var R = String(rowsText || '').split('\n').filter(function (l) { return l.indexOf('=== PAGE') < 0; });
+    var txt = R.join('\n');
+    var role = /\bHitter:/.test(txt) ? 'hitter' : (/\bPitcher:/.test(txt) ? 'pitcher' : '?');
+    var nm = txt.match(/(?:Hitter|Pitcher):\s*([^,]+,\s*[^\-\n]+?)\s*-/);
+    var name = nm ? nm[1].trim() : '?';
+    var tm = txt.match(/(?:Hitter|Pitcher):\s*[^-]+-\s*([^,\n]+?),\s*(?:19|20)\d{2}/);
+    var team = tm ? tm[1].trim() : null;
+    var sub = 'Overall';
+    var rules = [
+      [/Pitch Type \/ Velocity:\s*Fastball/, 'vsFB'],
+      [/Pitch Type \/ Velocity:\s*Slider/, 'vsSL'],
+      [/Pitch Type \/ Velocity:\s*Curveball/, 'vsCB'],
+      [/Pitch Type \/ Velocity:\s*Changeup/, 'vsCH'],
+      [/BIP Zone:[\s\S]*?Infield/, 'INF'],
+      [/BIP Zone:[\s\S]*?Outfield/, 'OF'],
+      [/Count:\s*Pitcher Ahead/, 'Ahead'],
+      [/Count:\s*Hitter Ahead/, 'Behind'],
+      [/Count:\s*2\s*Strikes?/i, 'TwoK'],
+      [/Left\/Right:\s*LHH/, 'vsLHH'],
+      [/Left\/Right:\s*RHH/, 'vsRHH']
+    ];
+    for (var i = 0; i < rules.length; i++) {
+      if (rules[i][0].test(txt)) { sub = rules[i][1]; break; }
+    }
+    var basic = {};
+    var slashIdx = -1;
+    for (var j = 0; j < R.length; j++) {
+      var ln = R[j];
+      var dec = ln.match(/\d*\.\d{3}/g);
+      if (dec && dec.length >= 4 && ln.indexOf('AVG') < 0) {
+        var ii = intsOf(ln);
+        basic.avg = dec[dec.length - 4];
+        basic.obp = dec[dec.length - 3];
+        basic.slg = dec[dec.length - 2];
+        basic.ops = dec[dec.length - 1];
+        if (ii.length >= 4) {
+          basic.n = ii[0];
+          basic.bb = ii[1];
+          basic.k = ii[3];
+        }
+        slashIdx = j;
+        break;
+      }
+    }
+    var countIdx = -1;
+    for (var j2 = 0; j2 < R.length; j2++) {
+      var l2 = R[j2];
+      if (/^\d+ \d+ \d+/.test(l2) && l2.indexOf('%') < 0 && l2.indexOf('Events') < 0) {
+        var ii2 = intsOf(l2);
+        if (ii2.length >= 11) {
+          basic.xbh = ii2[7] + ii2[8] + ii2[9];
+          basic.hr = ii2[9];
+          countIdx = j2;
+          break;
+        }
+      }
+    }
+    if (slashIdx >= 0 && slashLeadsWithRoe(R, slashIdx)) {
+      var sample = countIdx >= 0 ? countingSample(R, countIdx) : null;
+      if (sample != null) basic.n = sample;
+      else delete basic.n;
+    }
+    var mix = {};
+    var re = new RegExp('^(Overall|' + SYNERGY_PITCHES.join('|') + ')\\s*\\(([-\\d.]+)\\)\\s+(.*)$');
+    R.forEach(function (line) {
+      var m = line.match(re);
+      if (!m) return;
+      var pcts = (m[3].match(/(\d+)%/g) || []).map(function (p) { return parseInt(p, 10); });
+      if (pcts.length >= 6) mix[m[1]] = { velo: m[2], usage: pcts[0], whiff: pcts[4], chase: pcts[5] };
+    });
+    var bip = {};
+    [['Ground Ball', 'gb'], ['Fly Ball', 'fb'], ['Line Drive', 'ld']].forEach(function (p) {
+      var mm = txt.match(new RegExp(p[0] + '\\s+\\d+\\s+(\\d+)%'));
+      if (mm) bip[p[1]] = parseInt(mm[1], 10);
+    });
+    return { role: role, name: name, team: team, sub: sub, basic: basic, mix: mix, bip: bip };
+  }
+
+  // Same n the hitter book uses for Danger and the whiff/chase color line.
+  // A present n must clear 8. A missing n may still name the pitch when
+  // usage was parsed; the page keeps the color language off in that case.
+  function mixSampleN(m) {
+    return m.n != null ? m.n : (m.pitches != null ? m.pitches : (m.pa != null ? m.pa : (m.ab != null ? m.ab : null)));
+  }
+
+  function mixDangerEligible(m) {
+    var n = mixSampleN(m);
+    if (n != null) return n >= 8;
+    return m.usage != null;
+  }
+
+  // Jersey from one team's roster players only. The caller passes that
+  // team's list, so another team's same number is never in the search.
+  // Two roster rows that share a last name and first initial and disagree
+  // on the number yield nothing — the book prints #? rather than guess.
+  function rosterNumberFor(players, name) {
+    if (!name) return null;
+    var k = keyOf(name);
+    var num = null;
+    var list = players || [];
+    for (var i = 0; i < list.length; i++) {
+      var p = list[i];
+      if (!p || p.num == null || !p.name) continue;
+      var jersey = String(p.num).trim();
+      if (!jersey) continue;
+      if (keyOf(p.name) !== k) continue;
+      if (num != null && num !== jersey) return null;
+      num = jersey;
+    }
+    return num;
+  }
+
+  // Official pitching-sheet number wins. Otherwise the roster number for
+  // this name. Does not look at bats or throws.
+  function pitcherJersey(officialNum, rosterPlayers, name) {
+    if (officialNum != null && String(officialNum).trim() !== '') return String(officialNum).trim();
+    return rosterNumberFor(rosterPlayers, name) || '?';
+  }
+
   return {
     keyOf: keyOf,
     hitterPA: hitterPA,
@@ -818,6 +994,11 @@
     effectiveRosterTeam: effectiveRosterTeam,
     handsForTeam: handsForTeam,
     handFor: handFor,
-    rosterNotices: rosterNotices
+    rosterNotices: rosterNotices,
+    parseSynergy: parseSynergy,
+    mixSampleN: mixSampleN,
+    mixDangerEligible: mixDangerEligible,
+    rosterNumberFor: rosterNumberFor,
+    pitcherJersey: pitcherJersey
   };
 });
