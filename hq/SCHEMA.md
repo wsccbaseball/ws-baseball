@@ -28,3 +28,9 @@ Do not re-apply the migration unless you are resetting a fresh project.
 RLS matches the other `hq_*` tables: enabled, with a single open `anon` `ALL` policy (`using (true)` / `with check (true)`). Grants match too: `anon` select/insert/update/delete; `authenticated` and `service_role` full table privileges.
 
 The player page still loads if this table is missing. The weekly fields stay blank and save explains that storage is not there yet. Dev plans, assignments, practice, and logs are unchanged.
+
+## Not applied yet: knowledge search
+
+`hq/migrations/20261116183000_hq_knowledge_search.sql` adds `pg_trgm` in the `extensions` schema, a trigram index over summary + source text + tags, a tag index, a `(created_at, id)` index, and `hq_search_knowledge`. Run that file in the Supabase SQL editor. It does not insert, update, or delete knowledge rows.
+
+The Knowledge page already searches the whole table through the API. After the file is run, the page calls `hq_search_knowledge` (same rules: case-insensitive, spaces and hyphens match, exact tag chip on top, 25 rows at a time). Reload the API schema if the editor does not; the file ends with `notify pgrst, 'reload schema'`.

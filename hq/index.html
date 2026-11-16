@@ -336,6 +336,81 @@
     .toast.show { opacity: 1; }
     .loading { text-align: center; color: var(--muted); padding: 20px; }
 
+    .k-toolbar {
+      position: sticky;
+      top: 49px;
+      z-index: 30;
+      background: var(--bg);
+      margin: 0 -14px 8px;
+      padding: 4px 14px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .k-search {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+    .k-search input {
+      flex: 1;
+      min-width: 0;
+      width: 100%;
+      font-size: 16px;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--input-border);
+      background: var(--surface);
+      color: var(--text);
+    }
+    .k-search .btn {
+      width: auto;
+      flex: 0 0 auto;
+      min-height: 44px;
+      padding: 0 14px;
+    }
+    .k-chips {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 8px 0 2px;
+      scrollbar-width: none;
+    }
+    .k-chips::-webkit-scrollbar { display: none; }
+    .k-chips button {
+      flex: 0 0 auto;
+      min-height: 40px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    .k-chips button.active {
+      background: var(--navy);
+      border-color: var(--navy);
+      color: #fff;
+    }
+    .k-count { margin: 4px 0 0; }
+    .k-more { text-align: center; padding: 8px 0 12px; }
+    button.chip.k-tag {
+      border: none;
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 4px 8px;
+    }
+    .k-card h3, .k-card p { overflow-wrap: anywhere; }
+    .k-search input:focus-visible,
+    .k-chips button:focus-visible,
+    .k-tag:focus-visible {
+      outline: 2px solid var(--navy);
+      outline-offset: 2px;
+    }
+
   </style>
 </head>
 <body>
@@ -366,6 +441,7 @@
   <div class="toast" id="toast"></div>
 
   <script src="./weekly.js"></script>
+  <script src="./knowledge-search.js"></script>
   <script>
 (function () {
   const SUPA_URL = 'https://mghrapwhvihpwgqryail.supabase.co';
@@ -385,7 +461,19 @@
     playerTab: 'hitting',
     recruitFilter: { grad_year: '2027', commit: '', q: '' },
     rosterFilter: { q: '' },
+    knowledgeFilter: { q: '', tag: '' },
   };
+  let viewToken = 0;
+  let knowledgeToken = 0;
+  let knowledgeObserver = null;
+  let knowledgeTimer = null;
+  let knowledgeOffset = 0;
+  let knowledgeDone = false;
+  let knowledgeFlight = 0;
+  let knowledgeRpcAvailable = true;
+  let knowledgeTagsPromise = null;
+  let knowledgeTallied = [];
+  let knowledgeTagNames = [];
 
   function toast(msg) {
     const t = $('#toast');
@@ -493,6 +581,14 @@
   }
 
   async function render() {
+    viewToken += 1;
+    knowledgeToken += 1;
+    clearTimeout(knowledgeTimer);
+    if (knowledgeObserver) {
+      knowledgeObserver.disconnect();
+      knowledgeObserver = null;
+    }
+    const token = viewToken;
     const main = $('#main');
     main.innerHTML = '<div class="loading">Loading…</div>';
     try {
@@ -502,7 +598,7 @@
       else if (state.route === 'roster') await renderRoster(main);
       else if (state.route === 'player-detail') await renderPlayerDetail(main);
       else if (state.route === 'practice') await renderPractice(main);
-      else if (state.route === 'knowledge') await renderKnowledge(main);
+      else if (state.route === 'knowledge') await renderKnowledge(main, token);
       else main.innerHTML = '<div class="empty">Unknown screen</div>';
     } catch (e) {
       console.error(e);
@@ -1147,24 +1243,242 @@
   }
 
   /* ——— Knowledge ——— */
-  async function renderKnowledge(main) {
-    const { data, error } = await sb.from('hq_knowledge_items').select('*').order('created_at', { ascending: false }).limit(50);
+  const knowledgeSearch = () => window.WSKnowledgeSearch;
+
+  function knowledgeCard(k) {
+    const tags = Array.isArray(k.tags)
+      ? k.tags
+      : (typeof k.tags === 'string' && k.tags ? String(k.tags).split(',') : []);
+    const tagHtml = tags.map((t) => {
+      const tag = String(t || '').trim();
+      if (!tag) return '';
+      return `<button type="button" class="chip k-tag" data-tag="${esc(tag)}">${esc(tag)}</button>`;
+    }).join('');
+    const text = k.source_text == null ? '' : String(k.source_text);
+    const preview = text.length > 280 ? `${esc(text.slice(0, 280))}…` : esc(text);
+    return `<article class="card k-card">
+      <h3>${esc(k.summary || k.source_url || 'Item')}</h3>
+      ${tagHtml ? `<div class="meta">${tagHtml}</div>` : ''}
+      ${k.source_url ? `<p><a href="${esc(k.source_url)}" target="_blank" rel="noopener">Source</a></p>` : ''}
+      ${text ? `<p class="meta" style="margin-top:6px;white-space:pre-wrap">${preview}</p>` : ''}
+    </article>`;
+  }
+
+  function paintKnowledgeChips() {
+    const row = $('#k-chips');
+    if (!row) return;
+    const selected = state.knowledgeFilter.tag || '';
+    const chips = knowledgeSearch().chipTags(knowledgeTallied, knowledgeSearch().CHIP_LIMIT, selected);
+    const button = (tag, label, on) =>
+      `<button type="button" class="${on ? 'active' : ''}" data-tag="${esc(tag)}" aria-pressed="${on ? 'true' : 'false'}">${esc(label)}</button>`;
+    row.innerHTML = button('', 'All', !selected) + chips.map((chip) => button(chip.tag, chip.tag, chip.tag === selected)).join('');
+  }
+
+  function syncKnowledgeChips() {
+    const row = $('#k-chips');
+    if (!row) return;
+    const selected = state.knowledgeFilter.tag || '';
+    const buttons = [...row.querySelectorAll('button')];
+    const has = !selected || buttons.some((btn) => (btn.dataset.tag || '') === selected);
+    if (!has) {
+      paintKnowledgeChips();
+      return;
+    }
+    buttons.forEach((btn) => {
+      const on = (btn.dataset.tag || '') === selected;
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
+  function syncKnowledgeClear() {
+    const btn = $('#k-clear');
+    const input = $('#k-q');
+    if (!btn) return;
+    const q = (input ? input.value : state.knowledgeFilter.q).trim();
+    btn.classList.toggle('hidden', !(q || state.knowledgeFilter.tag));
+  }
+
+  function setKnowledgeTag(tag) {
+    const next = tag || '';
+    state.knowledgeFilter.tag = next && next === state.knowledgeFilter.tag ? '' : next;
+    syncKnowledgeChips();
+    syncKnowledgeClear();
+    reloadKnowledge();
+  }
+
+  async function loadKnowledgeTagRows() {
+    const pageSize = 1000;
+    const rows = [];
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await sb.from('hq_knowledge_items').select('tags').range(from, from + pageSize - 1);
+      if (error) throw error;
+      const batch = data || [];
+      rows.push(...batch);
+      if (batch.length < pageSize) break;
+    }
+    return rows;
+  }
+
+  function ensureKnowledgeTags() {
+    if (!knowledgeTagsPromise) {
+      knowledgeTagsPromise = loadKnowledgeTagRows().then((rows) => {
+        knowledgeTallied = knowledgeSearch().tallyTags(rows);
+        knowledgeTagNames = knowledgeTallied.map((chip) => chip.tag);
+        return knowledgeTallied;
+      }).catch((err) => {
+        knowledgeTagsPromise = null;
+        console.error(err);
+        knowledgeTallied = [];
+        knowledgeTagNames = [];
+        return [];
+      });
+    }
+    return knowledgeTagsPromise;
+  }
+
+  async function queryKnowledge(q, tag, offset) {
+    const api = knowledgeSearch();
+    if (knowledgeRpcAvailable) {
+      const { data, error } = await sb.rpc('hq_search_knowledge', {
+        q: q || '',
+        tag: tag || '',
+        page_limit: api.PAGE_SIZE,
+        page_offset: offset,
+      });
+      if (!error) return api.normalizeKnowledgeResult(data);
+      if (!api.isMissingKnowledgeRpc(error)) throw error;
+      knowledgeRpcAvailable = false;
+    }
+    await ensureKnowledgeTags();
+    let query = sb.from('hq_knowledge_items')
+      .select('id,source_url,source_text,summary,tags,linked_player_id,created_at', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false });
+    if (tag) query = query.filter('tags', 'cs', api.tagContainsFilter(tag));
+    const orFilter = api.knowledgeOrFilter(q, knowledgeTagNames);
+    if (orFilter) query = query.or(orFilter);
+    const { data, error, count } = await query.range(offset, offset + api.PAGE_SIZE - 1);
     if (error) throw error;
-    const list = data || [];
+    return {
+      items: data || [],
+      total: typeof count === 'number' ? count : (data || []).length,
+    };
+  }
+
+  function maybeFillKnowledge() {
+    if (knowledgeDone || knowledgeFlight === knowledgeToken) return;
+    const sentinel = $('#k-sentinel');
+    if (!sentinel) return;
+    const rect = sentinel.getBoundingClientRect();
+    if (rect.top <= window.innerHeight + 280) fetchKnowledge();
+  }
+
+  async function fetchKnowledge() {
+    const token = knowledgeToken;
+    if (knowledgeDone || token !== knowledgeToken) return;
+    if (knowledgeFlight === token) return;
+    knowledgeFlight = token;
+    const offset = knowledgeOffset;
+    const q = state.knowledgeFilter.q || '';
+    const tag = state.knowledgeFilter.tag || '';
+    const more = $('#k-more');
+    if (more && offset > 0) {
+      more.hidden = false;
+      more.textContent = 'Loading more…';
+    }
+    try {
+      const result = await queryKnowledge(q, tag, offset);
+      if (token !== knowledgeToken) return;
+      const list = $('#k-list');
+      if (!list) return;
+      if (!result.items.length && offset === 0) {
+        const filtering = !!(String(q).trim() || tag);
+        list.innerHTML = filtering
+          ? `<div class="empty"><strong>No notes match</strong>Try another word, or clear the filter.</div>`
+          : `<div class="empty"><strong>No knowledge items yet — add one</strong>Clip articles, drills, and cues.</div>`;
+      } else if (result.items.length) {
+        list.insertAdjacentHTML('beforeend', result.items.map(knowledgeCard).join(''));
+      }
+      knowledgeOffset = offset + result.items.length;
+      knowledgeDone = result.items.length === 0 || knowledgeOffset >= result.total;
+      const count = $('#k-count');
+      if (count) count.textContent = knowledgeSearch().noteCountLabel(result.total);
+      if (more) {
+        more.hidden = true;
+        more.textContent = '';
+      }
+    } catch (err) {
+      if (token !== knowledgeToken) return;
+      knowledgeDone = true;
+      const list = $('#k-list');
+      if (offset === 0 && list) {
+        list.innerHTML = `<div class="empty"><strong>Search didn’t load</strong>${esc(err.message || err)}</div>`;
+      } else if (more) {
+        more.hidden = false;
+        more.textContent = 'Couldn’t load more.';
+      }
+      const count = $('#k-count');
+      if (count && offset === 0) count.textContent = 'Search didn’t load';
+      toast(err.message || 'Search failed');
+    } finally {
+      if (knowledgeFlight === token) knowledgeFlight = 0;
+    }
+    if (token === knowledgeToken && !knowledgeDone) {
+      requestAnimationFrame(() => requestAnimationFrame(maybeFillKnowledge));
+    }
+  }
+
+  function reloadKnowledge() {
+    knowledgeToken += 1;
+    knowledgeOffset = 0;
+    knowledgeDone = false;
+    knowledgeFlight = 0;
+    const input = $('#k-q');
+    const keepFocus = input && document.activeElement === input;
+    const caret = keepFocus ? input.selectionStart : null;
+    const list = $('#k-list');
+    if (list) list.innerHTML = '';
+    const count = $('#k-count');
+    if (count) count.textContent = 'Searching…';
+    const more = $('#k-more');
+    if (more) {
+      more.hidden = true;
+      more.textContent = '';
+    }
+    window.scrollTo(0, 0);
+    if (keepFocus) {
+      input.focus();
+      if (caret != null) input.setSelectionRange(caret, caret);
+    }
+    fetchKnowledge();
+  }
+
+  function watchKnowledgeScroll() {
+    const sentinel = $('#k-sentinel');
+    if (!sentinel || knowledgeObserver) return;
+    knowledgeObserver = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) fetchKnowledge();
+    }, { root: null, rootMargin: '280px 0px', threshold: 0 });
+    knowledgeObserver.observe(sentinel);
+  }
+
+  async function renderKnowledge(main, token) {
+    if (token !== viewToken) return;
+    const q = state.knowledgeFilter.q || '';
     main.innerHTML = `
       <div class="section-title"><h2>Knowledge</h2></div>
-      ${list.length ? list.map((k) => `
-        <div class="card">
-          <h3>${esc(k.summary || k.source_url || 'Item')}</h3>
-          <div class="meta">
-            ${(k.tags || []).length || (typeof k.tags === 'string' && k.tags)
-              ? (Array.isArray(k.tags) ? k.tags : String(k.tags).split(',')).map((t) => `<span class="chip">${esc(String(t).trim())}</span>`).join('')
-              : ''}
-          </div>
-          ${k.source_url ? `<p><a href="${esc(k.source_url)}" target="_blank" rel="noopener">Source</a></p>` : ''}
-          ${k.source_text ? `<p class="meta" style="margin-top:6px;white-space:pre-wrap">${esc(k.source_text).slice(0, 280)}${String(k.source_text).length > 280 ? '…' : ''}</p>` : ''}
+      <div class="k-toolbar">
+        <div class="k-search">
+          <input id="k-q" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Search notes, tags, drills…" aria-label="Search knowledge" value="${esc(q)}" />
+          <button type="button" class="btn sm secondary hidden" id="k-clear">Clear</button>
         </div>
-      `).join('') : `<div class="empty"><strong>No knowledge items yet — add one</strong>Clip articles, drills, and cues.</div>`}
+        <div class="k-chips" id="k-chips" role="group" aria-label="Filter by tag"></div>
+        <p class="k-count meta" id="k-count" aria-live="polite">Searching…</p>
+      </div>
+      <div id="k-list"></div>
+      <p class="k-more meta" id="k-more" hidden></p>
+      <div id="k-sentinel" aria-hidden="true"></div>
       <div class="card">
         <h3>Add item</h3>
         <form class="form-grid" id="add-knowledge">
@@ -1176,6 +1490,44 @@
         </form>
       </div>
     `;
+    if (token !== viewToken) return;
+    paintKnowledgeChips();
+    syncKnowledgeClear();
+    const input = $('#k-q');
+    input.addEventListener('input', () => {
+      syncKnowledgeClear();
+      clearTimeout(knowledgeTimer);
+      knowledgeTimer = setTimeout(() => {
+        state.knowledgeFilter.q = input.value;
+        reloadKnowledge();
+      }, 250);
+    });
+    input.addEventListener('search', () => {
+      clearTimeout(knowledgeTimer);
+      state.knowledgeFilter.q = input.value;
+      syncKnowledgeClear();
+      reloadKnowledge();
+    });
+    $('#k-clear').addEventListener('click', () => {
+      clearTimeout(knowledgeTimer);
+      state.knowledgeFilter.q = '';
+      state.knowledgeFilter.tag = '';
+      input.value = '';
+      syncKnowledgeChips();
+      syncKnowledgeClear();
+      reloadKnowledge();
+      input.focus();
+    });
+    $('#k-chips').addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      setKnowledgeTag(btn.dataset.tag || '');
+    });
+    $('#k-list').addEventListener('click', (e) => {
+      const btn = e.target.closest('.k-tag');
+      if (!btn) return;
+      setKnowledgeTag(btn.dataset.tag || '');
+    });
     $('#add-knowledge').addEventListener('submit', async (e) => {
       e.preventDefault();
       const fd = new FormData(e.target);
@@ -1193,6 +1545,12 @@
       e.target.reset();
       render();
     });
+    watchKnowledgeScroll();
+    ensureKnowledgeTags().then(() => {
+      if (token !== viewToken || !$('#k-chips')) return;
+      paintKnowledgeChips();
+    });
+    reloadKnowledge();
   }
 
   /* boot */

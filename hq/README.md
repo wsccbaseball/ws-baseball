@@ -51,7 +51,7 @@ Schema migration already applied: **`hq_mvp_schema`**.
 | **Recruits** | Default year **2027**; title `Recruits · 2027 · N`; year/commit filters + **name search**; add form writes `high_school`; detail + touches |
 | **Roster** | Active players with **search**; pos / throws / bats chips; empty “import pending” only when roster is empty; add player; detail tabs (Hitting/Pitching, Throwing, S&C, Notes), throw log, assign |
 | **Practice** | Today’s practice day create/edit |
-| **Knowledge** | List + add clippings |
+| **Knowledge** | Search every note (summary, text, tags), tag chips, scroll for more, add clippings |
 
 **Player page** (`player.html`): link back to `./index.html` Staff HQ, dropdown + tappable list of active players (not real auth). Shows that player’s plans, assignments, today’s practice, and recent logs. Staff can edit the weekly plan, review notes, and Mon–Sun planned throw counts for the selected week. The same block is on the roster player screen in `index.html`. Rows live in `hq_weekly_plans` (migration in `hq/migrations/`, not applied yet — the page stays up with a blank week until it is).
 
